@@ -644,7 +644,7 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
               _buildTextField(
                 label: 'Remarks :',
                 controller: descriptionController,
-                hint: 'Add Comments',
+                hint: 'Type or speak...',
               ),
               const SizedBox(height: 10),
             ],

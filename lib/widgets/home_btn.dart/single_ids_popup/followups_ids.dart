@@ -347,7 +347,7 @@ class _FollowupsIdsState extends State<FollowupsIds> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Plan a Followup',
+                  'Plan a Follow up',
                   style: AppFont.popupTitleBlack(context),
                 ),
                 // TextButton(
@@ -402,7 +402,7 @@ class _FollowupsIdsState extends State<FollowupsIds> {
             _buildTextField(
               label: 'Comments:',
               controller: descriptionController,
-              hint: 'Add Comments',
+              hint: 'Type or speak...',
             ),
             const SizedBox(height: 20),
             Row(
@@ -636,7 +636,7 @@ class _FollowupsIdsState extends State<FollowupsIds> {
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: AppColors.containerBg,
-                    hintText: selectedLeadsName ?? 'Select Leads',
+                    hintText: selectedLeadsName ?? 'Type name, email or phone',
                     hintStyle: TextStyle(
                       color: selectedLeadsName != null
                           ? Colors.black

@@ -625,7 +625,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
               _buildTextField(
                 // label: 'resion:',
                 controller: descriptionController,
-                hint: 'Add Comments',
+                hint: 'Type or speak...',
               ),
             ],
           ),

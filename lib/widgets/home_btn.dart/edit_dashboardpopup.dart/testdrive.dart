@@ -604,7 +604,7 @@ class _TestdriveState extends State<Testdrive> {
                   child: _buildTextField(
                     // label: 'Remark :',
                     controller: descriptionController,
-                    hint: 'Add Comments',
+                    hint: 'Type or speak...',
                   ),
                 ),
               ],
@@ -712,7 +712,7 @@ class _TestdriveState extends State<Testdrive> {
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: AppColors.containerBg,
-                    hintText: selectedLeadsName ?? 'Select Leads',
+                    hintText: selectedLeadsName ?? 'Type name, email or phone',
                     hintStyle: TextStyle(
                       color: selectedLeadsName != null
                           ? Colors.black

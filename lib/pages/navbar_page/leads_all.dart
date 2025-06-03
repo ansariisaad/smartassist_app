@@ -212,7 +212,7 @@ class _AllLeadsState extends State<AllLeads> {
           icon: const Icon(FontAwesomeIcons.angleLeft, color: Colors.white),
         ),
         title: Text(
-          'All Enquiries',
+          'My Enquiries',
           style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.w400,
@@ -247,7 +247,7 @@ class _AllLeadsState extends State<AllLeads> {
                         ), // Reduce padding
                         filled: true,
                         fillColor: AppColors.searchBar,
-                        hintText: 'Search',
+                        hintText: 'Search by name, email or phone',
                         hintStyle: GoogleFonts.poppins(
                           fontSize: 12,
                           fontWeight: FontWeight.w300,

@@ -412,7 +412,7 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
               const SizedBox(height: 15),
               Row(
                 children: [
-                  Text('Start', style: AppFont.dropDowmLabel(context)),
+                  Text('When ?', style: AppFont.dropDowmLabel(context)),
                   const SizedBox(width: 10),
                   Expanded(
                     child: _buildDatePicker(
@@ -484,7 +484,7 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
               _buildTextField(
                 label: 'Remarks:',
                 controller: descriptionController,
-                hint: 'Add Comments',
+                hint: 'Type or speak...',
               ),
               const SizedBox(height: 10),
             ],
@@ -546,7 +546,8 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: AppColors.containerBg,
-                    hintText: selectedLeadsName ?? 'Select Leads',
+                    hintText:
+                        selectedLeadsName ?? 'Search by name, email or phone',
                     hintStyle: TextStyle(
                       color: selectedLeadsName != null
                           ? Colors.black
@@ -907,7 +908,7 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
               children: [
                 Expanded(
                   child: Text(
-                    controller.text.isEmpty ? "Select" : controller.text,
+                    controller.text.isEmpty ? "Date" : controller.text,
                     style: GoogleFonts.poppins(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
@@ -951,7 +952,7 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
               children: [
                 Expanded(
                   child: Text(
-                    controller.text.isEmpty ? "Select" : controller.text,
+                    controller.text.isEmpty ? "Time" : controller.text,
                     style: GoogleFonts.poppins(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,

@@ -199,7 +199,7 @@ class _BottomBtnSecondState extends State<BottomBtnSecond> {
                               },
                               style: _buttonStyle(_leadButton == 0),
                               child: Text(
-                                'Enquiry',
+                                'Enquiries',
                                 textAlign: TextAlign.center,
                                 style: AppFont.buttonwhite(context),
                               ),
@@ -217,7 +217,7 @@ class _BottomBtnSecondState extends State<BottomBtnSecond> {
                               },
                               style: _buttonStyle(_leadButton == 1),
                               child: Text(
-                                'Test Drive',
+                                'Test Drives',
                                 textAlign: TextAlign.center,
                                 style: AppFont.buttonwhite(context),
                               ),

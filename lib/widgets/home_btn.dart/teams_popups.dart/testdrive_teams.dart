@@ -669,7 +669,7 @@ class _TestdriveTeamsState extends State<TestdriveTeams> {
               _buildTextField(
                 label: 'Comments:',
                 controller: descriptionController,
-                hint: 'Add Comments',
+                hint: 'Type or speak...',
               ),
               const SizedBox(height: 10),
             ],

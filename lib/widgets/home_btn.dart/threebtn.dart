@@ -732,7 +732,7 @@ class _ThreebtnState extends State<Threebtn> {
           width: double.infinity,
           child: Row(
             children: [
-              _buildTabButton('Followups', 0),
+              _buildTabButton('Follow ups', 0),
               _buildTabButton('Appointments', 1),
               _buildTabButton('Test Drives', 2),
             ],

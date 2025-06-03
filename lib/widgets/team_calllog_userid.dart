@@ -22,7 +22,7 @@ class TeamCalllogUserid extends StatefulWidget {
 class _TeamCalllogUseridState extends State<TeamCalllogUserid>
     with TickerProviderStateMixin {
   late TabController _tabController;
-  final List<String> tabTitles = ['Summary-Enquiry', 'Summary-Cold Calls'];
+  final List<String> tabTitles = ['Enquiry', 'Cold Calls'];
 
   String selectedTimeRange = '1D';
   int selectedTabIndex = 0;
@@ -108,15 +108,21 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
           Text('All Calls'),
         ],
       ),
-      Text(summary.containsKey('All Calls')
-          ? summary['All Calls']['calls']?.toString() ?? '0'
-          : '0'),
-      Text(summary.containsKey('All Calls')
-          ? summary['All Calls']['duration']?.toString() ?? '0'
-          : '0'),
-      Text(summary.containsKey('All Calls')
-          ? summary['All Calls']['uniqueClients']?.toString() ?? '0'
-          : '0'),
+      Text(
+        summary.containsKey('All Calls')
+            ? summary['All Calls']['calls']?.toString() ?? '0'
+            : '0',
+      ),
+      Text(
+        summary.containsKey('All Calls')
+            ? summary['All Calls']['duration']?.toString() ?? '0'
+            : '0',
+      ),
+      Text(
+        summary.containsKey('All Calls')
+            ? summary['All Calls']['uniqueClients']?.toString() ?? '0'
+            : '0',
+      ),
     ]);
 
     // Add Connected row
@@ -128,15 +134,21 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
           Text('Connected'),
         ],
       ),
-      Text(summary.containsKey('Connected')
-          ? summary['Connected']['calls']?.toString() ?? '0'
-          : '0'),
-      Text(summary.containsKey('Connected')
-          ? summary['Connected']['duration']?.toString() ?? '0'
-          : '0'),
-      Text(summary.containsKey('Connected')
-          ? summary['Connected']['uniqueClients']?.toString() ?? '0'
-          : '0'),
+      Text(
+        summary.containsKey('Connected')
+            ? summary['Connected']['calls']?.toString() ?? '0'
+            : '0',
+      ),
+      Text(
+        summary.containsKey('Connected')
+            ? summary['Connected']['duration']?.toString() ?? '0'
+            : '0',
+      ),
+      Text(
+        summary.containsKey('Connected')
+            ? summary['Connected']['uniqueClients']?.toString() ?? '0'
+            : '0',
+      ),
     ]);
 
     // Add Missed row
@@ -148,15 +160,21 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
           Text('Missed'),
         ],
       ),
-      Text(summary.containsKey('Missed')
-          ? summary['Missed']['calls']?.toString() ?? '0'
-          : '0'),
-      Text(summary.containsKey('Missed')
-          ? summary['Missed']['duration']?.toString() ?? '0'
-          : '0'),
-      Text(summary.containsKey('Missed')
-          ? summary['Missed']['uniqueClients']?.toString() ?? '0'
-          : '0'),
+      Text(
+        summary.containsKey('Missed')
+            ? summary['Missed']['calls']?.toString() ?? '0'
+            : '0',
+      ),
+      Text(
+        summary.containsKey('Missed')
+            ? summary['Missed']['duration']?.toString() ?? '0'
+            : '0',
+      ),
+      Text(
+        summary.containsKey('Missed')
+            ? summary['Missed']['uniqueClients']?.toString() ?? '0'
+            : '0',
+      ),
     ]);
 
     // Add Rejected row
@@ -166,10 +184,7 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
           SizedBox(
             width: 15,
             height: 15,
-            child: Image.asset(
-              'assets/incoming.png',
-              fit: BoxFit.contain,
-            ),
+            child: Image.asset('assets/incoming.png', fit: BoxFit.contain),
           ),
           // Icon(Icons.call_missed_outgoing_rounded,
           //     size: 16, color: Colors.redAccent),
@@ -177,15 +192,21 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
           Text('Rejected'),
         ],
       ),
-      Text(summary.containsKey('Rejected')
-          ? summary['Rejected']['calls']?.toString() ?? '0'
-          : '0'),
-      Text(summary.containsKey('Rejected')
-          ? summary['Rejected']['duration']?.toString() ?? '0'
-          : '0'),
-      Text(summary.containsKey('Rejected')
-          ? summary['Rejected']['uniqueClients']?.toString() ?? '0'
-          : '0'),
+      Text(
+        summary.containsKey('Rejected')
+            ? summary['Rejected']['calls']?.toString() ?? '0'
+            : '0',
+      ),
+      Text(
+        summary.containsKey('Rejected')
+            ? summary['Rejected']['duration']?.toString() ?? '0'
+            : '0',
+      ),
+      Text(
+        summary.containsKey('Rejected')
+            ? summary['Rejected']['uniqueClients']?.toString() ?? '0'
+            : '0',
+      ),
     ]);
 
     return data;
@@ -229,8 +250,10 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
             children: [
               for (final range in timeRanges)
                 Expanded(
-                  child:
-                      _buildTimeFilterChip(range, range == selectedTimeRange),
+                  child: _buildTimeFilterChip(
+                    range,
+                    range == selectedTimeRange,
+                  ),
                 ),
             ],
           ),
@@ -284,17 +307,26 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildStatBox(currentTabData['totalConnected']?.toString() ?? '0',
-                  'Total\nConnected', Colors.green, Icons.call),
+              _buildStatBox(
+                currentTabData['totalConnected']?.toString() ?? '0',
+                'Total\nConnected',
+                Colors.green,
+                Icons.call,
+              ),
               _buildVerticalDivider(50),
               _buildStatBox(
-                  currentTabData['conversationTime']?.toString() ?? '0',
-                  'Conversation\ntime',
-                  Colors.blue,
-                  Icons.access_time),
+                currentTabData['conversationTime']?.toString() ?? '0',
+                'Conversation\ntime',
+                Colors.blue,
+                Icons.access_time,
+              ),
               _buildVerticalDivider(50),
-              _buildStatBox(currentTabData['notConnected']?.toString() ?? '0',
-                  'Not\nConnected', Colors.red, Icons.call_missed),
+              _buildStatBox(
+                currentTabData['notConnected']?.toString() ?? '0',
+                'Not\nConnected',
+                Colors.red,
+                Icons.call_missed,
+              ),
             ],
           ),
         ],
@@ -337,9 +369,7 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
 
   Widget _buildVerticalDivider(double height) {
     return Container(
-      margin: const EdgeInsets.symmetric(
-        horizontal: 5,
-      ),
+      margin: const EdgeInsets.symmetric(horizontal: 5),
       height: height,
       width: 0.1,
       decoration: BoxDecoration(
@@ -357,11 +387,7 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
         // border: Border.all(color: AppColors.sideRed),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Column(
-        children: [
-          _buildAnalyticsTable(),
-        ],
-      ),
+      child: Column(children: [_buildAnalyticsTable()]),
     );
   }
 
@@ -377,9 +403,7 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
       child: Row(
         children: [
           for (int i = 0; i < tabTitles.length; i++)
-            Expanded(
-              child: _buildTab(tabTitles[i], i == selectedTabIndex, i),
-            ),
+            Expanded(child: _buildTab(tabTitles[i], i == selectedTabIndex, i)),
         ],
       ),
     );
@@ -395,11 +419,12 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
     return Table(
       defaultVerticalAlignment: TableCellVerticalAlignment.middle,
       border: TableBorder(
-          horizontalInside: BorderSide(
-            color: Colors.grey.withOpacity(0.3),
-            width: 0.6,
-          ),
-          verticalInside: BorderSide.none),
+        horizontalInside: BorderSide(
+          color: Colors.grey.withOpacity(0.3),
+          width: 0.6,
+        ),
+        verticalInside: BorderSide.none,
+      ),
       columnWidths: {
         0: FixedColumnWidth(screenWidth * 0.33), // Metric
         1: FixedColumnWidth(screenWidth * 0.18), // Calls
@@ -411,29 +436,29 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
           children: [
             const SizedBox(), // Empty cell
             Container(
-                margin: const EdgeInsets.only(
-                  bottom: 10,
-                  top: 10,
-                ),
-                child: Text(
-                    textAlign: TextAlign.start,
-                    'Calls',
-                    style: AppFont.smallText10(context))),
-            Container(
-              margin: const EdgeInsets.only(
-                bottom: 10,
-                top: 10,
+              margin: const EdgeInsets.only(bottom: 10, top: 10),
+              child: Text(
+                textAlign: TextAlign.start,
+                'Calls',
+                style: AppFont.smallText10(context),
               ),
-              child: Text('Duration',
-                  textAlign: TextAlign.start,
-                  style: AppFont.smallText10(context)),
             ),
             Container(
-                margin: const EdgeInsets.only(bottom: 10, top: 10, right: 5),
-                child: Text(
-                    textAlign: TextAlign.start,
-                    'Unique client',
-                    style: AppFont.smallText10(context))),
+              margin: const EdgeInsets.only(bottom: 10, top: 10),
+              child: Text(
+                'Duration',
+                textAlign: TextAlign.start,
+                style: AppFont.smallText10(context),
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.only(bottom: 10, top: 10, right: 5),
+              child: Text(
+                textAlign: TextAlign.start,
+                'Unique client',
+                style: AppFont.smallText10(context),
+              ),
+            ),
           ],
         ),
         ...tableData.map((row) => _buildTableRow(row)).toList(),
@@ -486,10 +511,7 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
           const SizedBox(height: 10),
           _buildCallStatsRows(),
           const SizedBox(height: 10),
-          SizedBox(
-            height: 200,
-            child: _buildCombinedBarChart(),
-          ),
+          SizedBox(height: 200, child: _buildCombinedBarChart()),
         ],
       ),
     );
@@ -531,16 +553,26 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
           child: Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-                color: AppColors.backgroundLightGrey,
-                borderRadius: BorderRadius.circular(10)),
+              color: AppColors.backgroundLightGrey,
+              borderRadius: BorderRadius.circular(10),
+            ),
             child: Column(
               children: [
                 _buildCallStatRow(
-                    'All calls', allCalls.toString(), allCallsDuration),
+                  'All calls',
+                  allCalls.toString(),
+                  allCallsDuration,
+                ),
                 _buildCallStatRow(
-                    'Connected', incomingCalls.toString(), incomingDuration),
+                  'Connected',
+                  incomingCalls.toString(),
+                  incomingDuration,
+                ),
                 _buildCallStatRow(
-                    'Missed calls', missedCalls.toString(), missedDuration),
+                  'Missed calls',
+                  missedCalls.toString(),
+                  missedDuration,
+                ),
               ],
             ),
           ),
@@ -554,17 +586,12 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Expanded(
-            child: Text(label, style: AppFont.smallText10(context)),
-          ),
+          Expanded(child: Text(label, style: AppFont.smallText10(context))),
           Text(count, style: AppFont.smallText12(context)),
           const SizedBox(width: 12),
           Text(
             duration,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.shade600,
-            ),
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
           ),
         ],
       ),
@@ -591,9 +618,7 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
         ),
         const SizedBox(height: 8),
         // Combined chart
-        Expanded(
-          child: _buildCombinedLineChart(),
-        ),
+        Expanded(child: _buildCombinedLineChart()),
       ],
     );
   }
@@ -612,10 +637,7 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
         const SizedBox(width: 4),
         Text(
           label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey.shade700,
-          ),
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
         ),
       ],
     );
@@ -641,20 +663,23 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
 
         // All calls
         if (data['AllCalls'] != null) {
-          allCallSpots
-              .add(FlSpot(xValue, (data['AllCalls']['calls'] ?? 0).toDouble()));
+          allCallSpots.add(
+            FlSpot(xValue, (data['AllCalls']['calls'] ?? 0).toDouble()),
+          );
         }
 
         // Connected calls
         if (data['connected'] != null) {
           connectedSpots.add(
-              FlSpot(xValue, (data['connected']['calls'] ?? 0).toDouble()));
+            FlSpot(xValue, (data['connected']['calls'] ?? 0).toDouble()),
+          );
         }
 
         // Missed calls
         if (data['missedCalls'] != null) {
-          missedSpots
-              .add(FlSpot(xValue, (data['missedCalls'] as int).toDouble()));
+          missedSpots.add(
+            FlSpot(xValue, (data['missedCalls'] as int).toDouble()),
+          );
         }
       }
     }
@@ -719,10 +744,7 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
                 getTitlesWidget: (double value, TitleMeta meta) {
                   // Use hourly analysis keys for X axis
                   final int index = value ~/ 2;
-                  final style = TextStyle(
-                    color: Colors.grey,
-                    fontSize: 10,
-                  );
+                  final style = TextStyle(color: Colors.grey, fontSize: 10);
 
                   if (index < sortedHours.length) {
                     // Convert 24-hour to 12-hour format
@@ -756,10 +778,7 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
                     space: 8,
                     child: Text(
                       value.toInt().toString(),
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontSize: 10,
-                      ),
+                      style: const TextStyle(color: Colors.grey, fontSize: 10),
                     ),
                     meta: meta,
                   );
@@ -775,9 +794,7 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
               sideTitles: SideTitles(showTitles: false),
             ),
           ),
-          borderData: FlBorderData(
-            show: false,
-          ),
+          borderData: FlBorderData(show: false),
           gridData: FlGridData(
             show: true,
             drawHorizontalLine: true,
@@ -785,10 +802,7 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
             horizontalInterval: maxY > 10 ? 5 : 1,
             verticalInterval: 2,
             getDrawingHorizontalLine: (value) {
-              return FlLine(
-                color: Colors.grey.shade200,
-                strokeWidth: 1,
-              );
+              return FlLine(color: Colors.grey.shade200, strokeWidth: 1);
             },
             getDrawingVerticalLine: (value) {
               return FlLine(

@@ -1134,7 +1134,7 @@ class _MyteamState extends State<Myteam> {
                                               bottom: 0,
                                             ),
                                             child: Text(
-                                              'Call Analysis',
+                                              'Call Analytics',
                                               style: AppFont.dropDowmLabel(
                                                 context,
                                               ),

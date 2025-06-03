@@ -147,7 +147,6 @@ class _CalendarSmState extends State<CalendarSm> {
 
     try {
       final token = await Storage.getToken();
-
       // Format the selected date
       String formattedDate = DateFormat(
         'dd-MM-yyyy',
@@ -167,7 +166,6 @@ class _CalendarSmState extends State<CalendarSm> {
       final uri = baseUrl.replace(queryParameters: queryParams);
 
       print('📤 Fetching activities from: $uri');
-
       final response = await http.get(
         uri,
         headers: {
@@ -370,7 +368,7 @@ class _CalendarSmState extends State<CalendarSm> {
         backgroundColor: Colors.blue,
         automaticallyImplyLeading: false,
         title: Text(
-          'SM Calendar',
+          'Calendar',
           style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.w500,

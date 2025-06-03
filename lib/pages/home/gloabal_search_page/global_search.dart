@@ -363,7 +363,7 @@ class _GlobalSearchState extends State<GlobalSearch> {
                   ),
                   filled: true,
                   fillColor: AppColors.searchBar,
-                  hintText: 'Search',
+                  hintText: 'Search by name, email or phone ',
                   hintStyle: GoogleFonts.poppins(
                     fontSize: 12,
                     fontWeight: FontWeight.w300,
@@ -412,7 +412,7 @@ class _GlobalSearchState extends State<GlobalSearch> {
               onTap: () => FocusScope.of(context).unfocus(),
               child: Center(
                 child: Text(
-                  "Type something...",
+                  "Nothing to see here",
                   style: AppFont.dropDowmLabel(context),
                 ),
               ),

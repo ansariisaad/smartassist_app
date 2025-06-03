@@ -484,7 +484,7 @@ class _TestdriveIdsState extends State<TestdriveIds> {
               _buildTextField(
                 label: 'Remarks:',
                 controller: descriptionController,
-                hint: 'Add Comments',
+                hint: 'Type or speak...',
               ),
               const SizedBox(height: 10),
             ],
@@ -545,7 +545,7 @@ class _TestdriveIdsState extends State<TestdriveIds> {
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: AppColors.containerBg,
-                    hintText: selectedLeadsName ?? 'Select Leads',
+                    hintText: selectedLeadsName ?? 'Type name, email or phone',
                     hintStyle: TextStyle(
                       color: selectedLeadsName != null
                           ? Colors.black

@@ -22,7 +22,7 @@ class CallAnalytics extends StatefulWidget {
 class _CallAnalyticsState extends State<CallAnalytics>
     with TickerProviderStateMixin {
   late TabController _tabController;
-  final List<String> tabTitles = ['Summary-Enquiry', 'Summary-Cold Calls'];
+  final List<String> tabTitles = ['Enquiry', 'Cold Calls'];
 
   String selectedTimeRange = '1D';
   int selectedTabIndex = 0;
@@ -402,7 +402,7 @@ class _CallAnalyticsState extends State<CallAnalytics>
           icon: const Icon(FontAwesomeIcons.angleLeft, color: Colors.white),
         ),
         title: Text(
-          'Call Analysis',
+          'My Call Analytics',
           style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.w400,
@@ -607,7 +607,7 @@ class _CallAnalyticsState extends State<CallAnalytics>
                   fontWeight: FontWeight.w600,
                   color: color,
                 ),
-                textAlign: TextAlign.start,
+                textAlign: TextAlign.center,
               ),
             ),
             const SizedBox(width: 3),
@@ -618,7 +618,7 @@ class _CallAnalyticsState extends State<CallAnalytics>
         Text(
           label,
           style: AppFont.smallText12(context),
-          textAlign: TextAlign.start,
+          textAlign: TextAlign.center,
         ),
       ],
     );

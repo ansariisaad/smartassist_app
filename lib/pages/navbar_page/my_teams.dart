@@ -1766,7 +1766,7 @@ class _MyTeamsState extends State<MyTeams> {
                         Container(
                           margin: const EdgeInsets.only(left: 10, bottom: 0),
                           child: Text(
-                            'Call Analysis',
+                            'Call Analytics',
                             style: AppFont.dropDowmLabel(context),
                           ),
                         ),

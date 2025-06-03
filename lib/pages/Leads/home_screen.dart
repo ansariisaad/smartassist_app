@@ -713,7 +713,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           ),
                                         ),
                                         Text(
-                                          'Performance analysis',
+                                          'Performance Analysis',
                                           style: AppFont.appbarfontgrey(
                                             context,
                                           ),

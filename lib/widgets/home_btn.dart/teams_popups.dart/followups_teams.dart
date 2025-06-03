@@ -689,7 +689,7 @@ class _FollowupsTeamsState extends State<FollowupsTeams> {
             _buildTextField(
               label: 'Comments:',
               controller: descriptionController,
-              hint: 'Add Comments',
+              hint: 'Type or speak...',
             ),
             const SizedBox(height: 10),
             Row(
@@ -1122,7 +1122,7 @@ class _FollowupsTeamsState extends State<FollowupsTeams> {
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: AppColors.containerBg,
-                    hintText: selectedLeadsName ?? 'Select Leads',
+                    hintText: selectedLeadsName ?? 'Type name, email or phone',
                     hintStyle: TextStyle(
                       color: selectedLeadsName != null
                           ? Colors.black
@@ -1650,7 +1650,7 @@ class _FollowupsTeamsState extends State<FollowupsTeams> {
 //             _buildTextField(
 //                 label: 'Comments:',
 //                 controller: descriptionController,
-//                 hint: 'Add Comments'),
+//                 hint: 'Type or speak...'),
 //             const SizedBox(height: 20),
 //             Row(
 //               children: [

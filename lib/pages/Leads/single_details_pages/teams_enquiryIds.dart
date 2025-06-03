@@ -609,7 +609,7 @@ class _TeamsEnquiryidsState extends State<TeamsEnquiryids> {
               _buildTextField(
                 // label: 'resion:',
                 controller: descriptionController,
-                hint: 'Add Comments',
+                hint: 'Type or speak...',
               ),
             ],
           ),

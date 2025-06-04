@@ -18,6 +18,20 @@ import 'package:smartassist/widgets/home_btn.dart/teams_popups.dart/followups_te
 import 'package:smartassist/widgets/home_btn.dart/teams_popups.dart/lead_teams.dart';
 import 'package:smartassist/widgets/home_btn.dart/teams_popups.dart/testdrive_teams.dart';
 import 'package:smartassist/widgets/team_calllog_userid.dart';
+import 'package:azlistview/azlistview.dart';
+
+// Simple wrapper class that implements ISuspensionBean
+class TeamMemberWrapper extends ISuspensionBean {
+  final Map<String, dynamic> data;
+
+  TeamMemberWrapper(this.data);
+
+  @override
+  String getSuspensionTag() {
+    String fname = data['fname'] ?? '';
+    return fname.isNotEmpty ? fname[0].toUpperCase() : '#';
+  }
+}
 
 class MyTeams extends StatefulWidget {
   const MyTeams({Key? key}) : super(key: key);
@@ -27,6 +41,8 @@ class MyTeams extends StatefulWidget {
 }
 
 class _MyTeamsState extends State<MyTeams> {
+  List<TeamMemberWrapper> _filteredTeamMembers = [];
+  bool _showAzListView = false;
   // Tab and filter state
   int _tabIndex = 0; // 0 for Individual Performance, 1 for Team Comparison
   int _periodIndex = 0; // ALL, MTD, QTD, YTD
@@ -92,6 +108,7 @@ class _MyTeamsState extends State<MyTeams> {
       // Fetch team data using the new consolidated API
       await _fetchTeamDetails();
       await _fetchAllCalllog();
+      _prepareTeamMembersForAzList();
       // await _fetchSingleCalllog();
     } catch (error) {
       print("Error during initialization: $error");
@@ -108,6 +125,38 @@ class _MyTeamsState extends State<MyTeams> {
         });
       }
     }
+  }
+
+  // Prepare team members data for AzListView
+  void _prepareTeamMembersForAzList() {
+    _filteredTeamMembers = _teamMembers
+        .map((member) => TeamMemberWrapper(member))
+        .toList();
+
+    // Sort and set suspension status
+    SuspensionUtil.sortListBySuspensionTag(_filteredTeamMembers);
+    SuspensionUtil.setShowSuspensionStatus(_filteredTeamMembers);
+  }
+
+  // Filter method for search
+  void _filterTeamMembers(String query) {
+    if (query.isEmpty) {
+      _prepareTeamMembersForAzList();
+    } else {
+      _filteredTeamMembers = _teamMembers
+          .where(
+            (member) => (member['fname'] ?? '').toLowerCase().contains(
+              query.toLowerCase(),
+            ),
+          )
+          .map((member) => TeamMemberWrapper(member))
+          .toList();
+
+      // Sort and set suspension status
+      SuspensionUtil.sortListBySuspensionTag(_filteredTeamMembers);
+      SuspensionUtil.setShowSuspensionStatus(_filteredTeamMembers);
+    }
+    setState(() {});
   }
 
   // Future<void> _fetchSingleCalllog() async {
@@ -730,9 +779,110 @@ class _MyTeamsState extends State<MyTeams> {
                             children: [
                               _buildProfileAvatarStaticsAll('All', 0),
                               _buildProfileAvatars(),
+
+                              // Add a button to toggle AzListView
+                              Container(
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 15,
+                                ),
+                                child: InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      _showAzListView = !_showAzListView;
+                                    });
+                                  },
+                                  child: Container(
+                                    width: 50,
+                                    height: 50,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: AppColors.backgroundLightGrey,
+                                      border: Border.all(
+                                        color: Colors.grey,
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: Icon(
+                                      _showAzListView
+                                          ? Icons.close
+                                          : Icons.search,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
+
+                        // Search bar
+                        if (_showAzListView)
+                          Container(
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            child: TextField(
+                              decoration: InputDecoration(
+                                hintText: 'Search team members...',
+                                prefixIcon: const Icon(Icons.search),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                              ),
+                              onChanged: _filterTeamMembers,
+                            ),
+                          ),
+
+                        // Horizontal AzListView section
+                        if (_showAzListView)
+                          Container(
+                            height: 120, // Height for avatar + name + padding
+                            margin: const EdgeInsets.symmetric(horizontal: 8),
+                            child: Scrollbar(
+                              thumbVisibility: true,
+                              child: AzListView(
+                                data: _filteredTeamMembers,
+                                itemCount: _filteredTeamMembers.length,
+                                // scrollDirection: Axis.horizontal,
+                                itemBuilder: (BuildContext context, int index) {
+                                  final memberWrapper =
+                                      _filteredTeamMembers[index];
+                                  return _buildHorizontalAzListItem(
+                                    memberWrapper.data,
+                                    index,
+                                  );
+                                },
+                                physics: const BouncingScrollPhysics(),
+                                susItemBuilder:
+                                    (BuildContext context, int index) {
+                                      final memberWrapper =
+                                          _filteredTeamMembers[index];
+                                      return _buildHorizontalSusWidget(
+                                        memberWrapper.getSuspensionTag(),
+                                      );
+                                    },
+                                indexBarData: SuspensionUtil.getTagIndexList(
+                                  _filteredTeamMembers,
+                                ),
+                                indexBarOptions: IndexBarOptions(
+                                  needRebuild: true,
+                                  ignoreDragCancel: true,
+                                  downTextStyle: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.white,
+                                  ),
+                                  downItemDecoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.green,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
 
                         // Profile avatars (previously shown only for Individual Performance tab)
                         const SizedBox(height: 10),
@@ -764,6 +914,124 @@ class _MyTeamsState extends State<MyTeams> {
                 ? _buildPopupMenu(context)
                 : const SizedBox.shrink(),
           ),
+        ],
+      ),
+    );
+  }
+
+  // Build horizontal suspension widget (alphabet headers)
+  Widget _buildHorizontalSusWidget(String susTag) {
+    return Container(
+      width: 80,
+      height: 120,
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFFF3F4F5),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: Center(
+              child: Text(
+                susTag,
+                style: const TextStyle(
+                  fontSize: 18,
+                  color: Color(0xFF666666),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            susTag,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Color(0xFF666666),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Build horizontal list item for AzListView
+  Widget _buildHorizontalAzListItem(Map<String, dynamic> member, int index) {
+    // Find the original index in _teamMembers for selection state
+    int originalIndex = _teamMembers.indexWhere(
+      (teamMember) => teamMember['user_id'] == member['user_id'],
+    );
+    bool isSelected = _selectedProfileIndex == (originalIndex + 1);
+
+    return Container(
+      width: 80,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          InkWell(
+            onTap: () async {
+              setState(() {
+                _selectedProfileIndex =
+                    originalIndex + 1; // +1 because 0 is 'All'
+                _selectedUserId = member['user_id'] ?? '';
+                _selectedType = 'dynamic';
+                _showAzListView = false; // Hide the list after selection
+              });
+
+              await _fetchTeamDetails();
+              await _fetchSingleCalllog();
+            },
+            child: Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.backgroundLightGrey,
+                border: isSelected
+                    ? Border.all(color: Colors.blue, width: 2)
+                    : null,
+              ),
+              child: ClipOval(
+                child: member['profile'] != null && member['profile'].isNotEmpty
+                    ? Image.network(
+                        member['profile'],
+                        width: 50,
+                        height: 50,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Center(
+                            child: Text(
+                              (member['initials'] ?? '').toUpperCase(),
+                              style: AppFont.appbarfontblack(context),
+                            ),
+                          );
+                        },
+                      )
+                    : Center(
+                        child: Text(
+                          (member['initials'] ?? '').toUpperCase(),
+                          style: AppFont.appbarfontblack(context),
+                        ),
+                      ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            member['fname'] ?? '',
+            style: AppFont.mediumText14(context),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 8),
         ],
       ),
     );

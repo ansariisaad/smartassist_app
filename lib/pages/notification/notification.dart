@@ -327,6 +327,7 @@ class _NotificationPageState extends State<NotificationPage> {
                             MaterialPageRoute(
                               builder: (context) => FollowupsDetails(
                                 leadId: notification['recordId'] ?? '',
+                      isFromFreshlead: false,
                               ),
                             ),
                           );

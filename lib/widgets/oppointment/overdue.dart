@@ -738,7 +738,9 @@ class _overdueeOppItemState extends State<overdueeOppItem>
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => FollowupsDetails(leadId: widget.leadId),
+              builder: (context) => FollowupsDetails(leadId: widget.leadId,
+                isFromFreshlead: false,
+              ),
             ),
           );
         } else {

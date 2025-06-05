@@ -27,8 +27,13 @@ import 'package:smartassist/widgets/whatsapp_chat.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class FollowupsDetails extends StatefulWidget {
+  final bool isFromFreshlead;
   final String leadId;
-  const FollowupsDetails({super.key, required this.leadId});
+  const FollowupsDetails({
+    super.key,
+    required this.leadId,
+    required this.isFromFreshlead,
+  });
 
   @override
   State<FollowupsDetails> createState() => _FollowupsDetailsState();
@@ -107,6 +112,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
 
     // Initially, set the selected widget
     _selectedTaskWidget = TimelineUpcoming(
+      isFromTeams: false,
       tasks: upcomingTasks,
       upcomingEvents: upcomingEvents,
     );
@@ -314,6 +320,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
 
         // Now you can safely pass the upcomingTasks and completedTasks to the widgets.
         _selectedTaskWidget = TimelineUpcoming(
+          isFromTeams: false,
           tasks: upcomingTasks,
           upcomingEvents: upcomingEvents,
         );
@@ -332,6 +339,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
       if (index == 0) {
         // Show upcoming tasks
         _selectedTaskWidget = TimelineUpcoming(
+          isFromTeams: false,
           tasks: upcomingTasks,
           upcomingEvents: upcomingEvents,
         );
@@ -1475,22 +1483,33 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                 Expanded(
                   child: GestureDetector(
                     onTap: () {
-                      if (areButtonsEnabled()) {
-                        handleLostAction();
+                      if (widget.isFromFreshlead) {
+                        _showFollowupPopup(context, widget.leadId);
                       } else {
-                        showLostRequiredDialog(context);
+                        if (areButtonsEnabled()) {
+                          handleLostAction();
+                        } else {
+                          showLostRequiredDialog(context);
+                        }
                       }
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        border: Border.all(color: Colors.red, width: 1),
+                        border: Border.all(
+                          color: widget.isFromFreshlead
+                              ? Colors.blue
+                              : Colors.red,
+                          width: 1,
+                        ),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        'Lost',
-                        style: AppFont.mediumText14red(context),
+                        widget.isFromFreshlead ? 'Followups' : 'Lost',
+                        style: widget.isFromFreshlead
+                            ? AppFont.mediumText14bluee(context)
+                            : AppFont.mediumText14red(context),
                         textAlign: TextAlign.center,
                       ),
                     ),

@@ -107,6 +107,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
 
     // Initially, set the selected widget
     _selectedTaskWidget = TimelineUpcoming(
+      isFromTeams: false,
       tasks: upcomingTasks,
       upcomingEvents: upcomingEvents,
     );
@@ -314,6 +315,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
 
         // Now you can safely pass the upcomingTasks and completedTasks to the widgets.
         _selectedTaskWidget = TimelineUpcoming(
+          isFromTeams: false,
           tasks: upcomingTasks,
           upcomingEvents: upcomingEvents,
         );
@@ -332,6 +334,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
       if (index == 0) {
         // Show upcoming tasks
         _selectedTaskWidget = TimelineUpcoming(
+          isFromTeams: false,
           tasks: upcomingTasks,
           upcomingEvents: upcomingEvents,
         );

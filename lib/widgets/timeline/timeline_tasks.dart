@@ -10,12 +10,14 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class TimelineUpcoming extends StatelessWidget {
+  final bool isFromTeams;
   final List<Map<String, dynamic>> tasks;
   final List<Map<String, dynamic>> upcomingEvents;
   const TimelineUpcoming({
     super.key,
     required this.tasks,
     required this.upcomingEvents,
+    required this.isFromTeams,
   });
 
   String _formatDate(String date) {
@@ -90,16 +92,7 @@ class TimelineUpcoming extends StatelessWidget {
             isLast: index == 0,
             beforeLineStyle: const LineStyle(color: Colors.transparent),
             afterLineStyle: const LineStyle(color: Colors.transparent),
-            // indicatorStyle: IndicatorStyle(
-            //   padding: const EdgeInsets.only(left: 5),
-            //   width: 30,
-            //   height: 30,
-            //   color: AppColors.sideGreen,
-            //   iconStyle: IconStyle(
-            //     iconData: icon,
-            //     color: Colors.white,
-            //   ),
-            // ),
+
             indicatorStyle: IndicatorStyle(
               width: 30,
               height: 30,
@@ -119,6 +112,7 @@ class TimelineUpcoming extends StatelessWidget {
                   ),
                   icon: Icon(size: 20, icon, color: Colors.white),
                   onPressed: () {
+                    if (isFromTeams) return;
                     if (subject == 'Call') {
                       // Example: Launch phone dialer (you'll need url_launcher package)
                       launchUrl(Uri.parse('tel:$mobile'));
@@ -236,6 +230,7 @@ class TimelineUpcoming extends StatelessWidget {
                   icon: Icon(size: 20, icon, color: Colors.white),
                   onPressed: () {
                     if (eventSubject == 'Call') {
+                      if (isFromTeams) return;
                       // Example: Launch phone dialer (you'll need url_launcher package)
                       launchUrl(Uri.parse('tel:$mobile'));
                     } else if (eventSubject == 'Send SMS') {

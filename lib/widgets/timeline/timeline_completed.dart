@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
+import 'package:smartassist/services/leads_srv.dart';
 import 'package:smartassist/widgets/testdrive_overview.dart';
 import 'package:timeline_tile/timeline_tile.dart';
 import 'package:intl/intl.dart';
@@ -11,8 +12,11 @@ import 'package:url_launcher/url_launcher.dart';
 class TimelineCompleted extends StatelessWidget {
   final List<Map<String, dynamic>> events;
   final List<Map<String, dynamic>> completedEvents;
-  const TimelineCompleted(
-      {super.key, required this.events, required this.completedEvents});
+  const TimelineCompleted({
+    super.key,
+    required this.events,
+    required this.completedEvents,
+  });
 
   String _formatDate(String date) {
     try {
@@ -24,6 +28,18 @@ class TimelineCompleted extends StatelessWidget {
     }
   }
 
+  Future<void> _getOtp(String eventId) async {
+    final success = await LeadsSrv.getOtp(eventId: eventId);
+
+    if (success) {
+      print('✅ Test drive started successfully');
+    } else {
+      print('❌ Failed to start test drive');
+    }
+
+    // if (mounted) setState(() {});
+  }
+
   // String formattedTime = _formatTo12HourFormat(taskSubject);
 
   String _formatTo12HourFormat(String time24) {
@@ -33,8 +49,9 @@ class TimelineCompleted extends StatelessWidget {
       DateTime dateTime = inputFormat.parse(time24);
 
       // Convert it to 12-hour format with AM/PM
-      DateFormat outputFormat =
-          DateFormat("hh:mm a"); // 12-hour format with AM/PM
+      DateFormat outputFormat = DateFormat(
+        "hh:mm a",
+      ); // 12-hour format with AM/PM
       return outputFormat.format(dateTime);
     } catch (e) {
       return "Invalid time"; // Handle error if time format is incorrect
@@ -95,10 +112,8 @@ class TimelineCompleted extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => TestdriveOverview(
-                      eventId: eventId,
-                      leadId: '',
-                    ),
+                    builder: (context) =>
+                        TestdriveOverview(eventId: eventId, leadId: ''),
                   ),
                 );
               }
@@ -108,12 +123,8 @@ class TimelineCompleted extends StatelessWidget {
               lineXY: 0.25,
               isFirst: index == (reversedEvents.length - 1),
               isLast: index == 0,
-              beforeLineStyle: const LineStyle(
-                color: Colors.transparent,
-              ),
-              afterLineStyle: const LineStyle(
-                color: Colors.transparent,
-              ),
+              beforeLineStyle: const LineStyle(color: Colors.transparent),
+              afterLineStyle: const LineStyle(color: Colors.transparent),
               indicatorStyle: IndicatorStyle(
                 width: 30,
                 height: 30,
@@ -131,11 +142,7 @@ class TimelineCompleted extends StatelessWidget {
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       padding: WidgetStatePropertyAll(EdgeInsets.zero),
                     ),
-                    icon: Icon(
-                      size: 20,
-                      icon,
-                      color: Colors.white,
-                    ),
+                    icon: Icon(size: 20, icon, color: Colors.white),
                     onPressed: () {},
                     // onPressed: () {
                     //   if (subject == 'Call') {
@@ -166,10 +173,7 @@ class TimelineCompleted extends StatelessWidget {
               //     color: Colors.white,
               //   ),
               // ),
-              startChild: Text(
-                dueDate,
-                style: AppFont.dropDowmLabel(context),
-              ),
+              startChild: Text(dueDate, style: AppFont.dropDowmLabel(context)),
               endChild: Padding(
                 padding: const EdgeInsets.only(left: 10.0),
                 child: Column(
@@ -265,10 +269,8 @@ class TimelineCompleted extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => TestdriveOverview(
-                      eventId: eventId,
-                      leadId: '',
-                    ),
+                    builder: (context) =>
+                        TestdriveOverview(eventId: eventId, leadId: ''),
                   ),
                 );
               }
@@ -278,12 +280,8 @@ class TimelineCompleted extends StatelessWidget {
               lineXY: 0.25,
               isFirst: index == (reversedCompletedEvents.length - 1),
               isLast: index == 0,
-              beforeLineStyle: const LineStyle(
-                color: Colors.transparent,
-              ),
-              afterLineStyle: const LineStyle(
-                color: Colors.transparent,
-              ),
+              beforeLineStyle: const LineStyle(color: Colors.transparent),
+              afterLineStyle: const LineStyle(color: Colors.transparent),
               indicatorStyle: IndicatorStyle(
                 width: 30,
                 height: 30,
@@ -301,11 +299,7 @@ class TimelineCompleted extends StatelessWidget {
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       padding: WidgetStatePropertyAll(EdgeInsets.zero),
                     ),
-                    icon: Icon(
-                      size: 20,
-                      icon,
-                      color: Colors.white,
-                    ),
+                    icon: Icon(size: 20, icon, color: Colors.white),
                     onPressed: () {},
                     // onPressed: () {
                     //   if (taskSubject == 'Call') {
@@ -326,6 +320,7 @@ class TimelineCompleted extends StatelessWidget {
                   ),
                 ),
               ),
+
               // indicatorStyle: IndicatorStyle(
               //   padding: const EdgeInsets.only(left: 5),
               //   width: 30,
@@ -336,11 +331,7 @@ class TimelineCompleted extends StatelessWidget {
               //     color: Colors.white,
               //   ),
               // ),
-
-              startChild: Text(
-                date,
-                style: AppFont.dropDowmLabel(context),
-              ),
+              startChild: Text(date, style: AppFont.dropDowmLabel(context)),
               endChild: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: Column(
@@ -431,9 +422,7 @@ class TimelineCompleted extends StatelessWidget {
             ),
           );
         }),
-        const SizedBox(
-          height: 10,
-        ),
+        const SizedBox(height: 10),
       ],
     );
   }

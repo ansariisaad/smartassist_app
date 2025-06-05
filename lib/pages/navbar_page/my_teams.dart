@@ -1341,7 +1341,7 @@ class _MyTeamsState extends State<MyTeams> {
       children: [
         // _buildPeriodFilter(screenWidth),
         // _buildMetricButtons(),
-        _buildTeamComparisonChart(context),
+        // _buildTeamComparisonChart(context),
         _callAnalyticAll(context),
       ],
     );

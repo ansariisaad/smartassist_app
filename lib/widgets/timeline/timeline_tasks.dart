@@ -3,6 +3,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
+import 'package:smartassist/services/leads_srv.dart';
+import 'package:smartassist/widgets/testdrive_verifyotp.dart';
 import 'package:timeline_tile/timeline_tile.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -10,8 +12,11 @@ import 'package:url_launcher/url_launcher.dart';
 class TimelineUpcoming extends StatelessWidget {
   final List<Map<String, dynamic>> tasks;
   final List<Map<String, dynamic>> upcomingEvents;
-  const TimelineUpcoming(
-      {super.key, required this.tasks, required this.upcomingEvents});
+  const TimelineUpcoming({
+    super.key,
+    required this.tasks,
+    required this.upcomingEvents,
+  });
 
   String _formatDate(String date) {
     try {
@@ -20,6 +25,16 @@ class TimelineUpcoming extends StatelessWidget {
     } catch (e) {
       print('Error formatting date: $e');
       return 'N/A';
+    }
+  }
+
+  Future<void> _getOtp(String eventId) async {
+    final success = await LeadsSrv.getOtp(eventId: eventId);
+
+    if (success) {
+      print('✅ Test drive started successfully');
+    } else {
+      print('❌ Failed to start test drive');
     }
   }
 
@@ -102,11 +117,7 @@ class TimelineUpcoming extends StatelessWidget {
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     padding: WidgetStatePropertyAll(EdgeInsets.zero),
                   ),
-                  icon: Icon(
-                    size: 20,
-                    icon,
-                    color: Colors.white,
-                  ),
+                  icon: Icon(size: 20, icon, color: Colors.white),
                   onPressed: () {
                     if (subject == 'Call') {
                       // Example: Launch phone dialer (you'll need url_launcher package)
@@ -118,8 +129,8 @@ class TimelineUpcoming extends StatelessWidget {
                       // fallback action
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                            content:
-                                Text('No action defined for this subject')),
+                          content: Text('No action defined for this subject'),
+                        ),
                       );
                     }
                   },
@@ -176,6 +187,9 @@ class TimelineUpcoming extends StatelessWidget {
         // Loop through upcomingEvents and display them
         ...List.generate(reversedUpcomingEvents.length, (index) {
           final event = reversedUpcomingEvents[index];
+          String eventId = event['event_id'] ?? 'No ID';
+          String leadId = event['lead_id'] ?? 'No ID';
+          String gmail = event['lead_email'] ?? 'No email ID';
           String remarks = event['remarks'] ?? 'No Remarks';
           String mobile = event['mobile'] ?? 'No Number';
           String eventDate = _formatDate(event['start_date'] ?? 'N/A');
@@ -200,12 +214,8 @@ class TimelineUpcoming extends StatelessWidget {
             lineXY: 0.25,
             isFirst: index == (reversedUpcomingEvents.length - 1),
             isLast: index == 0,
-            beforeLineStyle: const LineStyle(
-              color: Colors.transparent,
-            ),
-            afterLineStyle: const LineStyle(
-              color: Colors.transparent,
-            ),
+            beforeLineStyle: const LineStyle(color: Colors.transparent),
+            afterLineStyle: const LineStyle(color: Colors.transparent),
             indicatorStyle: IndicatorStyle(
               width: 30,
               height: 30,
@@ -223,11 +233,7 @@ class TimelineUpcoming extends StatelessWidget {
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     padding: WidgetStatePropertyAll(EdgeInsets.zero),
                   ),
-                  icon: Icon(
-                    size: 20,
-                    icon,
-                    color: Colors.white,
-                  ),
+                  icon: Icon(size: 20, icon, color: Colors.white),
                   onPressed: () {
                     if (eventSubject == 'Call') {
                       // Example: Launch phone dialer (you'll need url_launcher package)
@@ -235,18 +241,33 @@ class TimelineUpcoming extends StatelessWidget {
                     } else if (eventSubject == 'Send SMS') {
                       // Example: Open SMS
                       launchUrl(Uri.parse('sms:$mobile'));
+                    } else if (eventSubject == 'Test Drive') {
+                      // Example: Open Test Drive UR
+                      _getOtp(eventId);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => TestdriveVerifyotp(
+                            email: gmail,
+                            eventId: eventId,
+                            leadId: leadId,
+                            mobile: mobile,
+                          ),
+                        ),
+                      );
                     } else {
                       // fallback action
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                            content:
-                                Text('No action defined for this subject')),
+                          content: Text('No action defined for this subject'),
+                        ),
                       );
                     }
                   },
                 ),
               ),
             ),
+
             // indicatorStyle: IndicatorStyle(
             //   padding: const EdgeInsets.only(left: 5),
             //   width: 30,
@@ -257,7 +278,6 @@ class TimelineUpcoming extends StatelessWidget {
             //     color: Colors.white,
             //   ),
             // ),
-
             startChild: Text(
               eventDate, // Show the event date
               style: AppFont.dropDowmLabel(context),
@@ -302,9 +322,7 @@ class TimelineUpcoming extends StatelessWidget {
             ),
           );
         }),
-        const SizedBox(
-          height: 10,
-        ),
+        const SizedBox(height: 10),
       ],
     );
   }

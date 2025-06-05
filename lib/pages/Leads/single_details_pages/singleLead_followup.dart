@@ -1031,22 +1031,10 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                               Row(
                                 children: [
                                   // Profile Icon and Name
-                                  Container(
-                                    padding: const EdgeInsets.all(5),
-                                    decoration: BoxDecoration(
-                                      color: const Color.fromARGB(
-                                        0,
-                                        255,
-                                        255,
-                                        255,
-                                      ),
-                                      borderRadius: BorderRadius.circular(50),
-                                    ),
-                                    child: const Icon(
-                                      Icons.receipt_long_outlined,
-                                      size: 40,
-                                      color: Color.fromRGBO(2, 118, 254, 1),
-                                    ),
+                                  const Icon(
+                                    Icons.receipt_long_outlined,
+                                    size: 40,
+                                    color: Color.fromRGBO(2, 118, 254, 1),
                                   ),
                                   const SizedBox(width: 10),
                                   Expanded(

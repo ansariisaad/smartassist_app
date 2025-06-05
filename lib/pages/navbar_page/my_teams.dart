@@ -980,7 +980,6 @@ class _MyTeamsState extends State<MyTeams> {
 
   // Modified _buildProfileAvatars method
   Widget _buildProfileAvatars() {
-    // Sort the list by first name before building avatars
     List<Map<String, dynamic>> sortedTeamMembers = List.from(_teamMembers);
     sortedTeamMembers.sort(
       (a, b) => (a['fname'] ?? '').toString().toLowerCase().compareTo(
@@ -988,14 +987,15 @@ class _MyTeamsState extends State<MyTeams> {
       ),
     );
 
-    // Get unique first letters
+    // Get unique letters
     Set<String> uniqueLetters = {};
     for (var member in sortedTeamMembers) {
       String firstLetter = (member['fname'] ?? '').toString().toUpperCase();
       if (firstLetter.isNotEmpty) {
-        uniqueLetters.add(firstLetter[0]);
+        uniqueLetters.add(firstLetter[1]);
       }
     }
+
     List<String> sortedLetters = uniqueLetters.toList()..sort();
 
     return SingleChildScrollView(
@@ -1008,19 +1008,17 @@ class _MyTeamsState extends State<MyTeams> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Always show "All" button first
+            // Always show All button first
             _buildProfileAvatarStaticsAll('All', 0),
 
-            // Show alphabet letters only when no specific letter is selected
-            if (_selectedLetter.isEmpty)
+            if (_selectedLetter.isEmpty) ...[
+              // Only show alphabet avatars
               for (String letter in sortedLetters) _buildAlphabetAvatar(letter),
-
-            // Show only the selected letter when a letter is selected
-            if (_selectedLetter.isNotEmpty)
+            ] else ...[
+              // Show selected letter first
               _buildAlphabetAvatar(_selectedLetter),
 
-            // Show filtered team members if a letter is selected
-            if (_selectedLetter.isNotEmpty)
+              // Then show its filtered members
               for (int i = 0; i < _filteredByLetter.length; i++)
                 _buildProfileAvatar(
                   _filteredByLetter[i]['fname'] ?? '',
@@ -1030,16 +1028,10 @@ class _MyTeamsState extends State<MyTeams> {
                   _filteredByLetter[i]['initials'] ?? '',
                 ),
 
-            // Show all team members if no letter is selected
-            if (_selectedLetter.isEmpty)
-              for (int i = 0; i < sortedTeamMembers.length; i++)
-                _buildProfileAvatar(
-                  sortedTeamMembers[i]['fname'] ?? '',
-                  i + 1,
-                  sortedTeamMembers[i]['user_id'] ?? '',
-                  sortedTeamMembers[i]['profile'],
-                  sortedTeamMembers[i]['initials'] ?? '',
-                ),
+              // Then show remaining letters (excluding selected one)
+              for (String letter in sortedLetters)
+                if (letter != _selectedLetter) _buildAlphabetAvatar(letter),
+            ],
           ],
         ),
       ),
@@ -1144,6 +1136,7 @@ class _MyTeamsState extends State<MyTeams> {
       ],
     );
   }
+
   // Widget _buildProfileAvatars() {
   //   return SingleChildScrollView(
   //     scrollDirection: Axis.horizontal,
@@ -2673,7 +2666,8 @@ class _MyTeamsState extends State<MyTeams> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => FollowupsDetails(leadId: leadId ,
+                    builder: (context) => FollowupsDetails(
+                      leadId: leadId,
                       isFromFreshlead: false,
                     ),
                   ),

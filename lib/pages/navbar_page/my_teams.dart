@@ -898,7 +898,7 @@ class _MyTeamsState extends State<MyTeams> {
                   //   _showCreateteamPopup(context);
                   // }),
                   _buildPopupItem(
-                    Icons.people_alt_rounded,
+                    Icons.receipt_long_outlined,
                     "Enquiry",
                     -60,
                     onTap: () {
@@ -1819,7 +1819,7 @@ class _MyTeamsState extends State<MyTeams> {
                         Container(
                           margin: const EdgeInsets.only(left: 10, bottom: 0),
                           child: Text(
-                            'Call Analytics',
+                            'Call Analysis',
                             style: AppFont.dropDowmLabel(context),
                           ),
                         ),

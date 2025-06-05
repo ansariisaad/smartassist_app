@@ -1034,13 +1034,18 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                                   Container(
                                     padding: const EdgeInsets.all(5),
                                     decoration: BoxDecoration(
-                                      color: Colors.grey[300],
+                                      color: const Color.fromARGB(
+                                        0,
+                                        255,
+                                        255,
+                                        255,
+                                      ),
                                       borderRadius: BorderRadius.circular(50),
                                     ),
                                     child: const Icon(
-                                      Icons.person,
+                                      Icons.receipt_long_outlined,
                                       size: 40,
-                                      color: Colors.white,
+                                      color: Color.fromRGBO(2, 118, 254, 1),
                                     ),
                                   ),
                                   const SizedBox(width: 10),
@@ -1126,7 +1131,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                                   children: [
                                     Expanded(
                                       child: _buildContactRow(
-                                        icon: Icons.alt_route_outlined,
+                                        icon: Icons.question_mark_rounded,
                                         title: 'Status',
                                         subtitle:
                                             status, // Replace with the actual address variable
@@ -1135,8 +1140,8 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                                     const SizedBox(width: 10),
                                     Expanded(
                                       child: _buildContactRow(
-                                        icon: Icons.person,
-                                        title: 'Lead Source',
+                                        icon: Icons.wechat_rounded,
+                                        title: 'Source',
                                         subtitle:
                                             leadSource, // Replace with the actual address variable
                                       ),
@@ -1148,8 +1153,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                                     // Left Section: Phone Number and Company
                                     Expanded(
                                       child: _buildContactRow(
-                                        icon: Icons
-                                            .account_balance_wallet_outlined,
+                                        icon: Icons.email_outlined,
                                         title: 'Email',
                                         subtitle: email,
                                       ),
@@ -1201,7 +1205,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                                     const SizedBox(width: 10),
                                     Expanded(
                                       child: _buildContactRow(
-                                        icon: Icons.directions_car,
+                                        icon: Icons.receipt_long_outlined,
                                         title: 'Enquiry type',
                                         subtitle: enquiry_type,
                                       ),
@@ -1631,7 +1635,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                 alignment: Alignment.bottomLeft,
                 child: Text(
                   textAlign: TextAlign.center,
-                  'Perform atleast one Test Drive before qualifying this enquiry.',
+                  'Perform atleast one follow up qualifying this enquiry.',
                   style: AppFont.mediumText14(context),
                 ),
               ),

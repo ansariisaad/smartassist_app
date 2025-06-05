@@ -49,23 +49,14 @@ class Timeline extends StatelessWidget {
                     )
                   : null,
             )
-          : const IndicatorStyle(
-              width: 0,
-              color: Colors.transparent,
-            ),
+          : const IndicatorStyle(width: 0, color: Colors.transparent),
       startChild: Padding(
         padding: const EdgeInsets.symmetric(vertical: 10), // Add spacing here
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: startChild,
-        ),
+        child: Align(alignment: Alignment.centerLeft, child: startChild),
       ),
       endChild: Padding(
         padding: const EdgeInsets.symmetric(vertical: 10), // Add spacing here
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: endChild,
-        ),
+        child: Align(alignment: Alignment.centerLeft, child: endChild),
       ),
     );
   }

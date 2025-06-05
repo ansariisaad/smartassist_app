@@ -466,7 +466,7 @@ class _CalendarSmState extends State<CalendarSm> {
                   style: TextButton.styleFrom(padding: EdgeInsets.zero),
                   onPressed: () => _handleTeamYourSelection('team'),
                   child: Text(
-                    'Team',
+                    "Team's",
                     style: GoogleFonts.poppins(
                       fontSize: 14,
                       color: _selectedType == 'team'

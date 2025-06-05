@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
@@ -28,6 +29,13 @@ class MyTeams extends StatefulWidget {
 }
 
 class _MyTeamsState extends State<MyTeams> {
+  // ADD THESE VARIABLES TO YOUR CLASS
+  int _currentDisplayCount = 10; // Initially show 10 records
+  static const int _incrementCount = 10; // Show 10 more each time
+
+  // Your existing variables
+  // List<dynamic> _membersData = []; // Your existing data list
+
   final ScrollController _scrollController = ScrollController();
   String _selectedLetter = '';
   List<Map<String, dynamic>> _filteredByLetter = [];
@@ -134,6 +142,21 @@ class _MyTeamsState extends State<MyTeams> {
   //     debugPrint('Error fetching single call log: $e');
   //   }
   // }
+
+  // Method to load more records
+  void _loadMoreRecords() {
+    setState(() {
+      _currentDisplayCount = math.min(
+        _currentDisplayCount + _incrementCount,
+        _membersData.length,
+      );
+    });
+  }
+
+  // Method to check if there are more records to show
+  bool _hasMoreRecords() {
+    return _currentDisplayCount < _membersData.length;
+  }
 
   Future<void> _fetchSingleCalllog() async {
     try {
@@ -1781,7 +1804,11 @@ class _MyTeamsState extends State<MyTeams> {
                 Container(
                   margin: const EdgeInsets.only(top: 10),
                   child: Column(
-                    children: [_buildUserStatsCard(), _buildAnalyticsTable()],
+                    children: [
+                      _buildUserStatsCard(),
+                      _buildAnalyticsTable(),
+                      _buildShowMoreButton(),
+                    ],
                   ),
                 ),
               ],
@@ -1934,7 +1961,7 @@ class _MyTeamsState extends State<MyTeams> {
                         Icons.call,
                         color: AppColors.sideGreen,
                         size: 20,
-                      ), 
+                      ),
                     ),
                     Container(
                       alignment: Alignment.centerLeft,
@@ -1989,10 +2016,21 @@ class _MyTeamsState extends State<MyTeams> {
     );
   }
 
+  // Enhanced version with better edge case handling:
   List<TableRow> _buildMemberRows() {
-    return _membersData.map((member) {
+    // Safety check for empty data
+    if (_membersData.isEmpty) {
+      return [];
+    }
+
+    // Get only the records to display based on current count
+    List<dynamic> displayMembers = _membersData
+        .take(_currentDisplayCount)
+        .toList();
+
+    return displayMembers.map((member) {
       return _buildTableRow([
-        // Name column
+        // Your existing table row code...
         InkWell(
           onTap: () {
             Navigator.push(
@@ -2026,33 +2064,62 @@ class _MyTeamsState extends State<MyTeams> {
             ],
           ),
         ),
-        // Incoming
         Text(
           member['incoming'].toString(),
           style: AppFont.smallText10(context),
         ),
-        // Outgoing
         Text(
           member['outgoing'].toString(),
           style: AppFont.smallText10(context),
         ),
-        // Connected
         Text(
           member['connected'].toString(),
           style: AppFont.smallText10(context),
         ),
-        // Duration
         Text(
           member['duration'].toString(),
           style: AppFont.smallText10(context),
         ),
-        // Declined
         Text(
           member['declined'].toString(),
           style: AppFont.smallText10(context),
         ),
       ]);
     }).toList();
+  }
+
+  // Enhanced Show More button with better text
+  Widget _buildShowMoreButton() {
+    if (_membersData.isEmpty || !_hasMoreRecords()) {
+      return const SizedBox.shrink();
+    }
+
+    int remainingRecords = _membersData.length - _currentDisplayCount;
+    int recordsToShow = math.min(_incrementCount, remainingRecords);
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 10.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          TextButton(
+            onPressed: _loadMoreRecords,
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.blue,
+              textStyle: const TextStyle(fontSize: 12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Show More ($recordsToShow more)'),
+                const SizedBox(width: 4),
+                const Icon(Icons.keyboard_arrow_down, size: 16),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   TableRow _buildTableRow(List<Widget> widgets) {

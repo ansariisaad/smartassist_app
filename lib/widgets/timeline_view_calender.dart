@@ -550,7 +550,8 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => FollowupsDetails(leadId: leadId),
+                builder: (context) =>
+                    FollowupsDetails(leadId: leadId, isFromFreshlead: false),
               ),
             );
           },
@@ -640,7 +641,8 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => FollowupsDetails(leadId: leadId),
+                builder: (context) =>
+                    FollowupsDetails(leadId: leadId, isFromFreshlead: false),
               ),
             );
           },

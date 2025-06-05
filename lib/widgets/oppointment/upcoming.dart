@@ -605,7 +605,9 @@ class _OppUpcomingItemState extends State<OppUpcomingItem>
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => FollowupsDetails(leadId: widget.leadId),
+              builder: (context) => FollowupsDetails(leadId: widget.leadId,
+                isFromFreshlead: false,
+              ),
             ),
           );
         } else {

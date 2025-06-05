@@ -111,23 +111,26 @@ class TimelineUpcoming extends StatelessWidget {
                     padding: WidgetStatePropertyAll(EdgeInsets.zero),
                   ),
                   icon: Icon(size: 20, icon, color: Colors.white),
-                  onPressed: () {
-                    if (isFromTeams) return;
-                    if (subject == 'Call') {
-                      // Example: Launch phone dialer (you'll need url_launcher package)
-                      launchUrl(Uri.parse('tel:$mobile'));
-                    } else if (subject == 'Send SMS') {
-                      // Example: Open SMS
-                      launchUrl(Uri.parse('sms:$mobile'));
-                    } else {
-                      // fallback action
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('No action defined for this subject'),
-                        ),
-                      );
-                    }
-                  },
+                  onPressed: isFromTeams
+                      ? null
+                      : () {
+                          if (subject == 'Call') {
+                            // Example: Launch phone dialer (you'll need url_launcher package)
+                            launchUrl(Uri.parse('tel:$mobile'));
+                          } else if (subject == 'Send SMS') {
+                            // Example: Open SMS
+                            launchUrl(Uri.parse('sms:$mobile'));
+                          } else {
+                            // fallback action
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'No action defined for this subject',
+                                ),
+                              ),
+                            );
+                          }
+                        },
                 ),
               ),
             ),
@@ -228,37 +231,41 @@ class TimelineUpcoming extends StatelessWidget {
                     padding: WidgetStatePropertyAll(EdgeInsets.zero),
                   ),
                   icon: Icon(size: 20, icon, color: Colors.white),
-                  onPressed: () {
-                    if (eventSubject == 'Call') {
-                      if (isFromTeams) return;
-                      // Example: Launch phone dialer (you'll need url_launcher package)
-                      launchUrl(Uri.parse('tel:$mobile'));
-                    } else if (eventSubject == 'Send SMS') {
-                      // Example: Open SMS
-                      launchUrl(Uri.parse('sms:$mobile'));
-                    } else if (eventSubject == 'Test Drive') {
-                      // Example: Open Test Drive UR
-                      _getOtp(eventId);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => TestdriveVerifyotp(
-                            email: gmail,
-                            eventId: eventId,
-                            leadId: leadId,
-                            mobile: mobile,
-                          ),
-                        ),
-                      );
-                    } else {
-                      // fallback action
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('No action defined for this subject'),
-                        ),
-                      );
-                    }
-                  },
+                  onPressed: isFromTeams
+                      ? null
+                      : () {
+                          if (eventSubject == 'Call') {
+                            // if (isFromTeams) return;
+                            // Example: Launch phone dialer (you'll need url_launcher package)
+                            launchUrl(Uri.parse('tel:$mobile'));
+                          } else if (eventSubject == 'Send SMS') {
+                            // Example: Open SMS
+                            launchUrl(Uri.parse('sms:$mobile'));
+                          } else if (eventSubject == 'Test Drive') {
+                            // Example: Open Test Drive UR
+                            _getOtp(eventId);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => TestdriveVerifyotp(
+                                  email: gmail,
+                                  eventId: eventId,
+                                  leadId: leadId,
+                                  mobile: mobile,
+                                ),
+                              ),
+                            );
+                          } else {
+                            // fallback action
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'No action defined for this subject',
+                                ),
+                              ),
+                            );
+                          }
+                        },
                 ),
               ),
             ),

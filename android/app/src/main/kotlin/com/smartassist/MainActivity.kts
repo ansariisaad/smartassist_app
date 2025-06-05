@@ -1,4 +1,4 @@
-package com.smartassist.smartassist_app.app
+package com.smartassist.app
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 

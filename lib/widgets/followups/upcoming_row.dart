@@ -519,7 +519,9 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => FollowupsDetails(leadId: widget.leadId),
+              builder: (context) => FollowupsDetails(leadId: widget.leadId,
+                isFromFreshlead: false,
+              ),
             ),
           );
         } else {

@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
+import 'package:smartassist/config/controller/tab_controller.dart';
 import 'package:smartassist/config/getX/fab.controller.dart';
 import 'package:smartassist/pages/Leads/single_details_pages/singleLead_followup.dart';
 import 'package:smartassist/pages/Leads/single_details_pages/teams_enquiryIds.dart';
@@ -59,6 +60,8 @@ class _MyTeamsState extends State<MyTeams> {
   Set<String> selectedUserIds = {};
   // String? selectedUserIds;
 
+  late TabControllerNew _tabController;
+
   int _upcommingButtonIndex = 0;
 
   bool isHideAllcall = false;
@@ -93,6 +96,7 @@ class _MyTeamsState extends State<MyTeams> {
   @override
   void initState() {
     super.initState();
+    _tabController = TabControllerNew();
     _initialize();
   }
 
@@ -582,6 +586,7 @@ class _MyTeamsState extends State<MyTeams> {
           isLoading
               ? const Center(child: CircularProgressIndicator())
               : SingleChildScrollView(
+                  controller: fabController.scrollController,
                   child: Container(
                     color: Colors.white,
                     padding: const EdgeInsets.all(10.0),
@@ -616,15 +621,38 @@ class _MyTeamsState extends State<MyTeams> {
                 ),
 
           // Floating Action Button
-          Positioned(
-            bottom: 20,
-            right: 15,
-            child: _buildFloatingActionButton(context),
+          // Positioned(
+          //   bottom: 20,
+          //   right: 15,
+          //   child: _buildFloatingActionButton(context),
+          // ),
+
+          // // //Popup Menu (Conditionally Rendered)
+          // Obx(
+          //   () => fabController.isFabExpanded.value
+          //       ? _buildPopupMenu(context)
+          //       : const SizedBox.shrink(),
+          // ),
+          // Replace your current Positioned widget with:
+          Obx(
+            () => AnimatedPositioned(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              bottom: fabController.isFabVisible.value ? 26 : -80,
+              right: 18,
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 300),
+                opacity: fabController.isFabVisible.value ? 1.0 : 0.0,
+                child: _buildFloatingActionButton(context),
+              ),
+            ),
           ),
 
-          // //Popup Menu (Conditionally Rendered)
+          // Update your popup menu condition:
           Obx(
-            () => fabController.isFabExpanded.value
+            () =>
+                fabController.isFabExpanded.value &&
+                    fabController.isFabVisible.value
                 ? _buildPopupMenu(context)
                 : const SizedBox.shrink(),
           ),
@@ -1782,8 +1810,8 @@ class _MyTeamsState extends State<MyTeams> {
                           },
                           icon: Icon(
                             isHideAllcall
-                                ? Icons.keyboard_arrow_down_rounded
-                                : Icons.keyboard_arrow_up_rounded,
+                                ? Icons.keyboard_arrow_up_rounded
+                                : Icons.keyboard_arrow_down_rounded,
                             size: 35,
                             color: AppColors.iconGrey,
                           ),
@@ -1800,7 +1828,7 @@ class _MyTeamsState extends State<MyTeams> {
                   ],
                 ),
               ),
-              if (!isHideAllcall) ...[
+              if (isHideAllcall) ...[
                 Container(
                   margin: const EdgeInsets.only(top: 10),
                   child: Column(
@@ -2645,7 +2673,9 @@ class _MyTeamsState extends State<MyTeams> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => FollowupsDetails(leadId: leadId),
+                    builder: (context) => FollowupsDetails(leadId: leadId ,
+                      isFromFreshlead: false,
+                    ),
                   ),
                 );
               } else {

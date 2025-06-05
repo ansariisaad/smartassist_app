@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
@@ -18,6 +19,7 @@ import 'package:smartassist/widgets/home_btn.dart/teams_popups.dart/followups_te
 import 'package:smartassist/widgets/home_btn.dart/teams_popups.dart/lead_teams.dart';
 import 'package:smartassist/widgets/home_btn.dart/teams_popups.dart/testdrive_teams.dart';
 import 'package:smartassist/widgets/team_calllog_userid.dart';
+import 'package:azlistview/azlistview.dart';
 
 class MyTeams extends StatefulWidget {
   const MyTeams({Key? key}) : super(key: key);
@@ -27,6 +29,17 @@ class MyTeams extends StatefulWidget {
 }
 
 class _MyTeamsState extends State<MyTeams> {
+  // ADD THESE VARIABLES TO YOUR CLASS
+  int _currentDisplayCount = 10; // Initially show 10 records
+  static const int _incrementCount = 10; // Show 10 more each time
+
+  // Your existing variables
+  // List<dynamic> _membersData = []; // Your existing data list
+
+  final ScrollController _scrollController = ScrollController();
+  String _selectedLetter = '';
+  List<Map<String, dynamic>> _filteredByLetter = [];
+
   // Tab and filter state
   int _tabIndex = 0; // 0 for Individual Performance, 1 for Team Comparison
   int _periodIndex = 0; // ALL, MTD, QTD, YTD
@@ -92,6 +105,7 @@ class _MyTeamsState extends State<MyTeams> {
       // Fetch team data using the new consolidated API
       await _fetchTeamDetails();
       await _fetchAllCalllog();
+      // _prepareTeamMembersForAzList();
       // await _fetchSingleCalllog();
     } catch (error) {
       print("Error during initialization: $error");
@@ -129,6 +143,21 @@ class _MyTeamsState extends State<MyTeams> {
   //   }
   // }
 
+  // Method to load more records
+  void _loadMoreRecords() {
+    setState(() {
+      _currentDisplayCount = math.min(
+        _currentDisplayCount + _incrementCount,
+        _membersData.length,
+      );
+    });
+  }
+
+  // Method to check if there are more records to show
+  bool _hasMoreRecords() {
+    return _currentDisplayCount < _membersData.length;
+  }
+
   Future<void> _fetchSingleCalllog() async {
     try {
       // setState(() {
@@ -144,7 +173,7 @@ class _MyTeamsState extends State<MyTeams> {
         //   periodParam = 'DAY';
         //   break;
         // case 1:
-        //   periodParam = 'WEEK';
+        //   periodParam = 'WEEK' ;
         //   break;
         case 1:
           periodParam = 'MTD';
@@ -477,171 +506,6 @@ class _MyTeamsState extends State<MyTeams> {
     }
   }
 
-  // Future<void> _fetchTeamDetails() async {
-  //   try {
-  //     final result = await LeadsSrv.fetchTeamDetails(
-  //       periodIndex: _periodIndex,
-  //       metricIndex: _metricIndex,
-  //       selectedProfileIndex: _selectedProfileIndex,
-  //       selectedUserId: _selectedUserId,
-  //       selectedCheckboxIds: _selectedCheckboxIds.toList(),
-  //       upcomingButtonIndex: _upcommingButtonIndex,
-  //     );
-
-  //     setState(() {
-  //       _teamData = result['teamData'];
-  //       _teamMembers = List<Map<String, dynamic>>.from(result['allMember']);
-  //       _selectedUserData = _selectedProfileIndex == 0
-  //           ? result['summary']
-  //           : _teamMembers[_selectedProfileIndex - 1];
-
-  //       _selectedUserData['totalPerformance'] = result['totalPerformance'];
-  //       _upcomingFollowups = result['upcomingFollowups'];
-  //       _upcomingAppointments = result['upcomingAppointments'];
-  //       _upcomingTestDrives = result['upcomingTestDrives'];
-  //     });
-  //   } catch (e) {
-  //     print('❌ Error in _fetchTeamDetails: $e');
-  //   }
-  // }
-
-  // Future<void> _fetchTeamDetails() async {
-  //   try {
-  //     final token = await Storage.getToken();
-
-  //     // Build period parameter
-  //     String? periodParam;
-  //     switch (_periodIndex) {
-  //       case 0:
-  //         periodParam = 'DAY';
-  //         break;
-  //       case 1:
-  //         periodParam = 'WEEK';
-  //         break;
-  //       case 2:
-  //         periodParam = 'MTD';
-  //         break;
-  //       case 3:
-  //         periodParam = 'QTD';
-  //         break;
-  //       case 4:
-  //         periodParam = 'YTD';
-  //         break;
-  //       default:
-  //         periodParam = 'DAY';
-  //     }
-
-  //     final Map<String, String> queryParams = {};
-
-  //     if (periodParam != null) {
-  //       queryParams['type'] = periodParam;
-  //     }
-
-  //     // ✅ Only add user_id and summary if a specific user is selected
-  //     if (_selectedProfileIndex != 0 && _selectedUserId.isNotEmpty) {
-  //       final summaryMetrics = [
-  //         'enquiries',
-  //         'testdrives',
-  //         'orders',
-  //         'cancellation',
-  //         'netOrders',
-  //         'retail'
-  //       ];
-  //       final summaryParam = summaryMetrics[_metricIndex];
-  //       queryParams['user_id'] = _selectedUserId;
-  //       // queryParams['userIds'] = _selectedCheckboxIds;
-  //       queryParams['userIds'] = _selectedCheckboxIds.join(',');
-
-  //       queryParams['summary'] = summaryParam;
-  //     }
-
-  //     if (_selectedCheckboxIds.isNotEmpty) {
-  //       queryParams['userIds'] = _selectedCheckboxIds.join(',');
-  //     }
-
-  //     final baseUri = Uri.parse(
-  //       'https://api.smartassistapp.in/api/users/sm/dashboard/team-dashboard',
-  //     );
-
-  //     final uri = baseUri.replace(queryParameters: queryParams);
-
-  //     print('📤 Fetching from: $uri');
-
-  //     final response = await http.get(uri, headers: {
-  //       'Authorization': 'Bearer $token',
-  //       'Content-Type': 'application/json',
-  //     });
-
-  //     print('📥 Status Code: ${response.statusCode}');
-  //     print('📥 Response: ${response.body}');
-
-  //     if (response.statusCode == 200) {
-  //       final data = json.decode(response.body);
-
-  //       setState(() {
-  //         _teamData = data['data'] ?? {};
-
-  //         // Save total performance
-  //         if (_teamData.containsKey('totalPerformance')) {
-  //           _selectedUserData['totalPerformance'] =
-  //               _teamData['totalPerformance'];
-  //         }
-
-  //         if (_teamData.containsKey('allMember') &&
-  //             _teamData['allMember'].isNotEmpty) {
-  //           _teamMembers = [];
-
-  //           for (var member in _teamData['allMember']) {
-  //             _teamMembers.add({
-  //               'fname': member['fname'] ?? '',
-  //               'lname': member['lname'] ?? '',
-  //               'user_id': member['user_id'] ?? '',
-  //               'profile': member['profile'],
-  //               'initials': member['initials'] ?? '',
-  //             });
-  //           }
-  //         }
-
-  //         if (_selectedProfileIndex == 0) {
-  //           // Summary data
-  //           _selectedUserData = _teamData['summary'] ?? {};
-  //           _selectedUserData['totalPerformance'] =
-  //               _teamData['totalPerformance'] ?? {};
-  //         } else if (_selectedProfileIndex - 1 < _teamMembers.length) {
-  //           // Specific user selected
-  //           final selectedMember = _teamMembers[_selectedProfileIndex - 1];
-  //           _selectedUserData = selectedMember;
-
-  //           final selectedUserPerformance =
-  //               _teamData['selectedUserPerformance'] ?? {};
-  //           final upcoming = selectedUserPerformance['Upcoming'] ?? {};
-  //           final overdue = selectedUserPerformance['Overdue'] ?? {};
-
-  //           if (_upcommingButtonIndex == 0) {
-  //             _upcomingFollowups = List<Map<String, dynamic>>.from(
-  //                 upcoming['upComingFollowups'] ?? []);
-  //             _upcomingAppointments = List<Map<String, dynamic>>.from(
-  //                 upcoming['upComingAppointment'] ?? []);
-  //             _upcomingTestDrives = List<Map<String, dynamic>>.from(
-  //                 upcoming['upComingTestDrive'] ?? []);
-  //           } else {
-  //             _upcomingFollowups = List<Map<String, dynamic>>.from(
-  //                 overdue['overdueFollowups'] ?? []);
-  //             _upcomingAppointments = List<Map<String, dynamic>>.from(
-  //                 overdue['overdueAppointments'] ?? []);
-  //             _upcomingTestDrives = List<Map<String, dynamic>>.from(
-  //                 overdue['overdueTestDrives'] ?? []);
-  //           }
-  //         }
-  //       });
-  //     } else {
-  //       throw Exception('Failed to fetch team details: ${response.statusCode}');
-  //     }
-  //   } catch (e) {
-  //     print('Error fetching team details: $e');
-  //   }
-  // }
-
   // Process team data for team comparison display
   List<Map<String, dynamic>> _processTeamComparisonData() {
     if (!(_teamData.containsKey('teamComparsion') &&
@@ -728,13 +592,13 @@ class _MyTeamsState extends State<MyTeams> {
                           scrollDirection: Axis.horizontal,
                           child: Row(
                             children: [
-                              _buildProfileAvatarStaticsAll('All', 0),
+                              // _buildProfileAvatarStaticsAll('All', 0),
                               _buildProfileAvatars(),
                             ],
                           ),
                         ),
 
-                        // Profile avatars (previously shown only for Individual Performance tab)
+                        // Vertical scrollbar only - no item display needed
                         const SizedBox(height: 10),
 
                         // Individual Performance content
@@ -1048,7 +912,170 @@ class _MyTeamsState extends State<MyTeams> {
     );
   }
 
+  // Widget _buildProfileAvatarStaticsAll(String firstName, int index) {
+  //   return Column(
+  //     mainAxisSize: MainAxisSize.min,
+  //     children: [
+  //       InkWell(
+  //         onTap: () async {
+  //           setState(() {
+  //             _selectedProfileIndex = index;
+  //             _selectedType = 'All';
+  //           });
+  //           await _fetchTeamDetails();
+  //         },
+  //         child: Container(
+  //           margin: const EdgeInsets.fromLTRB(10, 0, 5, 0),
+  //           width: 50,
+  //           height: 50,
+  //           decoration: BoxDecoration(
+  //             shape: BoxShape.circle,
+  //             color: AppColors.backgroundLightGrey,
+  //             border: _selectedProfileIndex == index
+  //                 ? Border.all(color: Colors.blue, width: 2)
+  //                 : null,
+  //           ),
+  //           child: Center(
+  //             child: Icon(Icons.people, color: Colors.grey.shade400, size: 32),
+  //           ),
+  //         ),
+  //       ),
+  //       const SizedBox(height: 8),
+  //       Text('All', style: AppFont.mediumText14(context)),
+  //       // Text(
+  //       //   lastName,
+  //       //   style: AppFont.mediumText14(context),
+  //       // ),
+  //     ],
+  //   );
+  // }
+
+  // Modified _buildProfileAvatars method
+  Widget _buildProfileAvatars() {
+    // Sort the list by first name before building avatars
+    List<Map<String, dynamic>> sortedTeamMembers = List.from(_teamMembers);
+    sortedTeamMembers.sort(
+      (a, b) => (a['fname'] ?? '').toString().toLowerCase().compareTo(
+        (b['fname'] ?? '').toString().toLowerCase(),
+      ),
+    );
+
+    // Get unique first letters
+    Set<String> uniqueLetters = {};
+    for (var member in sortedTeamMembers) {
+      String firstLetter = (member['fname'] ?? '').toString().toUpperCase();
+      if (firstLetter.isNotEmpty) {
+        uniqueLetters.add(firstLetter[0]);
+      }
+    }
+    List<String> sortedLetters = uniqueLetters.toList()..sort();
+
+    return SingleChildScrollView(
+      controller: _scrollController,
+      scrollDirection: Axis.horizontal,
+      child: Container(
+        margin: const EdgeInsets.only(top: 10),
+        height: 90,
+        padding: const EdgeInsets.only(top: 0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Always show "All" button first
+            _buildProfileAvatarStaticsAll('All', 0),
+
+            // Show alphabet letters only when no specific letter is selected
+            if (_selectedLetter.isEmpty)
+              for (String letter in sortedLetters) _buildAlphabetAvatar(letter),
+
+            // Show only the selected letter when a letter is selected
+            if (_selectedLetter.isNotEmpty)
+              _buildAlphabetAvatar(_selectedLetter),
+
+            // Show filtered team members if a letter is selected
+            if (_selectedLetter.isNotEmpty)
+              for (int i = 0; i < _filteredByLetter.length; i++)
+                _buildProfileAvatar(
+                  _filteredByLetter[i]['fname'] ?? '',
+                  i + 1,
+                  _filteredByLetter[i]['user_id'] ?? '',
+                  _filteredByLetter[i]['profile'],
+                  _filteredByLetter[i]['initials'] ?? '',
+                ),
+
+            // Show all team members if no letter is selected
+            if (_selectedLetter.isEmpty)
+              for (int i = 0; i < sortedTeamMembers.length; i++)
+                _buildProfileAvatar(
+                  sortedTeamMembers[i]['fname'] ?? '',
+                  i + 1,
+                  sortedTeamMembers[i]['user_id'] ?? '',
+                  sortedTeamMembers[i]['profile'],
+                  sortedTeamMembers[i]['initials'] ?? '',
+                ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Modified alphabet avatar method
+  Widget _buildAlphabetAvatar(String letter) {
+    bool isSelected = _selectedLetter == letter;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        InkWell(
+          onTap: () {
+            setState(() {
+              // Filter by selected letter
+              _selectedLetter = letter;
+              _filteredByLetter = _teamMembers.where((member) {
+                String firstName = (member['fname'] ?? '')
+                    .toString()
+                    .toUpperCase();
+                return firstName.startsWith(letter);
+              }).toList();
+              _selectedProfileIndex = -1; // No specific profile selected
+              _selectedType = 'Letter';
+            });
+            _fetchTeamDetails();
+          },
+          child: Container(
+            margin: const EdgeInsets.fromLTRB(10, 0, 5, 0),
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isSelected
+                  ? Colors.blue.withOpacity(0.2)
+                  : AppColors.backgroundLightGrey,
+              border: isSelected
+                  ? Border.all(color: Colors.blue, width: 2)
+                  : Border.all(color: Colors.grey.withOpacity(0.3), width: 1),
+            ),
+            child: Center(
+              child: Text(
+                letter,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: isSelected ? Colors.blue : Colors.grey.shade600,
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(letter, style: AppFont.mediumText14(context)),
+      ],
+    );
+  }
+
+  // Modified "All" button method
   Widget _buildProfileAvatarStaticsAll(String firstName, int index) {
+    bool isSelected = _selectedType == 'All' && _selectedLetter.isEmpty;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -1057,6 +1084,8 @@ class _MyTeamsState extends State<MyTeams> {
             setState(() {
               _selectedProfileIndex = index;
               _selectedType = 'All';
+              _selectedLetter = ''; // Clear letter selection
+              _filteredByLetter = []; // Clear filtered list
             });
             await _fetchTeamDetails();
           },
@@ -1066,49 +1095,50 @@ class _MyTeamsState extends State<MyTeams> {
             height: 50,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.backgroundLightGrey,
-              border: _selectedProfileIndex == index
+              color: isSelected
+                  ? Colors.blue.withOpacity(0.2)
+                  : AppColors.backgroundLightGrey,
+              border: isSelected
                   ? Border.all(color: Colors.blue, width: 2)
-                  : null,
+                  : Border.all(color: Colors.grey.withOpacity(0.3), width: 1),
             ),
             child: Center(
-              child: Icon(Icons.people, color: Colors.grey.shade400, size: 32),
+              child: Icon(
+                Icons.people,
+                color: isSelected ? Colors.blue : Colors.grey.shade400,
+                size: 32,
+              ),
             ),
           ),
         ),
         const SizedBox(height: 8),
         Text('All', style: AppFont.mediumText14(context)),
-        // Text(
-        //   lastName,
-        //   style: AppFont.mediumText14(context),
-        // ),
       ],
     );
   }
-
-  Widget _buildProfileAvatars() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Container(
-        margin: const EdgeInsets.only(top: 10),
-        height: 90,
-        padding: const EdgeInsets.symmetric(horizontal: 0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            for (int i = 0; i < _teamMembers.length; i++)
-              _buildProfileAvatar(
-                _teamMembers[i]['fname'] ?? '',
-                i + 1, // Starts from 1 because 0 is 'All'
-                _teamMembers[i]['user_id'] ?? '',
-                _teamMembers[i]['profile'], // Pass the profile URL
-                _teamMembers[i]['initials'] ?? '', // Pass the initials
-              ),
-          ],
-        ),
-      ),
-    );
-  }
+  // Widget _buildProfileAvatars() {
+  //   return SingleChildScrollView(
+  //     scrollDirection: Axis.horizontal,
+  //     child: Container(
+  //       margin: const EdgeInsets.only(top: 10),
+  //       height: 90,
+  //       padding: const EdgeInsets.symmetric(horizontal: 0),
+  //       child: Row(
+  //         crossAxisAlignment: CrossAxisAlignment.center,
+  //         children: [
+  //           for (int i = 0; i < _teamMembers.length; i++)
+  //             _buildProfileAvatar(
+  //               _teamMembers[i]['fname'] ?? '',
+  //               i + 1, // Starts from 1 because 0 is 'All'
+  //               _teamMembers[i]['user_id'] ?? '',
+  //               _teamMembers[i]['profile'], // Pass the profile URL
+  //               _teamMembers[i]['initials'] ?? '', // Pass the initials
+  //             ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   // Individual profile avatar
   Widget _buildProfileAvatar(
@@ -1133,7 +1163,9 @@ class _MyTeamsState extends State<MyTeams> {
             await _fetchSingleCalllog();
           },
           child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 15),
+            // margin: const EdgeInsets.only(left: 15, top: 2),
+            // margin: EdgeInsets.symmetric(horizontal: 10),
+            margin: const EdgeInsets.fromLTRB(10, 0, 5, 0),
             width: 50,
             height: 50,
             decoration: BoxDecoration(
@@ -1143,13 +1175,6 @@ class _MyTeamsState extends State<MyTeams> {
                   ? Border.all(color: Colors.blue, width: 2)
                   : null,
             ),
-            // child: Center(
-            //   child: Icon(
-            //     Icons.person,
-            //     color: Colors.grey.shade400,
-            //     size: 32,
-            //   ),
-            // ),
             child: ClipOval(
               child: profileUrl != null && profileUrl.isNotEmpty
                   ? Image.network(
@@ -1316,7 +1341,7 @@ class _MyTeamsState extends State<MyTeams> {
       children: [
         // _buildPeriodFilter(screenWidth),
         // _buildMetricButtons(),
-        _buildTeamComparisonChart(context),
+        // _buildTeamComparisonChart(context),
         _callAnalyticAll(context),
       ],
     );
@@ -1779,7 +1804,11 @@ class _MyTeamsState extends State<MyTeams> {
                 Container(
                   margin: const EdgeInsets.only(top: 10),
                   child: Column(
-                    children: [_buildUserStatsCard(), _buildAnalyticsTable()],
+                    children: [
+                      _buildUserStatsCard(),
+                      _buildAnalyticsTable(),
+                      _buildShowMoreButton(),
+                    ],
                   ),
                 ),
               ],
@@ -1933,9 +1962,6 @@ class _MyTeamsState extends State<MyTeams> {
                         color: AppColors.sideGreen,
                         size: 20,
                       ),
-                      //  Text('Connected',
-                      //     textAlign: TextAlign.start,
-                      //     style: AppFont.smallText10(context)),
                     ),
                     Container(
                       alignment: Alignment.centerLeft,
@@ -1990,10 +2016,21 @@ class _MyTeamsState extends State<MyTeams> {
     );
   }
 
+  // Enhanced version with better edge case handling:
   List<TableRow> _buildMemberRows() {
-    return _membersData.map((member) {
+    // Safety check for empty data
+    if (_membersData.isEmpty) {
+      return [];
+    }
+
+    // Get only the records to display based on current count
+    List<dynamic> displayMembers = _membersData
+        .take(_currentDisplayCount)
+        .toList();
+
+    return displayMembers.map((member) {
       return _buildTableRow([
-        // Name column
+        // Your existing table row code...
         InkWell(
           onTap: () {
             Navigator.push(
@@ -2027,33 +2064,62 @@ class _MyTeamsState extends State<MyTeams> {
             ],
           ),
         ),
-        // Incoming
         Text(
           member['incoming'].toString(),
           style: AppFont.smallText10(context),
         ),
-        // Outgoing
         Text(
           member['outgoing'].toString(),
           style: AppFont.smallText10(context),
         ),
-        // Connected
         Text(
           member['connected'].toString(),
           style: AppFont.smallText10(context),
         ),
-        // Duration
         Text(
           member['duration'].toString(),
           style: AppFont.smallText10(context),
         ),
-        // Declined
         Text(
           member['declined'].toString(),
           style: AppFont.smallText10(context),
         ),
       ]);
     }).toList();
+  }
+
+  // Enhanced Show More button with better text
+  Widget _buildShowMoreButton() {
+    if (_membersData.isEmpty || !_hasMoreRecords()) {
+      return const SizedBox.shrink();
+    }
+
+    int remainingRecords = _membersData.length - _currentDisplayCount;
+    int recordsToShow = math.min(_incrementCount, remainingRecords);
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 10.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          TextButton(
+            onPressed: _loadMoreRecords,
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.blue,
+              textStyle: const TextStyle(fontSize: 12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Show More ($recordsToShow more)'),
+                const SizedBox(width: 4),
+                const Icon(Icons.keyboard_arrow_down, size: 16),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   TableRow _buildTableRow(List<Widget> widgets) {

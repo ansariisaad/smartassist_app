@@ -469,10 +469,10 @@ class _CreateLeadsState extends State<CreateLeads> {
         isValid = false;
       }
 
-      // if (_selectedType.isEmpty) {
-      //   _errors['leadSource'] = 'Please select a brand';
-      //   isValid = false;
-      // }
+      if (_selectedType.isEmpty) {
+        _errors['leadSource'] = 'Please select a brand';
+        isValid = false;
+      }
     });
 
     return isValid;

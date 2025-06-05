@@ -68,8 +68,8 @@ class BottomNavigation extends StatelessWidget {
             if (controller.userRole.value == "SM") {
               navItems.add(
                 _buildNavItem(
-                  icon: Icons.people_alt_outlined,
-                  label: 'My Teams',
+                  icon: Icons.people,
+                  label: 'My Team',
                   index: 0,
                   isIcon: true,
                   isImg: false,
@@ -78,8 +78,8 @@ class BottomNavigation extends StatelessWidget {
               // Home comes second at index 1
               navItems.add(
                 _buildNavItem(
-                  icon: Icons.home,
-                  label: 'Home',
+                  icon: Icons.auto_graph,
+                  label: 'Dashboard',
                   index: 1,
                   isIcon: true,
                   isImg: false,
@@ -91,10 +91,12 @@ class BottomNavigation extends StatelessWidget {
               // SM users: show icon-based Calendar nav item
               navItems.add(
                 _buildNavItem(
-                  icon: Icons.people_alt_outlined,
-                  label: 'My Calendar',
+                  isImg: true,
+                  isIcon: false,
+                  icon: Icons.calendar_month_outlined,
+                  label: 'Calendar',
                   index: 2,
-                  isIcon: true,
+                  // isIcon: true,
                   img: Image.asset('assets/calendar.png', fit: BoxFit.contain),
                 ),
               );
@@ -137,7 +139,7 @@ class BottomNavigation extends StatelessWidget {
             int moreIndex = controller.userRole.value == "SM" ? 3 : 2;
             navItems.add(
               _buildNavItem(
-                icon: Icons.settings,
+                icon: Icons.more_horiz_sharp,
                 label: 'More',
                 index: moreIndex,
                 isIcon: true,
@@ -286,7 +288,7 @@ class BottomNavigation extends StatelessWidget {
         child: Column(
           children: [
             ListTile(
-              leading: const Icon(Icons.people_alt_outlined, size: 28),
+              leading: const Icon(Icons.receipt_long_outlined, size: 28),
               title: Text(
                 'My Enquiries',
                 style: GoogleFonts.poppins(fontSize: 18),
@@ -296,7 +298,7 @@ class BottomNavigation extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.call_outlined, size: 28),
               title: Text(
-                'My Call Analytics',
+                'My Call Analysis',
                 style: GoogleFonts.poppins(fontSize: 18),
               ),
               onTap: () => Get.to(

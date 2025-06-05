@@ -34,12 +34,7 @@ class InternetErrorWidget extends StatelessWidget {
               color: lightBlueColor.withOpacity(0.3),
               shape: BoxShape.circle,
             ),
-            child: customWidget ??
-                Icon(
-                  icon,
-                  size: 72,
-                  color: blueColor,
-                ),
+            child: customWidget ?? Icon(icon, size: 72, color: blueColor),
           ),
           const SizedBox(height: 32),
           Text(
@@ -77,10 +72,7 @@ class InternetErrorWidget extends StatelessWidget {
                 SizedBox(width: 8),
                 Text(
                   'Retry',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
               ],
             ),

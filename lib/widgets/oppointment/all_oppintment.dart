@@ -128,16 +128,10 @@ class _AllFollowupsItemState extends State<allOppointment>
       child: Stack(
         children: [
           // Favorite Swipe Overlay
-          if (isFavoriteSwipe)
-            Positioned.fill(
-              child: _buildFavoriteOverlay(),
-            ),
+          if (isFavoriteSwipe) Positioned.fill(child: _buildFavoriteOverlay()),
 
           // Call Swipe Overlay
-          if (isCallSwipe)
-            Positioned.fill(
-              child: _buildCallOverlay(),
-            ),
+          if (isCallSwipe) Positioned.fill(child: _buildCallOverlay()),
 
           // Main Card
           Opacity(
@@ -150,8 +144,9 @@ class _AllFollowupsItemState extends State<allOppointment>
                 border: Border(
                   left: BorderSide(
                     width: 8.0,
-                    color:
-                        widget.isFavorite ? Colors.yellow : Colors.blueAccent,
+                    color: widget.isFavorite
+                        ? Colors.yellow
+                        : Colors.blueAccent,
                   ),
                 ),
               ),
@@ -173,11 +168,7 @@ class _AllFollowupsItemState extends State<allOppointment>
                             ],
                           ),
                           const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              _buildCarModel(context),
-                            ],
-                          ),
+                          Row(children: [_buildCarModel(context)]),
                         ],
                       ),
                     ],
@@ -186,7 +177,7 @@ class _AllFollowupsItemState extends State<allOppointment>
                 ],
               ),
             ),
-          )
+          ),
         ],
       ),
     );
@@ -198,7 +189,7 @@ class _AllFollowupsItemState extends State<allOppointment>
         gradient: LinearGradient(
           colors: [
             Colors.yellow.withOpacity(0.2),
-            Colors.yellow.withOpacity(0.8)
+            Colors.yellow.withOpacity(0.8),
           ],
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
@@ -209,17 +200,19 @@ class _AllFollowupsItemState extends State<allOppointment>
         children: [
           const SizedBox(width: 15),
           Icon(
-              widget.isFavorite
-                  ? Icons.star_outline_rounded
-                  : Icons.star_rounded,
-              color: const Color.fromRGBO(226, 195, 34, 1),
-              size: 40),
+            widget.isFavorite ? Icons.star_outline_rounded : Icons.star_rounded,
+            color: const Color.fromRGBO(226, 195, 34, 1),
+            size: 40,
+          ),
           const SizedBox(width: 10),
-          Text(widget.isFavorite ? 'Unfavorite' : 'Favorite',
-              style: GoogleFonts.poppins(
-                  color: const Color.fromRGBO(187, 158, 0, 1),
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold)),
+          Text(
+            widget.isFavorite ? 'Unfavorite' : 'Favorite',
+            style: GoogleFonts.poppins(
+              color: const Color.fromRGBO(187, 158, 0, 1),
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );
@@ -240,11 +233,14 @@ class _AllFollowupsItemState extends State<allOppointment>
           const SizedBox(width: 10),
           const Icon(Icons.phone_in_talk, color: Colors.white, size: 30),
           const SizedBox(width: 10),
-          Text('Call',
-              style: GoogleFonts.poppins(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold)),
+          Text(
+            'Call',
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );
@@ -332,8 +328,8 @@ class _AllFollowupsItemState extends State<allOppointment>
       ),
     );
   }
-  
-    Widget _buildCarModel(BuildContext context) {
+
+  Widget _buildCarModel(BuildContext context) {
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 100),
       child: Text(
@@ -363,7 +359,8 @@ class _AllFollowupsItemState extends State<allOppointment>
           Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => FollowupsDetails(leadId: widget.leadId)),
+              builder: (context) => FollowupsDetails(leadId: widget.leadId),
+            ),
           );
         } else {
           print("Invalid leadId");
@@ -372,10 +369,14 @@ class _AllFollowupsItemState extends State<allOppointment>
       child: Container(
         padding: const EdgeInsets.all(3),
         decoration: BoxDecoration(
-            color: AppColors.arrowContainerColor,
-            borderRadius: BorderRadius.circular(30)),
-        child: const Icon(Icons.arrow_forward_ios_rounded,
-            size: 25, color: Colors.white),
+          color: AppColors.arrowContainerColor,
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: const Icon(
+          Icons.arrow_forward_ios_rounded,
+          size: 25,
+          color: Colors.white,
+        ),
       ),
     );
   }
@@ -392,8 +393,10 @@ class _AllFollowupsItemState extends State<allOppointment>
 
         // Simple approach without canLaunchUrl check
         final phoneNumber = 'tel:${widget.mobile}';
-        launchUrl(Uri.parse(phoneNumber),
-            mode: LaunchMode.externalNonBrowserApplication);
+        launchUrl(
+          Uri.parse(phoneNumber),
+          mode: LaunchMode.externalNonBrowserApplication,
+        );
       } catch (e) {
         print('Error launching phone app: $e');
 
@@ -408,9 +411,9 @@ class _AllFollowupsItemState extends State<allOppointment>
       }
     } else {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('No phone number available')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('No phone number available')));
       }
     }
   }
@@ -423,7 +426,7 @@ class _AllFollowupsItemState extends State<allOppointment>
     print("Mail action triggered");
 
     showDialog(
-         barrierDismissible: false,
+      barrierDismissible: false,
       context: context,
       builder: (context) {
         return Dialog(
@@ -461,11 +464,7 @@ class ReusableSlidableAction extends StatelessWidget {
       padding: EdgeInsets.zero,
       onPressed: (context) => onPressed(),
       backgroundColor: backgroundColor,
-      child: Icon(
-        icon,
-        size: iconSize,
-        color: foregroundColor ?? Colors.white,
-      ),
+      child: Icon(icon, size: iconSize, color: foregroundColor ?? Colors.white),
     );
   }
 }
@@ -536,10 +535,7 @@ class _AllFollowupState extends State<AllFollowup> {
             padding: EdgeInsets.fromLTRB(15, 15, 0, 0),
             child: Text(
               "All Followups",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
           ),
         ListView.builder(

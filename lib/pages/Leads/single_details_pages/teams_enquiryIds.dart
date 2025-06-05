@@ -111,6 +111,7 @@ class _TeamsEnquiryidsState extends State<TeamsEnquiryids> {
 
     // Initially, set the selected widget
     _selectedTaskWidget = TimelineUpcoming(
+      isFromTeams: true,
       tasks: upcomingTasks,
       upcomingEvents: upcomingEvents,
     );
@@ -311,6 +312,7 @@ class _TeamsEnquiryidsState extends State<TeamsEnquiryids> {
 
         // Now you can safely pass the upcomingTasks and completedTasks to the widgets.
         _selectedTaskWidget = TimelineUpcoming(
+          isFromTeams: true,
           tasks: upcomingTasks,
           upcomingEvents: upcomingEvents,
         );
@@ -331,6 +333,7 @@ class _TeamsEnquiryidsState extends State<TeamsEnquiryids> {
         _selectedTaskWidget = TimelineUpcoming(
           tasks: upcomingTasks,
           upcomingEvents: upcomingEvents,
+          isFromTeams: true,
         );
       } else if (index == 1) {
         _selectedTaskWidget = TimelineCompleted(
@@ -1401,98 +1404,99 @@ class _TeamsEnquiryidsState extends State<TeamsEnquiryids> {
           ),
         ],
       ),
+
       // floatingActionButton: _buildFloatingActionButton(context),
-      bottomNavigationBar: Stack(
-        alignment: Alignment.bottomCenter,
-        children: [
-          Container(
-            height: 80,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(20),
-                topRight: Radius.circular(20),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: Offset(0, -2),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                // Lost Button
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      if (areButtonsEnabled()) {
-                        handleLostAction();
-                      } else {
-                        showLostRequiredDialog(context);
-                      }
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(color: Colors.red, width: 1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        'Lost',
-                        style: AppFont.mediumText14red(context),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
+      // bottomNavigationBar: Stack(
+      //   alignment: Alignment.bottomCenter,
+      //   children: [
+      //     Container(
+      //       height: 80,
+      //       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      //       decoration: BoxDecoration(
+      //         color: Colors.white,
+      //         borderRadius: const BorderRadius.only(
+      //           topLeft: Radius.circular(20),
+      //           topRight: Radius.circular(20),
+      //         ),
+      //         boxShadow: [
+      //           BoxShadow(
+      //             color: Colors.black.withOpacity(0.1),
+      //             blurRadius: 10,
+      //             offset: Offset(0, -2),
+      //           ),
+      //         ],
+      //       ),
+      //       child: Row(
+      //         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      //         children: [
+      //           // Lost Button
+      //           Expanded(
+      //             child: GestureDetector(
+      //               onTap: () {
+      //                 if (areButtonsEnabled()) {
+      //                   handleLostAction();
+      //                 } else {
+      //                   showLostRequiredDialog(context);
+      //                 }
+      //               },
+      //               child: Container(
+      //                 padding: const EdgeInsets.symmetric(vertical: 10),
+      //                 decoration: BoxDecoration(
+      //                   color: Colors.white,
+      //                   border: Border.all(color: Colors.red, width: 1),
+      //                   borderRadius: BorderRadius.circular(12),
+      //                 ),
+      //                 child: Text(
+      //                   'Lost',
+      //                   style: AppFont.mediumText14red(context),
+      //                   textAlign: TextAlign.center,
+      //                 ),
+      //               ),
+      //             ),
+      //           ),
+      //           const SizedBox(width: 10),
 
-                // Qualify Button
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      if (areButtonsEnabled()) {
-                        handleQualifyAction();
-                      } else {
-                        showTaskRequiredDialog(context);
-                      }
-                    },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF35CB64),
-                        // Green color from image
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        'Qualify',
-                        style: AppFont.mediumText14white(context),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-                ),
-                // const SizedBox(width: 10),
-                // SizedBox(
-                //   width: 60,
-                //   height: 45,
-                //   child: _buildFloatingActionButton(context),
-                // ),
+      //           // Qualify Button
+      //           Expanded(
+      //             child: GestureDetector(
+      //               onTap: () {
+      //                 if (areButtonsEnabled()) {
+      //                   handleQualifyAction();
+      //                 } else {
+      //                   showTaskRequiredDialog(context);
+      //                 }
+      //               },
+      //               child: Container(
+      //                 padding: EdgeInsets.symmetric(vertical: 12),
+      //                 decoration: BoxDecoration(
+      //                   color: const Color(0xFF35CB64),
+      //                   // Green color from image
+      //                   borderRadius: BorderRadius.circular(12),
+      //                 ),
+      //                 child: Text(
+      //                   'Qualify',
+      //                   style: AppFont.mediumText14white(context),
+      //                   textAlign: TextAlign.center,
+      //                 ),
+      //               ),
+      //             ),
+      //           ),
+      //           // const SizedBox(width: 10),
+      //           // SizedBox(
+      //           //   width: 60,
+      //           //   height: 45,
+      //           //   child: _buildFloatingActionButton(context),
+      //           // ),
 
-                // Popup Menu (Conditionally Rendered)
-                // Obx(() => fabController.isFabExpanded.value
-                //     ? _buildPopupMenu(context)
-                //     : SizedBox.shrink()),
-              ],
-            ),
-          ),
-        ],
-      ),
+      //           // Popup Menu (Conditionally Rendered)
+      //           // Obx(() => fabController.isFabExpanded.value
+      //           //     ? _buildPopupMenu(context)
+      //           //     : SizedBox.shrink()),
+      //         ],
+      //       ),
+      //     ),
+      //   ],
+      // ),
     );
   }
 

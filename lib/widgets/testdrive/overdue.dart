@@ -690,7 +690,9 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => FollowupsDetails(leadId: widget.leadId),
+              builder: (context) => FollowupsDetails(leadId: widget.leadId,
+                isFromFreshlead: false,
+              ),
             ),
           );
         } else {

@@ -14,7 +14,7 @@ import 'package:smartassist/config/getX/fab.controller.dart';
 import 'package:smartassist/pages/Leads/single_details_pages/singleLead_followup.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:smartassist/services/leads_srv.dart';
+import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 

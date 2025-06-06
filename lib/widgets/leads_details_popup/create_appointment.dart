@@ -7,7 +7,7 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:smartassist/services/leads_srv.dart';
+import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 
 class CreateAppointment extends StatefulWidget {

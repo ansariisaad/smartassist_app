@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/pages/login_steps/second_screen.dart';
 import 'package:smartassist/services/email_srv.dart';
-import 'package:smartassist/services/leads_srv.dart';
+import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/button.dart';
 import 'package:smartassist/utils/paragraph_text.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';

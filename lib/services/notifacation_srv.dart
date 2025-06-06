@@ -67,7 +67,7 @@ class NotificationService {
 
     final InitializationSettingsDarwin = DarwinInitializationSettings(
       onDidReceiveLocalNotification: (id, title, body, payload) async {
-        // handle
+        // handleadlkf
       },
     );
 

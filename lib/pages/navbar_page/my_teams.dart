@@ -1016,9 +1016,9 @@ class _MyTeamsState extends State<MyTeams> {
               for (String letter in sortedLetters) _buildAlphabetAvatar(letter),
             ] else ...[
               // Show selected letter first
-              _buildAlphabetAvatar(_selectedLetter),
+              _buildAlphabetAvatar(_selectedLetter),  
 
-              // Then show its filtered members
+              // Then show its filtered members new
               for (int i = 0; i < _filteredByLetter.length; i++)
                 _buildProfileAvatar(
                   _filteredByLetter[i]['fname'] ?? '',

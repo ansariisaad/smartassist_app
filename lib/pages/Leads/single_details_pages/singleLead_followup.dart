@@ -514,11 +514,11 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
       child: Column(
         children: [
           // All Calls
-          _buildRow('All Calls', _callLogs['all'] ?? 0, '', Icons.call),
+          _buildRow('All calls', _callLogs['all'] ?? 0, '', Icons.call),
 
           // Outgoing Calls
           _buildRow(
-            'Outgoing Calls',
+            'Outgoing calls',
             _callLogs['outgoing'] ?? 0,
             'outgoing',
             Icons.phone_forwarded_outlined,
@@ -526,7 +526,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
 
           // Incoming Calls
           _buildRow(
-            'Incoming Calls',
+            'Incoming calls',
             _callLogs['incoming'] ?? 0,
             'incoming',
             Icons.call,
@@ -534,7 +534,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
 
           // Missed Calls
           _buildRow(
-            'Missed Calls',
+            'Missed calls',
             _callLogs['missed'] ?? 0,
             'missed',
             Icons.call_missed,

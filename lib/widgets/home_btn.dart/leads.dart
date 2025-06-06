@@ -237,7 +237,7 @@ class _LeadsState extends State<Leads> {
           Expanded(
             child: _buildRightInfoCard2(
               context,
-              'On an average, to take',
+              'On an average, you take',
               'to convert an enquiry to order',
               '${selectedData['avgEnquiry'] ?? 0} days',
               screenWidth,

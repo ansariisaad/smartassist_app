@@ -7,7 +7,7 @@ import 'package:smartassist/pages/Leads/single_details_pages/singleLead_followup
 import 'package:smartassist/pages/home/single_details_pages/singleLead_followup.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:smartassist/services/leads_srv.dart';
+import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/bottom_navigation.dart';
 import 'package:smartassist/utils/storage.dart';
 
@@ -67,11 +67,11 @@ class _NotificationPageState extends State<NotificationPage> {
     String url = 'https://api.smartassistapp.in/api/users/notifications/all';
 
     if (category != null && category != 'All') {
-      String formattedCategory = category.replaceAll(
-        ' ',
-        '',
-      ); // ✅ Remove spaces completely
-      url += '?category=$formattedCategory';
+      // Use the categoryMap to get the correct URL parameter
+      String? urlCategory = categoryMap[category];
+      if (urlCategory != null && urlCategory != 'All') {
+        url += '?category=$urlCategory';
+      }
     }
 
     try {
@@ -327,7 +327,7 @@ class _NotificationPageState extends State<NotificationPage> {
                             MaterialPageRoute(
                               builder: (context) => FollowupsDetails(
                                 leadId: notification['recordId'] ?? '',
-                      isFromFreshlead: false,
+                                isFromFreshlead: false,
                               ),
                             ),
                           );

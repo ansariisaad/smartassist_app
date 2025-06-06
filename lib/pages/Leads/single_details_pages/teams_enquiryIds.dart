@@ -10,7 +10,7 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:http/http.dart' as http;
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/config/getX/fab.controller.dart';
-import 'package:smartassist/services/leads_srv.dart';
+import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/bottom_navigation.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';

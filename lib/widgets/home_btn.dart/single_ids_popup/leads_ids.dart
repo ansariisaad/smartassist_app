@@ -11,7 +11,7 @@ import 'package:smartassist/pages/Leads/single_id_screens/single_leads.dart';
 import 'package:smartassist/pages/home/single_id_screens/single_leads.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:smartassist/services/leads_srv.dart';
+import 'package:smartassist/services/api_srv.dart';
 
 class LeadsIds extends StatefulWidget {
   const LeadsIds({super.key});
@@ -1455,7 +1455,8 @@ class _LeadsIdsState extends State<LeadsIds> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => FollowupsDetails(leadId: leadId , isFromFreshlead: false),
+                builder: (context) =>
+                    FollowupsDetails(leadId: leadId, isFromFreshlead: false),
               ),
             );
           }

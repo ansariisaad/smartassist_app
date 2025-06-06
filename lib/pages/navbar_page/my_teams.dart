@@ -414,9 +414,20 @@ class _MyTeamsState extends State<MyTeams> {
       }
 
       // Add userIds if checkboxes are selected
-      if (_selectedCheckboxIds.isNotEmpty) {
-        queryParams['userIds'] = _selectedCheckboxIds.join(',');
+      // ✅ If comparison mode is OFF (only single user is selected), pass user_id
+      if (!_isComparing &&
+          _selectedProfileIndex != 0 &&
+          _selectedUserId.isNotEmpty) {
+        queryParams['user_id'] = _selectedUserId;
       }
+
+      // ✅ If comparison mode is ON, pass all selected user IDs
+      if (_isComparing && selectedUserIds.isNotEmpty) {
+        queryParams['userIds'] = selectedUserIds.join(',');
+      }
+      // if (selectedUserIds.isNotEmpty) {
+      //   queryParams['userIds'] = selectedUserIds.join(',');
+      // }
 
       final baseUri = Uri.parse(
         'https://api.smartassistapp.in/api/users/sm/dashboard/team-dashboard',
@@ -1016,7 +1027,7 @@ class _MyTeamsState extends State<MyTeams> {
               for (String letter in sortedLetters) _buildAlphabetAvatar(letter),
             ] else ...[
               // Show selected letter first
-              _buildAlphabetAvatar(_selectedLetter),  
+              _buildAlphabetAvatar(_selectedLetter),
 
               // Then show its filtered members new
               for (int i = 0; i < _filteredByLetter.length; i++)
@@ -1161,7 +1172,7 @@ class _MyTeamsState extends State<MyTeams> {
   //   );
   // }
 
-  // Individual profile avatar
+  // Individual profile avatar saad
   Widget _buildProfileAvatar(
     String firstName,
     int index,
@@ -1169,42 +1180,66 @@ class _MyTeamsState extends State<MyTeams> {
     String? profileUrl,
     String initials,
   ) {
+    bool isSelectedForComparison = selectedUserIds.contains(userId);
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        InkWell(
-          // onTap: () => _selectUserProfile(index, userId),
+        GestureDetector(
           onTap: () async {
+            if (!_isComparing) {
+              setState(() {
+                if (_selectedUserId == userId) {
+                  _selectedProfileIndex = -1;
+                  _selectedUserId = '';
+                  selectedUserIds.clear();
+                  _selectedCheckboxIds.clear();
+                } else {
+                  _selectedProfileIndex = index;
+                  _selectedUserId = userId;
+                  _selectedType = 'dynamic';
+                }
+              });
+            }
+          },
+          //                   selectedUserIds.clear();
+          //                   _selectedCheckboxIds.clear();
+          //                   _fetchTeamDetails(); // Fetch all team data
+          //                 }
+          onLongPress: () {
             setState(() {
-              _selectedProfileIndex = index;
-              _selectedUserId = userId; // set selected userId
-              _selectedType = 'dynamic';
+              if (isSelectedForComparison) {
+                selectedUserIds.remove(userId);
+              } else {
+                selectedUserIds.add(userId);
+              }
             });
-            await _fetchTeamDetails(); // fetch updated data
-            await _fetchSingleCalllog();
+
+            // Optional: push selectedUserIds to URL or elsewhere
           },
           child: Container(
-            // margin: const EdgeInsets.only(left: 15, top: 2),
-            // margin: EdgeInsets.symmetric(horizontal: 10),
             margin: const EdgeInsets.fromLTRB(10, 0, 5, 0),
             width: 50,
             height: 50,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: AppColors.backgroundLightGrey,
-              border: _selectedProfileIndex == index
+              border: isSelectedForComparison
+                  ? Border.all(color: Colors.green, width: 3)
+                  : _selectedProfileIndex == index
                   ? Border.all(color: Colors.blue, width: 2)
                   : null,
             ),
             child: ClipOval(
-              child: profileUrl != null && profileUrl.isNotEmpty
+              child: isSelectedForComparison
+                  ? const Icon(Icons.check, color: Colors.white)
+                  : (profileUrl != null && profileUrl.isNotEmpty)
                   ? Image.network(
                       profileUrl,
                       width: 50,
                       height: 50,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
-                        // Fallback to initials if image fails to load
                         return Center(
                           child: Text(
                             initials.toUpperCase(),
@@ -1228,6 +1263,73 @@ class _MyTeamsState extends State<MyTeams> {
       ],
     );
   }
+
+  // Widget _buildProfileAvatar(
+  //   String firstName,
+  //   int index,
+  //   String userId,
+  //   String? profileUrl,
+  //   String initials,
+  // ) {
+  //   return Column(
+  //     mainAxisSize: MainAxisSize.min,
+  //     children: [
+  //       InkWell(
+  //         // onTap: () => _selectUserProfile(index, userId),
+  //         onTap: () async {
+  //           setState(() {
+  //             _selectedProfileIndex = index;
+  //             _selectedUserId = userId; // set selected userId
+  //             _selectedType = 'dynamic';
+  //           });
+  //           await _fetchTeamDetails(); // fetch updated data
+  //           await _fetchSingleCalllog();
+  //         },
+  //         child: Container(
+  //           // margin: const EdgeInsets.only(left: 15, top: 2),
+  //           // margin: EdgeInsets.symmetric(horizontal: 10),
+  //           margin: const EdgeInsets.fromLTRB(10, 0, 5, 0),
+  //           width: 50,
+  //           height: 50,
+  //           decoration: BoxDecoration(
+  //             shape: BoxShape.circle,
+  //             color: AppColors.backgroundLightGrey,
+  //             border: _selectedProfileIndex == index
+  //                 ? Border.all(color: Colors.blue, width: 2)
+  //                 : null,
+  //           ),
+  //           child: ClipOval(
+  //             child: profileUrl != null && profileUrl.isNotEmpty
+  //                 ? Image.network(
+  //                     profileUrl,
+  //                     width: 50,
+  //                     height: 50,
+  //                     fit: BoxFit.cover,
+  //                     errorBuilder: (context, error, stackTrace) {
+  //                       // Fallback to initials if image fails to load
+  //                       return Center(
+  //                         child: Text(
+  //                           initials.toUpperCase(),
+  //                           style: AppFont.appbarfontblack(context),
+  //                         ),
+  //                       );
+  //                     },
+  //                   )
+  //                 : Center(
+  //                     child: Text(
+  //                       initials.toUpperCase(),
+  //                       style: AppFont.appbarfontblack(context),
+  //                     ),
+  //                   ),
+  //           ),
+  //         ),
+  //       ),
+  //       const SizedBox(height: 8),
+  //       Text(firstName, style: AppFont.mediumText14(context)),
+  //       const SizedBox(height: 8),
+  //     ],
+  //   );
+  // }
 
   // Individual Performance Tab Content
   Widget _buildIndividualPerformanceTab(
@@ -1363,6 +1465,8 @@ class _MyTeamsState extends State<MyTeams> {
         // _buildPeriodFilter(screenWidth),
         // _buildMetricButtons(),
         // _buildTeamComparisonChart(context),
+        if (selectedUserIds.length >= 2) _buildTeamComparisonChart(context),
+
         _callAnalyticAll(context),
       ],
     );
@@ -1598,175 +1702,323 @@ class _MyTeamsState extends State<MyTeams> {
                   ),
                 )
               else
+              // _buildTableTeamParison(), saad
+              if (selectedUserIds.length >= 2)
                 Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
-                    color: AppColors.backgroundLightGrey,
+                    color: AppColors.homeContainerLeads,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  margin: const EdgeInsets.only(top: 10),
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          TextButton(
-                            onPressed: () {
-                              setState(() {
-                                if (_isComparing) {
-                                  // Currently showing comparison, switch to show all
-                                  _isComparing = false;
-                                  isHideCheckbox =
-                                      true; // Show checkboxes again
-                                  selectedUserIds.clear();
-                                  _selectedCheckboxIds.clear();
-                                  _fetchTeamDetails(); // Fetch all team data
-                                } else if (selectedUserIds.length == 2) {
-                                  // We have 2 users selected, do the comparison
-                                  _isComparing = true;
-                                  _selectedCheckboxIds = Set<String>.from(
-                                    selectedUserIds,
-                                  );
-                                  _fetchTeamDetails(); // Fetch comparison data
-                                } else {
-                                  // Not enough users selected
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        "Please select exactly 2 users to compare",
-                                      ),
-                                    ),
-                                  );
-                                }
-                              });
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 5,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.homeContainerLeads,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Text(
-                                _isComparing ? 'Show All' : 'Compare',
-                                style: AppFont.mediumText14Black(context),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      ...teamData.map((item) {
-                        final value = item[currentMetric] is num
-                            ? (item[currentMetric] as num).toInt()
-                            : int.tryParse(
-                                    item[currentMetric]?.toString() ?? '0',
-                                  ) ??
-                                  0;
+                  child: TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _isComparing = !_isComparing;
 
-                        final double barWidth;
-                        if (maxValue > 0 && value > 0) {
-                          barWidth = (value / maxValue) * barMaxWidth;
-                        } else {
-                          barWidth = 0;
+                        if (!_isComparing) {
+                          // Reset all comparison-related state
+                          selectedUserIds.clear();
+                          _selectedCheckboxIds.clear();
+                          _selectedProfileIndex = -1;
+                          _selectedUserId = '';
                         }
+                      });
 
-                        final bool isSelected = selectedUserIds.contains(
-                          item['user_id'],
-                        );
+                      _fetchTeamDetails();
+                    },
 
-                        // Only show items that are either:
-                        // 1. Not in comparison mode, or
-                        // 2. In comparison mode AND this item is one of the selected ones
-                        final bool shouldShowItem =
-                            !_isComparing || (_isComparing && isSelected);
-
-                        return shouldShowItem
-                            ? Container(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 5,
-                                  horizontal: 8,
-                                ),
-                                child: Row(
-                                  children: [
-                                    if (!_isComparing) // Only show checkboxes when not comparing
-                                      Checkbox(
-                                        value: isSelected,
-                                        onChanged: (bool? val) {
-                                          setState(() {
-                                            final id = item['user_id'];
-
-                                            if (val == true) {
-                                              if (selectedUserIds.length < 2) {
-                                                selectedUserIds.add(id);
-                                              } else {
-                                                ScaffoldMessenger.of(
-                                                  context,
-                                                ).showSnackBar(
-                                                  const SnackBar(
-                                                    content: Text(
-                                                      "You can only compare 2 teams at a time",
-                                                    ),
-                                                  ),
-                                                );
-                                              }
-                                            } else {
-                                              selectedUserIds.remove(id);
-                                            }
-                                          });
-                                        },
-                                        visualDensity: VisualDensity.compact,
-                                      ),
-                                    SizedBox(
-                                      width:
-                                          MediaQuery.sizeOf(context).width *
-                                          .20,
-                                      child: Text(
-                                        item['fname'] ?? '',
-                                        style: AppFont.dropDowmLabel(context),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: Row(
-                                        children: [
-                                          Container(
-                                            height: 20,
-                                            width: barWidth,
-                                            decoration: BoxDecoration(
-                                              color: metricColor,
-                                              borderRadius:
-                                                  BorderRadius.circular(4),
-                                            ),
-                                          ),
-                                          // const SizedBox(width: 6),
-                                          SizedBox(
-                                            width: 20,
-                                            child: Text(
-                                              value.toString(),
-                                              style: const TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
-                                                color: AppColors.fontColor,
-                                              ),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            : Container(); // Empty container for items that shouldn't be shown
-                      }).toList(),
-                    ],
+                    child: Text(
+                      _isComparing ? 'Show All' : 'Compare',
+                      style: AppFont.mediumText14Black(context),
+                    ),
                   ),
                 ),
+
+              // Container(
+              //   decoration: BoxDecoration(
+              //     color: AppColors.backgroundLightGrey,
+              //     borderRadius: BorderRadius.circular(10),
+              //   ),
+              //   margin: const EdgeInsets.only(top: 10),
+              //   padding: const EdgeInsets.symmetric(vertical: 8),
+              //   child: Column(
+              //     children: [
+              //       Row(
+              //         children: [
+              //           TextButton(
+              //             onPressed: () {
+              //               setState(() {
+              //                 if (_isComparing) {
+              //                   // Currently showing comparison, switch to show all
+              //                   _isComparing = false;
+              //                   isHideCheckbox =
+              //                       true; // Show checkboxes again
+              //                   selectedUserIds.clear();
+              //                   _selectedCheckboxIds.clear();
+              //                   _fetchTeamDetails(); // Fetch all team data
+              //                 } else if (selectedUserIds.length == 2) {
+              //                   // We have 2 users selected, do the comparison
+              //                   _isComparing = true;
+              //                   _selectedCheckboxIds = Set<String>.from(
+              //                     selectedUserIds,
+              //                   );
+              //                   _fetchTeamDetails(); // Fetch comparison data
+              //                 } else {
+              //                   // Not enough users selected
+              //                   ScaffoldMessenger.of(context).showSnackBar(
+              //                     const SnackBar(
+              //                       content: Text(
+              //                         "Please select exactly 2 users to compare",
+              //                       ),
+              //                     ),
+              //                   );
+              //                 }
+              //               });
+              //             },
+              //             child: Container(
+              //               padding: const EdgeInsets.symmetric(
+              //                 horizontal: 10,
+              //                 vertical: 5,
+              //               ),
+              //               decoration: BoxDecoration(
+              //                 color: AppColors.homeContainerLeads,
+              //                 borderRadius: BorderRadius.circular(10),
+              //               ),
+              //               child: Text(
+              //                 _isComparing ? 'Show All' : 'Compare',
+              //                 style: AppFont.mediumText14Black(context),
+              //               ),
+              //             ),
+              //           ),
+              //         ],
+              //       ),
+              //       ...teamData.map((item) {
+              //         final value = item[currentMetric] is num
+              //             ? (item[currentMetric] as num).toInt()
+              //             : int.tryParse(
+              //                     item[currentMetric]?.toString() ?? '0',
+              //                   ) ??
+              //                   0;
+
+              //         final double barWidth;
+              //         if (maxValue > 0 && value > 0) {
+              //           barWidth = (value / maxValue) * barMaxWidth;
+              //         } else {
+              //           barWidth = 0;
+              //         }
+
+              //         final bool isSelected = selectedUserIds.contains(
+              //           item['user_id'],
+              //         );
+
+              //         // Only show items that are either:
+              //         // 1. Not in comparison mode, or
+              //         // 2. In comparison mode AND this item is one of the selected ones
+              //         final bool shouldShowItem =
+              //             !_isComparing || (_isComparing && isSelected);
+
+              //         return shouldShowItem
+              //             ? Container(
+              //                 padding: const EdgeInsets.symmetric(
+              //                   vertical: 5,
+              //                   horizontal: 8,
+              //                 ),
+              //                 child: Row(
+              //                   children: [
+              //                     if (!_isComparing) // Only show checkboxes when not comparing
+              //                       Checkbox(
+              //                         value: isSelected,
+              //                         onChanged: (bool? val) {
+              //                           setState(() {
+              //                             final id = item['user_id'];
+
+              //                             if (val == true) {
+              //                               if (selectedUserIds.length < 2) {
+              //                                 selectedUserIds.add(id);
+              //                               } else {
+              //                                 ScaffoldMessenger.of(
+              //                                   context,
+              //                                 ).showSnackBar(
+              //                                   const SnackBar(
+              //                                     content: Text(
+              //                                       "You can only compare 2 teams at a time",
+              //                                     ),
+              //                                   ),
+              //                                 );
+              //                               }
+              //                             } else {
+              //                               selectedUserIds.remove(id);
+              //                             }
+              //                           });
+              //                         },
+              //                         visualDensity: VisualDensity.compact,
+              //                       ),
+
+              //                     SizedBox(
+              //                       width:
+              //                           MediaQuery.sizeOf(context).width *
+              //                           .20,
+              //                       child: Text(
+              //                         item['fname'] ?? '',
+              //                         style: AppFont.dropDowmLabel(context),
+              //                         overflow: TextOverflow.ellipsis,
+              //                       ),
+              //                     ),
+              //                     Expanded(
+              //                       child: Row(
+              //                         children: [
+              //                           Container(
+              //                             height: 20,
+              //                             width: barWidth,
+              //                             decoration: BoxDecoration(
+              //                               color: metricColor,
+              //                               borderRadius:
+              //                                   BorderRadius.circular(4),
+              //                             ),
+              //                           ),
+              //                           // const SizedBox(width: 6),
+              //                           SizedBox(
+              //                             width: 20,
+              //                             child: Text(
+              //                               value.toString(),
+              //                               style: const TextStyle(
+              //                                 fontSize: 12,
+              //                                 fontWeight: FontWeight.bold,
+              //                                 color: AppColors.fontColor,
+              //                               ),
+              //                               textAlign: TextAlign.center,
+              //                             ),
+              //                           ),
+              //                         ],
+              //                       ),
+              //                     ),
+              //                   ],
+              //                 ),
+              //               )
+              //             : Container(); // Empty container for items that shouldn't be shown
+              //       }).toList(),
+              //     ],
+              //   ),
+              // ),
             ],
           ],
         ],
       ),
+    );
+  }
+
+  Widget _buildTableTeamParison() {
+    double screenWidth = MediaQuery.of(context).size.width;
+
+    // Check if there's data to display
+    bool hasData = _membersData.isNotEmpty;
+
+    return Container(
+      margin: const EdgeInsets.only(top: 10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(5),
+        color: AppColors.backgroundLightGrey,
+      ),
+      child: hasData
+          ? Table(
+              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+              border: TableBorder(
+                horizontalInside: BorderSide(
+                  color: Colors.grey.withOpacity(0.3),
+                  width: 0.6,
+                ),
+                verticalInside: BorderSide.none,
+              ),
+              columnWidths: {
+                0: FixedColumnWidth(screenWidth * 0.30), // Name column
+                1: FixedColumnWidth(screenWidth * 0.11), // Incoming
+                2: FixedColumnWidth(screenWidth * 0.11), // Outgoing
+                3: FixedColumnWidth(screenWidth * 0.11), // Connected
+                4: FixedColumnWidth(screenWidth * 0.11), // Duration
+                5: FixedColumnWidth(screenWidth * 0.11), // Declined
+                6: FixedColumnWidth(screenWidth * 0.11),
+              },
+              children: [
+                TableRow(
+                  children: [
+                    const SizedBox(), // Empty cell for name column
+                    Container(
+                      alignment: Alignment.centerLeft,
+                      margin: const EdgeInsets.only(
+                        bottom: 10,
+                        top: 10,
+                        right: 2,
+                      ),
+                      child: Text('Enq', style: AppFont.smallTextBold(context)),
+                      // Text('Incoming',
+                      //     textAlign: TextAlign.start,
+                      //     style: AppFont.smallText10(context))
+                    ),
+                    Container(
+                      alignment: Alignment.centerLeft,
+                      margin: const EdgeInsets.only(
+                        bottom: 10,
+                        top: 10,
+                        right: 2,
+                      ),
+                      child: Text('TD', style: AppFont.smallTextBold(context)),
+                      // Text('Incoming',
+                      //     textAlign: TextAlign.start,
+                      //     style: AppFont.smallText10(context))
+                    ),
+                    Container(
+                      alignment: Alignment.centerLeft,
+                      margin: const EdgeInsets.only(
+                        bottom: 10,
+                        top: 10,
+                        right: 2,
+                      ),
+                      child: Text('Ord', style: AppFont.smallTextBold(context)),
+                      //  Text('Outgoing',
+                      //     textAlign: TextAlign.start,
+                      //     style: AppFont.smallText10(context)),
+                    ),
+                    Container(
+                      alignment: Alignment.centerLeft,
+                      margin: const EdgeInsets.only(
+                        bottom: 10,
+                        top: 10,
+                        right: 2,
+                      ),
+                      child: Text('CI', style: AppFont.smallTextBold(context)),
+                    ),
+                    Container(
+                      alignment: Alignment.centerLeft,
+                      margin: const EdgeInsets.only(bottom: 10, top: 10),
+                      child: Text(
+                        'N-Ord',
+                        style: AppFont.smallTextBold(context),
+                      ),
+                      // Text('Duration',
+                      //     textAlign: TextAlign.start,
+                      //     style: AppFont.smallText10(context)),
+                    ),
+                    Container(
+                      alignment: Alignment.centerLeft,
+                      margin: const EdgeInsets.only(
+                        bottom: 10,
+                        top: 10,
+                        right: 0,
+                      ),
+                      child: Text('Rtl', style: AppFont.smallTextBold(context)),
+                      //  Text('Declined',
+                      //     textAlign: TextAlign.start,
+                      //     style: AppFont.smallText10(context))
+                    ),
+                  ],
+                ),
+                ..._buildMemberRowsTeams(),
+              ],
+            )
+          : _buildEmptyState(),
     );
   }
 
@@ -2099,6 +2351,82 @@ class _MyTeamsState extends State<MyTeams> {
         ),
         Text(
           member['duration'].toString(),
+          style: AppFont.smallText10(context),
+        ),
+        Text(
+          member['declined'].toString(),
+          style: AppFont.smallText10(context),
+        ),
+      ]);
+    }).toList();
+  }
+
+  // teams comparison table
+  List<TableRow> _buildMemberRowsTeams() {
+    // Safety check for empty data
+    if (_membersData.isEmpty) {
+      return [];
+    }
+
+    // Get only the records to display based on current count
+    List<dynamic> displayMembers = _membersData
+        .take(_currentDisplayCount)
+        .toList();
+
+    return displayMembers.map((member) {
+      return _buildTableRow([
+        // Your existing table row code...
+        InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CallAnalytics(
+                  userId: member['user_id'].toString(),
+                  isFromSM: true,
+                ),
+              ),
+            );
+          },
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 12,
+                backgroundColor: Colors.blue.withOpacity(0.2),
+                child: Text(
+                  member['name'].toString().substring(0, 1).toUpperCase(),
+                  style: const TextStyle(fontSize: 12, color: Colors.blue),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  member['name'].toString(),
+                  overflow: TextOverflow.ellipsis,
+                  style: AppFont.smallText10(context),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Text(
+          member['incoming'].toString(),
+          style: AppFont.smallText10(context),
+        ),
+        Text(
+          member['outgoing'].toString(),
+          style: AppFont.smallText10(context),
+        ),
+        Text(
+          member['connected'].toString(),
+          style: AppFont.smallText10(context),
+        ),
+        Text(
+          member['duration'].toString(),
+          style: AppFont.smallText10(context),
+        ),
+        Text(
+          member['declined'].toString(),
           style: AppFont.smallText10(context),
         ),
         Text(

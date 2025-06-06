@@ -9,7 +9,7 @@ import 'package:smartassist/pages/Leads/single_details_pages/singleLead_followup
 import 'package:smartassist/pages/home/single_details_pages/singleLead_followup.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:smartassist/services/leads_srv.dart';
+import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/followups.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -556,7 +556,8 @@ class _overdueeFollowupsItemState extends State<overdueeFollowupsItem>
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => FollowupsDetails(leadId: widget.leadId,
+              builder: (context) => FollowupsDetails(
+                leadId: widget.leadId,
                 isFromFreshlead: false,
               ),
             ),

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -61,7 +62,8 @@ class _MyTeamsState extends State<MyTeams> {
   // String? selectedUserIds;
 
   late TabControllerNew _tabController;
-
+  Set<String> _selectedLetters = {}; // Replace String _selectedLetter
+  bool _isMultiSelectMode = false;
   int _upcommingButtonIndex = 0;
 
   bool isHideAllcall = false;
@@ -989,7 +991,6 @@ class _MyTeamsState extends State<MyTeams> {
   //   );
   // }
 
-  // Modified _buildProfileAvatars method
   Widget _buildProfileAvatars() {
     List<Map<String, dynamic>> sortedTeamMembers = List.from(_teamMembers);
     sortedTeamMembers.sort(
@@ -1022,132 +1023,407 @@ class _MyTeamsState extends State<MyTeams> {
             // Always show All button first
             _buildProfileAvatarStaticsAll('All', 0),
 
-            if (_selectedLetter.isEmpty) ...[
-              // Only show alphabet avatars
-              for (String letter in sortedLetters) _buildAlphabetAvatar(letter),
-            ] else ...[
-              // Show selected letter first
-              _buildAlphabetAvatar(_selectedLetter),
-
-              // Then show its filtered members new
-              for (int i = 0; i < _filteredByLetter.length; i++)
-                _buildProfileAvatar(
-                  _filteredByLetter[i]['fname'] ?? '',
-                  i + 1,
-                  _filteredByLetter[i]['user_id'] ?? '',
-                  _filteredByLetter[i]['profile'],
-                  _filteredByLetter[i]['initials'] ?? '',
-                ),
-
-              // Then show remaining letters (excluding selected one)
-              for (String letter in sortedLetters)
-                if (letter != _selectedLetter) _buildAlphabetAvatar(letter),
-            ],
+            // Build letters with their members inline
+            ...sortedLetters.expand(
+              (letter) => _buildLetterWithMembers(letter),
+            ),
           ],
         ),
       ),
     );
   }
 
-  // Modified alphabet avatar method
+  // New method to build letter with its members inline
+  List<Widget> _buildLetterWithMembers(String letter) {
+    List<Widget> widgets = [];
+    bool isSelected = _selectedLetters.contains(letter);
+
+    // Add the letter avatar
+    widgets.add(_buildAlphabetAvatar(letter));
+
+    // If letter is selected, add its members right after
+    if (isSelected) {
+      List<Map<String, dynamic>> letterMembers = _teamMembers.where((member) {
+        String firstName = (member['fname'] ?? '').toString().toUpperCase();
+        return firstName.startsWith(letter);
+      }).toList();
+
+      // Sort members alphabetically
+      letterMembers.sort(
+        (a, b) => (a['fname'] ?? '').toString().toLowerCase().compareTo(
+          (b['fname'] ?? '').toString().toLowerCase(),
+        ),
+      );
+
+      // Add visual separator before members
+      if (letterMembers.isNotEmpty) {
+        widgets.add(
+          Container(
+            width: 2,
+            height: 40,
+            margin: const EdgeInsets.symmetric(horizontal: 4),
+            decoration: BoxDecoration(
+              color: Colors.blue.withOpacity(0.4),
+              borderRadius: BorderRadius.circular(1),
+            ),
+          ),
+        );
+      }
+
+      // Add member avatars
+      for (int i = 0; i < letterMembers.length; i++) {
+        widgets.add(
+          _buildProfileAvatar(
+            letterMembers[i]['fname'] ?? '',
+            i + 1,
+            letterMembers[i]['user_id'] ?? '',
+            letterMembers[i]['profile'],
+            letterMembers[i]['initials'] ?? '',
+          ),
+        );
+      }
+
+      // Add visual separator after members if there are more letters coming
+      if (letterMembers.isNotEmpty) {
+        widgets.add(
+          Container(
+            width: 2,
+            height: 40,
+            margin: const EdgeInsets.symmetric(horizontal: 4),
+            decoration: BoxDecoration(
+              color: Colors.blue.withOpacity(0.4),
+              borderRadius: BorderRadius.circular(1),
+            ),
+          ),
+        );
+      }
+    }
+
+    return widgets;
+  }
+
+  // Enhanced alphabet avatar method with haptic feedback
   Widget _buildAlphabetAvatar(String letter) {
-    bool isSelected = _selectedLetter == letter;
+    bool isSelected = _selectedLetters.contains(letter);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        InkWell(
+        GestureDetector(
           onTap: () {
+            // Light haptic feedback on tap
+            HapticFeedback.lightImpact();
+
             setState(() {
-              // Filter by selected letter
-              _selectedLetter = letter;
-              _filteredByLetter = _teamMembers.where((member) {
-                String firstName = (member['fname'] ?? '')
-                    .toString()
-                    .toUpperCase();
-                return firstName.startsWith(letter);
-              }).toList();
-              _selectedProfileIndex = -1; // No specific profile selected
-              _selectedType = 'Letter';
+              if (_isMultiSelectMode) {
+                // In multi-select mode, toggle selection
+                if (isSelected) {
+                  _selectedLetters.remove(letter);
+                  // If no letters selected, exit multi-select mode
+                  if (_selectedLetters.isEmpty) {
+                    _isMultiSelectMode = false;
+                    _selectedType = 'All';
+                  }
+                } else {
+                  _selectedLetters.add(letter);
+                  _selectedType = 'Letter';
+                }
+              } else {
+                // Single select mode - but keep existing selections and add new one
+                if (isSelected) {
+                  // If clicking same letter, deselect it
+                  _selectedLetters.remove(letter);
+                  if (_selectedLetters.isEmpty) {
+                    _selectedType = 'All';
+                  }
+                } else {
+                  // Add this letter to selection (don't clear existing)
+                  _selectedLetters.add(letter);
+                  _selectedType = 'Letter';
+                }
+              }
+
+              _selectedProfileIndex = -1;
             });
             _fetchTeamDetails();
           },
-          child: Container(
-            margin: const EdgeInsets.fromLTRB(10, 0, 5, 0),
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: isSelected
-                  ? Colors.blue.withOpacity(0.2)
-                  : AppColors.backgroundLightGrey,
-              border: isSelected
-                  ? Border.all(color: Colors.blue, width: 2)
-                  : Border.all(color: Colors.grey.withOpacity(0.3), width: 1),
-            ),
-            child: Center(
-              child: Text(
-                letter,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: isSelected ? Colors.blue : Colors.grey.shade600,
+          onLongPress: () {
+            // Strong haptic feedback on long press
+            HapticFeedback.heavyImpact();
+
+            // Activate multi-select mode and select this letter
+            setState(() {
+              _isMultiSelectMode = true;
+              if (!_selectedLetters.contains(letter)) {
+                _selectedLetters.add(letter);
+              }
+              _selectedType = 'Letter';
+              _selectedProfileIndex = -1;
+            });
+
+            // Show toast/snackbar to indicate multi-select mode is active
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.touch_app, color: Colors.white, size: 16),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Multi-select active! Tap other letters to add',
+                        style: TextStyle(fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+                duration: const Duration(seconds: 2),
+                backgroundColor: Colors.blue.shade600,
+                behavior: SnackBarBehavior.floating,
+                margin: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).size.height - 150,
+                  left: 20,
+                  right: 20,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
-            ),
+            );
+
+            _fetchTeamDetails();
+          },
+          child: Stack(
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                margin: const EdgeInsets.fromLTRB(10, 0, 5, 0),
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isSelected
+                      ? Colors.blue.withOpacity(0.15)
+                      : AppColors.backgroundLightGrey,
+                  border: isSelected
+                      ? Border.all(color: Colors.blue, width: 2.5)
+                      : Border.all(
+                          color: Colors.grey.withOpacity(0.3),
+                          width: 1,
+                        ),
+                  // boxShadow: isSelected
+                  //     ? [
+                  //         BoxShadow(
+                  //           color: Colors.yellow.withOpacity(0.4),
+                  //           blurRadius: 12,
+                  //           offset: const Offset(0, 3),
+                  //           spreadRadius: 1,
+                  //         ),
+                  //       ]
+                  //     : null,
+                ),
+                child: Center(
+                  child: AnimatedDefaultTextStyle(
+                    duration: const Duration(milliseconds: 200),
+                    style: TextStyle(
+                      fontSize: isSelected ? 22 : 20,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected ? Colors.blue : Colors.grey.shade600,
+                    ),
+                    child: Text(letter),
+                  ),
+                ),
+              ),
+              // Multi-select indicator with animation
+              if (_isMultiSelectMode && isSelected)
+                Positioned(
+                  top: -2,
+                  right: 3,
+                  child: AnimatedScale(
+                    scale: 1.0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Container(
+                      width: 18,
+                      height: 18,
+                      decoration: BoxDecoration(
+                        color: Colors.blue,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.blue.withOpacity(0.3),
+                            blurRadius: 4,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                      child: Icon(Icons.check, color: Colors.white, size: 12),
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
         const SizedBox(height: 8),
-        Text(letter, style: AppFont.mediumText14(context)),
+        AnimatedDefaultTextStyle(
+          duration: const Duration(milliseconds: 200),
+          style: AppFont.mediumText14(context).copyWith(
+            color: isSelected ? Colors.blue : null,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+          ),
+          child: Text(letter),
+        ),
       ],
     );
   }
 
-  // Modified "All" button method
+  // Enhanced "All" button with haptic feedback
   Widget _buildProfileAvatarStaticsAll(String firstName, int index) {
-    bool isSelected = _selectedType == 'All' && _selectedLetter.isEmpty;
+    bool isSelected = _selectedType == 'All' && _selectedLetters.isEmpty;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        InkWell(
+        GestureDetector(
           onTap: () async {
+            // Medium haptic feedback for "All" button
+            HapticFeedback.mediumImpact();
+
             setState(() {
               _selectedProfileIndex = index;
               _selectedType = 'All';
-              _selectedLetter = ''; // Clear letter selection
-              _filteredByLetter = []; // Clear filtered list
+              _selectedLetters.clear(); // Clear all letter selections
+              _isMultiSelectMode = false; // Exit multi-select mode
             });
             await _fetchTeamDetails();
           },
-          child: Container(
-            margin: const EdgeInsets.fromLTRB(10, 0, 5, 0),
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: isSelected
-                  ? Colors.blue.withOpacity(0.2)
-                  : AppColors.backgroundLightGrey,
-              border: isSelected
-                  ? Border.all(color: Colors.blue, width: 2)
-                  : Border.all(color: Colors.grey.withOpacity(0.3), width: 1),
-            ),
-            child: Center(
-              child: Icon(
-                Icons.people,
-                color: isSelected ? Colors.blue : Colors.grey.shade400,
-                size: 32,
+          onLongPress: () {
+            // Heavy haptic feedback for long press on "All"
+            HapticFeedback.heavyImpact();
+
+            // Show info about total members
+            int totalMembers = _teamMembers.length;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.white, size: 16),
+                    SizedBox(width: 8),
+                    Text('Total $totalMembers team members'),
+                  ],
+                ),
+                duration: const Duration(seconds: 1),
+                backgroundColor: Colors.green.shade600,
+                behavior: SnackBarBehavior.floating,
+                margin: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).size.height - 150,
+                  left: 20,
+                  right: 20,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
-            ),
+            );
+          },
+          child: Stack(
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                margin: const EdgeInsets.fromLTRB(10, 0, 5, 0),
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isSelected
+                      ? Colors.blue.withOpacity(0.15)
+                      : AppColors.backgroundLightGrey,
+                  border: isSelected
+                      ? Border.all(color: Colors.blue, width: 2.5)
+                      : Border.all(
+                          color: Colors.grey.withOpacity(0.3),
+                          width: 1,
+                        ),
+                  // boxShadow: isSelected
+                  //     ? [
+                  //         BoxShadow(
+                  //           color: Colors.blue.withOpacity(0.4),
+                  //           blurRadius: 12,
+                  //           offset: const Offset(0, 3),
+                  //           spreadRadius: 1,
+                  //         ),
+                  //       ]
+                  //     : null,
+                ),
+                child: Center(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(
+                      _isMultiSelectMode
+                          ? Icons.clear_all
+                          : (isSelected ? Icons.groups : Icons.people),
+                      key: ValueKey(
+                        _isMultiSelectMode
+                            ? 'clear'
+                            : (isSelected ? 'groups' : 'people'),
+                      ),
+                      color: isSelected ? Colors.blue : Colors.grey.shade400,
+                      size: isSelected ? 34 : 32,
+                    ),
+                  ),
+                ),
+              ),
+              // Multi-select mode indicator
+              if (_isMultiSelectMode)
+                Positioned(
+                  top: -2,
+                  right: 3,
+                  child: AnimatedScale(
+                    scale: 1.0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Container(
+                      width: 18,
+                      height: 18,
+                      decoration: BoxDecoration(
+                        color: Colors.orange,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.orange.withOpacity(0.3),
+                            blurRadius: 4,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.touch_app,
+                        color: Colors.white,
+                        size: 10,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
         const SizedBox(height: 8),
-        Text('All', style: AppFont.mediumText14(context)),
+        AnimatedDefaultTextStyle(
+          duration: const Duration(milliseconds: 200),
+          style: AppFont.mediumText14(context).copyWith(
+            color: isSelected
+                ? Colors.blue
+                : (_isMultiSelectMode ? Colors.orange : null),
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+          ),
+          child: Text(_isMultiSelectMode ? 'Reset' : 'All'),
+        ),
       ],
     );
   }
-
   // Widget _buildProfileAvatars() {
   //   return SingleChildScrollView(
   //     scrollDirection: Axis.horizontal,
@@ -1663,6 +1939,11 @@ class _MyTeamsState extends State<MyTeams> {
                 child: Row(
                   children: [
                     IconButton(
+                      style: ButtonStyle(
+                        padding: MaterialStateProperty.all<EdgeInsets>(
+                          EdgeInsets.zero,
+                        ),
+                      ),
                       onPressed: () {
                         setState(() {
                           isHide = !isHide;
@@ -1683,46 +1964,50 @@ class _MyTeamsState extends State<MyTeams> {
                         style: AppFont.dropDowmLabel(context),
                       ),
                     ),
+                    if (selectedUserIds.length >= 2)
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 0,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: TextButton(
+                            style: ButtonStyle(
+                              padding: MaterialStateProperty.all<EdgeInsets>(
+                                EdgeInsets.zero,
+                              ),
+                            ),
+                        
+                            onPressed: () {
+                              setState(() {
+                                _isComparing = !_isComparing;
+                                if (!_isComparing) {
+                                  selectedUserIds.clear();
+                                  _selectedCheckboxIds.clear();
+                                  _selectedProfileIndex = -1;
+                                  _selectedUserId = '';
+                                }
+                              });
+                              _fetchTeamDetails();
+                            },
+                            child: Text(
+                              'Compare',
+                              style: AppFont.mediumText14Black(context),
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
             ),
 
             // 👇 Show Compare Button IF 2 or more users are selected
-            if (selectedUserIds.length >= 2)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.homeContainerLeads,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: TextButton(
-                  style: ButtonStyle(
-                    padding: MaterialStateProperty.all<EdgeInsets>(
-                      EdgeInsets.zero,
-                    ),
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _isComparing = !_isComparing;
-                      if (!_isComparing) {
-                        selectedUserIds.clear();
-                        _selectedCheckboxIds.clear();
-                        _selectedProfileIndex = -1;
-                        _selectedUserId = '';
-                      }
-                    });
-                    _fetchTeamDetails();
-                  },
-                  child: Text(
-                    'Compare',
-                    style: AppFont.mediumText14Black(context),
-                  ),
-                ),
-              ),
 
             // 👇 Conditionally render chart section
             if (isHide) ...[

@@ -34,7 +34,7 @@ class _MyTeamsState extends State<MyTeams> {
   // ADD THESE VARIABLES TO YOUR CLASS
   int _currentDisplayCount = 10; // Initially show 10 records
   static const int _incrementCount = 10; // Show 10 more each time
-
+  List<dynamic> _teamComparisonData = [];
   // Your existing variables
   // List<dynamic> _membersData = []; // Your existing data list
 
@@ -361,12 +361,6 @@ class _MyTeamsState extends State<MyTeams> {
       // Build period parameter
       String? periodParam;
       switch (_periodIndex) {
-        // case 0:
-        //   periodParam = 'DAY';
-        //   break;
-        // case 1:
-        //   periodParam = 'WEEK';
-        //   break;
         case 1:
           periodParam = 'MTD';
           break;
@@ -410,26 +404,24 @@ class _MyTeamsState extends State<MyTeams> {
       // ✅ Add summary parameter for both All and specific user selection
       queryParams['summary'] = summaryParam;
       queryParams['target'] = targetParam;
-      // ✅ Only add user_id if a specific user is selected (not for "All")
-      if (_selectedProfileIndex != 0 && _selectedUserId.isNotEmpty) {
-        queryParams['user_id'] = _selectedUserId;
-      }
 
-      // Add userIds if checkboxes are selected
-      // ✅ If comparison mode is OFF (only single user is selected), pass user_id
-      if (!_isComparing &&
+      // 🔥 REMOVE THE DUPLICATE LOGIC - Only keep this single user selection logic
+      // ❌ REMOVED: Duplicate user_id logic that was causing the issue
+      // if (_selectedProfileIndex != 0 && _selectedUserId.isNotEmpty) {
+      //   queryParams['user_id'] = _selectedUserId;
+      // }
+
+      // 🔥 MODIFIED LOGIC: Handle user selection based on comparison mode
+      if (_isComparing && selectedUserIds.isNotEmpty) {
+        // ✅ If comparison mode is ON, ONLY pass userIds (NO user_id)
+        queryParams['userIds'] = selectedUserIds.join(',');
+      } else if (!_isComparing &&
           _selectedProfileIndex != 0 &&
           _selectedUserId.isNotEmpty) {
+        // ✅ If comparison mode is OFF and specific user is selected, pass user_id
         queryParams['user_id'] = _selectedUserId;
       }
-
-      // ✅ If comparison mode is ON, pass all selected user IDs
-      if (_isComparing && selectedUserIds.isNotEmpty) {
-        queryParams['userIds'] = selectedUserIds.join(',');
-      }
-      // if (selectedUserIds.isNotEmpty) {
-      //   queryParams['userIds'] = selectedUserIds.join(',');
-      // }
+      // ✅ If "All" is selected (_selectedProfileIndex == 0), no user parameters are added
 
       final baseUri = Uri.parse(
         'https://api.smartassistapp.in/api/users/sm/dashboard/team-dashboard',
@@ -455,6 +447,16 @@ class _MyTeamsState extends State<MyTeams> {
 
         setState(() {
           _teamData = data['data'] ?? {};
+
+          // teams comparison
+          if (_teamData.containsKey('teamComparsion')) {
+            _teamComparisonData = List<dynamic>.from(
+              _teamData['teamComparsion'] ?? [],
+            );
+            print('📊 Team Comparison Data: $_teamComparisonData');
+          } else {
+            _teamComparisonData = [];
+          }
 
           // Save total performance
           if (_teamData.containsKey('totalPerformance')) {
@@ -522,6 +524,184 @@ class _MyTeamsState extends State<MyTeams> {
       print('Error fetching team details: $e');
     }
   }
+  // Future<void> _fetchTeamDetails() async {
+  //   try {
+  //     final token = await Storage.getToken();
+
+  //     // Build period parameter
+  //     String? periodParam;
+  //     switch (_periodIndex) {
+  //       // case 0:
+  //       //   periodParam = 'DAY';
+  //       //   break;
+  //       // case 1:
+  //       //   periodParam = 'WEEK';
+  //       //   break;
+  //       case 1:
+  //         periodParam = 'MTD';
+  //         break;
+  //       case 0:
+  //         periodParam = 'QTD';
+  //         break;
+  //       case 2:
+  //         periodParam = 'YTD';
+  //         break;
+  //       default:
+  //         periodParam = 'QTD';
+  //     }
+
+  //     final Map<String, String> queryParams = {};
+
+  //     if (periodParam != null) {
+  //       queryParams['type'] = periodParam;
+  //     }
+
+  //     final targetMetric = [
+  //       'target_enquiries',
+  //       'target_testDrives',
+  //       'target_orders',
+  //       'target_cancellation',
+  //       'target_netOrders',
+  //       'target_retail',
+  //     ];
+
+  //     // Define summary metrics (moved outside to be available for both cases)
+  //     final summaryMetrics = [
+  //       'enquiries',
+  //       'testDrives',
+  //       'orders',
+  //       'cancellation',
+  //       'netOrders',
+  //       'retail',
+  //     ];
+  //     final summaryParam = summaryMetrics[_metricIndex];
+  //     final targetParam = targetMetric[_metricIndex];
+
+  //     // ✅ Add summary parameter for both All and specific user selection
+  //     queryParams['summary'] = summaryParam;
+  //     queryParams['target'] = targetParam;
+  //     // ✅ Only add user_id if a specific user is selected (not for "All")
+  //     if (_selectedProfileIndex != 0 && _selectedUserId.isNotEmpty) {
+  //       queryParams['user_id'] = _selectedUserId;
+  //     }
+
+  //     // Add userIds if checkboxes are selected
+  //     // ✅ If comparison mode is OFF (only single user is selected), pass user_id
+  //     // if (!_isComparing &&
+  //     //     _selectedProfileIndex != 0 &&
+  //     //     _selectedUserId.isNotEmpty) {
+  //     //   queryParams['user_id'] = _selectedUserId;
+  //     // }
+  //     // 🔥 MODIFIED LOGIC: Handle user selection based on comparison mode
+  //     if (_isComparing && selectedUserIds.isNotEmpty) {
+  //       // ✅ If comparison mode is ON, ONLY pass userIds (remove user_id)
+  //       queryParams['userIds'] = selectedUserIds.join(',');
+  //     } else if (!_isComparing &&
+  //         _selectedProfileIndex != 0 &&
+  //         _selectedUserId.isNotEmpty) {
+  //       // ✅ If comparison mode is OFF and specific user is selected, pass user_id
+  //       queryParams['user_id'] = _selectedUserId;
+  //     }
+
+  //     // ✅ If comparison mode is ON, pass all selected user IDs
+  //     // if (_isComparing && selectedUserIds.isNotEmpty) {
+  //     //   queryParams['userIds'] = selectedUserIds.join(',');
+  //     // }
+  //     // if (selectedUserIds.isNotEmpty) {
+  //     //   queryParams['userIds'] = selectedUserIds.join(',');
+  //     // }
+
+  //     final baseUri = Uri.parse(
+  //       'https://api.smartassistapp.in/api/users/sm/dashboard/team-dashboard',
+  //     );
+
+  //     final uri = baseUri.replace(queryParameters: queryParams);
+
+  //     print('📤 Fetching from: $uri');
+
+  //     final response = await http.get(
+  //       uri,
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+
+  //     print('📥 Status Code: ${response.statusCode}');
+  //     print('📥 Response: ${response.body}');
+
+  //     if (response.statusCode == 200) {
+  //       final data = json.decode(response.body);
+
+  //       setState(() {
+  //         _teamData = data['data'] ?? {};
+
+  //         // Save total performance
+  //         if (_teamData.containsKey('totalPerformance')) {
+  //           _selectedUserData['totalPerformance'] =
+  //               _teamData['totalPerformance'];
+  //         }
+
+  //         if (_teamData.containsKey('allMember') &&
+  //             _teamData['allMember'].isNotEmpty) {
+  //           _teamMembers = [];
+
+  //           for (var member in _teamData['allMember']) {
+  //             _teamMembers.add({
+  //               'fname': member['fname'] ?? '',
+  //               'lname': member['lname'] ?? '',
+  //               'user_id': member['user_id'] ?? '',
+  //               'profile': member['profile'],
+  //               'initials': member['initials'] ?? '',
+  //             });
+  //           }
+  //         }
+
+  //         if (_selectedProfileIndex == 0) {
+  //           // Summary data
+  //           _selectedUserData = _teamData['summary'] ?? {};
+  //           _selectedUserData['totalPerformance'] =
+  //               _teamData['totalPerformance'] ?? {};
+  //         } else if (_selectedProfileIndex - 1 < _teamMembers.length) {
+  //           // Specific user selected
+  //           final selectedMember = _teamMembers[_selectedProfileIndex - 1];
+  //           _selectedUserData = selectedMember;
+
+  //           final selectedUserPerformance =
+  //               _teamData['selectedUserPerformance'] ?? {};
+  //           final upcoming = selectedUserPerformance['Upcoming'] ?? {};
+  //           final overdue = selectedUserPerformance['Overdue'] ?? {};
+
+  //           if (_upcommingButtonIndex == 0) {
+  //             _upcomingFollowups = List<Map<String, dynamic>>.from(
+  //               upcoming['upComingFollowups'] ?? [],
+  //             );
+  //             _upcomingAppointments = List<Map<String, dynamic>>.from(
+  //               upcoming['upComingAppointment'] ?? [],
+  //             );
+  //             _upcomingTestDrives = List<Map<String, dynamic>>.from(
+  //               upcoming['upComingTestDrive'] ?? [],
+  //             );
+  //           } else {
+  //             _upcomingFollowups = List<Map<String, dynamic>>.from(
+  //               overdue['overdueFollowups'] ?? [],
+  //             );
+  //             _upcomingAppointments = List<Map<String, dynamic>>.from(
+  //               overdue['overdueAppointments'] ?? [],
+  //             );
+  //             _upcomingTestDrives = List<Map<String, dynamic>>.from(
+  //               overdue['overdueTestDrives'] ?? [],
+  //             );
+  //           }
+  //         }
+  //       });
+  //     } else {
+  //       throw Exception('Failed to fetch team details: ${response.statusCode}');
+  //     }
+  //   } catch (e) {
+  //     print('Error fetching team details: $e');
+  //   }
+  // }
 
   // Process team data for team comparison display
   List<Map<String, dynamic>> _processTeamComparisonData() {
@@ -531,57 +711,6 @@ class _MyTeamsState extends State<MyTeams> {
     }
 
     return List<Map<String, dynamic>>.from(_teamData['teamComparsion']);
-  }
-
-  // Find maximum value for scaling in comparison chart
-  int _findMaxValue(List<Map<String, dynamic>> items) {
-    if (items.isEmpty) return 10;
-
-    int max = 0;
-    // Get the current metric based on _metricIndex
-    final metrics = [
-      'enquiries',
-      'testDrives',
-      'orders',
-      'cancellation',
-      'netOrders',
-      'retail',
-    ];
-    final metric = _metricIndex < metrics.length
-        ? metrics[_metricIndex]
-        : 'enquiries';
-
-    for (var item in items) {
-      final value = item[metric] is num
-          ? (item[metric] as num).toInt()
-          : int.tryParse(item[metric]?.toString() ?? '0') ?? 0;
-
-      if (value > max) {
-        max = value;
-      }
-    }
-
-    return max > 0 ? max : 10; // Ensure we have a reasonable scale
-  }
-
-  // Get colors for each metric type
-  Color _getColorForMetric(int metricIndex) {
-    switch (metricIndex) {
-      case 0: // Enquiries
-        return Colors.green;
-      case 1: // Test Drives
-        return Colors.blue;
-      case 2: // Orders
-        return Color(0xFFFFBE55); // Gold/Yellow
-      case 3: // Cancellation
-        return Colors.red;
-      case 4: // Net Orders
-        return Colors.purple;
-      case 5: // Retail
-        return Colors.teal;
-      default:
-        return Colors.green;
-    }
   }
 
   @override
@@ -1424,6 +1553,7 @@ class _MyTeamsState extends State<MyTeams> {
       ],
     );
   }
+
   // Widget _buildProfileAvatars() {
   //   return SingleChildScrollView(
   //     scrollDirection: Axis.horizontal,
@@ -1476,9 +1606,10 @@ class _MyTeamsState extends State<MyTeams> {
                   _selectedType = 'dynamic';
                 }
               });
+              await _fetchTeamDetails();
             }
           },
-          //                   selectedUserIds.clear();
+          // selectedUserIds.clear();
           //                   _selectedCheckboxIds.clear();
           //                   _fetchTeamDetails(); // Fetch all team data
           //                 }
@@ -1834,9 +1965,14 @@ class _MyTeamsState extends State<MyTeams> {
     final bool isUserSelected = _selectedProfileIndex != 0;
 
     // Choose appropriate stats object
-    final stats = isUserSelected
-        ? _teamData['selectedUserPerformance'] ?? {}
-        : _selectedUserData['totalPerformance'] ?? {};
+    // final stats = isUserSelected
+    //     ? _teamData['selectedUserPerformance'] ?? {}
+    //     : _selectedUserData['totalPerformance'] ?? {};
+    final stats = (_metricIndex >= 0)
+        ? (isUserSelected
+              ? _teamData['selectedUserPerformance'] ?? {}
+              : _selectedUserData['totalPerformance'] ?? {})
+        : {};
 
     final metrics = [
       {'label': 'Enquiries', 'key': 'enquiries'},
@@ -1982,7 +2118,7 @@ class _MyTeamsState extends State<MyTeams> {
                                 EdgeInsets.zero,
                               ),
                             ),
-                        
+
                             onPressed: () {
                               setState(() {
                                 _isComparing = !_isComparing;
@@ -2747,19 +2883,33 @@ class _MyTeamsState extends State<MyTeams> {
 
   // teams comparison table
   List<TableRow> _buildMemberRowsTeams() {
+    List<dynamic> dataToDisplay;
+
+    // 🔥 Use team comparison data if available (when comparing users)
+    if (_isComparing && _teamComparisonData.isNotEmpty) {
+      dataToDisplay = _teamComparisonData;
+      print('📊 Using team comparison data: ${dataToDisplay.length} members');
+    } else {
+      // Use regular members data
+      dataToDisplay = _membersData;
+      print('📊 Using regular members data: ${dataToDisplay.length} members');
+    }
+
     // Safety check for empty data
-    if (_membersData.isEmpty) {
+    if (dataToDisplay.isEmpty) {
       return [];
     }
 
     // Get only the records to display based on current count
-    List<dynamic> displayMembers = _membersData
+    List<dynamic> displayMembers = dataToDisplay
         .take(_currentDisplayCount)
         .toList();
 
     return displayMembers.map((member) {
+      // 🔥 Check if this member is selected (for comparison mode)
+      bool isSelected = member['isSelected'] ?? false;
+
       return _buildTableRow([
-        // Your existing table row code...
         InkWell(
           onTap: () {
             Navigator.push(
@@ -2774,18 +2924,22 @@ class _MyTeamsState extends State<MyTeams> {
           },
           child: Row(
             children: [
-              CircleAvatar(
-                radius: 12,
-                backgroundColor: Colors.blue.withOpacity(0.2),
-                child: Text(
-                  member['name'].toString().substring(0, 1).toUpperCase(),
-                  style: const TextStyle(fontSize: 12, color: Colors.blue),
-                ),
+              Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 12,
+                    backgroundColor: Colors.blue.withOpacity(0.2),
+                    child: Text(
+                      member['fname'].toString().substring(0, 1).toUpperCase(),
+                      style: const TextStyle(fontSize: 12, color: Colors.blue),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  member['name'].toString(),
+                  member['fname'].toString(),
                   overflow: TextOverflow.ellipsis,
                   style: AppFont.smallText10(context),
                 ),
@@ -2794,28 +2948,42 @@ class _MyTeamsState extends State<MyTeams> {
           ),
         ),
         Text(
-          member['incoming'].toString(),
-          style: AppFont.smallText10(context),
+          member['enquiries'].toString(),
+          style: AppFont.smallText10(context).copyWith(
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
         ),
         Text(
-          member['outgoing'].toString(),
-          style: AppFont.smallText10(context),
+          member['testDrives'].toString(),
+          style: AppFont.smallText10(context).copyWith(
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
         ),
         Text(
-          member['connected'].toString(),
-          style: AppFont.smallText10(context),
+          member['orders'].toString(),
+          style: AppFont.smallText10(context).copyWith(
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
         ),
         Text(
-          member['duration'].toString(),
-          style: AppFont.smallText10(context),
+          member['cancellation'].toString(),
+          style: AppFont.smallText10(context).copyWith(
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
         ),
         Text(
-          member['declined'].toString(),
-          style: AppFont.smallText10(context),
+          member['retail'].toString(),
+          style: AppFont.smallText10(context).copyWith(
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
         ),
+        // 🔥 Show target data if available (from team comparison)
         Text(
-          member['declined'].toString(),
-          style: AppFont.smallText10(context),
+          (member['target_enquiries'] ?? member['retail'] ?? 0).toString(),
+          style: AppFont.smallText10(context).copyWith(
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            color: isSelected ? Colors.orange.shade600 : null,
+          ),
         ),
       ]);
     }).toList();

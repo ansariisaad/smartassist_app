@@ -164,6 +164,10 @@ class _MyTeamsState extends State<MyTeams> {
     return _currentDisplayCount < _membersData.length;
   }
 
+  bool _hasMoreRecordsTeams(List<dynamic> currentList) {
+    return _currentDisplayCount < currentList.length;
+  }
+
   Future<void> _fetchSingleCalllog() async {
     try {
       // setState(() {
@@ -764,11 +768,7 @@ class _MyTeamsState extends State<MyTeams> {
 
                     onPressed: () {
                       setState(() {
-                        _isComparing = !_isComparing;
-                        // isHide = true;
-                        if (!_isComparing) {
-                          _clearAllSelections();
-                        }
+                        _isComparing = true;
                       });
                       _fetchTeamDetails();
                     },
@@ -784,57 +784,40 @@ class _MyTeamsState extends State<MyTeams> {
       ),
       body: Stack(
         children: [
-          isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : SingleChildScrollView(
-                  controller: fabController.scrollController,
-                  child: Container(
-                    color: Colors.white,
-                    padding: const EdgeInsets.all(10.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: [
-                              // _buildProfileAvatarStaticsAll('All', 0),
-                              _buildProfileAvatars(),
-                            ],
-                          ),
+          SafeArea(
+            child: RefreshIndicator(
+              onRefresh: _fetchTeamDetails,
+              child: isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : SingleChildScrollView(
+                      controller: fabController.scrollController,
+                      child: Container(
+                        color: Colors.white,
+                        padding: const EdgeInsets.all(10.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(children: [_buildProfileAvatars()]),
+                            ),
+                            const SizedBox(height: 10),
+                            if (!_isComparing)
+                              _buildIndividualPerformanceTab(
+                                context,
+                                screenWidth,
+                              ),
+                            const SizedBox(height: 10),
+                            _buildTeamComparisonTab(context, screenWidth),
+                            const SizedBox(height: 10),
+                          ],
                         ),
-
-                        // Vertical scrollbar only - no item display needed
-                        const SizedBox(height: 10),
-
-                        // Individual Performance content
-                        _buildIndividualPerformanceTab(context, screenWidth),
-
-                        const SizedBox(height: 10),
-
-                        // Team Comparison content
-                        _buildTeamComparisonTab(context, screenWidth),
-
-                        const SizedBox(height: 10),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
+            ),
+          ),
 
-          // Floating Action Button
-          // Positioned(
-          //   bottom: 20,
-          //   right: 15,
-          //   child: _buildFloatingActionButton(context),
-          // ),
-
-          // // //Popup Menu (Conditionally Rendered)
-          // Obx(
-          //   () => fabController.isFabExpanded.value
-          //       ? _buildPopupMenu(context)
-          //       : const SizedBox.shrink(),
-          // ),
-          // Replace your current Positioned widget with:
+          // FAB Button animation
           Obx(
             () => AnimatedPositioned(
               duration: const Duration(milliseconds: 300),
@@ -849,7 +832,7 @@ class _MyTeamsState extends State<MyTeams> {
             ),
           ),
 
-          // Update your popup menu condition:
+          // FAB Popup menu
           Obx(
             () =>
                 fabController.isFabExpanded.value &&
@@ -859,6 +842,73 @@ class _MyTeamsState extends State<MyTeams> {
           ),
         ],
       ),
+
+      // body: Stack(
+      //   children: [
+      //     isLoading
+      //         ? const Center(child: CircularProgressIndicator())
+      //         : SingleChildScrollView(
+      //             controller: fabController.scrollController,
+      //             child: Container(
+      //               color: Colors.white,
+      //               padding: const EdgeInsets.all(10.0),
+      //               child: Column(
+      //                 crossAxisAlignment: CrossAxisAlignment.start,
+      //                 children: [
+      //                   SingleChildScrollView(
+      //                     scrollDirection: Axis.horizontal,
+      //                     child: Row(
+      //                       children: [
+      //                         // _buildProfileAvatarStaticsAll('All', 0),
+      //                         _buildProfileAvatars(),
+      //                       ],
+      //                     ),
+      //                   ),
+
+      //                   // Vertical scrollbar only - no item display needed
+      //                   const SizedBox(height: 10),
+
+      //                   // Individual Performance content
+      //                   if (!_isComparing)
+      //                     _buildIndividualPerformanceTab(context, screenWidth),
+
+      //                   // _buildIndividualPerformanceTab(context, screenWidth),
+      //                   const SizedBox(height: 10),
+
+      //                   // Team Comparison content
+      //                   _buildTeamComparisonTab(context, screenWidth),
+
+      //                   const SizedBox(height: 10),
+      //                 ],
+      //               ),
+      //             ),
+      //           ),
+
+      //     // Replace your current Positioned widget with:
+      //     Obx(
+      //       () => AnimatedPositioned(
+      //         duration: const Duration(milliseconds: 300),
+      //         curve: Curves.easeInOut,
+      //         bottom: fabController.isFabVisible.value ? 26 : -80,
+      //         right: 18,
+      //         child: AnimatedOpacity(
+      //           duration: const Duration(milliseconds: 300),
+      //           opacity: fabController.isFabVisible.value ? 1.0 : 0.0,
+      //           child: _buildFloatingActionButton(context),
+      //         ),
+      //       ),
+      //     ),
+
+      //     // Update your popup menu condition:
+      //     Obx(
+      //       () =>
+      //           fabController.isFabExpanded.value &&
+      //               fabController.isFabVisible.value
+      //           ? _buildPopupMenu(context)
+      //           : const SizedBox.shrink(),
+      //     ),
+      //   ],
+      // ),
     );
   }
 
@@ -1336,52 +1386,6 @@ class _MyTeamsState extends State<MyTeams> {
             _fetchTeamDetails();
           },
 
-          // onLongPress: () {
-          //   // Strong haptic feedback on long press
-          //   HapticFeedback.heavyImpact();
-
-          //   // Activate multi-select mode and select this letter
-          //   setState(() {
-          //     _isMultiSelectMode = true;
-          //     if (!_selectedLetters.contains(letter)) {
-          //       _selectedLetters.add(letter);
-          //     }
-          //     _selectedType = 'Letter';
-          //     _selectedProfileIndex = -1;
-          //   });
-
-          //   // Show toast/snackbar to indicate multi-select mode is active
-          //   ScaffoldMessenger.of(context).showSnackBar(
-          //     SnackBar(
-          //       content: Row(
-          //         mainAxisSize: MainAxisSize.min,
-          //         children: [
-          //           Icon(Icons.touch_app, color: Colors.white, size: 16),
-          //           SizedBox(width: 8),
-          //           Expanded(
-          //             child: Text(
-          //               'Multi-select active! Tap other letters to add',
-          //               style: TextStyle(fontSize: 14),
-          //             ),
-          //           ),
-          //         ],
-          //       ),
-          //       duration: const Duration(seconds: 2),
-          //       backgroundColor: Colors.blue.shade600,
-          //       behavior: SnackBarBehavior.floating,
-          //       margin: EdgeInsets.only(
-          //         bottom: MediaQuery.of(context).size.height - 150,
-          //         left: 20,
-          //         right: 20,
-          //       ),
-          //       shape: RoundedRectangleBorder(
-          //         borderRadius: BorderRadius.circular(8),
-          //       ),
-          //     ),
-          //   );
-
-          //   _fetchTeamDetails();
-          // },
           child: Stack(
             children: [
               AnimatedContainer(
@@ -1401,16 +1405,6 @@ class _MyTeamsState extends State<MyTeams> {
                           color: Colors.grey.withOpacity(0.3),
                           width: 1,
                         ),
-                  // boxShadow: isSelected
-                  //     ? [
-                  //         BoxShadow(
-                  //           color: Colors.yellow.withOpacity(0.4),
-                  //           blurRadius: 12,
-                  //           offset: const Offset(0, 3),
-                  //           spreadRadius: 1,
-                  //         ),
-                  //       ]
-                  //     : null,
                 ),
                 child: Center(
                   child: AnimatedDefaultTextStyle(
@@ -1595,10 +1589,19 @@ class _MyTeamsState extends State<MyTeams> {
         ),
         const SizedBox(height: 8),
         InkWell(
-          onTap: () {
-            if (!_isComparing) {
-              _clearAllSelections();
-            }
+          onTap: () async {
+            setState(() {
+              _selectedProfileIndex = index;
+              _selectedType = 'All';
+              _selectedLetters.clear(); // Clear all letter selections
+              _isMultiSelectMode = false; // Exit multi-select mode
+
+              if (!_isComparing) {
+                _clearAllSelections();
+              }
+            });
+            await _fetchTeamDetails();
+            // Else it's "All" – do nothing
           },
           child: AnimatedDefaultTextStyle(
             duration: const Duration(milliseconds: 200),
@@ -1611,6 +1614,24 @@ class _MyTeamsState extends State<MyTeams> {
             child: Text(_isMultiSelectMode ? 'Reset' : 'All'),
           ),
         ),
+
+        // InkWell(
+        //   onTap: () {
+        //     if (!_isComparing) {
+        //       _clearAllSelections();
+        //     }
+        //   },
+        //   child: AnimatedDefaultTextStyle(
+        //     duration: const Duration(milliseconds: 200),
+        //     style: AppFont.mediumText14(context).copyWith(
+        //       color: isSelected
+        //           ? Colors.blue
+        //           : (_isMultiSelectMode ? Colors.orange : null),
+        //       fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+        //     ),
+        //     child: Text(_isMultiSelectMode ? 'Reset' : 'All'),
+        //   ),
+        // ),
       ],
     );
   }
@@ -1653,31 +1674,6 @@ class _MyTeamsState extends State<MyTeams> {
       mainAxisSize: MainAxisSize.min,
       children: [
         GestureDetector(
-          // onTap: () async {
-          //   if (!_isComparing) {
-          //     setState(() {
-          //       if (_selectedUserId == userId) {
-          //         _selectedProfileIndex = -1;
-          //         _selectedUserId = '';
-          //         selectedUserIds.clear();
-          //         _selectedCheckboxIds.clear();
-          //       } else {
-          //         _selectedProfileIndex = index;
-          //         _selectedUserId = userId;
-          //         _selectedType = 'dynamic';
-          //       }
-          //     });
-          //     await _fetchTeamDetails();
-          //   }
-          // },
-
-          // selectedUserIds.clear();
-          //                   _selectedCheckboxIds.clear();
-          //                   _fetchTeamDetails(); // Fetch all team data
-          //                 }
-          // Your onLongPress implementation
-
-          // Your onLongPress implementation
           onLongPress: () {
             // Strong haptic feedback on long press
             HapticFeedback.heavyImpact();
@@ -1693,36 +1689,6 @@ class _MyTeamsState extends State<MyTeams> {
                 selectedUserIds.add(userId);
               }
             });
-
-            // Show feedback to user that multi-select is active
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.touch_app, color: Colors.white, size: 16),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Multi-select active! Tap other items to add',
-                        style: TextStyle(fontSize: 14),
-                      ),
-                    ),
-                  ],
-                ),
-                duration: const Duration(seconds: 2),
-                backgroundColor: Colors.blue.shade600,
-                behavior: SnackBarBehavior.floating,
-                margin: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).size.height - 150,
-                  left: 20,
-                  right: 20,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            );
           },
 
           // Your onTap implementation (combining your existing logic with multi-select)
@@ -1805,72 +1771,7 @@ class _MyTeamsState extends State<MyTeams> {
     );
   }
 
-  // Widget _buildProfileAvatar(
-  //   String firstName,
-  //   int index,
-  //   String userId,
-  //   String? profileUrl,
-  //   String initials,
-  // ) {
-  //   return Column(
-  //     mainAxisSize: MainAxisSize.min,
-  //     children: [
-  //       InkWell(
-  //         // onTap: () => _selectUserProfile(index, userId),
-  //         onTap: () async {
-  //           setState(() {
-  //             _selectedProfileIndex = index;
-  //             _selectedUserId = userId; // set selected userId
-  //             _selectedType = 'dynamic';
-  //           });
-  //           await _fetchTeamDetails(); // fetch updated data
-  //           await _fetchSingleCalllog();
-  //         },
-  //         child: Container(
-  //           // margin: const EdgeInsets.only(left: 15, top: 2),
-  //           // margin: EdgeInsets.symmetric(horizontal: 10),
-  //           margin: const EdgeInsets.fromLTRB(10, 0, 5, 0),
-  //           width: 50,
-  //           height: 50,
-  //           decoration: BoxDecoration(
-  //             shape: BoxShape.circle,
-  //             color: AppColors.backgroundLightGrey,
-  //             border: _selectedProfileIndex == index
-  //                 ? Border.all(color: Colors.blue, width: 2)
-  //                 : null,
-  //           ),
-  //           child: ClipOval(
-  //             child: profileUrl != null && profileUrl.isNotEmpty
-  //                 ? Image.network(
-  //                     profileUrl,
-  //                     width: 50,
-  //                     height: 50,
-  //                     fit: BoxFit.cover,
-  //                     errorBuilder: (context, error, stackTrace) {
-  //                       // Fallback to initials if image fails to load
-  //                       return Center(
-  //                         child: Text(
-  //                           initials.toUpperCase(),
-  //                           style: AppFont.appbarfontblack(context),
-  //                         ),
-  //                       );
-  //                     },
-  //                   )
-  //                 : Center(
-  //                     child: Text(
-  //                       initials.toUpperCase(),
-  //                       style: AppFont.appbarfontblack(context),
-  //                     ),
-  //                   ),
-  //           ),
-  //         ),
-  //       ),
-  //       const SizedBox(height: 8),
-  //       Text(firstName, style: AppFont.mediumText14(context)),
-  //       const SizedBox(height: 8),
-  //     ],
-  //   );
-  // }
+   
 
   // Individual Performance Tab Content
   Widget _buildIndividualPerformanceTab(
@@ -1889,6 +1790,7 @@ class _MyTeamsState extends State<MyTeams> {
             child: Column(
               children: [
                 _buildPeriodFilter(screenWidth),
+                // if(_isComparing)
                 _buildIndividualPerformanceMetrics(context),
               ],
             ),
@@ -2006,9 +1908,8 @@ class _MyTeamsState extends State<MyTeams> {
         // _buildPeriodFilter(screenWidth),
         // _buildMetricButtons(),
         // _buildTeamComparisonChart(context),
-        if (selectedUserIds.length >= 2) _buildTeamComparisonChart(context),
-
-        _callAnalyticAll(context),
+        if (_isComparing) _buildTeamComparisonChart(context),
+        if (!_isComparing) _callAnalyticAll(context),
       ],
     );
   }
@@ -2239,8 +2140,6 @@ class _MyTeamsState extends State<MyTeams> {
               ),
             ),
 
-            // 👇 Show Compare Button IF 2 or more users are selected
-
             // 👇 Conditionally render chart section
             if (isHide) ...[
               if (teamData.isEmpty)
@@ -2252,278 +2151,12 @@ class _MyTeamsState extends State<MyTeams> {
                 )
               else
                 _buildTableTeamParison(), // optional extracted widget
+              _buildShowMoreButtonTeamComparison(),
             ],
           ],
         ],
       ),
     );
-
-    // return Container(
-    //   margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
-    //   child: Column(
-    //     crossAxisAlignment: CrossAxisAlignment.start,
-    //     children: [
-    //       if (_selectedType != 'dynamic') ...[
-    //         // Title with dropdown toggle
-    //         InkWell(
-    //           onTap: () {
-    //             setState(() {
-    //               isHide = !isHide;
-    //             });
-    //           },
-    //           child: Container(
-    //             margin: const EdgeInsets.symmetric(horizontal: 0),
-    //             decoration: BoxDecoration(
-    //               color: AppColors.backgroundLightGrey,
-    //               borderRadius: BorderRadius.circular(10),
-    //             ),
-    //             child: Column(
-    //               children: [
-    //                 Row(
-    //                   // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    //                   children: [
-    //                     IconButton(
-    //                       onPressed: () {
-    //                         setState(() {
-    //                           isHide = !isHide;
-    //                         });
-    //                       },
-    //                       icon: Icon(
-    //                         isHide
-    //                             ? Icons.keyboard_arrow_up_rounded
-    //                             : Icons.keyboard_arrow_down_rounded,
-    //                         size: 35,
-    //                         color: AppColors.iconGrey,
-    //                       ),
-    //                     ),
-    //                     Container(
-    //                       margin: const EdgeInsets.only(left: 10, bottom: 0),
-    //                       child: Text(
-    //                         'Team Comparison',
-    //                         style: AppFont.dropDowmLabel(context),
-    //                       ),
-    //                     ),
-    //                   ],
-    //                 ),
-    //               ],
-    //             ),
-    //           ),
-    //         ),
-    //         if (isHide) ...[
-    //           if (teamData.isEmpty)
-    //             const Center(
-    //               child: Text(
-    //                 'No team data available',
-    //                 style: TextStyle(color: Colors.grey),
-    //               ),
-    //             )
-    //           else
-    //           // _buildTableTeamParison(), saad
-    //           if (selectedUserIds.length >= 2)
-    //             Container(
-    //               padding: const EdgeInsets.symmetric(
-    //                 horizontal: 10,
-    //                 vertical: 5,
-    //               ),
-    //               decoration: BoxDecoration(
-    //                 color: AppColors.homeContainerLeads,
-    //                 borderRadius: BorderRadius.circular(10),
-    //               ),
-    //               child: TextButton(
-    //                 onPressed: () {
-    //                   setState(() {
-    //                     _isComparing = !_isComparing;
-
-    //                     if (!_isComparing) {
-    //                       // Reset all comparison-related state
-    //                       selectedUserIds.clear();
-    //                       _selectedCheckboxIds.clear();
-    //                       _selectedProfileIndex = -1;
-    //                       _selectedUserId = '';
-    //                     }
-    //                   });
-
-    //                   _fetchTeamDetails();
-    //                 },
-
-    //                 child: Text(
-    //                   _isComparing ? 'Show All' : 'Compare',
-    //                   style: AppFont.mediumText14Black(context),
-    //                 ),
-    //               ),
-    //             ),
-
-    //           // Container(
-    //           //   decoration: BoxDecoration(
-    //           //     color: AppColors.backgroundLightGrey,
-    //           //     borderRadius: BorderRadius.circular(10),
-    //           //   ),
-    //           //   margin: const EdgeInsets.only(top: 10),
-    //           //   padding: const EdgeInsets.symmetric(vertical: 8),
-    //           //   child: Column(
-    //           //     children: [
-    //           //       Row(
-    //           //         children: [
-    //           //           TextButton(
-    //           //             onPressed: () {
-    //           //               setState(() {
-    //           //                 if (_isComparing) {
-    //           //                   // Currently showing comparison, switch to show all
-    //           //                   _isComparing = false;
-    //           //                   isHideCheckbox =
-    //           //                       true; // Show checkboxes again
-    //           //                   selectedUserIds.clear();
-    //           //                   _selectedCheckboxIds.clear();
-    //           //                   _fetchTeamDetails(); // Fetch all team data
-    //           //                 } else if (selectedUserIds.length == 2) {
-    //           //                   // We have 2 users selected, do the comparison
-    //           //                   _isComparing = true;
-    //           //                   _selectedCheckboxIds = Set<String>.from(
-    //           //                     selectedUserIds,
-    //           //                   );
-    //           //                   _fetchTeamDetails(); // Fetch comparison data
-    //           //                 } else {
-    //           //                   // Not enough users selected
-    //           //                   ScaffoldMessenger.of(context).showSnackBar(
-    //           //                     const SnackBar(
-    //           //                       content: Text(
-    //           //                         "Please select exactly 2 users to compare",
-    //           //                       ),
-    //           //                     ),
-    //           //                   );
-    //           //                 }
-    //           //               });
-    //           //             },
-    //           //             child: Container(
-    //           //               padding: const EdgeInsets.symmetric(
-    //           //                 horizontal: 10,
-    //           //                 vertical: 5,
-    //           //               ),
-    //           //               decoration: BoxDecoration(
-    //           //                 color: AppColors.homeContainerLeads,
-    //           //                 borderRadius: BorderRadius.circular(10),
-    //           //               ),
-    //           //               child: Text(
-    //           //                 _isComparing ? 'Show All' : 'Compare',
-    //           //                 style: AppFont.mediumText14Black(context),
-    //           //               ),
-    //           //             ),
-    //           //           ),
-    //           //         ],
-    //           //       ),
-    //           //       ...teamData.map((item) {
-    //           //         final value = item[currentMetric] is num
-    //           //             ? (item[currentMetric] as num).toInt()
-    //           //             : int.tryParse(
-    //           //                     item[currentMetric]?.toString() ?? '0',
-    //           //                   ) ??
-    //           //                   0;
-
-    //           //         final double barWidth;
-    //           //         if (maxValue > 0 && value > 0) {
-    //           //           barWidth = (value / maxValue) * barMaxWidth;
-    //           //         } else {
-    //           //           barWidth = 0;
-    //           //         }
-
-    //           //         final bool isSelected = selectedUserIds.contains(
-    //           //           item['user_id'],
-    //           //         );
-
-    //           //         // Only show items that are either:
-    //           //         // 1. Not in comparison mode, or
-    //           //         // 2. In comparison mode AND this item is one of the selected ones
-    //           //         final bool shouldShowItem =
-    //           //             !_isComparing || (_isComparing && isSelected);
-
-    //           //         return shouldShowItem
-    //           //             ? Container(
-    //           //                 padding: const EdgeInsets.symmetric(
-    //           //                   vertical: 5,
-    //           //                   horizontal: 8,
-    //           //                 ),
-    //           //                 child: Row(
-    //           //                   children: [
-    //           //                     if (!_isComparing) // Only show checkboxes when not comparing
-    //           //                       Checkbox(
-    //           //                         value: isSelected,
-    //           //                         onChanged: (bool? val) {
-    //           //                           setState(() {
-    //           //                             final id = item['user_id'];
-
-    //           //                             if (val == true) {
-    //           //                               if (selectedUserIds.length < 2) {
-    //           //                                 selectedUserIds.add(id);
-    //           //                               } else {
-    //           //                                 ScaffoldMessenger.of(
-    //           //                                   context,
-    //           //                                 ).showSnackBar(
-    //           //                                   const SnackBar(
-    //           //                                     content: Text(
-    //           //                                       "You can only compare 2 teams at a time",
-    //           //                                     ),
-    //           //                                   ),
-    //           //                                 );
-    //           //                               }
-    //           //                             } else {
-    //           //                               selectedUserIds.remove(id);
-    //           //                             }
-    //           //                           });
-    //           //                         },
-    //           //                         visualDensity: VisualDensity.compact,
-    //           //                       ),
-
-    //           //                     SizedBox(
-    //           //                       width:
-    //           //                           MediaQuery.sizeOf(context).width *
-    //           //                           .20,
-    //           //                       child: Text(
-    //           //                         item['fname'] ?? '',
-    //           //                         style: AppFont.dropDowmLabel(context),
-    //           //                         overflow: TextOverflow.ellipsis,
-    //           //                       ),
-    //           //                     ),
-    //           //                     Expanded(
-    //           //                       child: Row(
-    //           //                         children: [
-    //           //                           Container(
-    //           //                             height: 20,
-    //           //                             width: barWidth,
-    //           //                             decoration: BoxDecoration(
-    //           //                               color: metricColor,
-    //           //                               borderRadius:
-    //           //                                   BorderRadius.circular(4),
-    //           //                             ),
-    //           //                           ),
-    //           //                           // const SizedBox(width: 6),
-    //           //                           SizedBox(
-    //           //                             width: 20,
-    //           //                             child: Text(
-    //           //                               value.toString(),
-    //           //                               style: const TextStyle(
-    //           //                                 fontSize: 12,
-    //           //                                 fontWeight: FontWeight.bold,
-    //           //                                 color: AppColors.fontColor,
-    //           //                               ),
-    //           //                               textAlign: TextAlign.center,
-    //           //                             ),
-    //           //                           ),
-    //           //                         ],
-    //           //                       ),
-    //           //                     ),
-    //           //                   ],
-    //           //                 ),
-    //           //               )
-    //           //             : Container(); // Empty container for items that shouldn't be shown
-    //           //       }).toList(),
-    //           //     ],
-    //           //   ),
-    //           // ),
-    //         ],
-    //       ],
-    //     ],
-    //   ),
-    // );
   }
 
   Widget _buildTableTeamParison() {
@@ -2981,29 +2614,45 @@ class _MyTeamsState extends State<MyTeams> {
   List<TableRow> _buildMemberRowsTeams() {
     List<dynamic> dataToDisplay;
 
-    // 🔥 Use team comparison data if available (when comparing users)
-    if (_isComparing && _teamComparisonData.isNotEmpty) {
+    if (_isComparing &&
+        selectedUserIds.isNotEmpty &&
+        _teamComparisonData.isNotEmpty) {
       dataToDisplay = _teamComparisonData;
       print('📊 Using team comparison data: ${dataToDisplay.length} members');
     } else {
-      // Use regular members data
-      dataToDisplay = _membersData;
-      print('📊 Using regular members data: ${dataToDisplay.length} members');
+      if (_isComparing && selectedUserIds.isNotEmpty) {
+        dataToDisplay = _membersData.where((member) {
+          return selectedUserIds.contains(member['user_id'].toString());
+        }).toList();
+        print(
+          '📊 Using filtered members data: ${dataToDisplay.length} members',
+        );
+      } else {
+        dataToDisplay = _membersData;
+        print('📊 Using regular members data: ${dataToDisplay.length} members');
+      }
     }
 
-    // Safety check for empty data
     if (dataToDisplay.isEmpty) {
       return [];
     }
 
-    // Get only the records to display based on current count
+    // 🔥 FIX: Use safe count calculation
+    int safeDisplayCount = math.min(_currentDisplayCount, dataToDisplay.length);
     List<dynamic> displayMembers = dataToDisplay
-        .take(_currentDisplayCount)
+        .take(safeDisplayCount)
         .toList();
 
-    return displayMembers.map((member) {
-      // 🔥 Check if this member is selected (for comparison mode)
-      bool isSelected = member['isSelected'] ?? false;
+    return displayMembers.asMap().entries.map((entry) {
+      int index = entry.key;
+      var member = entry.value;
+
+      // Safe access with null checks
+      if (member == null) return TableRow(children: []);
+
+      bool isSelected = selectedUserIds.contains(
+        member['user_id']?.toString() ?? '',
+      );
 
       return _buildTableRow([
         InkWell(
@@ -3078,7 +2727,6 @@ class _MyTeamsState extends State<MyTeams> {
           (member['target_enquiries'] ?? member['retail'] ?? 0).toString(),
           style: AppFont.smallText10(context).copyWith(
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            color: isSelected ? Colors.orange.shade600 : null,
           ),
         ),
       ]);
@@ -3092,6 +2740,53 @@ class _MyTeamsState extends State<MyTeams> {
     }
 
     int remainingRecords = _membersData.length - _currentDisplayCount;
+    int recordsToShow = math.min(_incrementCount, remainingRecords);
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 10.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          TextButton(
+            onPressed: _loadMoreRecords,
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.blue,
+              textStyle: const TextStyle(fontSize: 12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Show More ($recordsToShow more)'),
+                const SizedBox(width: 4),
+                const Icon(Icons.keyboard_arrow_down, size: 16),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildShowMoreButtonTeamComparison() {
+    List<dynamic> dataToDisplay;
+
+    if (_isComparing &&
+        selectedUserIds.isNotEmpty &&
+        _teamComparisonData.isNotEmpty) {
+      dataToDisplay = _teamComparisonData;
+    } else if (_isComparing && selectedUserIds.isNotEmpty) {
+      dataToDisplay = _membersData.where((member) {
+        return selectedUserIds.contains(member['user_id'].toString());
+      }).toList();
+    } else {
+      dataToDisplay = _membersData;
+    }
+
+    if (dataToDisplay.isEmpty || !_hasMoreRecordsTeams(dataToDisplay)) {
+      return const SizedBox.shrink();
+    }
+
+    int remainingRecords = dataToDisplay.length - _currentDisplayCount;
     int recordsToShow = math.min(_incrementCount, remainingRecords);
 
     return Padding(

@@ -22,6 +22,9 @@ void main() async {
       DeviceOrientation.portraitUp,
     ]);
     print("Firebase initialized successfully!");
+
+
+    
   } catch (e) {
     print("Firebase initialization failed: $e");
   }

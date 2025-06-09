@@ -546,6 +546,7 @@ class _MyTeamsState extends State<MyTeams> {
       print('Error fetching team details: $e');
     }
   }
+
   // Future<void> _fetchTeamDetails() async {
   //   try {
   //     final token = await Storage.getToken();
@@ -1588,21 +1589,56 @@ class _MyTeamsState extends State<MyTeams> {
           ),
         ),
         const SizedBox(height: 8),
+
+        // InkWell(
+        //   onTap: () async {
+        //     setState(() {
+        //       _selectedProfileIndex = index;
+        //       _selectedType = 'All';
+        //       _selectedLetters.clear(); // Clear all letter selections
+        //       _isMultiSelectMode = false; // Exit multi-select mode
+        //       _metricIndex = 0;
+        //       if (!_isComparing) {
+        //         _clearAllSelections();
+        //       }
+        //     });
+        //     // await _fetchAllCalllog();
+        //     await _fetchTeamDetails();
+        //   },
+        //   child: AnimatedDefaultTextStyle(
+        //     duration: const Duration(milliseconds: 200),
+        //     style: AppFont.mediumText14(context).copyWith(
+        //       color: isSelected
+        //           ? Colors.blue
+        //           : (_isMultiSelectMode ? Colors.orange : null),
+        //       fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+        //     ),
+        //     child: Text(_isMultiSelectMode ? 'Reset' : 'Alls '),
+        //   ),
+        // ),
         InkWell(
           onTap: () async {
-            setState(() {
+            try {
+              // First: update selection state only
               _selectedProfileIndex = index;
               _selectedType = 'All';
-              _selectedLetters.clear(); // Clear all letter selections
-              _isMultiSelectMode = false; // Exit multi-select mode
-
+              _selectedLetters.clear();
+              _isMultiSelectMode = false;
+              _metricIndex = 0;
               if (!_isComparing) {
                 _clearAllSelections();
               }
-            });
-            await _fetchTeamDetails();
-            // Else it's "All" – do nothing
+
+              // Wait for data fetch
+              await _fetchTeamDetails();
+
+              // Then: rebuild the UI with new data
+              setState(() {});
+            } catch (e) {
+              print('Error fetching team details: $e');
+            }
           },
+
           child: AnimatedDefaultTextStyle(
             duration: const Duration(milliseconds: 200),
             style: AppFont.mediumText14(context).copyWith(
@@ -1611,10 +1647,11 @@ class _MyTeamsState extends State<MyTeams> {
                   : (_isMultiSelectMode ? Colors.orange : null),
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
             ),
-            child: Text(_isMultiSelectMode ? 'Reset' : 'All'),
+            child: Text(
+              _isMultiSelectMode ? 'Reset' : 'All',
+            ), // Fixed typo 'Alls '
           ),
         ),
-
         // InkWell(
         //   onTap: () {
         //     if (!_isComparing) {
@@ -1994,19 +2031,93 @@ class _MyTeamsState extends State<MyTeams> {
   }
 
   // Individual Performance Metrics Display
+  // Widget _buildIndividualPerformanceMetrics(BuildContext context) {
+  //   // Use selectedUserPerformance if a user is selected, else use totalPerformance
+  //   final bool isUserSelected = _selectedProfileIndex != 0;
+
+  //   // Choose appropriate stats object
+  //   // final stats = isUserSelected
+  //   //     ? _teamData['selectedUserPerformance'] ?? {}
+  //   //     : _selectedUserData['totalPerformance'] ?? {};
+  //   final stats = (_metricIndex >= 0)
+  //       ? (isUserSelected
+  //             ? _teamData['selectedUserPerformance'] ?? {}
+  //             : _selectedUserData['totalPerformance'] ?? {})
+  //       : {};
+
+  //   final metrics = [
+  //     {'label': 'Enquiries', 'key': 'enquiries'},
+  //     {'label': 'Test Drive', 'key': 'testDrives'},
+  //     {'label': 'Orders', 'key': 'orders'},
+  //     {'label': 'Cancellations', 'key': 'cancellation'},
+  //     {
+  //       'label': 'Net Orders',
+  //       'key': 'Net orders',
+  //       // 'value': (stats['Orders'] ?? 0) - (stats['Cancellation'] ?? 0)
+  //     },
+  //     {'label': 'Retails', 'key': 'retail'},
+  //   ];
+
+  //   List<Widget> rows = [];
+  //   for (int i = 0; i < metrics.length; i += 2) {
+  //     rows.add(
+  //       Row(
+  //         children: [
+  //           for (int j = i; j < i + 2 && j < metrics.length; j++) ...[
+  //             Expanded(
+  //               child: InkWell(
+  //                 onTap: () {
+  //                   setState(() {
+  //                     _metricIndex = j;
+  //                     _fetchTeamDetails(); // Refresh with selected metric
+  //                   });
+  //                 },
+  //                 child: _buildMetricCard(
+  //                   "${metrics[j].containsKey('value') ? metrics[j]['value'] : stats[metrics[j]['key']] ?? 0}",
+  //                   metrics[j]['label']!,
+  //                   Colors.blue,
+  //                   isSelected: _metricIndex == j,
+  //                 ),
+  //               ),
+  //             ),
+  //             if (j % 2 == 0) const SizedBox(width: 12),
+  //           ],
+  //         ],
+  //       ),
+  //     );
+  //     rows.add(const SizedBox(height: 12));
+  //   }
+
+  //   return Padding(
+  //     padding: const EdgeInsets.all(10),
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.stretch,
+  //       children: rows,
+  //     ),
+  //   );
+  // }
+
   Widget _buildIndividualPerformanceMetrics(BuildContext context) {
-    // Use selectedUserPerformance if a user is selected, else use totalPerformance
     final bool isUserSelected = _selectedProfileIndex != 0;
 
-    // Choose appropriate stats object
-    // final stats = isUserSelected
-    //     ? _teamData['selectedUserPerformance'] ?? {}
-    //     : _selectedUserData['totalPerformance'] ?? {};
-    final stats = (_metricIndex >= 0)
-        ? (isUserSelected
-              ? _teamData['selectedUserPerformance'] ?? {}
-              : _selectedUserData['totalPerformance'] ?? {})
-        : {};
+    // Choose appropriate stats object with fallback
+    final stats = isUserSelected
+        ? (_teamData['selectedUserPerformance'] ?? {})
+        : (_selectedUserData['totalPerformance'] ?? {});
+    //  final stats = (_isMultiSelectMode || _isComparing)
+    //       ? (_teamData["teamComparsion"] as List<dynamic>? ?? [])
+    //             .where((member) => member["isSelected"] == true)
+    //             .toList()
+    //       : (_teamData["teamComparsion"] as List<dynamic>? ?? []);
+
+    // Debug print to check stats
+    print('Stats for metrics: $stats, isUserSelected: $isUserSelected');
+
+    if (stats.isEmpty) {
+      print(
+        'Warning: Stats is empty. _selectedUserData: $_selectedUserData, _teamData: $_teamData',
+      );
+    }
 
     final metrics = [
       {'label': 'Enquiries', 'key': 'enquiries'},
@@ -2015,8 +2126,10 @@ class _MyTeamsState extends State<MyTeams> {
       {'label': 'Cancellations', 'key': 'cancellation'},
       {
         'label': 'Net Orders',
-        'key': 'Net orders',
-        // 'value': (stats['Orders'] ?? 0) - (stats['Cancellation'] ?? 0)
+        'key': 'netOrders',
+        'value': ((stats['orders'] ?? 0) - (stats['cancellation'] ?? 0))
+            .clamp(0, double.infinity)
+            .toInt(),
       },
       {'label': 'Retails', 'key': 'retail'},
     ];
@@ -2036,7 +2149,9 @@ class _MyTeamsState extends State<MyTeams> {
                     });
                   },
                   child: _buildMetricCard(
-                    "${metrics[j].containsKey('value') ? metrics[j]['value'] : stats[metrics[j]['key']] ?? 0}",
+                    metrics[j].containsKey('value')
+                        ? metrics[j]['value'].toString()
+                        : (stats[metrics[j]['key']]?.toString() ?? '0'),
                     metrics[j]['label']!,
                     Colors.blue,
                     isSelected: _metricIndex == j,
@@ -2053,10 +2168,12 @@ class _MyTeamsState extends State<MyTeams> {
 
     return Padding(
       padding: const EdgeInsets.all(10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: rows,
-      ),
+      child: stats.isEmpty
+          ? const Center(child: Text('No data available'))
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: rows,
+            ),
     );
   }
 

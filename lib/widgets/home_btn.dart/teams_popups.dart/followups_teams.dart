@@ -611,7 +611,7 @@ class _FollowupsTeamsState extends State<FollowupsTeams> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Plan a Followup',
+                  'Plan a Follow up',
                   style: AppFont.popupTitleBlack(context),
                 ),
                 TextButton(

@@ -323,7 +323,7 @@ class _CalenderState extends State<Calender> {
                     },
                   ),
                   _buildPopupItem(
-                    Icons.receipt_long_outlined,
+                    Icons.receipt_long_rounded,
                     "Enquiry",
                     -60,
                     onTap: () {

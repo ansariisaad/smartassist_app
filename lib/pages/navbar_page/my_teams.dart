@@ -1040,7 +1040,7 @@ class _MyTeamsState extends State<MyTeams> {
                   //   _showCreateteamPopup(context);
                   // }),
                   _buildPopupItem(
-                    Icons.receipt_long_outlined,
+                    Icons.receipt_long_rounded,
                     "Enquiry",
                     -60,
                     onTap: () {

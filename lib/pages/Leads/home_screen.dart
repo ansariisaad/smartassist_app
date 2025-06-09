@@ -834,7 +834,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                   ),
                   _buildPopupItem(
-                    Icons.receipt_long_outlined,
+                    Icons.receipt_long_rounded,
                     "Enquiry",
                     -60,
                     onTap: () {

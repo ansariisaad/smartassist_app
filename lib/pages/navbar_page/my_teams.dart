@@ -145,6 +145,10 @@ class _MyTeamsState extends State<MyTeams> {
     return _currentDisplayCount < _membersData.length;
   }
 
+  bool _hasMoreRecordsTeams(List<dynamic> currentList) {
+    return _currentDisplayCount < currentList.length;
+  }
+
   Future<void> _fetchSingleCalllog() async {
     try {
       // setState(() {
@@ -313,6 +317,45 @@ class _MyTeamsState extends State<MyTeams> {
       });
     }
   }
+
+
+  // Create a helper method to properly clear all selections
+  void _clearAllSelections() {
+    setState(() {
+      // Clear tracking lists
+      selectedUserIds.clear();
+      _selectedCheckboxIds.clear();
+      _selectedProfileIndex = -1;
+      _selectedUserId = '';
+
+      // 🔥 IMPORTANT: Clear isSelected from all member objects
+      for (var member in _membersData) {
+        member['isSelected'] = false;
+      }
+      for (var member in _teamComparisonData) {
+        member['isSelected'] = false;
+      }
+    });
+  }
+  // Future<void> _fetchAllCalllog() async {
+  //   setState(() {
+  //     isLoading = true;
+  //   });
+
+  //   try {
+  //     final data = await LeadsSrv.fetchAllCalllog(periodIndex: _periodIndex);
+  //     setState(() {
+  //       _analyticsData = data['analyticsData'];
+  //       _membersData = data['membersData'];
+  //       isLoading = false;
+  //     });
+  //   } catch (e) {
+  //     print('Error: $e');
+  //     setState(() {
+  //       isLoading = false;
+  //     });
+  //   }
+  // }
 
   // Fetch team details using the new API endpoint
   Future<void> _fetchTeamDetails() async {
@@ -504,47 +547,82 @@ class _MyTeamsState extends State<MyTeams> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Colors.blue,
-        title: Text('My Team', style: AppFont.appbarfontWhite(context)),
-      ),
-      body: Stack(
-        children: [
-          isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : SingleChildScrollView(
-                  controller: fabController.scrollController,
-                  child: Container(
-                    color: Colors.white,
-                    padding: const EdgeInsets.all(10.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: [
-                              // _buildProfileAvatarStaticsAll('All', 0),
-                              _buildProfileAvatars(),
-                            ],
-                          ),
-                        ),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('My Team', style: AppFont.appbarfontWhite(context)),
+            if (selectedUserIds.length >= 2)
+              Align(
+                alignment: Alignment.centerRight,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 0,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: TextButton(
+                    style: ButtonStyle(
+                      padding: MaterialStateProperty.all<EdgeInsets>(
+                        EdgeInsets.zero,
+                      ),
+                    ),
 
-                        // Vertical scrollbar only - no item display needed
-                        const SizedBox(height: 10),
-
-                        // Individual Performance content
-                        _buildIndividualPerformanceTab(context, screenWidth),
-
-                        const SizedBox(height: 10),
-
-                        // Team Comparison content
-                        _buildTeamComparisonTab(context, screenWidth),
-
-                        const SizedBox(height: 10),
-                      ],
+                    onPressed: () {
+                      setState(() {
+                        _isComparing = true;
+                      });
+                      _fetchTeamDetails();
+                    },
+                    child: Text(
+                      'Compare',
+                      style: AppFont.mediumText14white(context),
                     ),
                   ),
                 ),
+              ),
+          ],
+        ),
+      ),
+      body: Stack(
+        children: [
+          SafeArea(
+            child: RefreshIndicator(
+              onRefresh: _fetchTeamDetails,
+              child: isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : SingleChildScrollView(
+                      controller: fabController.scrollController,
+                      child: Container(
+                        color: Colors.white,
+                        padding: const EdgeInsets.all(10.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(children: [_buildProfileAvatars()]),
+                            ),
+                            const SizedBox(height: 10),
+                            if (!_isComparing)
+                              _buildIndividualPerformanceTab(
+                                context,
+                                screenWidth,
+                              ),
+                            const SizedBox(height: 10),
+                            _buildTeamComparisonTab(context, screenWidth),
+                            const SizedBox(height: 10),
+                          ],
+                        ),
+                      ),
+                    ),
 
+            ),
+          ),
+
+          // FAB Button animation
           Obx(
             () => AnimatedPositioned(
               duration: const Duration(milliseconds: 300),
@@ -559,7 +637,7 @@ class _MyTeamsState extends State<MyTeams> {
             ),
           ),
 
-          // Update your popup menu condition:
+          // FAB Popup menu
           Obx(
             () =>
                 fabController.isFabExpanded.value &&
@@ -569,6 +647,73 @@ class _MyTeamsState extends State<MyTeams> {
           ),
         ],
       ),
+
+      // body: Stack(
+      //   children: [
+      //     isLoading
+      //         ? const Center(child: CircularProgressIndicator())
+      //         : SingleChildScrollView(
+      //             controller: fabController.scrollController,
+      //             child: Container(
+      //               color: Colors.white,
+      //               padding: const EdgeInsets.all(10.0),
+      //               child: Column(
+      //                 crossAxisAlignment: CrossAxisAlignment.start,
+      //                 children: [
+      //                   SingleChildScrollView(
+      //                     scrollDirection: Axis.horizontal,
+      //                     child: Row(
+      //                       children: [
+      //                         // _buildProfileAvatarStaticsAll('All', 0),
+      //                         _buildProfileAvatars(),
+      //                       ],
+      //                     ),
+      //                   ),
+
+      //                   // Vertical scrollbar only - no item display needed
+      //                   const SizedBox(height: 10),
+
+      //                   // Individual Performance content
+      //                   if (!_isComparing)
+      //                     _buildIndividualPerformanceTab(context, screenWidth),
+
+      //                   // _buildIndividualPerformanceTab(context, screenWidth),
+      //                   const SizedBox(height: 10),
+
+      //                   // Team Comparison content
+      //                   _buildTeamComparisonTab(context, screenWidth),
+
+      //                   const SizedBox(height: 10),
+      //                 ],
+      //               ),
+      //             ),
+      //           ),
+
+      //     // Replace your current Positioned widget with:
+      //     Obx(
+      //       () => AnimatedPositioned(
+      //         duration: const Duration(milliseconds: 300),
+      //         curve: Curves.easeInOut,
+      //         bottom: fabController.isFabVisible.value ? 26 : -80,
+      //         right: 18,
+      //         child: AnimatedOpacity(
+      //           duration: const Duration(milliseconds: 300),
+      //           opacity: fabController.isFabVisible.value ? 1.0 : 0.0,
+      //           child: _buildFloatingActionButton(context),
+      //         ),
+      //       ),
+      //     ),
+
+      //     // Update your popup menu condition:
+      //     Obx(
+      //       () =>
+      //           fabController.isFabExpanded.value &&
+      //               fabController.isFabVisible.value
+      //           ? _buildPopupMenu(context)
+      //           : const SizedBox.shrink(),
+      //     ),
+      //   ],
+      // ),
     );
   }
 
@@ -1007,52 +1152,7 @@ class _MyTeamsState extends State<MyTeams> {
             });
             _fetchTeamDetails();
           },
-          onLongPress: () {
-            // Strong haptic feedback on long press
-            HapticFeedback.heavyImpact();
 
-            // Activate multi-select mode and select this letter
-            setState(() {
-              _isMultiSelectMode = true;
-              if (!_selectedLetters.contains(letter)) {
-                _selectedLetters.add(letter);
-              }
-              _selectedType = 'Letter';
-              _selectedProfileIndex = -1;
-            });
-
-            // Show toast/snackbar to indicate multi-select mode is active
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.touch_app, color: Colors.white, size: 16),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Multi-select active! Tap other letters to add',
-                        style: TextStyle(fontSize: 14),
-                      ),
-                    ),
-                  ],
-                ),
-                duration: const Duration(seconds: 2),
-                backgroundColor: Colors.blue.shade600,
-                behavior: SnackBarBehavior.floating,
-                margin: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).size.height - 150,
-                  left: 20,
-                  right: 20,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            );
-
-            _fetchTeamDetails();
-          },
           child: Stack(
             children: [
               AnimatedContainer(
@@ -1145,6 +1245,10 @@ class _MyTeamsState extends State<MyTeams> {
               _selectedType = 'All';
               _selectedLetters.clear(); // Clear all letter selections
               _isMultiSelectMode = false; // Exit multi-select mode
+
+              if (!_isComparing) {
+                _clearAllSelections();
+              }
             });
             await _fetchTeamDetails();
           },
@@ -1197,16 +1301,6 @@ class _MyTeamsState extends State<MyTeams> {
                           color: Colors.grey.withOpacity(0.3),
                           width: 1,
                         ),
-                  // boxShadow: isSelected
-                  //     ? [
-                  //         BoxShadow(
-                  //           color: Colors.blue.withOpacity(0.4),
-                  //           blurRadius: 12,
-                  //           offset: const Offset(0, 3),
-                  //           spreadRadius: 1,
-                  //         ),
-                  //       ]
-                  //     : null,
                 ),
                 child: Center(
                   child: AnimatedSwitcher(
@@ -1261,21 +1355,54 @@ class _MyTeamsState extends State<MyTeams> {
           ),
         ),
         const SizedBox(height: 8),
-        AnimatedDefaultTextStyle(
-          duration: const Duration(milliseconds: 200),
-          style: AppFont.mediumText14(context).copyWith(
-            color: isSelected
-                ? Colors.blue
-                : (_isMultiSelectMode ? Colors.orange : null),
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+        InkWell(
+          onTap: () async {
+            setState(() {
+              _selectedProfileIndex = index;
+              _selectedType = 'All';
+              _selectedLetters.clear(); // Clear all letter selections
+              _isMultiSelectMode = false; // Exit multi-select mode
+
+              if (!_isComparing) {
+                _clearAllSelections();
+              }
+            });
+            await _fetchTeamDetails();
+            // Else it's "All" – do nothing
+          },
+          child: AnimatedDefaultTextStyle(
+            duration: const Duration(milliseconds: 200),
+            style: AppFont.mediumText14(context).copyWith(
+              color: isSelected
+                  ? Colors.blue
+                  : (_isMultiSelectMode ? Colors.orange : null),
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            ),
+            child: Text(_isMultiSelectMode ? 'Reset' : 'All'),
           ),
-          child: Text(_isMultiSelectMode ? 'Reset' : 'All'),
         ),
+
+        // InkWell(
+        //   onTap: () {
+        //     if (!_isComparing) {
+        //       _clearAllSelections();
+        //     }
+        //   },
+        //   child: AnimatedDefaultTextStyle(
+        //     duration: const Duration(milliseconds: 200),
+        //     style: AppFont.mediumText14(context).copyWith(
+        //       color: isSelected
+        //           ? Colors.blue
+        //           : (_isMultiSelectMode ? Colors.orange : null),
+        //       fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+        //     ),
+        //     child: Text(_isMultiSelectMode ? 'Reset' : 'All'),
+        //   ),
+        // ),
       ],
     );
   }
 
-  // Individual profile avatar saad
   Widget _buildProfileAvatar(
     String firstName,
     int index,
@@ -1289,14 +1416,46 @@ class _MyTeamsState extends State<MyTeams> {
       mainAxisSize: MainAxisSize.min,
       children: [
         GestureDetector(
+          onLongPress: () {
+            // Strong haptic feedback on long press
+            HapticFeedback.heavyImpact();
+
+            setState(() {
+              // Activate multi-select mode
+              _isMultiSelectMode = true;
+
+              // Toggle the current item's selection
+              if (isSelectedForComparison) {
+                selectedUserIds.remove(userId);
+              } else {
+                selectedUserIds.add(userId);
+              }
+            });
+          },
+
+          // Your onTap implementation (combining your existing logic with multi-select)
           onTap: () async {
-            if (!_isComparing) {
+            // Light haptic feedback on tap
+            HapticFeedback.lightImpact();
+
+            if (_isMultiSelectMode) {
+              // Multi-select mode: toggle selection for comparison
+              setState(() {
+                if (isSelectedForComparison) {
+                  selectedUserIds.remove(userId);
+                  // If no items selected, exit multi-select mode
+                  if (selectedUserIds.isEmpty) {
+                    _isMultiSelectMode = false;
+                  }
+                } else {
+                  selectedUserIds.add(userId);
+                }
+              });
+            } else if (!_isComparing) {
+              // Single select mode: your existing logic
               setState(() {
                 if (_selectedUserId == userId) {
-                  _selectedProfileIndex = -1;
-                  _selectedUserId = '';
-                  selectedUserIds.clear();
-                  _selectedCheckboxIds.clear();
+                  _clearAllSelections();
                 } else {
                   _selectedProfileIndex = index;
                   _selectedUserId = userId;
@@ -1306,21 +1465,7 @@ class _MyTeamsState extends State<MyTeams> {
               await _fetchTeamDetails();
             }
           },
-          // selectedUserIds.clear();
-          //                   _selectedCheckboxIds.clear();
-          //                   _fetchTeamDetails(); // Fetch all team data
-          //                 }
-          onLongPress: () {
-            setState(() {
-              if (isSelectedForComparison) {
-                selectedUserIds.remove(userId);
-              } else {
-                selectedUserIds.add(userId);
-              }
-            });
 
-            // Optional: push selectedUserIds to URL or elsewhere
-          },
           child: Container(
             margin: const EdgeInsets.fromLTRB(10, 0, 5, 0),
             width: 50,
@@ -1368,6 +1513,32 @@ class _MyTeamsState extends State<MyTeams> {
     );
   }
 
+
+  // Widget _buildProfileAvatars() {
+  //   return SingleChildScrollView(
+  //     scrollDirection: Axis.horizontal,
+  //     child: Container(
+  //       margin: const EdgeInsets.only(top: 10),
+  //       height: 90,
+  //       padding: const EdgeInsets.symmetric(horizontal: 0),
+  //       child: Row(
+  //         crossAxisAlignment: CrossAxisAlignment.center,
+  //         children: [
+  //           for (int i = 0; i < _teamMembers.length; i++)
+  //             _buildProfileAvatar(
+  //               _teamMembers[i]['fname'] ?? '',
+  //               i + 1, // Starts from 1 because 0 is 'All'
+  //               _teamMembers[i]['user_id'] ?? '',
+  //               _teamMembers[i]['profile'], // Pass the profile URL
+  //               _teamMembers[i]['initials'] ?? '', // Pass the initials
+  //             ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
+
+  // Individual profile avatar saad
   // Individual Performance Tab Content
   Widget _buildIndividualPerformanceTab(
     BuildContext context,
@@ -1385,6 +1556,7 @@ class _MyTeamsState extends State<MyTeams> {
             child: Column(
               children: [
                 _buildPeriodFilter(screenWidth),
+                // if(_isComparing)
                 _buildIndividualPerformanceMetrics(context),
               ],
             ),
@@ -1499,9 +1671,12 @@ class _MyTeamsState extends State<MyTeams> {
   Widget _buildTeamComparisonTab(BuildContext context, double screenWidth) {
     return Column(
       children: [
-        if (selectedUserIds.length >= 2) _buildTeamComparisonChart(context),
+        // _buildPeriodFilter(screenWidth),
+        // _buildMetricButtons(),
+        // _buildTeamComparisonChart(context),
+        if (_isComparing) _buildTeamComparisonChart(context),
+        if (!_isComparing) _callAnalyticAll(context),
 
-        _callAnalyticAll(context),
       ],
     );
   }
@@ -1688,50 +1863,10 @@ class _MyTeamsState extends State<MyTeams> {
                         style: AppFont.dropDowmLabel(context),
                       ),
                     ),
-                    if (selectedUserIds.length >= 2)
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 0,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.transparent,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: TextButton(
-                            style: ButtonStyle(
-                              padding: MaterialStateProperty.all<EdgeInsets>(
-                                EdgeInsets.zero,
-                              ),
-                            ),
-
-                            onPressed: () {
-                              setState(() {
-                                _isComparing = !_isComparing;
-                                if (!_isComparing) {
-                                  selectedUserIds.clear();
-                                  _selectedCheckboxIds.clear();
-                                  _selectedProfileIndex = -1;
-                                  _selectedUserId = '';
-                                }
-                              });
-                              _fetchTeamDetails();
-                            },
-                            child: Text(
-                              'Compare',
-                              style: AppFont.mediumText14Black(context),
-                            ),
-                          ),
-                        ),
-                      ),
                   ],
                 ),
               ),
             ),
-
-            // 👇 Show Compare Button IF 2 or more users are selected
 
             // 👇 Conditionally render chart section
             if (isHide) ...[
@@ -1744,6 +1879,7 @@ class _MyTeamsState extends State<MyTeams> {
                 )
               else
                 _buildTableTeamParison(), // optional extracted widget
+              _buildShowMoreButtonTeamComparison(),
             ],
           ],
         ],
@@ -2392,29 +2528,45 @@ class _MyTeamsState extends State<MyTeams> {
   List<TableRow> _buildMemberRowsTeams() {
     List<dynamic> dataToDisplay;
 
-    // 🔥 Use team comparison data if available (when comparing users)
-    if (_isComparing && _teamComparisonData.isNotEmpty) {
+    if (_isComparing &&
+        selectedUserIds.isNotEmpty &&
+        _teamComparisonData.isNotEmpty) {
       dataToDisplay = _teamComparisonData;
       print('📊 Using team comparison data: ${dataToDisplay.length} members');
     } else {
-      // Use regular members data
-      dataToDisplay = _membersData;
-      print('📊 Using regular members data: ${dataToDisplay.length} members');
+      if (_isComparing && selectedUserIds.isNotEmpty) {
+        dataToDisplay = _membersData.where((member) {
+          return selectedUserIds.contains(member['user_id'].toString());
+        }).toList();
+        print(
+          '📊 Using filtered members data: ${dataToDisplay.length} members',
+        );
+      } else {
+        dataToDisplay = _membersData;
+        print('📊 Using regular members data: ${dataToDisplay.length} members');
+      }
     }
 
-    // Safety check for empty data
     if (dataToDisplay.isEmpty) {
       return [];
     }
 
-    // Get only the records to display based on current count
+    // 🔥 FIX: Use safe count calculation
+    int safeDisplayCount = math.min(_currentDisplayCount, dataToDisplay.length);
     List<dynamic> displayMembers = dataToDisplay
-        .take(_currentDisplayCount)
+        .take(safeDisplayCount)
         .toList();
 
-    return displayMembers.map((member) {
-      // 🔥 Check if this member is selected (for comparison mode)
-      bool isSelected = member['isSelected'] ?? false;
+    return displayMembers.asMap().entries.map((entry) {
+      int index = entry.key;
+      var member = entry.value;
+
+      // Safe access with null checks
+      if (member == null) return TableRow(children: []);
+
+      bool isSelected = selectedUserIds.contains(
+        member['user_id']?.toString() ?? '',
+      );
 
       return _buildTableRow([
         InkWell(
@@ -2489,7 +2641,6 @@ class _MyTeamsState extends State<MyTeams> {
           (member['target_enquiries'] ?? member['retail'] ?? 0).toString(),
           style: AppFont.smallText10(context).copyWith(
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            color: isSelected ? Colors.orange.shade600 : null,
           ),
         ),
       ]);
@@ -2503,6 +2654,53 @@ class _MyTeamsState extends State<MyTeams> {
     }
 
     int remainingRecords = _membersData.length - _currentDisplayCount;
+    int recordsToShow = math.min(_incrementCount, remainingRecords);
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 10.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          TextButton(
+            onPressed: _loadMoreRecords,
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.blue,
+              textStyle: const TextStyle(fontSize: 12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Show More ($recordsToShow more)'),
+                const SizedBox(width: 4),
+                const Icon(Icons.keyboard_arrow_down, size: 16),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildShowMoreButtonTeamComparison() {
+    List<dynamic> dataToDisplay;
+
+    if (_isComparing &&
+        selectedUserIds.isNotEmpty &&
+        _teamComparisonData.isNotEmpty) {
+      dataToDisplay = _teamComparisonData;
+    } else if (_isComparing && selectedUserIds.isNotEmpty) {
+      dataToDisplay = _membersData.where((member) {
+        return selectedUserIds.contains(member['user_id'].toString());
+      }).toList();
+    } else {
+      dataToDisplay = _membersData;
+    }
+
+    if (dataToDisplay.isEmpty || !_hasMoreRecordsTeams(dataToDisplay)) {
+      return const SizedBox.shrink();
+    }
+
+    int remainingRecords = dataToDisplay.length - _currentDisplayCount;
     int recordsToShow = math.min(_incrementCount, remainingRecords);
 
     return Padding(

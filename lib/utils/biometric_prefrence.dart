@@ -188,10 +188,10 @@ class BiometricPreference {
       // First check if biometrics are available at all
       final bool canCheckBiometrics = await auth.canCheckBiometrics;
       final bool isDeviceSupported = await auth.isDeviceSupported();
-      
+
       print("canCheckBiometrics: $canCheckBiometrics");
       print("isDeviceSupported: $isDeviceSupported");
-      
+
       if (!canCheckBiometrics || !isDeviceSupported) {
         print("Device doesn't support biometrics");
         return {
@@ -203,7 +203,8 @@ class BiometricPreference {
         };
       }
 
-      final List<BiometricType> availableBiometrics = await auth.getAvailableBiometrics();
+      final List<BiometricType> availableBiometrics = await auth
+          .getAvailableBiometrics();
       print("Raw available biometrics: $availableBiometrics");
 
       Map<String, bool> result = {
@@ -217,7 +218,9 @@ class BiometricPreference {
       // Fallback: If no specific types detected but biometrics are available,
       // assume fingerprint is available (most common case)
       if (!result.values.any((v) => v) && canCheckBiometrics) {
-        print("No specific biometric types detected, defaulting to fingerprint");
+        print(
+          "No specific biometric types detected, defaulting to fingerprint",
+        );
         result['fingerprint'] = true;
       }
 
@@ -225,12 +228,14 @@ class BiometricPreference {
       return result;
     } catch (e) {
       print("Error getting available biometrics: $e");
-      
+
       // Fallback: Try to detect if biometrics work by attempting basic check
       try {
         final bool canCheck = await auth.canCheckBiometrics;
         if (canCheck) {
-          print("Fallback: Device supports biometrics, defaulting to fingerprint");
+          print(
+            "Fallback: Device supports biometrics, defaulting to fingerprint",
+          );
           return {
             'fingerprint': true,
             'face': false,
@@ -242,7 +247,7 @@ class BiometricPreference {
       } catch (fallbackError) {
         print("Fallback check also failed: $fallbackError");
       }
-      
+
       return {
         'fingerprint': false,
         'face': false,
@@ -313,6 +318,9 @@ class BiometricPreference {
     print("Any biometric enabled: $anyEnabled");
   }
 }
+
+
+
 
 // biometric_preference.dart
 // Enhanced class to handle both fingerprint and Face ID preferences

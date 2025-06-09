@@ -94,7 +94,17 @@ class _MyTeamsState extends State<MyTeams> {
 
   // Controller for FAB
   final FabController fabController = Get.put(FabController());
-
+  final GlobalKey incomingKey = GlobalKey();
+  final GlobalKey outgoingKey = GlobalKey();
+  final GlobalKey connectedKey = GlobalKey();
+  final GlobalKey durationKey = GlobalKey();
+  final GlobalKey rejectedKey = GlobalKey();
+  final GlobalKey enquiries = GlobalKey();
+  final GlobalKey tDrives = GlobalKey();
+  final GlobalKey orders = GlobalKey();
+  final GlobalKey cancel = GlobalKey();
+  final GlobalKey netOrd = GlobalKey();
+  final GlobalKey retails = GlobalKey();
   @override
   void initState() {
     super.initState();
@@ -137,6 +147,60 @@ class _MyTeamsState extends State<MyTeams> {
         _currentDisplayCount + _incrementCount,
         _membersData.length,
       );
+    });
+  }
+
+  void showBubbleTooltip(BuildContext context, GlobalKey key, String message) {
+    final overlay = Overlay.of(context);
+    final renderBox = key.currentContext?.findRenderObject() as RenderBox?;
+    final size = renderBox?.size;
+    final offset = renderBox?.localToGlobal(Offset.zero);
+
+    if (overlay == null || renderBox == null || offset == null || size == null)
+      return;
+
+    // Estimate the tooltip width (you could also use TextPainter for precise width if needed)
+    const double tooltipPadding = 20.0;
+    final double estimatedTooltipWidth = message.length * 7.0 + tooltipPadding;
+
+    final overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: offset.dy - 35, // above the icon
+        left:
+            offset.dx +
+            size.width / 2 -
+            estimatedTooltipWidth / 2, // centered horizontally
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color.fromARGB(255, 0, 0, 0),
+              borderRadius: BorderRadius.circular(8),
+              // boxShadow: const [
+              //   BoxShadow(
+              //     color: Colors.black26,
+              //     blurRadius: 6,
+              //     offset: Offset(2, 2),
+              //   ),
+              // ],
+            ),
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: Color.fromARGB(255, 255, 255, 255),
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    overlay.insert(overlayEntry);
+
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      overlayEntry.remove();
     });
   }
 
@@ -317,7 +381,6 @@ class _MyTeamsState extends State<MyTeams> {
       });
     }
   }
-
 
   // Create a helper method to properly clear all selections
   void _clearAllSelections() {
@@ -529,7 +592,6 @@ class _MyTeamsState extends State<MyTeams> {
     }
   }
 
-
   // Future<void> _fetchTeamDetails() async {
   //   try {
   //     final token = await Storage.getToken();
@@ -709,7 +771,6 @@ class _MyTeamsState extends State<MyTeams> {
   //   }
   // }
 
-
   // Process team data for team comparison display
   List<Map<String, dynamic>> _processTeamComparisonData() {
     if (!(_teamData.containsKey('teamComparsion') &&
@@ -799,7 +860,6 @@ class _MyTeamsState extends State<MyTeams> {
                         ),
                       ),
                     ),
-
             ),
           ),
 
@@ -1730,7 +1790,6 @@ class _MyTeamsState extends State<MyTeams> {
     );
   }
 
-
   // Widget _buildProfileAvatars() {
   //   return SingleChildScrollView(
   //     scrollDirection: Axis.horizontal,
@@ -1893,7 +1952,6 @@ class _MyTeamsState extends State<MyTeams> {
         // _buildTeamComparisonChart(context),
         if (_isComparing) _buildTeamComparisonChart(context),
         if (!_isComparing) _callAnalyticAll(context),
-
       ],
     );
   }
@@ -2193,9 +2251,19 @@ class _MyTeamsState extends State<MyTeams> {
     return Container(
       margin: const EdgeInsets.only(top: 10),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(5),
-        color: AppColors.backgroundLightGrey,
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.withOpacity(0.5), width: 1.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 1,
+            spreadRadius: 1,
+            offset: Offset(0, 0), // Equal shadow on all sides
+          ),
+        ],
       ),
+
       child: hasData
           ? Table(
               defaultVerticalAlignment: TableCellVerticalAlignment.middle,
@@ -2219,73 +2287,100 @@ class _MyTeamsState extends State<MyTeams> {
                 TableRow(
                   children: [
                     const SizedBox(), // Empty cell for name column
-                    Container(
-                      alignment: Alignment.centerLeft,
-                      margin: const EdgeInsets.only(
-                        bottom: 10,
-                        top: 10,
-                        right: 2,
+                    GestureDetector(
+                      key: enquiries,
+                      onTap: () =>
+                          showBubbleTooltip(context, enquiries, 'Equiries'),
+                      child: Container(
+                        alignment: Alignment.centerLeft,
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 2,
+                        ),
+                        child: Text(
+                          'EQ',
+                          style: AppFont.smallTextBold(context),
+                        ),
                       ),
-                      child: Text('Enq', style: AppFont.smallTextBold(context)),
-                      // Text('Incoming',
-                      //     textAlign: TextAlign.start,
-                      //     style: AppFont.smallText10(context))
                     ),
-                    Container(
-                      alignment: Alignment.centerLeft,
-                      margin: const EdgeInsets.only(
-                        bottom: 10,
-                        top: 10,
-                        right: 2,
+                    GestureDetector(
+                      key: tDrives,
+                      onTap: () =>
+                          showBubbleTooltip(context, tDrives, 'Test Drives'),
+                      child: Container(
+                        alignment: Alignment.centerLeft,
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 2,
+                        ),
+                        child: Text(
+                          'TD',
+                          style: AppFont.smallTextBold(context),
+                        ),
                       ),
-                      child: Text('TD', style: AppFont.smallTextBold(context)),
-                      // Text('Incoming',
-                      //     textAlign: TextAlign.start,
-                      //     style: AppFont.smallText10(context))
                     ),
-                    Container(
-                      alignment: Alignment.centerLeft,
-                      margin: const EdgeInsets.only(
-                        bottom: 10,
-                        top: 10,
-                        right: 2,
+                    GestureDetector(
+                      key: orders,
+                      onTap: () => showBubbleTooltip(context, orders, 'Orders'),
+                      child: Container(
+                        alignment: Alignment.centerLeft,
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 2,
+                        ),
+                        child: Text(
+                          'OD',
+                          style: AppFont.smallTextBold(context),
+                        ),
                       ),
-                      child: Text('Ord', style: AppFont.smallTextBold(context)),
-                      //  Text('Outgoing',
-                      //     textAlign: TextAlign.start,
-                      //     style: AppFont.smallText10(context)),
                     ),
-                    Container(
-                      alignment: Alignment.centerLeft,
-                      margin: const EdgeInsets.only(
-                        bottom: 10,
-                        top: 10,
-                        right: 2,
+                    GestureDetector(
+                      key: cancel,
+                      onTap: () =>
+                          showBubbleTooltip(context, cancel, 'Cancellations'),
+                      child: Container(
+                        alignment: Alignment.centerLeft,
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 2,
+                        ),
+                        child: Text(
+                          'CL',
+                          style: AppFont.smallTextBold(context),
+                        ),
                       ),
-                      child: Text('CI', style: AppFont.smallTextBold(context)),
                     ),
-                    Container(
-                      alignment: Alignment.centerLeft,
-                      margin: const EdgeInsets.only(bottom: 10, top: 10),
-                      child: Text(
-                        'N-Ord',
-                        style: AppFont.smallTextBold(context),
+                    GestureDetector(
+                      key: netOrd,
+                      onTap: () =>
+                          showBubbleTooltip(context, netOrd, 'Net Orders'),
+                      child: Container(
+                        alignment: Alignment.centerLeft,
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 2,
+                        ),
+                        child: Text(
+                          'ND',
+                          style: AppFont.smallTextBold(context),
+                        ),
                       ),
-                      // Text('Duration',
-                      //     textAlign: TextAlign.start,
-                      //     style: AppFont.smallText10(context)),
                     ),
-                    Container(
-                      alignment: Alignment.centerLeft,
-                      margin: const EdgeInsets.only(
-                        bottom: 10,
-                        top: 10,
-                        right: 0,
+                    GestureDetector(
+                      key: retails,
+                      onTap: () =>
+                          showBubbleTooltip(context, retails, 'Retails'),
+                      child: Container(
+                        alignment: Alignment.centerLeft,
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 2,
+                        ),
+                        child: Text(
+                          'RS',
+                          style: AppFont.smallTextBold(context),
+                        ),
                       ),
-                      child: Text('Rtl', style: AppFont.smallTextBold(context)),
-                      //  Text('Declined',
-                      //     textAlign: TextAlign.start,
-                      //     style: AppFont.smallText10(context))
                     ),
                   ],
                 ),
@@ -2316,6 +2411,7 @@ class _MyTeamsState extends State<MyTeams> {
                   color: AppColors.backgroundLightGrey,
                   borderRadius: BorderRadius.circular(10),
                 ),
+
                 child: Column(
                   children: [
                     Row(
@@ -2373,10 +2469,15 @@ class _MyTeamsState extends State<MyTeams> {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: Colors.grey.withOpacity(0.5), // border color
-          width: 1.0, // border width
-        ),
+        border: Border.all(color: Colors.grey.withOpacity(0.5), width: 1.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 1,
+            spreadRadius: 1,
+            offset: Offset(0, 0), // Equal shadow on all sides
+          ),
+        ],
       ),
 
       child: Column(
@@ -2391,9 +2492,22 @@ class _MyTeamsState extends State<MyTeams> {
                   vertical: 5,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.homeContainerLeads,
-                  borderRadius: BorderRadius.circular(30),
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Colors.grey.withOpacity(0.5),
+                    width: 1.0,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 1,
+                      spreadRadius: 1,
+                      offset: Offset(0, 0), // Equal shadow on all sides
+                    ),
+                  ],
                 ),
+
                 child: Text(
                   'Team size : ${_analyticsData['teamSize'] ?? '0'}',
                   style: AppFont.mediumText14(context),
@@ -2431,77 +2545,10 @@ class _MyTeamsState extends State<MyTeams> {
   }
 
   Widget _buildTableContent() {
-    final GlobalKey incomingKey = GlobalKey();
-    final GlobalKey outgoingKey = GlobalKey();
-    final GlobalKey connectedKey = GlobalKey();
-    final GlobalKey durationKey = GlobalKey();
-    final GlobalKey rejectedKey = GlobalKey();
     double screenWidth = MediaQuery.of(context).size.width;
 
     // Check if there's data to display
     bool hasData = _membersData.isNotEmpty;
-
-    void showBubbleTooltip(
-      BuildContext context,
-      GlobalKey key,
-      String message,
-    ) {
-      final overlay = Overlay.of(context);
-      final renderBox = key.currentContext?.findRenderObject() as RenderBox?;
-      final size = renderBox?.size;
-      final offset = renderBox?.localToGlobal(Offset.zero);
-
-      if (overlay == null ||
-          renderBox == null ||
-          offset == null ||
-          size == null)
-        return;
-
-      // Estimate the tooltip width (you could also use TextPainter for precise width if needed)
-      const double tooltipPadding = 20.0;
-      final double estimatedTooltipWidth =
-          message.length * 7.0 + tooltipPadding;
-
-      final overlayEntry = OverlayEntry(
-        builder: (context) => Positioned(
-          top: offset.dy - 35, // above the icon
-          left:
-              offset.dx +
-              size.width / 2 -
-              estimatedTooltipWidth / 2, // centered horizontally
-          child: Material(
-            color: Colors.transparent,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 0, 0, 0),
-                borderRadius: BorderRadius.circular(8),
-                // boxShadow: const [
-                //   BoxShadow(
-                //     color: Colors.black26,
-                //     blurRadius: 6,
-                //     offset: Offset(2, 2),
-                //   ),
-                // ],
-              ),
-              child: Text(
-                message,
-                style: const TextStyle(
-                  color: Color.fromARGB(255, 255, 255, 255),
-                  fontSize: 12,
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-
-      overlay.insert(overlayEntry);
-
-      Future.delayed(const Duration(milliseconds: 1000), () {
-        overlayEntry.remove();
-      });
-    }
 
     return Container(
       margin: const EdgeInsets.only(top: 10),
@@ -2698,7 +2745,7 @@ class _MyTeamsState extends State<MyTeams> {
         Colors.indigo,
         Colors.purpleAccent,
       ];
-      Color _getRandomColor(String name) {
+      Color getRandomColor(String name) {
         final int hash = name.codeUnits.fold(0, (prev, el) => prev + el);
         return _bgColors[hash % _bgColors.length].withOpacity(0.8);
       }
@@ -2713,7 +2760,7 @@ class _MyTeamsState extends State<MyTeams> {
         return CircleAvatar(
           radius: 12,
           backgroundColor: (imageUrl == null || imageUrl.isEmpty)
-              ? _getRandomColor(name)
+              ? getRandomColor(name)
               : Colors.transparent,
           backgroundImage: (imageUrl != null && imageUrl.isNotEmpty)
               ? NetworkImage(imageUrl)
@@ -2765,7 +2812,7 @@ class _MyTeamsState extends State<MyTeams> {
                   return CircleAvatar(
                     radius: 12,
                     backgroundColor: (imageUrl == null || imageUrl.isEmpty)
-                        ? _getRandomColor(name)
+                        ? getRandomColor(name)
                         : Colors.transparent,
                     backgroundImage: (imageUrl != null && imageUrl.isNotEmpty)
                         ? NetworkImage(imageUrl)
@@ -2824,6 +2871,56 @@ class _MyTeamsState extends State<MyTeams> {
   // teams comparison table
   List<TableRow> _buildMemberRowsTeams() {
     List<dynamic> dataToDisplay;
+    final List<Color> _bgColors = [
+      Colors.red,
+      Colors.green,
+      Colors.blue,
+      Colors.orange,
+      Colors.purple,
+      Colors.teal,
+      Colors.indigo,
+      Colors.purpleAccent,
+    ];
+
+    Color getRandomColor(String name) {
+      final int hash = name.codeUnits.fold(0, (prev, el) => prev + el);
+      return _bgColors[hash % _bgColors.length].withOpacity(0.8);
+    }
+
+    CircleAvatar buildAvatar(Map<String, dynamic> member) {
+      final String? imageUrl = member['profileImage'];
+      final String initials =
+          (member['fname'] ?? member['name'] ?? '').toString().trim().isNotEmpty
+          ? (member['fname'] ?? member['name'] ?? '')
+                .toString()
+                .trim()
+                .substring(0, 1)
+                .toUpperCase()
+          : '?';
+
+      final String colorSeed = (member['fname'] ?? member['name'] ?? '')
+          .toString();
+
+      return CircleAvatar(
+        radius: 12,
+        backgroundColor: (imageUrl == null || imageUrl.isEmpty)
+            ? getRandomColor(colorSeed)
+            : Colors.transparent,
+        backgroundImage: (imageUrl != null && imageUrl.isNotEmpty)
+            ? NetworkImage(imageUrl)
+            : null,
+        child: (imageUrl == null || imageUrl.isEmpty)
+            ? Text(
+                initials,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              )
+            : null,
+      );
+    }
 
     if (_isComparing &&
         selectedUserIds.isNotEmpty &&
@@ -2882,14 +2979,7 @@ class _MyTeamsState extends State<MyTeams> {
             children: [
               Stack(
                 children: [
-                  CircleAvatar(
-                    radius: 12,
-                    backgroundColor: Colors.blue.withOpacity(0.2),
-                    child: Text(
-                      member['fname'].toString().substring(0, 1).toUpperCase(),
-                      style: const TextStyle(fontSize: 12, color: Colors.blue),
-                    ),
-                  ),
+                  buildAvatar(member), // 👈 using the random color avatar
                 ],
               ),
               const SizedBox(width: 6),

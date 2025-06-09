@@ -12,11 +12,7 @@ import 'package:smartassist/utils/bottom_navigation.dart';
 import 'package:smartassist/utils/storage.dart';
 
 class NotificationPage extends StatefulWidget {
-  // final String leadId;
-  const NotificationPage({
-    super.key,
-    // required this.leadId,
-  });
+  const NotificationPage({super.key});
 
   @override
   State<NotificationPage> createState() => _NotificationPageState();
@@ -31,37 +27,28 @@ class _NotificationPageState extends State<NotificationPage> {
   void initState() {
     super.initState();
     _fetchNotifications();
-    // fetchNotifications();
   }
 
+  // Fixed: Make sure keys match the categories list exactly
   final Map<String, String> categoryMap = {
     'All': 'All',
     'Leads': 'leads',
     'Followups': 'followups',
-    'Appointment': 'appointment',
-    'Test drive': 'test%20drive',
+    'Appointments':
+        'appointment', // Fixed: Changed to plural to match categories
+    'Test drives':
+        'test%20drive', // Fixed: Changed to plural to match categories
   };
 
   final List<String> categories = [
     'All',
+    // 'Read',
     'Leads',
     'Followups',
     'Appointments',
     'Test drives',
   ];
 
-  // In your widget
-  // Future<void> _fetchNotifications({String? category}) async {
-  //   final result = await LeadsSrv.fetchNotifications(category: category);
-
-  //   if (result['success']) {
-  //     setState(() {
-  //       notifications = result['data'];
-  //     });
-  //   } else {
-  //     print(result['message']); // Handle error
-  //   }
-  // }
   Future<void> _fetchNotifications({String? category}) async {
     final token = await Storage.getToken();
     String url = 'https://api.smartassistapp.in/api/users/notifications/all';
@@ -69,6 +56,11 @@ class _NotificationPageState extends State<NotificationPage> {
     if (category != null && category != 'All') {
       // Use the categoryMap to get the correct URL parameter
       String? urlCategory = categoryMap[category];
+
+      // Debug prints to see what's happening
+      print('Selected category: $category');
+      print('Mapped URL category: $urlCategory');
+
       if (urlCategory != null && urlCategory != 'All') {
         url += '?category=$urlCategory';
       }
@@ -98,7 +90,9 @@ class _NotificationPageState extends State<NotificationPage> {
           allNotifications.addAll(data['data']['read']['rows']);
         }
 
+        print('Total notifications loaded: ${allNotifications.length}');
         print(data);
+
         setState(() {
           notifications = allNotifications;
         });
@@ -110,42 +104,12 @@ class _NotificationPageState extends State<NotificationPage> {
     }
   }
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   fetchNotifications();
-  // }
-
-  // Mark notification as read
-  // Mark notification as read
-  // In your widget
-  // Future<void> markAsRead(String notificationId) async {
-  //   final result = await LeadsSrv.markAsRead(notificationId);
-
-  //   if (result['success']) {
-  //     setState(() {
-  //       // Remove the notification from the list or update its read status
-  //       notifications = notifications.where((notification) {
-  //         if (notification['data']['notification_id'] == notificationId) {
-  //           notification['data']['read'] = true;
-  //           return false; // Remove from unread list
-  //         }
-  //         return true;
-  //       }).toList();
-  //     });
-  //   } else {
-  //     print(result['message']); // Handle error
-  //   }
-  // }
-
   Future<void> markAsRead(String notificationId) async {
     final token = await Storage.getToken();
     final url =
-        'https://api.smartassistapp.in/api/users/notifications/$notificationId'; // Ensure this URL is correct
+        'https://api.smartassistapp.in/api/users/notifications/$notificationId';
 
-    print(
-      'Marking notification as read with URL: $url',
-    ); // Log the URL being used for debugging
+    print('Marking notification as read with URL: $url');
 
     try {
       final response = await http.put(
@@ -157,9 +121,7 @@ class _NotificationPageState extends State<NotificationPage> {
         body: json.encode({'read': true}),
       );
 
-      print(
-        'Response status: ${response.statusCode}',
-      ); // Log status code for debugging
+      print('Response status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         print('Successfully marked notification as read');
@@ -181,6 +143,82 @@ class _NotificationPageState extends State<NotificationPage> {
     }
   }
 
+  Future<void> markAllAsRead() async {
+    final token = await Storage.getToken();
+    final url =
+        'https://api.smartassistapp.in/api/users/notifications/read/all';
+
+    print('Marking all notifications as read with URL: $url');
+
+    try {
+      final response = await http.put(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({'read': true}),
+      );
+
+      print('Mark all as read response status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        print('Successfully marked all notifications as read');
+        // Refresh the notifications after marking all as read
+        await _fetchNotifications(category: categories[_selectedButtonIndex]);
+
+        // Show success message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'All notifications marked as read',
+                style: GoogleFonts.poppins(),
+              ),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 2),
+              behavior: SnackBarBehavior
+                  .floating, // Optional: Makes it float above UI
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(
+                  10,
+                ), // Optional: rounded corners
+              ),
+            ),
+          );
+        }
+      } else {
+        print("Failed to mark all as read: ${response.statusCode}");
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Failed to mark all notifications as read',
+                style: GoogleFonts.poppins(),
+              ),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print("Error marking all notifications as read: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Error occurred while marking notifications as read',
+              style: GoogleFonts.poppins(),
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
+
   Widget _buildButton(String title, int index) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -197,7 +235,7 @@ class _NotificationPageState extends State<NotificationPage> {
           child: TextButton(
             style: TextButton.styleFrom(
               backgroundColor: const Color(0xffF3F9FF),
-              padding: const EdgeInsets.symmetric(horizontal: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 7),
               minimumSize: const Size(0, 0),
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
@@ -205,11 +243,14 @@ class _NotificationPageState extends State<NotificationPage> {
               setState(() {
                 _selectedButtonIndex = index;
               });
-              _fetchNotifications(category: categoryMap[categories[index]]);
-              // fetchNotifications(category: categories[index]);
+
+              String selectedCategory = categories[index];
+              print('Button $index selected: $selectedCategory'); // Debug print
+
+              // Fixed: Pass the category directly, not through categoryMap lookup
+              _fetchNotifications(category: selectedCategory);
             },
             child: Text(
-              // title,
               categories[index],
               style: GoogleFonts.poppins(
                 color: _selectedButtonIndex == index
@@ -249,6 +290,92 @@ class _NotificationPageState extends State<NotificationPage> {
         ),
         backgroundColor: Colors.blue,
         automaticallyImplyLeading: false,
+        actions: [
+          // Add "Mark All as Read" button in the app bar
+          IconButton(
+            onPressed: () async {
+              // Adjust key based on your map structure
+              bool hasUnread = notifications.any((n) => n['read'] == false);
+
+              if (!hasUnread) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    backgroundColor: const Color.fromARGB(
+                      255,
+                      132,
+                      132,
+                      132,
+                    ), // Change this to any color you like
+                    content: Text(
+                      'Nothing to read',
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                      ), // Ensure text is readable
+                    ),
+                    duration: Duration(seconds: 2),
+                    behavior: SnackBarBehavior
+                        .floating, // Optional: Makes it float above UI
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        10,
+                      ), // Optional: rounded corners
+                    ),
+                  ),
+                );
+                return;
+              }
+
+              final bool? confirm = await showDialog<bool>(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    title: Text(
+                      'Mark all as read?',
+                      style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                    ),
+                    content: Text(
+                      'Are you sure you want to mark all notifications as read?',
+                      style: GoogleFonts.poppins(),
+                    ),
+                    actions: [
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          overlayColor: Colors.grey.withOpacity(0.1),
+                          foregroundColor: Colors.grey,
+                        ),
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: Text(
+                          'No',
+                          style: GoogleFonts.poppins(color: Colors.grey),
+                        ),
+                      ),
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          overlayColor: Colors.blue.withOpacity(0.1),
+                          foregroundColor: Colors.blue,
+                        ),
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: Text(
+                          'Yes',
+                          style: GoogleFonts.poppins(color: Colors.blue),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              );
+
+              if (confirm == true) {
+                await markAllAsRead();
+              }
+            },
+            icon: const Icon(Icons.done_all, color: Colors.white, size: 24),
+            tooltip: 'Mark All as Read?',
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -281,7 +408,6 @@ class _NotificationPageState extends State<NotificationPage> {
               ],
             ),
           ),
-          // const SizedBox(height: 10),
           Expanded(
             child: ListView.builder(
               itemCount: notifications.isNotEmpty
@@ -302,21 +428,6 @@ class _NotificationPageState extends State<NotificationPage> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       child: GestureDetector(
-                        // onTap: () {
-                        //   Navigator.push(
-                        //       context,
-                        //       MaterialPageRoute(
-                        //           builder: (context) => FollowupsDetails(
-                        //               leadId: notification['recordId'] ?? '')));
-                        //   if (!isRead) {
-                        //     markAsRead(notification['notification_id']);
-                        //   }
-                        //   // Refresh only if something changed
-                        //   if (result == true) {
-                        //     fetchNotifications(
-                        //         category: categories[_selectedButtonIndex]);
-                        //   }
-                        // },
                         onTap: () async {
                           if (!isRead) {
                             await markAsRead(notification['notification_id']);
@@ -339,7 +450,6 @@ class _NotificationPageState extends State<NotificationPage> {
                             );
                           }
                         },
-
                         child: Card(
                           color: isRead ? Colors.white : Colors.white,
                           shape: const RoundedRectangleBorder(
@@ -384,69 +494,6 @@ class _NotificationPageState extends State<NotificationPage> {
               },
             ),
           ),
-
-          // Expanded(
-          //   child: ListView.builder(
-          //     itemCount: notifications.length,
-          //     itemBuilder: (context, index) {
-          // final notification = notifications[index];
-
-          //       bool isRead = notification['read'] ?? false;
-
-          //       return Column(
-          //         children: [
-          //           Padding(
-          //             padding: const EdgeInsets.symmetric(horizontal: 10),
-          //             child: GestureDetector(
-          //               onTap: () {
-          //                 Navigator.push(
-          //                     context,
-          //                     MaterialPageRoute(
-          //                         builder: (context) => FollowupsDetails(
-          //                             leadId: notification['recordId'] ?? '')));
-          //                 if (!isRead) {
-          //                   markAsRead(notification['notification_id']);
-          //                 }
-          //               },
-          //               child: Card(
-          //                 color: isRead ? Colors.white : Colors.white,
-          //                 shape: const RoundedRectangleBorder(
-          //                     borderRadius: BorderRadius.zero),
-          //                 semanticContainer: false,
-          //                 borderOnForeground: false,
-          //                 elevation: 0,
-          //                 margin: const EdgeInsets.symmetric(vertical: 2),
-          //                 child: ListTile(
-          //                   leading: Icon(
-          //                     Icons.circle,
-          //                     color: isRead ? Colors.grey : Colors.blue,
-          //                     size: 10,
-          //                   ),
-          //                   title: Text(
-          //                     notification['title'] ?? 'No Title',
-          //                     style: GoogleFonts.poppins(
-          //                         fontWeight: FontWeight.w600, fontSize: 14),
-          //                   ),
-          //                   subtitle: Text(
-          //                     notification['body'] ?? '',
-          //                     style: GoogleFonts.poppins(
-          //                         fontSize: 12, fontWeight: FontWeight.w400),
-          //                   ),
-          //                 ),
-          //               ),
-          //             ),
-          //           ),
-          //           const Divider(
-          //             thickness: 0.1,
-          //             color: Colors.black,
-          //             indent: 10,
-          //             endIndent: 10,
-          //           ),
-          //         ],
-          //       );
-          //     },
-          //   ),
-          // ),
         ],
       ),
     );

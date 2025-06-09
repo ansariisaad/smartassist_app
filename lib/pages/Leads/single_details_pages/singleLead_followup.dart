@@ -393,9 +393,17 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
       children: [
         _buildToggleOption(0, 'Upcoming', AppColors.colorsBlue),
         const SizedBox(width: 10),
-        _buildToggleOption(1, 'Completed', AppColors.sideGreen),
+        _buildToggleOption(
+          1,
+          'Completed',
+          const Color.fromRGBO(81, 223, 121, 1),
+        ),
         const SizedBox(width: 10),
-        _buildToggleOption(2, 'Overdue ($count)', AppColors.sideRed),
+        _buildToggleOption(
+          2,
+          'Overdue ($count)',
+          const Color.fromRGBO(236, 81, 81, 1),
+        ),
       ],
     );
   }
@@ -514,11 +522,11 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
       child: Column(
         children: [
           // All Calls
-          _buildRow('All Calls', _callLogs['all'] ?? 0, '', Icons.call),
+          _buildRow('All calls', _callLogs['all'] ?? 0, '', Icons.call),
 
           // Outgoing Calls
           _buildRow(
-            'Outgoing Calls',
+            'Outgoing calls',
             _callLogs['outgoing'] ?? 0,
             'outgoing',
             Icons.phone_forwarded_outlined,
@@ -526,7 +534,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
 
           // Incoming Calls
           _buildRow(
-            'Incoming Calls',
+            'Incoming calls',
             _callLogs['incoming'] ?? 0,
             'incoming',
             Icons.call,
@@ -534,7 +542,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
 
           // Missed Calls
           _buildRow(
-            'Missed Calls',
+            'Missed calls',
             _callLogs['missed'] ?? 0,
             'missed',
             Icons.call_missed,
@@ -1031,10 +1039,22 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                               Row(
                                 children: [
                                   // Profile Icon and Name
-                                  const Icon(
-                                    Icons.receipt_long_outlined,
-                                    size: 40,
-                                    color: Color.fromRGBO(2, 118, 254, 1),
+                                  Container(
+                                    padding: const EdgeInsets.all(5),
+                                    decoration: BoxDecoration(
+                                      color: const Color.fromARGB(
+                                        0,
+                                        255,
+                                        255,
+                                        255,
+                                      ),
+                                      borderRadius: BorderRadius.circular(50),
+                                    ),
+                                    child: const Icon(
+                                      Icons.receipt_long_rounded,
+                                      size: 40,
+                                      color: Color.fromRGBO(2, 118, 254, 1),
+                                    ),
                                   ),
                                   const SizedBox(width: 10),
                                   Expanded(
@@ -1193,7 +1213,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                                     const SizedBox(width: 10),
                                     Expanded(
                                       child: _buildContactRow(
-                                        icon: Icons.receipt_long_outlined,
+                                        icon: Icons.receipt_long_rounded,
                                         title: 'Enquiry type',
                                         subtitle: enquiry_type,
                                       ),

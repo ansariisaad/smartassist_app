@@ -1595,11 +1595,10 @@ class _MyTeamsState extends State<MyTeams> {
               _selectedType = 'All';
               _selectedLetters.clear(); // Clear all letter selections
               _isMultiSelectMode = false; // Exit multi-select mode
-
-              if (!_isComparing) {
-                _clearAllSelections();
-              }
+              _isComparing = false; // ✅ Reset comparison mode
+              _clearAllSelections(); // Always clear all, whether comparing or not
             });
+
             await _fetchTeamDetails();
             // Else it's "All" – do nothing
           },
@@ -1770,8 +1769,6 @@ class _MyTeamsState extends State<MyTeams> {
       ],
     );
   }
-
-   
 
   // Individual Performance Tab Content
   Widget _buildIndividualPerformanceTab(

@@ -75,7 +75,7 @@ class _MyTeamsState extends State<MyTeams> {
   // Data state
   bool isLoading = false;
   Map<String, dynamic> _teamData = {};
-  Map<String, dynamic> _selectedUserData = {};
+  Map<String, dynamic>? _selectedUserData = {};
   List<Map<String, dynamic>> _teamMembers = [];
 
   // call log all
@@ -463,7 +463,7 @@ class _MyTeamsState extends State<MyTeams> {
 
           // Save total performance
           if (_teamData.containsKey('totalPerformance')) {
-            _selectedUserData['totalPerformance'] =
+            _selectedUserData?['totalPerformance'] =
                 _teamData['totalPerformance'];
           }
 
@@ -485,7 +485,7 @@ class _MyTeamsState extends State<MyTeams> {
           if (_selectedProfileIndex == 0) {
             // Summary data
             _selectedUserData = _teamData['summary'] ?? {};
-            _selectedUserData['totalPerformance'] =
+            _selectedUserData?['totalPerformance'] =
                 _teamData['totalPerformance'] ?? {};
           } else if (_selectedProfileIndex - 1 < _teamMembers.length) {
             // Specific user selected
@@ -800,28 +800,28 @@ class _MyTeamsState extends State<MyTeams> {
           ),
 
           // FAB Button animation
-          Obx(
-            () => AnimatedPositioned(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              bottom: fabController.isFabVisible.value ? 26 : -80,
-              right: 18,
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 300),
-                opacity: fabController.isFabVisible.value ? 1.0 : 0.0,
-                child: _buildFloatingActionButton(context),
-              ),
-            ),
-          ),
+          // Obx(
+          //   () => AnimatedPositioned(
+          //     duration: const Duration(milliseconds: 300),
+          //     curve: Curves.easeInOut,
+          //     bottom: fabController.isFabVisible.value ? 26 : -80,
+          //     right: 18,
+          //     child: AnimatedOpacity(
+          //       duration: const Duration(milliseconds: 300),
+          //       opacity: fabController.isFabVisible.value ? 1.0 : 0.0,
+          //       child: _buildFloatingActionButton(context),
+          //     ),
+          //   ),
+          // ),
 
           // FAB Popup menu
-          Obx(
-            () =>
-                fabController.isFabExpanded.value &&
-                    fabController.isFabVisible.value
-                ? _buildPopupMenu(context)
-                : const SizedBox.shrink(),
-          ),
+          // Obx(
+          //   () =>
+          //       fabController.isFabExpanded.value &&
+          //           fabController.isFabVisible.value
+          //       ? _buildPopupMenu(context)
+          //       : const SizedBox.shrink(),
+          // ),
         ],
       ),
 
@@ -1305,10 +1305,12 @@ class _MyTeamsState extends State<MyTeams> {
                   if (_selectedLetters.isEmpty) {
                     _isMultiSelectMode = false;
                     _selectedType = 'All';
+                    _selectedProfileIndex = 0;
                   }
                 } else {
                   _selectedLetters.add(letter);
                   _selectedType = 'Letter';
+                  _selectedProfileIndex = -1; // Letter selection
                 }
               } else {
                 // Single select mode - but keep existing selections and add new one
@@ -1317,11 +1319,13 @@ class _MyTeamsState extends State<MyTeams> {
                   _selectedLetters.remove(letter);
                   if (_selectedLetters.isEmpty) {
                     _selectedType = 'All';
+                    _selectedProfileIndex = 0; // Back to "All"
                   }
                 } else {
                   // Add this letter to selection (don't clear existing)
                   _selectedLetters.add(letter);
                   _selectedType = 'Letter';
+                  _selectedProfileIndex = -1; // Letter selection
                 }
               }
 
@@ -1422,6 +1426,7 @@ class _MyTeamsState extends State<MyTeams> {
               _selectedType = 'All';
               _selectedLetters.clear(); // Clear all letter selections
               _isMultiSelectMode = false; // Exit multi-select mode
+              _isComparing = false; // Exit comparison mode when selecting "All"
 
               if (!_isComparing) {
                 _clearAllSelections();
@@ -1533,55 +1538,22 @@ class _MyTeamsState extends State<MyTeams> {
         ),
         const SizedBox(height: 8),
 
-        // InkWell(
-        //   onTap: () async {
-        //     setState(() {
-        //       _selectedProfileIndex = index;
-        //       _selectedType = 'All';
-        //       _selectedLetters.clear(); // Clear all letter selections
-        //       _isMultiSelectMode = false; // Exit multi-select mode
-        //       _metricIndex = 0;
-        //       if (!_isComparing) {
-        //         _clearAllSelections();
-        //       }
-        //     });
-        //     // await _fetchAllCalllog();
-        //     await _fetchTeamDetails();
-        //   },
-        //   child: AnimatedDefaultTextStyle(
-        //     duration: const Duration(milliseconds: 200),
-        //     style: AppFont.mediumText14(context).copyWith(
-        //       color: isSelected
-        //           ? Colors.blue
-        //           : (_isMultiSelectMode ? Colors.orange : null),
-        //       fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-        //     ),
-        //     child: Text(_isMultiSelectMode ? 'Reset' : 'Alls '),
-        //   ),
-        // ),
         InkWell(
           onTap: () async {
-            try {
-              // First: update selection state only
+            setState(() {
               _selectedProfileIndex = index;
               _selectedType = 'All';
-              _selectedLetters.clear();
-              _isMultiSelectMode = false;
+              _selectedLetters.clear(); // Clear all letter selections
+              _isMultiSelectMode = false; // Exit multi-select mode
+              _isComparing = false; // Exit comparison mode when selecting "All"
               _metricIndex = 0;
               if (!_isComparing) {
                 _clearAllSelections();
               }
-
-              // Wait for data fetch
-              await _fetchTeamDetails();
-
-              // Then: rebuild the UI with new data
-              setState(() {});
-            } catch (e) {
-              print('Error fetching team details: $e');
-            }
+            });
+            // await _fetchAllCalllog();
+            await _fetchTeamDetails();
           },
-
           child: AnimatedDefaultTextStyle(
             duration: const Duration(milliseconds: 200),
             style: AppFont.mediumText14(context).copyWith(
@@ -1590,31 +1562,169 @@ class _MyTeamsState extends State<MyTeams> {
                   : (_isMultiSelectMode ? Colors.orange : null),
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
             ),
-            child: Text(
-              _isMultiSelectMode ? 'Reset' : 'All',
-            ), // Fixed typo 'Alls '
+            child: Text(_isMultiSelectMode ? 'Reset' : 'All'),
           ),
         ),
-        // InkWell(
-        //   onTap: () {
-        //     if (!_isComparing) {
-        //       _clearAllSelections();
-        //     }
-        //   },
-        //   child: AnimatedDefaultTextStyle(
-        //     duration: const Duration(milliseconds: 200),
-        //     style: AppFont.mediumText14(context).copyWith(
-        //       color: isSelected
-        //           ? Colors.blue
-        //           : (_isMultiSelectMode ? Colors.orange : null),
-        //       fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-        //     ),
-        //     child: Text(_isMultiSelectMode ? 'Reset' : 'All'),
-        //   ),
-        // ),
       ],
     );
   }
+  // Widget _buildProfileAvatarStaticsAll(String firstName, int index) {
+  //   bool isSelected = _selectedType == 'All' && _selectedLetters.isEmpty;
+
+  //   return Column(
+  //     mainAxisSize: MainAxisSize.min,
+  //     children: [
+  //       GestureDetector(
+  //         onTap: () async {
+  //           // Medium haptic feedback for "All" button
+  //           HapticFeedback.mediumImpact();
+
+  //           setState(() {
+  //             _selectedProfileIndex = index;
+  //             _selectedType = 'All';
+  //             _selectedLetters.clear(); // Clear all letter selections
+  //             _isMultiSelectMode = false; // Exit multi-select mode
+
+  //             if (!_isComparing) {
+  //               _clearAllSelections();
+  //             }
+  //           });
+  //           await _fetchTeamDetails();
+  //         },
+  //         onLongPress: () {
+  //           // Heavy haptic feedback for long press on "All"
+  //           HapticFeedback.heavyImpact();
+
+  //           // Show info about total members
+  //           int totalMembers = _teamMembers.length;
+  //           ScaffoldMessenger.of(context).showSnackBar(
+  //             SnackBar(
+  //               content: Row(
+  //                 mainAxisSize: MainAxisSize.min,
+  //                 children: [
+  //                   Icon(Icons.info_outline, color: Colors.white, size: 16),
+  //                   SizedBox(width: 8),
+  //                   Text('Total $totalMembers team members'),
+  //                 ],
+  //               ),
+  //               duration: const Duration(seconds: 1),
+  //               backgroundColor: Colors.green.shade600,
+  //               behavior: SnackBarBehavior.floating,
+  //               margin: EdgeInsets.only(
+  //                 bottom: MediaQuery.of(context).size.height - 150,
+  //                 left: 20,
+  //                 right: 20,
+  //               ),
+  //               shape: RoundedRectangleBorder(
+  //                 borderRadius: BorderRadius.circular(8),
+  //               ),
+  //             ),
+  //           );
+  //         },
+  //         child: Stack(
+  //           children: [
+  //             AnimatedContainer(
+  //               duration: const Duration(milliseconds: 300),
+  //               curve: Curves.easeInOut,
+  //               margin: const EdgeInsets.fromLTRB(10, 0, 5, 0),
+  //               width: 50,
+  //               height: 50,
+  //               decoration: BoxDecoration(
+  //                 shape: BoxShape.circle,
+  //                 color: isSelected
+  //                     ? Colors.blue.withOpacity(0.15)
+  //                     : AppColors.backgroundLightGrey,
+  //                 border: isSelected
+  //                     ? Border.all(color: Colors.blue, width: 2.5)
+  //                     : Border.all(
+  //                         color: Colors.grey.withOpacity(0.3),
+  //                         width: 1,
+  //                       ),
+  //               ),
+  //               child: Center(
+  //                 child: AnimatedSwitcher(
+  //                   duration: const Duration(milliseconds: 200),
+  //                   child: Icon(
+  //                     _isMultiSelectMode
+  //                         ? Icons.clear_all
+  //                         : (isSelected ? Icons.groups : Icons.people),
+  //                     key: ValueKey(
+  //                       _isMultiSelectMode
+  //                           ? 'clear'
+  //                           : (isSelected ? 'groups' : 'people'),
+  //                     ),
+  //                     color: isSelected ? Colors.blue : Colors.grey.shade400,
+  //                     size: isSelected ? 34 : 32,
+  //                   ),
+  //                 ),
+  //               ),
+  //             ),
+  //             // Multi-select mode indicator
+  //             if (_isMultiSelectMode)
+  //               Positioned(
+  //                 top: -2,
+  //                 right: 3,
+  //                 child: AnimatedScale(
+  //                   scale: 1.0,
+  //                   duration: const Duration(milliseconds: 200),
+  //                   child: Container(
+  //                     width: 18,
+  //                     height: 18,
+  //                     decoration: BoxDecoration(
+  //                       color: Colors.orange,
+  //                       shape: BoxShape.circle,
+  //                       border: Border.all(color: Colors.white, width: 2),
+  //                       boxShadow: [
+  //                         BoxShadow(
+  //                           color: Colors.orange.withOpacity(0.3),
+  //                           blurRadius: 4,
+  //                           offset: const Offset(0, 1),
+  //                         ),
+  //                       ],
+  //                     ),
+  //                     child: Icon(
+  //                       Icons.touch_app,
+  //                       color: Colors.white,
+  //                       size: 10,
+  //                     ),
+  //                   ),
+  //                 ),
+  //               ),
+  //           ],
+  //         ),
+  //       ),
+  //       const SizedBox(height: 8),
+
+  //       InkWell(
+  //         onTap: () async {
+  //           setState(() {
+  //             _selectedProfileIndex = index;
+  //             _selectedType = 'All';
+  //             _selectedLetters.clear(); // Clear all letter selections
+  //             _isMultiSelectMode = false; // Exit multi-select mode
+  //             _metricIndex = 0;
+  //             if (!_isComparing) {
+  //               _clearAllSelections();
+  //             }
+  //           });
+  //           // await _fetchAllCalllog();
+  //           await _fetchTeamDetails();
+  //         },
+  //         child: AnimatedDefaultTextStyle(
+  //           duration: const Duration(milliseconds: 200),
+  //           style: AppFont.mediumText14(context).copyWith(
+  //             color: isSelected
+  //                 ? Colors.blue
+  //                 : (_isMultiSelectMode ? Colors.orange : null),
+  //             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+  //           ),
+  //           child: Text(_isMultiSelectMode ? 'Reset' : 'Alls '),
+  //         ),
+  //       ),
+
+  //     ],
+  //   );
+  // }
 
   Widget _buildProfileAvatar(
     String firstName,
@@ -1969,7 +2079,7 @@ class _MyTeamsState extends State<MyTeams> {
   //   final stats = (_metricIndex >= 0)
   //       ? (isUserSelected
   //             ? _teamData['selectedUserPerformance'] ?? {}
-  //             : _selectedUserData['totalPerformance'] ?? {})
+  //             : _selectedUserData?['totalPerformance'] ?? {})
   //       : {};
 
   //   final metrics = [
@@ -1980,7 +2090,7 @@ class _MyTeamsState extends State<MyTeams> {
   //     {
   //       'label': 'Net Orders',
   //       'key': 'Net orders',
-  //       // 'value': (stats['Orders'] ?? 0) - (stats['Cancellation'] ?? 0)
+  //       'value': (stats['Orders'] ?? 0) - (stats['Cancellation'] ?? 0),
   //     },
   //     {'label': 'Retails', 'key': 'retail'},
   //   ];
@@ -2024,29 +2134,61 @@ class _MyTeamsState extends State<MyTeams> {
   //   );
   // }
 
+  // Fixed Performance Metrics Widget all
   Widget _buildIndividualPerformanceMetrics(BuildContext context) {
-    final bool isUserSelected = _selectedProfileIndex != 0;
+    // Determine selection state
+    final bool isSpecificUserSelected = _selectedProfileIndex > 0;
+    final bool isAllSelected =
+        _selectedProfileIndex == 0 && _selectedLetters.isEmpty;
+    final bool isLetterSelected = _selectedLetters.isNotEmpty;
 
-    // Choose appropriate stats object with fallback
-    final stats = isUserSelected
-        ? (_teamData['selectedUserPerformance'] ?? {})
-        : (_selectedUserData['totalPerformance'] ?? {});
-    //  final stats = (_isMultiSelectMode || _isComparing)
-    //       ? (_teamData["teamComparsion"] as List<dynamic>? ?? [])
-    //             .where((member) => member["isSelected"] == true)
-    //             .toList()
-    //       : (_teamData["teamComparsion"] as List<dynamic>? ?? []);
+    // Debug prints
+    print(
+      'Selection state - ProfileIndex: $_selectedProfileIndex, Letters: $_selectedLetters, Type: $_selectedType',
+    );
+    print(
+      'Flags - isSpecificUser: $isSpecificUserSelected, isAll: $isAllSelected, isLetter: $isLetterSelected',
+    );
 
-    // Debug print to check stats
-    print('Stats for metrics: $stats, isUserSelected: $isUserSelected');
+    // Function to get total for a specific key based on selection
+    int getTotalForKey(String key) {
+      if (isSpecificUserSelected) {
+        // Individual user - use selectedUserPerformance from _teamData or _selectedUserData
+        final userStats =
+            _teamData['selectedUserPerformance'] ?? _selectedUserData ?? {};
+        return int.tryParse(userStats[key]?.toString() ?? '0') ?? 0;
+      } else {
+        // All users or letter selection - use team comparison data
+        final stats = (_isMultiSelectMode || _isComparing)
+            ? (_teamData["teamComparsion"] as List? ?? [])
+                  .where((member) => member["isSelected"] == true)
+                  .toList()
+            : (_teamData["teamComparsion"] as List? ?? []);
 
-    if (stats.isEmpty) {
-      print(
-        'Warning: Stats is empty. _selectedUserData: $_selectedUserData, _teamData: $_teamData',
-      );
+        if (stats.isNotEmpty) {
+          // Aggregate from team members
+          return stats.fold(
+            0,
+            (sum, member) =>
+                sum + (int.tryParse(member[key]?.toString() ?? '0') ?? 0),
+          );
+        } else if (isAllSelected) {
+          // Fallback to totalPerformance for "All" selection
+          final totalStats = _selectedUserData?['totalPerformance'] ?? {};
+          return int.tryParse(totalStats[key]?.toString() ?? '0') ?? 0;
+        }
+      }
+      return 0;
     }
 
-    final metrics = [
+    // Calculate net orders
+    int calculateNetOrders() {
+      final orders = getTotalForKey('orders');
+      final cancellations = getTotalForKey('cancellation');
+      return math.max(0, orders - cancellations);
+    }
+
+    final List<Map<String, dynamic>> metrics = [
       {'label': 'Enquiries', 'key': 'enquiries'},
       {'label': 'Test Drive', 'key': 'testDrives'},
       {'label': 'Orders', 'key': 'orders'},
@@ -2054,9 +2196,7 @@ class _MyTeamsState extends State<MyTeams> {
       {
         'label': 'Net Orders',
         'key': 'netOrders',
-        'value': ((stats['orders'] ?? 0) - (stats['cancellation'] ?? 0))
-            .clamp(0, double.infinity)
-            .toInt(),
+        'value': calculateNetOrders(),
       },
       {'label': 'Retails', 'key': 'retail'},
     ];
@@ -2072,37 +2212,126 @@ class _MyTeamsState extends State<MyTeams> {
                   onTap: () {
                     setState(() {
                       _metricIndex = j;
-                      _fetchTeamDetails(); // Refresh with selected metric
                     });
+                    _fetchTeamDetails(); // Refresh with selected metric
                   },
                   child: _buildMetricCard(
                     metrics[j].containsKey('value')
                         ? metrics[j]['value'].toString()
-                        : (stats[metrics[j]['key']]?.toString() ?? '0'),
-                    metrics[j]['label']!,
+                        : getTotalForKey(
+                            metrics[j]['key'] as String,
+                          ).toString(),
+                    metrics[j]['label'] as String,
                     Colors.blue,
                     isSelected: _metricIndex == j,
                   ),
                 ),
               ),
-              if (j % 2 == 0) const SizedBox(width: 12),
+              if (j % 2 == 0 && j + 1 < metrics.length)
+                const SizedBox(width: 12),
             ],
           ],
         ),
       );
-      rows.add(const SizedBox(height: 12));
+      if (i + 2 < metrics.length) rows.add(const SizedBox(height: 12));
     }
+
+    // Check if we have any data to display
+    bool hasData =
+        isSpecificUserSelected ||
+        (_teamData["teamComparsion"] as List? ?? []).isNotEmpty ||
+        (_selectedUserData?['totalPerformance'] != null);
 
     return Padding(
       padding: const EdgeInsets.all(10),
-      child: stats.isEmpty
-          ? const Center(child: Text('No data available'))
-          : Column(
+      child: hasData
+          ? Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: rows,
-            ),
+            )
+          : const Center(child: Text('No data available')),
     );
   }
+  // Widget _buildIndividualPerformanceMetrics(BuildContext context) {
+
+  //   final bool isUserSelected = _selectedProfileIndex != 0;
+
+  //   // Choose appropriate stats object with fallback
+  //   final stats = isUserSelected
+  //       ? (_teamData['selectedUserPerformance'] ?? {})
+  //       : (_selectedUserData['totalPerformance'] ?? {});
+  //   //  final stats = (_isMultiSelectMode || _isComparing)
+  //   //       ? (_teamData["teamComparsion"] as List<dynamic>? ?? [])
+  //   //             .where((member) => member["isSelected"] == true)
+  //   //             .toList()
+  //   //       : (_teamData["teamComparsion"] as List<dynamic>? ?? []);
+
+  //   // Debug print to check stats
+  //   print('Stats for metrics: $stats, isUserSelected: $isUserSelected');
+
+  //   if (stats.isEmpty) {
+  //     print(
+  //       'Warning: Stats is empty. _selectedUserData: $_selectedUserData, _teamData: $_teamData',
+  //     );
+  //   }
+
+  //   final metrics = [
+  //     {'label': 'Enquiries', 'key': 'enquiries'},
+  //     {'label': 'Test Drive', 'key': 'testDrives'},
+  //     {'label': 'Orders', 'key': 'orders'},
+  //     {'label': 'Cancellations', 'key': 'cancellation'},
+  //     {
+  //       'label': 'Net Orders',
+  //       'key': 'netOrders',
+  //       'value': ((stats['orders'] ?? 0) - (stats['cancellation'] ?? 0))
+  //           .clamp(0, double.infinity)
+  //           .toInt(),
+  //     },
+  //     {'label': 'Retails', 'key': 'retail'},
+  //   ];
+
+  //   List<Widget> rows = [];
+  //   for (int i = 0; i < metrics.length; i += 2) {
+  //     rows.add(
+  //       Row(
+  //         children: [
+  //           for (int j = i; j < i + 2 && j < metrics.length; j++) ...[
+  //             Expanded(
+  //               child: InkWell(
+  //                 onTap: () {
+  //                   setState(() {
+  //                     _metricIndex = j;
+  //                     _fetchTeamDetails(); // Refresh with selected metric
+  //                   });
+  //                 },
+  //                 child: _buildMetricCard(
+  //                   metrics[j].containsKey('value')
+  //                       ? metrics[j]['value'].toString()
+  //                       : (stats[metrics[j]['key']]?.toString() ?? '0'),
+  //                   metrics[j]['label']!,
+  //                   Colors.blue,
+  //                   isSelected: _metricIndex == j,
+  //                 ),
+  //               ),
+  //             ),
+  //             if (j % 2 == 0) const SizedBox(width: 12),
+  //           ],
+  //         ],
+  //       ),
+  //     );
+  //     rows.add(const SizedBox(height: 12));
+  //   }
+
+  //   return Padding(
+  //     padding: const EdgeInsets.all(10),
+  //     child: stats.isEmpty
+  //         ? const Center(child: Text('No data available'))
+  //         : Column(
+  //             crossAxisAlignment: CrossAxisAlignment.stretch,
+  //             children: rows,
+  //           ),
+  //   );
+  // }
 
   // Team Comparison Chart
   Widget _buildTeamComparisonChart(BuildContext context) {

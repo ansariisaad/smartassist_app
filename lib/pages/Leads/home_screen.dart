@@ -439,6 +439,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final responsiveFontSize = screenWidth * 0.035;
     return WillPopScope(
       onWillPop: _onWillPop,
       child: GestureDetector(
@@ -555,9 +557,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 filled: true,
                                                 fillColor:
                                                     AppColors.containerBg,
-                                                hintText: 'Search',
+                                                hintText:
+                                                    'Search by name, email or phone',
                                                 hintStyle: GoogleFonts.poppins(
-                                                  fontSize: 14,
+                                                  fontSize: responsiveFontSize,
                                                   color: AppColors.fontColor,
                                                   fontWeight: FontWeight.w400,
                                                 ),

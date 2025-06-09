@@ -130,25 +130,6 @@ class _MyTeamsState extends State<MyTeams> {
     }
   }
 
-  // Future<void> _fetchSingleCalllog() async {
-  //   try {
-  //     final data = await LeadsSrv.fetchSingleCallLogData(
-  //       periodIndex: _periodIndex,
-  //       selectedUserId: _selectedUserId,
-  //     );
-
-  //     if (mounted) {
-  //       setState(() {
-  //         _dashboardData = data;
-  //         _enquiryData = data['summaryEnquiry'];
-  //         _coldCallData = data['summaryColdCalls'];
-  //       });
-  //     }
-  //   } catch (e) {
-  //     debugPrint('Error fetching single call log: $e');
-  //   }
-  // }
-
   // Method to load more records
   void _loadMoreRecords() {
     setState(() {
@@ -1192,44 +1173,6 @@ class _MyTeamsState extends State<MyTeams> {
     );
   }
 
-  // Widget _buildProfileAvatarStaticsAll(String firstName, int index) {
-  //   return Column(
-  //     mainAxisSize: MainAxisSize.min,
-  //     children: [
-  //       InkWell(
-  //         onTap: () async {
-  //           setState(() {
-  //             _selectedProfileIndex = index;
-  //             _selectedType = 'All';
-  //           });
-  //           await _fetchTeamDetails();
-  //         },
-  //         child: Container(
-  //           margin: const EdgeInsets.fromLTRB(10, 0, 5, 0),
-  //           width: 50,
-  //           height: 50,
-  //           decoration: BoxDecoration(
-  //             shape: BoxShape.circle,
-  //             color: AppColors.backgroundLightGrey,
-  //             border: _selectedProfileIndex == index
-  //                 ? Border.all(color: Colors.blue, width: 2)
-  //                 : null,
-  //           ),
-  //           child: Center(
-  //             child: Icon(Icons.people, color: Colors.grey.shade400, size: 32),
-  //           ),
-  //         ),
-  //       ),
-  //       const SizedBox(height: 8),
-  //       Text('All', style: AppFont.mediumText14(context)),
-  //       // Text(
-  //       //   lastName,
-  //       //   style: AppFont.mediumText14(context),
-  //       // ),
-  //     ],
-  //   );
-  // }
-
   Widget _buildProfileAvatars() {
     List<Map<String, dynamic>> sortedTeamMembers = List.from(_teamMembers);
     sortedTeamMembers.sort(
@@ -1971,22 +1914,6 @@ class _MyTeamsState extends State<MyTeams> {
               ],
             ),
           ),
-
-          // Calendar button
-          // Container(
-          //   height: 40,
-          //   width: 40,
-          //   decoration: BoxDecoration(
-          //     borderRadius: BorderRadius.circular(20),
-          //   ),
-          //   child: IconButton(
-          //     icon: const Icon(Icons.calendar_today, size: 20),
-          //     onPressed: () {
-          //       // Handle calendar selection
-          //     },
-          //     padding: EdgeInsets.zero,
-          //   ),
-          // ),
         ],
       ),
     );
@@ -2179,31 +2106,8 @@ class _MyTeamsState extends State<MyTeams> {
 
   // Team Comparison Chart
   Widget _buildTeamComparisonChart(BuildContext context) {
-    // List of available metrics
-    // final metrics = [
-    //   'enquiries',
-    //   'testDrives',
-    //   'orders',
-    //   'cancellation',
-    //   'netOrders',
-    //   'retail',
-    // ];
-
-    // Get current metric based on index
-    // final currentMetric = _metricIndex < metrics.length
-    //     ? metrics[_metricIndex]
-    //     : 'enquiries';
-
     // Process data
     final teamData = _processTeamComparisonData();
-    // final maxValue = _findMaxValue(teamData);
-
-    // Width calculation for the bars (adjust as needed)
-    // final screenWidth = MediaQuery.of(context).size.width;
-    // final barMaxWidth = screenWidth * 0.35;
-
-    // Current color for the selected metric
-    // final metricColor = _getColorForMetric(_metricIndex);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
@@ -2462,9 +2366,14 @@ class _MyTeamsState extends State<MyTeams> {
       // margin: const EdgeInsets.symmetric(horizontal: 10),
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: AppColors.backgroundLightGrey,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Colors.grey.withOpacity(0.5), // border color
+          width: 1.0, // border width
+        ),
       ),
+
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -2517,16 +2426,95 @@ class _MyTeamsState extends State<MyTeams> {
   }
 
   Widget _buildTableContent() {
+    final GlobalKey incomingKey = GlobalKey();
+    final GlobalKey outgoingKey = GlobalKey();
+    final GlobalKey connectedKey = GlobalKey();
+    final GlobalKey durationKey = GlobalKey();
+    final GlobalKey rejectedKey = GlobalKey();
     double screenWidth = MediaQuery.of(context).size.width;
 
     // Check if there's data to display
     bool hasData = _membersData.isNotEmpty;
 
+    void showBubbleTooltip(
+      BuildContext context,
+      GlobalKey key,
+      String message,
+    ) {
+      final overlay = Overlay.of(context);
+      final renderBox = key.currentContext?.findRenderObject() as RenderBox?;
+      final size = renderBox?.size;
+      final offset = renderBox?.localToGlobal(Offset.zero);
+
+      if (overlay == null ||
+          renderBox == null ||
+          offset == null ||
+          size == null)
+        return;
+
+      // Estimate the tooltip width (you could also use TextPainter for precise width if needed)
+      const double tooltipPadding = 20.0;
+      final double estimatedTooltipWidth =
+          message.length * 7.0 + tooltipPadding;
+
+      final overlayEntry = OverlayEntry(
+        builder: (context) => Positioned(
+          top: offset.dy - 35, // above the icon
+          left:
+              offset.dx +
+              size.width / 2 -
+              estimatedTooltipWidth / 2, // centered horizontally
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(255, 0, 0, 0),
+                borderRadius: BorderRadius.circular(8),
+                // boxShadow: const [
+                //   BoxShadow(
+                //     color: Colors.black26,
+                //     blurRadius: 6,
+                //     offset: Offset(2, 2),
+                //   ),
+                // ],
+              ),
+              child: Text(
+                message,
+                style: const TextStyle(
+                  color: Color.fromARGB(255, 255, 255, 255),
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      overlay.insert(overlayEntry);
+
+      Future.delayed(const Duration(milliseconds: 1000), () {
+        overlayEntry.remove();
+      });
+    }
+
     return Container(
       margin: const EdgeInsets.only(top: 10),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(5),
-        color: AppColors.backgroundLightGrey,
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Colors.grey.withOpacity(0.5), // border color
+          width: 1.0, // border width
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 1,
+            spreadRadius: 2,
+            offset: Offset(0, 0), // Equal shadow on all sides
+          ),
+        ],
       ),
       child: hasData
           ? Table(
@@ -2550,90 +2538,118 @@ class _MyTeamsState extends State<MyTeams> {
                 TableRow(
                   children: [
                     const SizedBox(), // Empty cell for name column
-                    Container(
-                      alignment: Alignment.centerLeft,
-                      margin: const EdgeInsets.only(
-                        bottom: 10,
-                        top: 10,
-                        right: 2,
-                      ),
-                      child: SizedBox(
-                        width: 15,
-                        height: 15,
-                        child: Image.asset(
-                          'assets/incoming.png',
-                          fit: BoxFit.contain,
+                    // Incoming
+                    GestureDetector(
+                      key: incomingKey,
+                      onTap: () =>
+                          showBubbleTooltip(context, incomingKey, 'Incoming'),
+                      child: Container(
+                        alignment: Alignment.centerLeft,
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 2,
+                        ),
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width * 0.04,
+                          height: MediaQuery.of(context).size.width * 0.04,
+                          child: Image.asset(
+                            'assets/incoming.png',
+                            fit: BoxFit.contain,
+                          ),
                         ),
                       ),
-                      // Text('Incoming',
-                      //     textAlign: TextAlign.start,
-                      //     style: AppFont.smallText10(context))
                     ),
-                    Container(
-                      alignment: Alignment.centerLeft,
-                      margin: const EdgeInsets.only(
-                        bottom: 10,
-                        top: 10,
-                        right: 2,
-                      ),
-                      child: SizedBox(
-                        width: 15,
-                        height: 15,
-                        child: Image.asset(
-                          'assets/outgoing.png',
-                          fit: BoxFit.contain,
+
+                    // Outgoing
+                    GestureDetector(
+                      key: outgoingKey,
+                      onTap: () =>
+                          showBubbleTooltip(context, outgoingKey, 'Outgoing'),
+                      child: Container(
+                        alignment: Alignment.centerLeft,
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 2,
+                        ),
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width * 0.04,
+                          height: MediaQuery.of(context).size.width * 0.04,
+                          child: Image.asset(
+                            'assets/outgoing.png',
+                            fit: BoxFit.contain,
+                          ),
                         ),
                       ),
-                      //  Text('Outgoing',
-                      //     textAlign: TextAlign.start,
-                      //     style: AppFont.smallText10(context)),
                     ),
-                    Container(
-                      alignment: Alignment.centerLeft,
-                      margin: const EdgeInsets.only(
-                        bottom: 10,
-                        top: 10,
-                        right: 2,
+
+                    // Connected calls
+                    GestureDetector(
+                      key: connectedKey,
+                      onTap: () => showBubbleTooltip(
+                        context,
+                        connectedKey,
+                        'Connected Calls',
                       ),
-                      child: const Icon(
-                        Icons.call,
-                        color: AppColors.sideGreen,
-                        size: 20,
-                      ),
-                    ),
-                    Container(
-                      alignment: Alignment.centerLeft,
-                      margin: const EdgeInsets.only(bottom: 10, top: 10),
-                      child: const Icon(
-                        Icons.access_time,
-                        color: AppColors.colorsBlue,
-                        size: 20,
-                      ),
-                      // Text('Duration',
-                      //     textAlign: TextAlign.start,
-                      //     style: AppFont.smallText10(context)),
-                    ),
-                    Container(
-                      alignment: Alignment.centerLeft,
-                      margin: const EdgeInsets.only(
-                        bottom: 10,
-                        top: 10,
-                        right: 0,
-                      ),
-                      child: SizedBox(
-                        width: 15,
-                        height: 15,
-                        child: Image.asset(
-                          'assets/missed.png',
-                          fit: BoxFit.contain,
+                      child: Container(
+                        alignment: Alignment.centerLeft,
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 2,
+                        ),
+                        child: Icon(
+                          Icons.call,
+                          color: AppColors.sideGreen,
+                          size: MediaQuery.of(context).size.width * 0.05,
                         ),
                       ),
-                      //  Text('Declined',
-                      //     textAlign: TextAlign.start,
-                      //     style: AppFont.smallText10(context))
+                    ),
+
+                    // Duration
+                    GestureDetector(
+                      key: durationKey,
+                      onTap: () => showBubbleTooltip(
+                        context,
+                        durationKey,
+                        'Total Duration',
+                      ),
+                      child: Container(
+                        alignment: Alignment.centerLeft,
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 2,
+                        ),
+                        child: Icon(
+                          Icons.access_time,
+                          color: AppColors.colorsBlue,
+                          size: MediaQuery.of(context).size.width * 0.05,
+                        ),
+                      ),
+                    ),
+
+                    // Missed
+                    GestureDetector(
+                      key: rejectedKey,
+                      onTap: () =>
+                          showBubbleTooltip(context, rejectedKey, 'Rejected'),
+                      child: Container(
+                        alignment: Alignment.centerLeft,
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 2,
+                        ),
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width * 0.04,
+                          height: MediaQuery.of(context).size.width * 0.04,
+                          child: Image.asset(
+                            'assets/missed.png',
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
+
                 ..._buildMemberRows(),
               ],
             )
@@ -2667,6 +2683,49 @@ class _MyTeamsState extends State<MyTeams> {
         .toList();
 
     return displayMembers.map((member) {
+      final List<Color> _bgColors = [
+        Colors.red,
+        Colors.green,
+        Colors.blue,
+        Colors.orange,
+        Colors.purple,
+        Colors.teal,
+        Colors.indigo,
+        Colors.purpleAccent,
+      ];
+      Color _getRandomColor(String name) {
+        final int hash = name.codeUnits.fold(0, (prev, el) => prev + el);
+        return _bgColors[hash % _bgColors.length].withOpacity(0.8);
+      }
+
+      CircleAvatar buildAvatar(Map<String, dynamic> member) {
+        final String? imageUrl = member['profileImage'];
+        final String name = member['name'] ?? '';
+        final String initials = name.isNotEmpty
+            ? name.trim().substring(0, 1).toUpperCase()
+            : '?';
+
+        return CircleAvatar(
+          radius: 12,
+          backgroundColor: (imageUrl == null || imageUrl.isEmpty)
+              ? _getRandomColor(name)
+              : Colors.transparent,
+          backgroundImage: (imageUrl != null && imageUrl.isNotEmpty)
+              ? NetworkImage(imageUrl)
+              : null,
+          child: (imageUrl == null || imageUrl.isEmpty)
+              ? Text(
+                  initials,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                )
+              : null,
+        );
+      }
+
       return _buildTableRow([
         // Your existing table row code...
         InkWell(
@@ -2683,15 +2742,46 @@ class _MyTeamsState extends State<MyTeams> {
           },
           child: Row(
             children: [
-              CircleAvatar(
-                radius: 12,
-                backgroundColor: Colors.blue.withOpacity(0.2),
-                child: Text(
-                  member['name'].toString().substring(0, 1).toUpperCase(),
-                  style: const TextStyle(fontSize: 12, color: Colors.blue),
-                ),
+              // 👇 CircleAvatar with image or initials
+              Builder(
+                builder: (context) {
+                  final String name = member['name'] ?? '';
+                  final String? imageUrl = member['profileImage'];
+                  final String initials = name.isNotEmpty
+                      ? name
+                            .trim()
+                            .split(' ')
+                            .map((e) => e[0])
+                            .take(1)
+                            .join()
+                            .toUpperCase()
+                      : '?';
+
+                  return CircleAvatar(
+                    radius: 12,
+                    backgroundColor: (imageUrl == null || imageUrl.isEmpty)
+                        ? _getRandomColor(name)
+                        : Colors.transparent,
+                    backgroundImage: (imageUrl != null && imageUrl.isNotEmpty)
+                        ? NetworkImage(imageUrl)
+                        : null,
+                    child: (imageUrl == null || imageUrl.isEmpty)
+                        ? Text(
+                            initials,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )
+                        : null,
+                  );
+                },
               ),
+
               const SizedBox(width: 6),
+
+              // 👇 Member name
               Expanded(
                 child: Text(
                   member['name'].toString(),
@@ -3008,20 +3098,6 @@ class _MyTeamsState extends State<MyTeams> {
               ),
             ),
           ),
-
-          // Align(
-          //   alignment: Alignment.centerLeft,
-          //   child: Text(
-          //     textAlign: TextAlign.start,
-          //     value,
-          //     style: GoogleFonts.poppins(
-          //       fontSize: 30,
-          //       fontWeight: FontWeight.bold,
-          //       color:
-          //           backgroundColor == Colors.white ? valueColor : textColor,
-          //     ),
-          //   ),
-          // ),
           const SizedBox(width: 5),
           Align(
             alignment: Alignment.centerLeft,
@@ -3057,19 +3133,6 @@ class _MyTeamsState extends State<MyTeams> {
               ),
             ),
           ),
-
-          // Align(
-          //   alignment: Alignment.centerLeft,
-          //   child: Text(
-          //     label,
-          //     maxLines: 3,
-          //     textAlign: TextAlign.end,
-          //     style: GoogleFonts.poppins(
-          //       fontSize: 12,
-          //       color: textColor,
-          //     ),
-          //   ),
-          // ),
         ],
       ),
     );
@@ -3077,13 +3140,6 @@ class _MyTeamsState extends State<MyTeams> {
 
   // Upcoming Activities Section
   Widget _buildUpcomingActivities(BuildContext context) {
-    // if (_selectedProfileIndex == 0 ||
-    //     (_upcomingFollowups.isEmpty &&
-    //         _upcomingAppointments.isEmpty &&
-    //         _upcomingTestDrives.isEmpty)) {
-    //   return const SizedBox.shrink();
-    // }
-
     return Container(
       margin: const EdgeInsets.all(10),
       child: Column(
@@ -3272,14 +3328,6 @@ class _MyTeamsState extends State<MyTeams> {
                     // crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(name, style: AppFont.smallTextBold14(context)),
-                      // if (vehicle.isNotEmpty) _buildVerticalDivider(15),
-                      // if (vehicle.isNotEmpty)
-                      //   Text(
-                      //     vehicle,
-                      //     style: AppFont.dashboardCarName(context),
-                      //     softWrap: true,
-                      //     overflow: TextOverflow.visible,
-                      //   ),
                     ],
                   ),
                   Row(

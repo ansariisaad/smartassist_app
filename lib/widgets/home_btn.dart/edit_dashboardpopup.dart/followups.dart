@@ -532,7 +532,7 @@ class _FollowupsEditState extends State<FollowupsEdit> {
                 Container(
                   margin: const EdgeInsets.symmetric(vertical: 10),
                   child: Text(
-                    'Update Follow-up',
+                    'Update Follow up',
                     style: AppFont.popupTitleBlack(context),
                   ),
                 ),

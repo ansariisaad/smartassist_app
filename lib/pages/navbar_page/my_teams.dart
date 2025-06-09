@@ -333,6 +333,24 @@ class _MyTeamsState extends State<MyTeams> {
     }
   }
 
+  // Create a helper method to properly clear all selections
+  void _clearAllSelections() {
+    setState(() {
+      // Clear tracking lists
+      selectedUserIds.clear();
+      _selectedCheckboxIds.clear();
+      _selectedProfileIndex = -1;
+      _selectedUserId = '';
+
+      // 🔥 IMPORTANT: Clear isSelected from all member objects
+      for (var member in _membersData) {
+        member['isSelected'] = false;
+      }
+      for (var member in _teamComparisonData) {
+        member['isSelected'] = false;
+      }
+    });
+  }
   // Future<void> _fetchAllCalllog() async {
   //   setState(() {
   //     isLoading = true;
@@ -721,7 +739,48 @@ class _MyTeamsState extends State<MyTeams> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Colors.blue,
-        title: Text('My Team', style: AppFont.appbarfontWhite(context)),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('My Team', style: AppFont.appbarfontWhite(context)),
+            if (selectedUserIds.length >= 2)
+              Align(
+                alignment: Alignment.centerRight,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 0,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: TextButton(
+                    style: ButtonStyle(
+                      padding: MaterialStateProperty.all<EdgeInsets>(
+                        EdgeInsets.zero,
+                      ),
+                    ),
+
+                    onPressed: () {
+                      setState(() {
+                        _isComparing = !_isComparing;
+                        // isHide = true;
+                        if (!_isComparing) {
+                          _clearAllSelections();
+                        }
+                      });
+                      _fetchTeamDetails();
+                    },
+                    child: Text(
+                      'Compare',
+                      style: AppFont.mediumText14white(context),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
       body: Stack(
         children: [
@@ -1276,52 +1335,53 @@ class _MyTeamsState extends State<MyTeams> {
             });
             _fetchTeamDetails();
           },
-          onLongPress: () {
-            // Strong haptic feedback on long press
-            HapticFeedback.heavyImpact();
 
-            // Activate multi-select mode and select this letter
-            setState(() {
-              _isMultiSelectMode = true;
-              if (!_selectedLetters.contains(letter)) {
-                _selectedLetters.add(letter);
-              }
-              _selectedType = 'Letter';
-              _selectedProfileIndex = -1;
-            });
+          // onLongPress: () {
+          //   // Strong haptic feedback on long press
+          //   HapticFeedback.heavyImpact();
 
-            // Show toast/snackbar to indicate multi-select mode is active
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.touch_app, color: Colors.white, size: 16),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Multi-select active! Tap other letters to add',
-                        style: TextStyle(fontSize: 14),
-                      ),
-                    ),
-                  ],
-                ),
-                duration: const Duration(seconds: 2),
-                backgroundColor: Colors.blue.shade600,
-                behavior: SnackBarBehavior.floating,
-                margin: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).size.height - 150,
-                  left: 20,
-                  right: 20,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            );
+          //   // Activate multi-select mode and select this letter
+          //   setState(() {
+          //     _isMultiSelectMode = true;
+          //     if (!_selectedLetters.contains(letter)) {
+          //       _selectedLetters.add(letter);
+          //     }
+          //     _selectedType = 'Letter';
+          //     _selectedProfileIndex = -1;
+          //   });
 
-            _fetchTeamDetails();
-          },
+          //   // Show toast/snackbar to indicate multi-select mode is active
+          //   ScaffoldMessenger.of(context).showSnackBar(
+          //     SnackBar(
+          //       content: Row(
+          //         mainAxisSize: MainAxisSize.min,
+          //         children: [
+          //           Icon(Icons.touch_app, color: Colors.white, size: 16),
+          //           SizedBox(width: 8),
+          //           Expanded(
+          //             child: Text(
+          //               'Multi-select active! Tap other letters to add',
+          //               style: TextStyle(fontSize: 14),
+          //             ),
+          //           ),
+          //         ],
+          //       ),
+          //       duration: const Duration(seconds: 2),
+          //       backgroundColor: Colors.blue.shade600,
+          //       behavior: SnackBarBehavior.floating,
+          //       margin: EdgeInsets.only(
+          //         bottom: MediaQuery.of(context).size.height - 150,
+          //         left: 20,
+          //         right: 20,
+          //       ),
+          //       shape: RoundedRectangleBorder(
+          //         borderRadius: BorderRadius.circular(8),
+          //       ),
+          //     ),
+          //   );
+
+          //   _fetchTeamDetails();
+          // },
           child: Stack(
             children: [
               AnimatedContainer(
@@ -1424,6 +1484,10 @@ class _MyTeamsState extends State<MyTeams> {
               _selectedType = 'All';
               _selectedLetters.clear(); // Clear all letter selections
               _isMultiSelectMode = false; // Exit multi-select mode
+
+              if (!_isComparing) {
+                _clearAllSelections();
+              }
             });
             await _fetchTeamDetails();
           },
@@ -1476,16 +1540,6 @@ class _MyTeamsState extends State<MyTeams> {
                           color: Colors.grey.withOpacity(0.3),
                           width: 1,
                         ),
-                  // boxShadow: isSelected
-                  //     ? [
-                  //         BoxShadow(
-                  //           color: Colors.blue.withOpacity(0.4),
-                  //           blurRadius: 12,
-                  //           offset: const Offset(0, 3),
-                  //           spreadRadius: 1,
-                  //         ),
-                  //       ]
-                  //     : null,
                 ),
                 child: Center(
                   child: AnimatedSwitcher(
@@ -1540,15 +1594,22 @@ class _MyTeamsState extends State<MyTeams> {
           ),
         ),
         const SizedBox(height: 8),
-        AnimatedDefaultTextStyle(
-          duration: const Duration(milliseconds: 200),
-          style: AppFont.mediumText14(context).copyWith(
-            color: isSelected
-                ? Colors.blue
-                : (_isMultiSelectMode ? Colors.orange : null),
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+        InkWell(
+          onTap: () {
+            if (!_isComparing) {
+              _clearAllSelections();
+            }
+          },
+          child: AnimatedDefaultTextStyle(
+            duration: const Duration(milliseconds: 200),
+            style: AppFont.mediumText14(context).copyWith(
+              color: isSelected
+                  ? Colors.blue
+                  : (_isMultiSelectMode ? Colors.orange : null),
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            ),
+            child: Text(_isMultiSelectMode ? 'Reset' : 'All'),
           ),
-          child: Text(_isMultiSelectMode ? 'Reset' : 'All'),
         ),
       ],
     );
@@ -1592,14 +1653,101 @@ class _MyTeamsState extends State<MyTeams> {
       mainAxisSize: MainAxisSize.min,
       children: [
         GestureDetector(
+          // onTap: () async {
+          //   if (!_isComparing) {
+          //     setState(() {
+          //       if (_selectedUserId == userId) {
+          //         _selectedProfileIndex = -1;
+          //         _selectedUserId = '';
+          //         selectedUserIds.clear();
+          //         _selectedCheckboxIds.clear();
+          //       } else {
+          //         _selectedProfileIndex = index;
+          //         _selectedUserId = userId;
+          //         _selectedType = 'dynamic';
+          //       }
+          //     });
+          //     await _fetchTeamDetails();
+          //   }
+          // },
+
+          // selectedUserIds.clear();
+          //                   _selectedCheckboxIds.clear();
+          //                   _fetchTeamDetails(); // Fetch all team data
+          //                 }
+          // Your onLongPress implementation
+
+          // Your onLongPress implementation
+          onLongPress: () {
+            // Strong haptic feedback on long press
+            HapticFeedback.heavyImpact();
+
+            setState(() {
+              // Activate multi-select mode
+              _isMultiSelectMode = true;
+
+              // Toggle the current item's selection
+              if (isSelectedForComparison) {
+                selectedUserIds.remove(userId);
+              } else {
+                selectedUserIds.add(userId);
+              }
+            });
+
+            // Show feedback to user that multi-select is active
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.touch_app, color: Colors.white, size: 16),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Multi-select active! Tap other items to add',
+                        style: TextStyle(fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+                duration: const Duration(seconds: 2),
+                backgroundColor: Colors.blue.shade600,
+                behavior: SnackBarBehavior.floating,
+                margin: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).size.height - 150,
+                  left: 20,
+                  right: 20,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            );
+          },
+
+          // Your onTap implementation (combining your existing logic with multi-select)
           onTap: () async {
-            if (!_isComparing) {
+            // Light haptic feedback on tap
+            HapticFeedback.lightImpact();
+
+            if (_isMultiSelectMode) {
+              // Multi-select mode: toggle selection for comparison
+              setState(() {
+                if (isSelectedForComparison) {
+                  selectedUserIds.remove(userId);
+                  // If no items selected, exit multi-select mode
+                  if (selectedUserIds.isEmpty) {
+                    _isMultiSelectMode = false;
+                  }
+                } else {
+                  selectedUserIds.add(userId);
+                }
+              });
+            } else if (!_isComparing) {
+              // Single select mode: your existing logic
               setState(() {
                 if (_selectedUserId == userId) {
-                  _selectedProfileIndex = -1;
-                  _selectedUserId = '';
-                  selectedUserIds.clear();
-                  _selectedCheckboxIds.clear();
+                  _clearAllSelections();
                 } else {
                   _selectedProfileIndex = index;
                   _selectedUserId = userId;
@@ -1609,21 +1757,7 @@ class _MyTeamsState extends State<MyTeams> {
               await _fetchTeamDetails();
             }
           },
-          // selectedUserIds.clear();
-          //                   _selectedCheckboxIds.clear();
-          //                   _fetchTeamDetails(); // Fetch all team data
-          //                 }
-          onLongPress: () {
-            setState(() {
-              if (isSelectedForComparison) {
-                selectedUserIds.remove(userId);
-              } else {
-                selectedUserIds.add(userId);
-              }
-            });
 
-            // Optional: push selectedUserIds to URL or elsewhere
-          },
           child: Container(
             margin: const EdgeInsets.fromLTRB(10, 0, 5, 0),
             width: 50,
@@ -2100,44 +2234,6 @@ class _MyTeamsState extends State<MyTeams> {
                         style: AppFont.dropDowmLabel(context),
                       ),
                     ),
-                    if (selectedUserIds.length >= 2)
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 0,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.transparent,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: TextButton(
-                            style: ButtonStyle(
-                              padding: MaterialStateProperty.all<EdgeInsets>(
-                                EdgeInsets.zero,
-                              ),
-                            ),
-
-                            onPressed: () {
-                              setState(() {
-                                _isComparing = !_isComparing;
-                                if (!_isComparing) {
-                                  selectedUserIds.clear();
-                                  _selectedCheckboxIds.clear();
-                                  _selectedProfileIndex = -1;
-                                  _selectedUserId = '';
-                                }
-                              });
-                              _fetchTeamDetails();
-                            },
-                            child: Text(
-                              'Compare',
-                              style: AppFont.mediumText14Black(context),
-                            ),
-                          ),
-                        ),
-                      ),
                   ],
                 ),
               ),

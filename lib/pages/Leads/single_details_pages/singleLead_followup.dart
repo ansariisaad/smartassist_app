@@ -393,9 +393,17 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
       children: [
         _buildToggleOption(0, 'Upcoming', AppColors.colorsBlue),
         const SizedBox(width: 10),
-        _buildToggleOption(1, 'Completed', AppColors.sideGreen),
+        _buildToggleOption(
+          1,
+          'Completed',
+          const Color.fromRGBO(81, 223, 121, 1),
+        ),
         const SizedBox(width: 10),
-        _buildToggleOption(2, 'Overdue ($count)', AppColors.sideRed),
+        _buildToggleOption(
+          2,
+          'Overdue ($count)',
+          const Color.fromRGBO(236, 81, 81, 1),
+        ),
       ],
     );
   }
@@ -1043,7 +1051,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                                       borderRadius: BorderRadius.circular(50),
                                     ),
                                     child: const Icon(
-                                      Icons.receipt_long_outlined,
+                                      Icons.receipt_long_rounded,
                                       size: 40,
                                       color: Color.fromRGBO(2, 118, 254, 1),
                                     ),
@@ -1205,7 +1213,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                                     const SizedBox(width: 10),
                                     Expanded(
                                       child: _buildContactRow(
-                                        icon: Icons.receipt_long_outlined,
+                                        icon: Icons.receipt_long_rounded,
                                         title: 'Enquiry type',
                                         subtitle: enquiry_type,
                                       ),

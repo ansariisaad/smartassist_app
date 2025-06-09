@@ -318,6 +318,7 @@ class _OrderState extends State<Order> {
               textAlign: TextAlign.left,
               overflow: TextOverflow.ellipsis,
               maxLines: 4,
+
               style: GoogleFonts.poppins(
                 color: Colors.red,
                 fontSize: 24,

@@ -288,7 +288,7 @@ class BottomNavigation extends StatelessWidget {
         child: Column(
           children: [
             ListTile(
-              leading: const Icon(Icons.receipt_long_outlined, size: 28),
+              leading: const Icon(Icons.receipt_long_rounded, size: 28),
               title: Text(
                 'My Enquiries',
                 style: GoogleFonts.poppins(fontSize: 18),

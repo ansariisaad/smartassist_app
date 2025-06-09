@@ -275,50 +275,72 @@ class _BottomBtnThirdState extends State<BottomBtnThird> {
         3: FixedColumnWidth(screenWidth * 0.15), // Dealership
         4: FixedColumnWidth(screenWidth * 0.15), // All India
       },
-      children: [
-        TableRow(
-          children: [
-            const SizedBox(), // Empty cell
-            Container(
-              margin: const EdgeInsets.only(bottom: 5),
-              child: Center(
-                child: Text('My', style: AppFont.tinyText(context)),
-              ),
-            ),
-            Container(
-              margin: const EdgeInsets.only(bottom: 5),
-              child: Center(
-                child: Text(
-                  'All India Best',
-                  textAlign: TextAlign.center,
-                  style: AppFont.tinyText(context),
-                ),
-              ),
-            ),
-            Container(
-              margin: const EdgeInsets.only(bottom: 5),
-              child: Center(
-                child: Text('Dealership', style: AppFont.tinyText(context)),
-              ),
-            ),
-            Container(
-              margin: const EdgeInsets.only(bottom: 5),
-              child: Center(
-                child: Text('All India', style: AppFont.tinyText(context)),
-              ),
-            ),
-          ],
-        ),
-        ...tableData.map((row) => _buildTableRow(row)).toList(),
-      ],
+      children: [...tableData.map((row) => _buildTableRow(row)).toList()],
     );
   }
 
+  // Widget _buildHeaderRow(double screenWidth) {
+  //   return Row(
+  //     mainAxisAlignment: MainAxisAlignment.center,
+  //     children: [
+  //       // MTD, QTD, YTD toggle buttons
+  //       Container(
+  //         width: screenWidth * 0.30,
+  //         height: screenWidth * 0.06,
+  //         decoration: BoxDecoration(
+  //           border: Border.all(color: Colors.grey, width: .5),
+  //           color: Colors.white,
+  //           borderRadius: BorderRadius.circular(30),
+  //         ),
+  //         child: Row(
+  //           children: [
+  //             _buildButton('MTD', 1),
+  //             _buildButton('QTD', 0),
+  //             _buildButton('YTD', 2),
+  //           ],
+  //         ),
+  //       ),
+  //       // Performance and Rank headers
+  //       Expanded(
+  //         child: Column(
+  //           children: [
+  //             Row(
+  //               mainAxisAlignment: MainAxisAlignment.spaceAround,
+  //               children: [
+  //                 // Performance Column
+  //                 Column(
+  //                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //                   children: [
+  //                     Text(
+  //                       'Performance',
+  //                       style: AppFont.mediumText14(
+  //                         context,
+  //                       ).copyWith(fontWeight: FontWeight.w400),
+  //                     ),
+  //                     // const SizedBox(height: 8),
+  //                   ],
+  //                 ),
+
+  //                 // Rank Column
+  //                 Column(
+  //                   children: [
+  //                     Text('Rank', style: AppFont.mediumText14(context)),
+  //                     // const SizedBox(height: 8),
+  //                   ],
+  //                 ),
+  //               ],
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
+
   Widget _buildHeaderRow(double screenWidth) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // MTD, QTD, YTD toggle buttons
+        // Toggle buttons for MTD, QTD, YTD
         Container(
           width: screenWidth * 0.30,
           height: screenWidth * 0.06,
@@ -335,34 +357,64 @@ class _BottomBtnThirdState extends State<BottomBtnThird> {
             ],
           ),
         ),
-        // Performance and Rank headers
+        const SizedBox(width: 10),
+
+        // Headers section: Performance / Rank + Sub-columns
         Expanded(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Performance / Rank section titles
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  // Performance Column
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
+                  Expanded(
+                    flex: 2,
+                    child: Container(
+                      alignment: Alignment.centerRight,
+                      child: Text(
                         'Performance',
                         style: AppFont.mediumText14(
                           context,
                         ).copyWith(fontWeight: FontWeight.w400),
                       ),
-                      // const SizedBox(height: 8),
-                    ],
+                    ),
                   ),
+                  Container(
+                    width: 1,
+                    height:
+                        40, // Match height of both header rows for consistent divider
+                    color: Colors.grey.withOpacity(0.6),
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: Container(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Rank',
+                        style: AppFont.mediumText14(
+                          context,
+                        ).copyWith(fontWeight: FontWeight.w400),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
 
-                  // Rank Column
-                  Column(
-                    children: [
-                      Text('Rank', style: AppFont.mediumText14(context)),
-                      // const SizedBox(height: 8),
-                    ],
+              const SizedBox(height: 5),
+
+              // Sub headers: My, All India Best, Dealership, All India
+              Row(
+                children: [
+                  Expanded(flex: 1, child: _buildHeaderCell('My')),
+                  Expanded(flex: 1, child: _buildHeaderCell('All India Best')),
+                  Container(
+                    width: 1,
+                    height: 20,
+                    color: Colors.grey.withOpacity(0.6),
                   ),
+                  Expanded(flex: 1, child: _buildHeaderCell('Dealership')),
+                  Expanded(flex: 1, child: _buildHeaderCell('All India')),
                 ],
               ),
             ],
@@ -372,17 +424,45 @@ class _BottomBtnThirdState extends State<BottomBtnThird> {
     );
   }
 
+  // Helper to build individual column header cells
+  Widget _buildHeaderCell(String text) {
+    return Container(
+      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Text(
+        text,
+        style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 7),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
   TableRow _buildTableRow(List<String> values) {
     return TableRow(
-      children: values.map((value) {
-        return Padding(
+      children: values.asMap().entries.map((entry) {
+        int index = entry.key;
+        String value = entry.value;
+
+        return Container(
+          decoration:
+              index ==
+                  2 // Divider after 2nd column (My, All India Best)
+              ? BoxDecoration(
+                  border: Border(
+                    right: BorderSide(
+                      color: Colors.grey.withOpacity(0.6),
+                      width: 1,
+                    ),
+                  ),
+                )
+              : null,
           padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 5.0),
           child: Text(
             value,
             style: AppFont.smallText(context),
-            textAlign: values.indexOf(value) == 0
-                ? TextAlign.left
-                : TextAlign.center,
+            textAlign: index == 0 ? TextAlign.left : TextAlign.center,
             overflow: TextOverflow.ellipsis,
           ),
         );

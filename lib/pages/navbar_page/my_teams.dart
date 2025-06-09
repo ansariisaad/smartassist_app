@@ -898,7 +898,7 @@ class _MyTeamsState extends State<MyTeams> {
                   //   _showCreateteamPopup(context);
                   // }),
                   _buildPopupItem(
-                    Icons.receipt_long_outlined,
+                    Icons.receipt_long_rounded,
                     "Enquiry",
                     -60,
                     onTap: () {
@@ -2673,7 +2673,8 @@ class _MyTeamsState extends State<MyTeams> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => FollowupsDetails(leadId: leadId ,
+                    builder: (context) => FollowupsDetails(
+                      leadId: leadId,
                       isFromFreshlead: false,
                     ),
                   ),

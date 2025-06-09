@@ -162,20 +162,20 @@ class _AddTaskPopupState extends State<AddTaskPopup> {
                   ),
                   isExpanded: true,
                   underline: const SizedBox.shrink(),
-                  items: <String>['Appointment', 'Followup', 'Test Drive'].map((
-                    String value,
-                  ) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 10.0),
-                        child: Text(
-                          value,
-                          style: AppFont.dropDowmLabel(context),
+                  items: <String>['Appointment', 'Follow up', 'Test Drive'].map(
+                    (String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 10.0),
+                          child: Text(
+                            value,
+                            style: AppFont.dropDowmLabel(context),
+                          ),
                         ),
-                      ),
-                    );
-                  }).toList(),
+                      );
+                    },
+                  ).toList(),
                   onChanged: (value) {
                     setState(() {
                       selectedEvent = value;

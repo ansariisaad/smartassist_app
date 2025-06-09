@@ -529,6 +529,187 @@ class _MyTeamsState extends State<MyTeams> {
     }
   }
 
+
+  // Future<void> _fetchTeamDetails() async {
+  //   try {
+  //     final token = await Storage.getToken();
+
+  //     // Build period parameter
+  //     String? periodParam;
+  //     switch (_periodIndex) {
+  //       // case 0:
+  //       //   periodParam = 'DAY';
+  //       //   break;
+  //       // case 1:
+  //       //   periodParam = 'WEEK';
+  //       //   break;
+  //       case 1:
+  //         periodParam = 'MTD';
+  //         break;
+  //       case 0:
+  //         periodParam = 'QTD';
+  //         break;
+  //       case 2:
+  //         periodParam = 'YTD';
+  //         break;
+  //       default:
+  //         periodParam = 'QTD';
+  //     }
+
+  //     final Map<String, String> queryParams = {};
+
+  //     if (periodParam != null) {
+  //       queryParams['type'] = periodParam;
+  //     }
+
+  //     final targetMetric = [
+  //       'target_enquiries',
+  //       'target_testDrives',
+  //       'target_orders',
+  //       'target_cancellation',
+  //       'target_netOrders',
+  //       'target_retail',
+  //     ];
+
+  //     // Define summary metrics (moved outside to be available for both cases)
+  //     final summaryMetrics = [
+  //       'enquiries',
+  //       'testDrives',
+  //       'orders',
+  //       'cancellation',
+  //       'netOrders',
+  //       'retail',
+  //     ];
+  //     final summaryParam = summaryMetrics[_metricIndex];
+  //     final targetParam = targetMetric[_metricIndex];
+
+  //     // ✅ Add summary parameter for both All and specific user selection
+  //     queryParams['summary'] = summaryParam;
+  //     queryParams['target'] = targetParam;
+  //     // ✅ Only add user_id if a specific user is selected (not for "All")
+  //     if (_selectedProfileIndex != 0 && _selectedUserId.isNotEmpty) {
+  //       queryParams['user_id'] = _selectedUserId;
+  //     }
+
+  //     // Add userIds if checkboxes are selected
+  //     // ✅ If comparison mode is OFF (only single user is selected), pass user_id
+  //     // if (!_isComparing &&
+  //     //     _selectedProfileIndex != 0 &&
+  //     //     _selectedUserId.isNotEmpty) {
+  //     //   queryParams['user_id'] = _selectedUserId;
+  //     // }
+  //     // 🔥 MODIFIED LOGIC: Handle user selection based on comparison mode
+  //     if (_isComparing && selectedUserIds.isNotEmpty) {
+  //       // ✅ If comparison mode is ON, ONLY pass userIds (remove user_id)
+  //       queryParams['userIds'] = selectedUserIds.join(',');
+  //     } else if (!_isComparing &&
+  //         _selectedProfileIndex != 0 &&
+  //         _selectedUserId.isNotEmpty) {
+  //       // ✅ If comparison mode is OFF and specific user is selected, pass user_id
+  //       queryParams['user_id'] = _selectedUserId;
+  //     }
+
+  //     // ✅ If comparison mode is ON, pass all selected user IDs
+  //     // if (_isComparing && selectedUserIds.isNotEmpty) {
+  //     //   queryParams['userIds'] = selectedUserIds.join(',');
+  //     // }
+  //     // if (selectedUserIds.isNotEmpty) {
+  //     //   queryParams['userIds'] = selectedUserIds.join(',');
+  //     // }
+
+  //     final baseUri = Uri.parse(
+  //       'https://api.smartassistapp.in/api/users/sm/dashboard/team-dashboard',
+  //     );
+
+  //     final uri = baseUri.replace(queryParameters: queryParams);
+
+  //     print('📤 Fetching from: $uri');
+
+  //     final response = await http.get(
+  //       uri,
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+
+  //     print('📥 Status Code: ${response.statusCode}');
+  //     print('📥 Response: ${response.body}');
+
+  //     if (response.statusCode == 200) {
+  //       final data = json.decode(response.body);
+
+  //       setState(() {
+  //         _teamData = data['data'] ?? {};
+
+  //         // Save total performance
+  //         if (_teamData.containsKey('totalPerformance')) {
+  //           _selectedUserData['totalPerformance'] =
+  //               _teamData['totalPerformance'];
+  //         }
+
+  //         if (_teamData.containsKey('allMember') &&
+  //             _teamData['allMember'].isNotEmpty) {
+  //           _teamMembers = [];
+
+  //           for (var member in _teamData['allMember']) {
+  //             _teamMembers.add({
+  //               'fname': member['fname'] ?? '',
+  //               'lname': member['lname'] ?? '',
+  //               'user_id': member['user_id'] ?? '',
+  //               'profile': member['profile'],
+  //               'initials': member['initials'] ?? '',
+  //             });
+  //           }
+  //         }
+
+  //         if (_selectedProfileIndex == 0) {
+  //           // Summary data
+  //           _selectedUserData = _teamData['summary'] ?? {};
+  //           _selectedUserData['totalPerformance'] =
+  //               _teamData['totalPerformance'] ?? {};
+  //         } else if (_selectedProfileIndex - 1 < _teamMembers.length) {
+  //           // Specific user selected
+  //           final selectedMember = _teamMembers[_selectedProfileIndex - 1];
+  //           _selectedUserData = selectedMember;
+
+  //           final selectedUserPerformance =
+  //               _teamData['selectedUserPerformance'] ?? {};
+  //           final upcoming = selectedUserPerformance['Upcoming'] ?? {};
+  //           final overdue = selectedUserPerformance['Overdue'] ?? {};
+
+  //           if (_upcommingButtonIndex == 0) {
+  //             _upcomingFollowups = List<Map<String, dynamic>>.from(
+  //               upcoming['upComingFollowups'] ?? [],
+  //             );
+  //             _upcomingAppointments = List<Map<String, dynamic>>.from(
+  //               upcoming['upComingAppointment'] ?? [],
+  //             );
+  //             _upcomingTestDrives = List<Map<String, dynamic>>.from(
+  //               upcoming['upComingTestDrive'] ?? [],
+  //             );
+  //           } else {
+  //             _upcomingFollowups = List<Map<String, dynamic>>.from(
+  //               overdue['overdueFollowups'] ?? [],
+  //             );
+  //             _upcomingAppointments = List<Map<String, dynamic>>.from(
+  //               overdue['overdueAppointments'] ?? [],
+  //             );
+  //             _upcomingTestDrives = List<Map<String, dynamic>>.from(
+  //               overdue['overdueTestDrives'] ?? [],
+  //             );
+  //           }
+  //         }
+  //       });
+  //     } else {
+  //       throw Exception('Failed to fetch team details: ${response.statusCode}');
+  //     }
+  //   } catch (e) {
+  //     print('Error fetching team details: $e');
+  //   }
+  // }
+
+
   // Process team data for team comparison display
   List<Map<String, dynamic>> _processTeamComparisonData() {
     if (!(_teamData.containsKey('teamComparsion') &&
@@ -1355,21 +1536,56 @@ class _MyTeamsState extends State<MyTeams> {
           ),
         ),
         const SizedBox(height: 8),
+
+        // InkWell(
+        //   onTap: () async {
+        //     setState(() {
+        //       _selectedProfileIndex = index;
+        //       _selectedType = 'All';
+        //       _selectedLetters.clear(); // Clear all letter selections
+        //       _isMultiSelectMode = false; // Exit multi-select mode
+        //       _metricIndex = 0;
+        //       if (!_isComparing) {
+        //         _clearAllSelections();
+        //       }
+        //     });
+        //     // await _fetchAllCalllog();
+        //     await _fetchTeamDetails();
+        //   },
+        //   child: AnimatedDefaultTextStyle(
+        //     duration: const Duration(milliseconds: 200),
+        //     style: AppFont.mediumText14(context).copyWith(
+        //       color: isSelected
+        //           ? Colors.blue
+        //           : (_isMultiSelectMode ? Colors.orange : null),
+        //       fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+        //     ),
+        //     child: Text(_isMultiSelectMode ? 'Reset' : 'Alls '),
+        //   ),
+        // ),
         InkWell(
           onTap: () async {
-            setState(() {
+            try {
+              // First: update selection state only
               _selectedProfileIndex = index;
               _selectedType = 'All';
-              _selectedLetters.clear(); // Clear all letter selections
-              _isMultiSelectMode = false; // Exit multi-select mode
-
+              _selectedLetters.clear();
+              _isMultiSelectMode = false;
+              _metricIndex = 0;
               if (!_isComparing) {
                 _clearAllSelections();
               }
-            });
-            await _fetchTeamDetails();
-            // Else it's "All" – do nothing
+
+              // Wait for data fetch
+              await _fetchTeamDetails();
+
+              // Then: rebuild the UI with new data
+              setState(() {});
+            } catch (e) {
+              print('Error fetching team details: $e');
+            }
           },
+
           child: AnimatedDefaultTextStyle(
             duration: const Duration(milliseconds: 200),
             style: AppFont.mediumText14(context).copyWith(
@@ -1378,10 +1594,11 @@ class _MyTeamsState extends State<MyTeams> {
                   : (_isMultiSelectMode ? Colors.orange : null),
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
             ),
-            child: Text(_isMultiSelectMode ? 'Reset' : 'All'),
+            child: Text(
+              _isMultiSelectMode ? 'Reset' : 'All',
+            ), // Fixed typo 'Alls '
           ),
         ),
-
         // InkWell(
         //   onTap: () {
         //     if (!_isComparing) {
@@ -1746,19 +1963,93 @@ class _MyTeamsState extends State<MyTeams> {
   }
 
   // Individual Performance Metrics Display
+  // Widget _buildIndividualPerformanceMetrics(BuildContext context) {
+  //   // Use selectedUserPerformance if a user is selected, else use totalPerformance
+  //   final bool isUserSelected = _selectedProfileIndex != 0;
+
+  //   // Choose appropriate stats object
+  //   // final stats = isUserSelected
+  //   //     ? _teamData['selectedUserPerformance'] ?? {}
+  //   //     : _selectedUserData['totalPerformance'] ?? {};
+  //   final stats = (_metricIndex >= 0)
+  //       ? (isUserSelected
+  //             ? _teamData['selectedUserPerformance'] ?? {}
+  //             : _selectedUserData['totalPerformance'] ?? {})
+  //       : {};
+
+  //   final metrics = [
+  //     {'label': 'Enquiries', 'key': 'enquiries'},
+  //     {'label': 'Test Drive', 'key': 'testDrives'},
+  //     {'label': 'Orders', 'key': 'orders'},
+  //     {'label': 'Cancellations', 'key': 'cancellation'},
+  //     {
+  //       'label': 'Net Orders',
+  //       'key': 'Net orders',
+  //       // 'value': (stats['Orders'] ?? 0) - (stats['Cancellation'] ?? 0)
+  //     },
+  //     {'label': 'Retails', 'key': 'retail'},
+  //   ];
+
+  //   List<Widget> rows = [];
+  //   for (int i = 0; i < metrics.length; i += 2) {
+  //     rows.add(
+  //       Row(
+  //         children: [
+  //           for (int j = i; j < i + 2 && j < metrics.length; j++) ...[
+  //             Expanded(
+  //               child: InkWell(
+  //                 onTap: () {
+  //                   setState(() {
+  //                     _metricIndex = j;
+  //                     _fetchTeamDetails(); // Refresh with selected metric
+  //                   });
+  //                 },
+  //                 child: _buildMetricCard(
+  //                   "${metrics[j].containsKey('value') ? metrics[j]['value'] : stats[metrics[j]['key']] ?? 0}",
+  //                   metrics[j]['label']!,
+  //                   Colors.blue,
+  //                   isSelected: _metricIndex == j,
+  //                 ),
+  //               ),
+  //             ),
+  //             if (j % 2 == 0) const SizedBox(width: 12),
+  //           ],
+  //         ],
+  //       ),
+  //     );
+  //     rows.add(const SizedBox(height: 12));
+  //   }
+
+  //   return Padding(
+  //     padding: const EdgeInsets.all(10),
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.stretch,
+  //       children: rows,
+  //     ),
+  //   );
+  // }
+
   Widget _buildIndividualPerformanceMetrics(BuildContext context) {
-    // Use selectedUserPerformance if a user is selected, else use totalPerformance
     final bool isUserSelected = _selectedProfileIndex != 0;
 
-    // Choose appropriate stats object
-    // final stats = isUserSelected
-    //     ? _teamData['selectedUserPerformance'] ?? {}
-    //     : _selectedUserData['totalPerformance'] ?? {};
-    final stats = (_metricIndex >= 0)
-        ? (isUserSelected
-              ? _teamData['selectedUserPerformance'] ?? {}
-              : _selectedUserData['totalPerformance'] ?? {})
-        : {};
+    // Choose appropriate stats object with fallback
+    final stats = isUserSelected
+        ? (_teamData['selectedUserPerformance'] ?? {})
+        : (_selectedUserData['totalPerformance'] ?? {});
+    //  final stats = (_isMultiSelectMode || _isComparing)
+    //       ? (_teamData["teamComparsion"] as List<dynamic>? ?? [])
+    //             .where((member) => member["isSelected"] == true)
+    //             .toList()
+    //       : (_teamData["teamComparsion"] as List<dynamic>? ?? []);
+
+    // Debug print to check stats
+    print('Stats for metrics: $stats, isUserSelected: $isUserSelected');
+
+    if (stats.isEmpty) {
+      print(
+        'Warning: Stats is empty. _selectedUserData: $_selectedUserData, _teamData: $_teamData',
+      );
+    }
 
     final metrics = [
       {'label': 'Enquiries', 'key': 'enquiries'},
@@ -1767,8 +2058,10 @@ class _MyTeamsState extends State<MyTeams> {
       {'label': 'Cancellations', 'key': 'cancellation'},
       {
         'label': 'Net Orders',
-        'key': 'Net orders',
-        // 'value': (stats['Orders'] ?? 0) - (stats['Cancellation'] ?? 0)
+        'key': 'netOrders',
+        'value': ((stats['orders'] ?? 0) - (stats['cancellation'] ?? 0))
+            .clamp(0, double.infinity)
+            .toInt(),
       },
       {'label': 'Retails', 'key': 'retail'},
     ];
@@ -1788,7 +2081,9 @@ class _MyTeamsState extends State<MyTeams> {
                     });
                   },
                   child: _buildMetricCard(
-                    "${metrics[j].containsKey('value') ? metrics[j]['value'] : stats[metrics[j]['key']] ?? 0}",
+                    metrics[j].containsKey('value')
+                        ? metrics[j]['value'].toString()
+                        : (stats[metrics[j]['key']]?.toString() ?? '0'),
                     metrics[j]['label']!,
                     Colors.blue,
                     isSelected: _metricIndex == j,
@@ -1805,10 +2100,12 @@ class _MyTeamsState extends State<MyTeams> {
 
     return Padding(
       padding: const EdgeInsets.all(10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: rows,
-      ),
+      child: stats.isEmpty
+          ? const Center(child: Text('No data available'))
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: rows,
+            ),
     );
   }
 

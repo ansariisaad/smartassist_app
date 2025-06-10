@@ -181,7 +181,7 @@ class _LeadsState extends State<Leads> {
               child: _buildRightInfoCard(
                 context,
                 'You must pursue',
-                'More enquiries to achieve your target',
+                'more enquiries to achieve your target',
                 '${selectedData['enquiriesToAchieveTarget'] ?? 0}',
                 screenWidth,
               ),
@@ -207,8 +207,8 @@ class _LeadsState extends State<Leads> {
                 Expanded(
                   child: _buildInfoCard(
                     context,
-                    'Follow-ups recommended for order',
-                    'Follow-ups done by you per lost enquiry',
+                    'Follow ups recommended for order',
+                    'Follow ups done by you per lost enquiry',
                     '${selectedData['followupsPerLostEnquiry'] ?? '0'}',
                     '2',
                     // '${selectedData['enquiryBank'] ?? 0}',
@@ -221,8 +221,8 @@ class _LeadsState extends State<Leads> {
                 Expanded(
                   child: _buildInfoCard(
                     context,
-                    'Follow-ups done by you per lost digital enquiry',
-                    'Follow-ups recommended for order',
+                    'Follow ups done by you per lost digital enquiry',
+                    'Follow ups recommended for order',
                     '3',
                     '${selectedData['followupsPerLostDigitalEnquiry'] ?? '0'}',
                     screenWidth,
@@ -237,7 +237,7 @@ class _LeadsState extends State<Leads> {
           Expanded(
             child: _buildRightInfoCard2(
               context,
-              'On an average, to take',
+              'On an average, you take',
               'to convert an enquiry to order',
               '${selectedData['avgEnquiry'] ?? 0} days',
               screenWidth,

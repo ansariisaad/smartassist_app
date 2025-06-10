@@ -9,7 +9,7 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:smartassist/services/leads_srv.dart';
+import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
@@ -290,7 +290,21 @@ class _FollowupsEditState extends State<FollowupsEdit> {
         print(response.body);
         Navigator.pop(context, true);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Follow-up submitted successfully!')),
+          SnackBar(
+            content: Text(
+              'Folllow up updated successfully',
+              style: GoogleFonts.poppins(),
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+            behavior:
+                SnackBarBehavior.floating, // Optional: Makes it float above UI
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(
+                10,
+              ), // Optional: rounded corners
+            ),
+          ),
         );
       } else {
         final Map<String, dynamic> responseData = json.decode(response.body);
@@ -532,7 +546,7 @@ class _FollowupsEditState extends State<FollowupsEdit> {
                 Container(
                   margin: const EdgeInsets.symmetric(vertical: 10),
                   child: Text(
-                    'Update Follow-up',
+                    'Update Follow up',
                     style: AppFont.popupTitleBlack(context),
                   ),
                 ),

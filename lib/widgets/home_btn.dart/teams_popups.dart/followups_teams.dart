@@ -8,7 +8,7 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:smartassist/services/leads_srv.dart';
+import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
@@ -611,7 +611,7 @@ class _FollowupsTeamsState extends State<FollowupsTeams> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Plan a Followup',
+                  'Plan a Follow up',
                   style: AppFont.popupTitleBlack(context),
                 ),
                 TextButton(

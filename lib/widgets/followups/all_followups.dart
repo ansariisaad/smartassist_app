@@ -7,6 +7,7 @@ import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Leads/single_details_pages/singleLead_followup.dart';
 import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/followups.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:smartassist/widgets/buttons/add_btn.dart';
 
 class AllFollowupItem extends StatefulWidget {
   final String name, mobile, taskId;
@@ -339,7 +340,7 @@ class _AllFollowupsItemState extends State<AllFollowupItem>
       child: Text(
         widget.vehicle,
         style: AppFont.dashboardCarName(context),
-        maxLines: 2, // Allow up to 2 lines
+        maxLines: 1, // Allow up to 2 lines
         overflow: TextOverflow
             .ellipsis, // Show ellipsis if it overflows beyond 2 lines
         softWrap: true, // Allow wrapping
@@ -354,7 +355,10 @@ class _AllFollowupsItemState extends State<AllFollowupItem>
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => FollowupsDetails(leadId: widget.leadId),
+              builder: (context) => FollowupsDetails(
+                leadId: widget.leadId,
+                isFromFreshlead: false,
+              ),
             ),
           );
         } else {
@@ -529,7 +533,7 @@ class _AllFollowupState extends State<AllFollowup> {
           const Padding(
             padding: EdgeInsets.fromLTRB(15, 15, 0, 0),
             child: Text(
-              "All Followups",
+              "All Follow ups",
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
           ),

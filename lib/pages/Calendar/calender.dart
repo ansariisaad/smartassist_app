@@ -6,7 +6,7 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/config/getX/fab.controller.dart';
 import 'package:smartassist/pages/Calendar/tasks/addTask.dart';
-import 'package:smartassist/services/leads_srv.dart';
+import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/widgets/calender/appointment.dart';
 import 'package:smartassist/widgets/calender/calender.dart';
 import 'package:smartassist/widgets/calender/calender_task.dart';
@@ -184,7 +184,7 @@ class _CalenderState extends State<Calender> {
     return Scaffold(
       // backgroundColor: const Color(0xffF2F2F2),
       appBar: AppBar(
-        backgroundColor: Colors.blue,
+        backgroundColor: const Color(0xFF1380FE),
         automaticallyImplyLeading: false,
         // title: Text(
         //   DateFormat('MMMM yyyy').format(_focusedDay),
@@ -323,7 +323,7 @@ class _CalenderState extends State<Calender> {
                     },
                   ),
                   _buildPopupItem(
-                    Icons.receipt_long_outlined,
+                    Icons.receipt_long_rounded,
                     "Enquiry",
                     -60,
                     onTap: () {

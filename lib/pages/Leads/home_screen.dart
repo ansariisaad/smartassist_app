@@ -13,7 +13,7 @@ import 'package:smartassist/config/controller/tab_controller.dart';
 import 'package:smartassist/config/getX/fab.controller.dart';
 import 'package:smartassist/pages/home/gloabal_search_page/global_search.dart';
 import 'package:smartassist/pages/notification/notification.dart';
-import 'package:smartassist/services/leads_srv.dart';
+import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/home_btn.dart/dashboard_analytics_two.dart';
 import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/appointment_popup.dart';
@@ -439,6 +439,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final responsiveFontSize = screenWidth * 0.035;
     return WillPopScope(
       onWillPop: _onWillPop,
       child: GestureDetector(
@@ -555,9 +557,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 filled: true,
                                                 fillColor:
                                                     AppColors.containerBg,
-                                                hintText: 'Search',
+                                                hintText:
+                                                    'Search by name, email or phone',
                                                 hintStyle: GoogleFonts.poppins(
-                                                  fontSize: 14,
+                                                  fontSize: responsiveFontSize,
                                                   color: AppColors.fontColor,
                                                   fontWeight: FontWeight.w400,
                                                 ),
@@ -834,7 +837,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                   ),
                   _buildPopupItem(
-                    Icons.receipt_long_outlined,
+                    Icons.receipt_long_rounded,
                     "Enquiry",
                     -60,
                     onTap: () {

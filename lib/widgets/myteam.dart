@@ -666,7 +666,9 @@ class _MyteamState extends State<Myteam> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => FollowupsDetails(leadId: leadId),
+                    builder: (context) => FollowupsDetails(leadId: leadId,
+                      isFromFreshlead: false,
+                    ),
                   ),
                 );
               } else {

@@ -313,7 +313,9 @@ class _GlobalSearchState extends State<GlobalSearch> {
                 final result = _searchResults[index];
                 return ListTile(
                   onTap: () {
-                    Get.to(() => FollowupsDetails(leadId: result['lead_id']));
+                    Get.to(() => FollowupsDetails(leadId: result['lead_id'],
+                        isFromFreshlead: false,
+                      ));
                   },
                   title: Row(
                     children: [

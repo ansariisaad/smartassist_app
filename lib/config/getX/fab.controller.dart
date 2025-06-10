@@ -42,6 +42,8 @@ import 'package:get/get.dart';
 class FabController extends GetxController {
   final ScrollController scrollController = ScrollController();
   final RxBool isFabExpanded = false.obs;
+  final RxList events = <dynamic>[].obs;
+
   var isFabDisabled = false.obs; // Variable to track disabled state
   
   // Add these new variables for scroll hide/show functionality

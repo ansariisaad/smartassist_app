@@ -374,8 +374,10 @@ class _AllFollowupsItemState extends State<AllTestrive>
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => FollowupsDetails(leadId: widget.leadId),
-            ),
+
+                builder: (context) => FollowupsDetails(leadId: widget.leadId,
+                isFromFreshlead: false,
+              )),
           );
         } else {
           print("Invalid leadId");

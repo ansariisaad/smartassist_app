@@ -12,7 +12,7 @@ import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/config/getX/fab.controller.dart';
 import 'package:smartassist/pages/Leads/single_details_pages/singleLead_followup.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:smartassist/services/leads_srv.dart';
+import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/google_location.dart';
 import 'package:smartassist/widgets/popups_widget/vehicleSearch_textfield.dart';
@@ -470,7 +470,7 @@ class _CreateLeadsState extends State<CreateLeads> {
       }
 
       if (_selectedType.isEmpty) {
-        _errors['leadSource'] = 'Please select a brand';
+        _errors['leadSource'] = 'Please select a lead source';
         isValid = false;
       }
     });
@@ -2301,7 +2301,7 @@ class _CreateLeadsState extends State<CreateLeads> {
         Padding(
           padding: const EdgeInsets.only(left: 5),
           child: Text(
-            "₹$startText lakh - ₹$endText lakh",
+            "INR:$startText lakh - INR:$endText lakh",
             style: AppFont.smallText(context),
           ),
         ),
@@ -2319,7 +2319,7 @@ class _CreateLeadsState extends State<CreateLeads> {
             min: _minValue,
             max: _maxValue,
             divisions: 160, // 160 steps from 40L to 200L in 1L steps
-            labels: RangeLabels("₹${startText}L", "₹${endText}L"),
+            labels: RangeLabels("INR:${startText}L", "INR:${endText}L"),
             onChanged: (RangeValues values) {
               // Round to nearest lakh
               final double newStart = (values.start / 100000).round() * 100000;
@@ -2680,7 +2680,8 @@ class _CreateLeadsState extends State<CreateLeads> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => FollowupsDetails(leadId: leadId),
+                builder: (context) =>
+                    FollowupsDetails(leadId: leadId, isFromFreshlead: true),
               ),
             );
           }

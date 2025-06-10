@@ -10,7 +10,7 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:http/http.dart' as http;
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/config/getX/fab.controller.dart';
-import 'package:smartassist/services/leads_srv.dart';
+import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/bottom_navigation.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
@@ -27,8 +27,13 @@ import 'package:smartassist/widgets/whatsapp_chat.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class FollowupsDetails extends StatefulWidget {
+  final bool isFromFreshlead;
   final String leadId;
-  const FollowupsDetails({super.key, required this.leadId});
+  const FollowupsDetails({
+    super.key,
+    required this.leadId,
+    required this.isFromFreshlead,
+  });
 
   @override
   State<FollowupsDetails> createState() => _FollowupsDetailsState();
@@ -107,6 +112,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
 
     // Initially, set the selected widget
     _selectedTaskWidget = TimelineUpcoming(
+      isFromTeams: false,
       tasks: upcomingTasks,
       upcomingEvents: upcomingEvents,
     );
@@ -314,6 +320,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
 
         // Now you can safely pass the upcomingTasks and completedTasks to the widgets.
         _selectedTaskWidget = TimelineUpcoming(
+          isFromTeams: false,
           tasks: upcomingTasks,
           upcomingEvents: upcomingEvents,
         );
@@ -332,6 +339,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
       if (index == 0) {
         // Show upcoming tasks
         _selectedTaskWidget = TimelineUpcoming(
+          isFromTeams: false,
           tasks: upcomingTasks,
           upcomingEvents: upcomingEvents,
         );
@@ -385,9 +393,17 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
       children: [
         _buildToggleOption(0, 'Upcoming', AppColors.colorsBlue),
         const SizedBox(width: 10),
-        _buildToggleOption(1, 'Completed', AppColors.sideGreen),
+        _buildToggleOption(
+          1,
+          'Completed',
+          const Color.fromRGBO(81, 223, 121, 1),
+        ),
         const SizedBox(width: 10),
-        _buildToggleOption(2, 'Overdue ($count)', AppColors.sideRed),
+        _buildToggleOption(
+          2,
+          'Overdue ($count)',
+          const Color.fromRGBO(236, 81, 81, 1),
+        ),
       ],
     );
   }
@@ -506,11 +522,11 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
       child: Column(
         children: [
           // All Calls
-          _buildRow('All Calls', _callLogs['all'] ?? 0, '', Icons.call),
+          _buildRow('All calls', _callLogs['all'] ?? 0, '', Icons.call),
 
           // Outgoing Calls
           _buildRow(
-            'Outgoing Calls',
+            'Outgoing calls',
             _callLogs['outgoing'] ?? 0,
             'outgoing',
             Icons.phone_forwarded_outlined,
@@ -518,7 +534,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
 
           // Incoming Calls
           _buildRow(
-            'Incoming Calls',
+            'Incoming calls',
             _callLogs['incoming'] ?? 0,
             'incoming',
             Icons.call,
@@ -526,7 +542,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
 
           // Missed Calls
           _buildRow(
-            'Missed Calls',
+            'Missed calls',
             _callLogs['missed'] ?? 0,
             'missed',
             Icons.call_missed,
@@ -1035,7 +1051,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                                       borderRadius: BorderRadius.circular(50),
                                     ),
                                     child: const Icon(
-                                      Icons.receipt_long_outlined,
+                                      Icons.receipt_long_rounded,
                                       size: 40,
                                       color: Color.fromRGBO(2, 118, 254, 1),
                                     ),
@@ -1197,7 +1213,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                                     const SizedBox(width: 10),
                                     Expanded(
                                       child: _buildContactRow(
-                                        icon: Icons.receipt_long_outlined,
+                                        icon: Icons.receipt_long_rounded,
                                         title: 'Enquiry type',
                                         subtitle: enquiry_type,
                                       ),
@@ -1479,22 +1495,33 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                 Expanded(
                   child: GestureDetector(
                     onTap: () {
-                      if (areButtonsEnabled()) {
-                        handleLostAction();
+                      if (widget.isFromFreshlead) {
+                        _showFollowupPopup(context, widget.leadId);
                       } else {
-                        showLostRequiredDialog(context);
+                        if (areButtonsEnabled()) {
+                          handleLostAction();
+                        } else {
+                          showLostRequiredDialog(context);
+                        }
                       }
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        border: Border.all(color: Colors.red, width: 1),
+                        border: Border.all(
+                          color: widget.isFromFreshlead
+                              ? Colors.blue
+                              : Colors.red,
+                          width: 1,
+                        ),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        'Lost',
-                        style: AppFont.mediumText14red(context),
+                        widget.isFromFreshlead ? 'Follow up?' : 'Lost',
+                        style: widget.isFromFreshlead
+                            ? AppFont.mediumText14bluee(context)
+                            : AppFont.mediumText14red(context),
                         textAlign: TextAlign.center,
                       ),
                     ),

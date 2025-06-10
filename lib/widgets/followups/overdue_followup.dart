@@ -458,9 +458,13 @@ class _overdueeFollowupsItemState extends State<overdueeFollowupsItem>
 
   Widget _buildSubjectDetails(BuildContext context) {
     IconData icon;
-    if (widget.subject == 'Call') {
+   if (widget.subject == 'Call') {
       icon = Icons.phone_in_talk;
     } else if (widget.subject == 'Send SMS') {
+      icon = Icons.mail_rounded;
+    } else if (widget.subject == 'Provide quotation') {
+      icon = Icons.mail_rounded;
+    } else if (widget.subject == 'Send Email') {
       icon = Icons.mail_rounded;
     } else {
       icon = Icons.phone; // fallback icon

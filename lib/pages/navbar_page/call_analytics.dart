@@ -12,8 +12,14 @@ import 'package:smartassist/utils/storage.dart';
 
 class CallAnalytics extends StatefulWidget {
   final String userId;
+  final String userName;
   final bool isFromSM;
-  const CallAnalytics({super.key, required this.userId, this.isFromSM = false});
+  const CallAnalytics({
+    super.key,
+    required this.userId,
+    this.isFromSM = false,
+    required this.userName,
+  });
 
   @override
   State<CallAnalytics> createState() => _CallAnalyticsState();
@@ -404,7 +410,7 @@ class _CallAnalyticsState extends State<CallAnalytics>
         title: Align(
           alignment: Alignment.centerLeft,
           child: Text(
-            'My Call Analytics',
+            widget.isFromSM ? widget.userName : 'Call Analytics',
             style: GoogleFonts.poppins(
               fontSize: 18,
               fontWeight: FontWeight.w400,
@@ -431,25 +437,28 @@ class _CallAnalyticsState extends State<CallAnalytics>
                 ),
               ),
       ),
-      floatingActionButton: SizedBox(
-        width: 120,
-        child: FloatingActionButton(
-          backgroundColor: Colors.blue,
-          // elevation: 0,
-          onPressed: () {
-            // CallLog();
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const CallLogs()),
-            );
-          },
-          tooltip: 'Exclude your numbers..',
-          child: Text(
-            'Exclude Contacts',
-            style: AppFont.smallTextWhite1(context),
-          ),
-        ),
-      ),
+
+      floatingActionButton: !widget.isFromSM
+          ? SizedBox(
+              width: 120,
+              child: FloatingActionButton(
+                backgroundColor: Colors.blue,
+                // elevation: 0,
+                onPressed: () {
+                  // CallLog();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const CallLogs()),
+                  );
+                },
+                tooltip: 'Exclude your numbers..',
+                child: Text(
+                  'Exclude Contacts',
+                  style: AppFont.smallTextWhite1(context),
+                ),
+              ),
+            )
+          : null,
     );
   }
 

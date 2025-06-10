@@ -252,9 +252,11 @@ class _AllFollowupsItemState extends State<allOppointment>
 
   Widget _buildSubjectDetails(BuildContext context) {
     IconData icon;
-    if (widget.subject == 'Call') {
+    if (widget.subject == 'Meeting') {
       icon = Icons.phone_in_talk;
-    } else if (widget.subject == 'Send SMS') {
+    } else if (widget.subject == 'Provide Quotation') {
+      icon = Icons.mail_rounded;
+    } else if (widget.subject == 'Showroom appointment') {
       icon = Icons.mail_rounded;
     } else {
       icon = Icons.phone; // fallback icon

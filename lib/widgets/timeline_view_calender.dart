@@ -260,12 +260,15 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
       appBar: AppBar(
         backgroundColor: Colors.blue,
         automaticallyImplyLeading: false,
-        title: Text(
-          'Calendar',
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w500,
-            color: Colors.white,
+        title: Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'Calendar',
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
           ),
         ),
         actions: [

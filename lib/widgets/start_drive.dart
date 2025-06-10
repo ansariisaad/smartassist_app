@@ -941,7 +941,9 @@ class _StartDriveMapState extends State<StartDriveMap> {
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: AppColors.backgroundLightGrey,
-          title: Text('Test Drive', style: AppFont.appbarfontgrey(context)),
+          title: Align(
+             alignment: Alignment.centerLeft,
+            child: Text('Test Drive', style: AppFont.appbarfontgrey(context))),
           leading: IconButton(
             icon: const Icon(
               Icons.arrow_back_ios_new_outlined,

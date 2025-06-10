@@ -525,9 +525,12 @@ class _CallHistoryState extends State<CallHistory> {
     double screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          '$_categoryTitle Calls',
-          style: AppFont.appbarfontgrey(context),
+        title: Align(
+           alignment: Alignment.centerLeft,
+          child: Text(
+            '$_categoryTitle Calls',
+            style: AppFont.appbarfontgrey(context),
+          ),
         ),
         leading: IconButton(
           icon: const Icon(

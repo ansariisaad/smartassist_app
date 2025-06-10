@@ -115,6 +115,7 @@ class _AllAppointmentState extends State<AllAppointment> {
           ),
           icon: const Icon(Icons.arrow_back_ios_outlined, color: Colors.white),
         ),
+
         backgroundColor: const Color(0xFF1380FE),
         title: const Text(
           'Your Appointments',

@@ -2753,7 +2753,7 @@ class _MyTeamsState extends State<MyTeams> {
     );
   }
 
-  Widget _buildAnalyticsTable() {
+  Widget  _buildAnalyticsTable() {
     return _buildTableContent();
   }
 
@@ -3066,8 +3066,9 @@ class _MyTeamsState extends State<MyTeams> {
               context,
               MaterialPageRoute(
                 builder: (context) => CallAnalytics(
+                  userName: member['name'].toString(),
                   userId: member['user_id'].toString(),
-                  isFromSM: true,
+                  isFromSM: true,  
                 ),
               ),
             );
@@ -3245,15 +3246,15 @@ class _MyTeamsState extends State<MyTeams> {
       return _buildTableRow([
         InkWell(
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => CallAnalytics(
-                  userId: member['user_id'].toString(),
-                  isFromSM: true,
-                ),
-              ),
-            );
+            // Navigator.push(
+            //   context,
+            //   MaterialPageRoute(
+            //     builder: (context) => CallAnalytics(
+            //       userId: member['user_id'].toString(),
+            //       isFromSM: true,
+            //     ),
+            //   ),
+            // );
           },
           child: Row(
             children: [

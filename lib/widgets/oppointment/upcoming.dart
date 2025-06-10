@@ -488,10 +488,20 @@ class _OppUpcomingItemState extends State<OppUpcomingItem>
   }
 
   Widget _buildSubjectDetails(BuildContext context) {
+    IconData icon;
+    if (widget.subject == 'Meeting') {
+      icon = Icons.phone_in_talk;
+    } else if (widget.subject == 'Provide Quotation') {
+      icon = Icons.mail_rounded;
+    } else if (widget.subject == 'Showroom appointment') {
+      icon = Icons.mail_rounded;
+    } else {
+      icon = Icons.phone; // fallback icon
+    }
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Icon(Icons.people_alt_rounded, color: Colors.blue, size: 18),
+        Icon(icon, color: Colors.blue, size: 18),
         const SizedBox(width: 5),
         Text('${widget.subject},', style: AppFont.smallText(context)),
       ],

@@ -207,13 +207,13 @@ class AppFont {
     return GoogleFonts.poppins(
       fontSize: scaleFont(context, fontSize),
       color: color,
-      fontWeight: FontWeight.w700,
+      fontWeight: FontWeight.w600,
     );
   }
 
   static TextStyle dashboardCarName(
     BuildContext context, {
-    double fontSize = 12,
+    double fontSize = 13,
     Color color = const Color.fromRGBO(78, 78, 78, 1),
   }) {
     return GoogleFonts.poppins(

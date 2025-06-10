@@ -395,50 +395,49 @@ class _CalendarSmState extends State<CalendarSm> {
           ),
         ],
       ),
-      body: Stack(
-        children: [
-          Column(
-            children: [
-              // _buildProfileAvatars(),
-              // Team/Your selection buttons
-              _buildTeamYourButtons(),
+      body:
+          // _isLoading
+          //     ? const Center(child: CircularProgressIndicator(color: Colors.blue))
+          //     :
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                // Team/Your selection buttons
+                _buildTeamYourButtons(),
 
-              // Team members avatars (show only when team is selected)
-              if (_selectedType == 'team') _buildProfileAvatars(),
+                // Team members avatars (show only when team is selected)
+                if (_selectedType == 'team') _buildProfileAvatars(),
 
-              // Calendar at the top
-              CalenderWidget(
-                key: ValueKey(_calendarFormat),
-                calendarFormat: _calendarFormat,
-                onDateSelected: _handleDateSelected,
-              ),
-              // Date header
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
+                // Calendar at the top
+                CalenderWidget(
+                  key: ValueKey(_calendarFormat),
+                  calendarFormat: _calendarFormat,
+                  onDateSelected: _handleDateSelected,
                 ),
-                width: double.infinity,
-                child: Text(
-                  DateFormat(
-                    'EEEE, MMMM d',
-                  ).format(_selectedDay ?? _focusedDay),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+
+                // Date header
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  width: double.infinity,
+                  child: Text(
+                    DateFormat(
+                      'EEEE, MMMM d',
+                    ).format(_selectedDay ?? _focusedDay),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-              ),
-              // Timeline view
-              _isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(color: Colors.blue),
-                    )
-                  : Expanded(child: _buildImprovedTimelineView()),
-            ],
+
+                // Timeline view - no longer in Expanded
+                _buildImprovedTimelineView(),
+              ],
+            ),
           ),
-        ],
-      ),
     );
   }
 

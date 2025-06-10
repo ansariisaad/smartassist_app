@@ -341,14 +341,9 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              _buildUserDetails(context),
-                              _buildVerticalDivider(15),
-                              _buildCarModel(context),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
+                          _buildUserDetails(context),
+                          _buildCarModel(context),
+                          const SizedBox(height: 2),
                           Row(
                             children: [
                               _buildSubjectDetails(context),
@@ -442,6 +437,10 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
       icon = Icons.phone_in_talk;
     } else if (widget.subject == 'Send SMS') {
       icon = Icons.mail_rounded;
+    } else if (widget.subject == 'Provide quotation') {
+      icon = Icons.mail_rounded;
+    } else if (widget.subject == 'Send Email') {
+      icon = Icons.mail_rounded;
     } else {
       icon = Icons.phone; // fallback icon
     }
@@ -525,16 +524,13 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
   // }
 
   Widget _buildCarModel(BuildContext context) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 100),
-      child: Text(
-        widget.vehicle,
-        style: AppFont.dashboardCarName(context),
-        maxLines: 2, // Allow up to 2 lines
-        overflow: TextOverflow
-            .ellipsis, // Show ellipsis if it overflows beyond 2 lines
-        softWrap: true, // Allow wrapping
-      ),
+    return Text(
+      widget.vehicle,
+      style: AppFont.dashboardCarName(context),
+      maxLines: 2, // Allow up to 2 lines
+      overflow:
+          TextOverflow.ellipsis, // Show ellipsis if it overflows beyond 2 lines
+      softWrap: true, // Allow wrapping
     );
   }
 
@@ -602,7 +598,7 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
       }
     }
   }
-  
+
   // void _phoneAction() {
   //   print("Call action triggered for ${widget.mobile}");
 

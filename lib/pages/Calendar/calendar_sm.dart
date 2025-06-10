@@ -367,12 +367,15 @@ class _CalendarSmState extends State<CalendarSm> {
       appBar: AppBar(
         backgroundColor: Colors.blue,
         automaticallyImplyLeading: false,
-        title: Text(
-          'Calendar',
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w500,
-            color: Colors.white,
+        title: Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'Calendar',
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
           ),
         ),
         actions: [
@@ -506,7 +509,28 @@ class _CalendarSmState extends State<CalendarSm> {
     );
   }
 
+  // Add this variable to your class
+  String? _selectedLetter;
+
   Widget _buildProfileAvatars() {
+    List<Map<String, dynamic>> sortedTeamMembers = List.from(_teamMembers);
+    sortedTeamMembers.sort(
+      (a, b) => (a['fname'] ?? '').toString().toLowerCase().compareTo(
+        (b['fname'] ?? '').toString().toLowerCase(),
+      ),
+    );
+
+    // Get unique letters from team members
+    Set<String> uniqueLetters = {};
+    for (var member in sortedTeamMembers) {
+      String firstLetter = (member['fname'] ?? '').toString().toUpperCase();
+      if (firstLetter.isNotEmpty) {
+        uniqueLetters.add(firstLetter[0]);
+      }
+    }
+
+    List<String> sortedLetters = uniqueLetters.toList()..sort();
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Container(
@@ -516,21 +540,151 @@ class _CalendarSmState extends State<CalendarSm> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            for (int i = 0; i < _teamMembers.length; i++)
-              _buildProfileAvatar(
-                _teamMembers[i]['fname'] ?? '',
-                i + 1, // Starts from 1 because 0 is 'All'
-                _teamMembers[i]['user_id'] ?? '',
-                _teamMembers[i]['profile'], // Pass the profile URL
-                _teamMembers[i]['initials'] ?? '', // Pass the initials
-              ),
+            // Build letters with their members inline
+            ...sortedLetters.expand(
+              (letter) => _buildLetterWithMembers(letter),
+            ),
           ],
         ),
       ),
     );
   }
 
-  // Individual profile avatar
+  // Method to build letter with its members inline
+  List<Widget> _buildLetterWithMembers(String letter) {
+    List<Widget> widgets = [];
+    bool isSelected = _selectedLetter == letter;
+
+    // Add the letter avatar
+    widgets.add(_buildAlphabetAvatar(letter));
+
+    // If letter is selected, add its members right after
+    if (isSelected) {
+      List<Map<String, dynamic>> letterMembers = _teamMembers.where((member) {
+        String firstName = (member['fname'] ?? '').toString().toUpperCase();
+        return firstName.startsWith(letter);
+      }).toList();
+
+      // Sort members alphabetically
+      letterMembers.sort(
+        (a, b) => (a['fname'] ?? '').toString().toLowerCase().compareTo(
+          (b['fname'] ?? '').toString().toLowerCase(),
+        ),
+      );
+
+      // Add visual separator before members
+      if (letterMembers.isNotEmpty) {
+        widgets.add(
+          Container(
+            width: 2,
+            height: 40,
+            margin: const EdgeInsets.symmetric(horizontal: 4),
+            decoration: BoxDecoration(
+              color: Colors.blue.withOpacity(0.4),
+              borderRadius: BorderRadius.circular(1),
+            ),
+          ),
+        );
+      }
+
+      // Add member avatars
+      for (int i = 0; i < letterMembers.length; i++) {
+        int memberIndex =
+            _teamMembers.indexWhere(
+              (member) => member['user_id'] == letterMembers[i]['user_id'],
+            ) +
+            1;
+
+        widgets.add(
+          _buildProfileAvatar(
+            letterMembers[i]['fname'] ?? '',
+            memberIndex,
+            letterMembers[i]['user_id'] ?? '',
+            letterMembers[i]['profile'],
+            letterMembers[i]['initials'] ?? '',
+          ),
+        );
+      }
+
+      // Add visual separator after members
+      if (letterMembers.isNotEmpty) {
+        widgets.add(
+          Container(
+            width: 2,
+            height: 40,
+            margin: const EdgeInsets.symmetric(horizontal: 4),
+            decoration: BoxDecoration(
+              color: Colors.blue.withOpacity(0.4),
+              borderRadius: BorderRadius.circular(1),
+            ),
+          ),
+        );
+      }
+    }
+
+    return widgets;
+  }
+
+  // Alphabet avatar method
+  Widget _buildAlphabetAvatar(String letter) {
+    bool isSelected = _selectedLetter == letter;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        InkWell(
+          onTap: () {
+            setState(() {
+              // Single selection: if same letter is tapped, deselect it
+              if (_selectedLetter == letter) {
+                _selectedLetter = null;
+              } else {
+                _selectedLetter = letter;
+              }
+
+              // Update your calendar filtering logic here
+              _filterCalendarByLetter();
+            });
+          },
+          child: Container(
+            margin: const EdgeInsets.fromLTRB(10, 0, 5, 0),
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isSelected
+                  ? Colors.blue.withOpacity(0.15)
+                  : Colors.grey.withOpacity(0.1),
+              border: isSelected
+                  ? Border.all(color: Colors.blue, width: 2.5)
+                  : Border.all(color: Colors.grey.withOpacity(0.3), width: 1),
+            ),
+            child: Center(
+              child: Text(
+                letter,
+                style: TextStyle(
+                  fontSize: isSelected ? 22 : 20,
+                  fontWeight: FontWeight.bold,
+                  color: isSelected ? Colors.blue : Colors.grey.shade600,
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          letter,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            color: isSelected ? Colors.blue : Colors.black,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Your existing profile avatar method (unchanged)
   Widget _buildProfileAvatar(
     String firstName,
     int index,
@@ -549,7 +703,9 @@ class _CalendarSmState extends State<CalendarSm> {
             height: 50,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.backgroundLightGrey,
+              color: Colors.grey.withOpacity(
+                0.1,
+              ), // Updated to match AppColors.backgroundLightGrey
               border: _selectedProfileIndex == index
                   ? Border.all(color: Colors.blue, width: 2)
                   : null,
@@ -562,7 +718,6 @@ class _CalendarSmState extends State<CalendarSm> {
                       height: 50,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
-                        // Fallback to initials if image fails to load
                         return Center(
                           child: Text(
                             initials.toUpperCase(),
@@ -597,6 +752,124 @@ class _CalendarSmState extends State<CalendarSm> {
       ],
     );
   }
+
+  // Add this method to handle calendar filtering
+  void _filterCalendarByLetter() {
+    if (_selectedLetter == null) {
+      // Show all team members in calendar
+      // Your logic to show all calendar events
+    } else {
+      // Filter calendar events by selected letter
+      List<String> filteredUserIds = [];
+
+      List<Map<String, dynamic>> letterMembers = _teamMembers.where((member) {
+        String firstName = (member['fname'] ?? '').toString().toUpperCase();
+        return firstName.startsWith(_selectedLetter!);
+      }).toList();
+
+      for (var member in letterMembers) {
+        filteredUserIds.add(member['user_id'] ?? '');
+      }
+
+      // Your logic to filter calendar events by filteredUserIds
+      // Example: _filteredEvents = _allEvents.where((event) => filteredUserIds.contains(event['user_id'])).toList();
+    }
+
+    // Refresh your calendar view
+    // setState(() {});
+  }
+
+  // Widget _buildProfileAvatars() {
+  //   return SingleChildScrollView(
+  //     scrollDirection: Axis.horizontal,
+  //     child: Container(
+  //       margin: const EdgeInsets.only(top: 10),
+  //       height: 90,
+  //       padding: const EdgeInsets.symmetric(horizontal: 0),
+  //       child: Row(
+  //         crossAxisAlignment: CrossAxisAlignment.center,
+  //         children: [
+  //           for (int i = 0; i < _teamMembers.length; i++)
+  //             _buildProfileAvatar(
+  //               _teamMembers[i]['fname'] ?? '',
+  //               i + 1, // Starts from 1 because 0 is 'All'
+  //               _teamMembers[i]['user_id'] ?? '',
+  //               _teamMembers[i]['profile'], // Pass the profile URL
+  //               _teamMembers[i]['initials'] ?? '', // Pass the initials
+  //             ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
+
+  // // Individual profile avatar
+  // Widget _buildProfileAvatar(
+  //   String firstName,
+  //   int index,
+  //   String userId,
+  //   String? profileUrl,
+  //   String initials,
+  // ) {
+  //   return Column(
+  //     mainAxisSize: MainAxisSize.min,
+  //     children: [
+  //       InkWell(
+  //         onTap: () => _handleTeamMemberSelection(index, userId),
+  //         child: Container(
+  //           margin: const EdgeInsets.symmetric(horizontal: 15),
+  //           width: 50,
+  //           height: 50,
+  //           decoration: BoxDecoration(
+  //             shape: BoxShape.circle,
+  //             color: AppColors.backgroundLightGrey,
+  //             border: _selectedProfileIndex == index
+  //                 ? Border.all(color: Colors.blue, width: 2)
+  //                 : null,
+  //           ),
+  //           child: ClipOval(
+  //             child: profileUrl != null && profileUrl.isNotEmpty
+  //                 ? Image.network(
+  //                     profileUrl,
+  //                     width: 50,
+  //                     height: 50,
+  //                     fit: BoxFit.cover,
+  //                     errorBuilder: (context, error, stackTrace) {
+  //                       // Fallback to initials if image fails to load
+  //                       return Center(
+  //                         child: Text(
+  //                           initials.toUpperCase(),
+  //                           style: TextStyle(
+  //                             fontSize: 16,
+  //                             fontWeight: FontWeight.bold,
+  //                             color: Colors.black,
+  //                           ),
+  //                         ),
+  //                       );
+  //                     },
+  //                   )
+  //                 : Center(
+  //                     child: Text(
+  //                       initials.toUpperCase(),
+  //                       style: TextStyle(
+  //                         fontSize: 16,
+  //                         fontWeight: FontWeight.bold,
+  //                         color: Colors.black,
+  //                       ),
+  //                     ),
+  //                   ),
+  //           ),
+  //         ),
+  //       ),
+  //       const SizedBox(height: 8),
+  //       Text(
+  //         firstName,
+  //         style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+  //       ),
+  //       const SizedBox(height: 8),
+  //     ],
+  //   );
+  // }
 
   Widget _buildImprovedTimelineView() {
     if (_isLoading) {
@@ -824,7 +1097,8 @@ class _CalendarSmState extends State<CalendarSm> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => FollowupsDetails(leadId: leadId, isFromFreshlead: false),
+                builder: (context) =>
+                    FollowupsDetails(leadId: leadId, isFromFreshlead: false),
               ),
             );
           },
@@ -1013,7 +1287,8 @@ class _CalendarSmState extends State<CalendarSm> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => FollowupsDetails(leadId: leadId , isFromFreshlead: false),
+                builder: (context) =>
+                    FollowupsDetails(leadId: leadId, isFromFreshlead: false),
               ),
             );
           },

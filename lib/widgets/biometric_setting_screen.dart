@@ -396,9 +396,12 @@ class _BiometricSettingsScreenState extends State<BiometricSettingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Biometric Settings',
-          style: AppFont.popupTitleWhite(context),
+        title: Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'Biometric Settings',
+            style: AppFont.popupTitleWhite(context),
+          ),
         ),
       ),
       body: _isLoading

@@ -160,7 +160,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             size: 40,
           ),
         ),
-        title: Text('Profile', style: AppFont.appbarfontWhite(context)),
+        title: Align(
+          alignment: Alignment.centerLeft,
+          child: Text('Profile', style: AppFont.appbarfontWhite(context)),
+        ),
         backgroundColor: Colors.blue,
         automaticallyImplyLeading: false,
       ),

@@ -601,10 +601,13 @@ class _BiometricScreenState extends State<BiometricScreen> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         title: Center(
-          child: Text(
-            textAlign: TextAlign.center,
-            _showBiometricChoice ? 'Setup Biometrics' : 'Authentication',
-            style: AppFont.popupTitleWhite(context),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              textAlign: TextAlign.center,
+              _showBiometricChoice ? 'Setup Biometrics' : 'Authentication',
+              style: AppFont.popupTitleWhite(context),
+            ),
           ),
         ),
         iconTheme: const IconThemeData(color: Colors.white),

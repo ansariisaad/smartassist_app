@@ -115,12 +115,15 @@ class _AllTestdriveState extends State<AllTestdrive> {
           icon: const Icon(Icons.arrow_back_ios_outlined, color: Colors.white),
         ),
         backgroundColor: Colors.blue,
-        title: const Text(
-          'All Test Drive',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w500,
-            color: Colors.white,
+        title: Align(
+           alignment: Alignment.centerLeft,
+          child: const Text(
+            'All Test Drive',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
           ),
         ),
         actions: [

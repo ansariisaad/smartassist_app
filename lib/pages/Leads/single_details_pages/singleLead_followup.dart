@@ -976,15 +976,18 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
       appBar: AppBar(
         backgroundColor: AppColors.colorsBlueButton,
         // title: Text('Enquiry', style: AppFont.appbarfontWhite(context)),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Enquiry', style: AppFont.appbarfontWhite(context)),
-            Text(
-              'Opportunity Status : $lead_status',
-              style: AppFont.smallTextWhite1(context),
-            ),
-          ],
+        title: Align(
+           alignment: Alignment.centerLeft,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Enquiry', style: AppFont.appbarfontWhite(context)),
+              Text(
+                'Opportunity Status : $lead_status',
+                style: AppFont.smallTextWhite1(context),
+              ),
+            ],
+          ),
         ),
         // actions: [
         // Align(

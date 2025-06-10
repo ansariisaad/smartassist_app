@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:smartassist/widgets/buttons/reassign_btn.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/config/controller/tab_controller.dart';
@@ -788,7 +789,7 @@ class _MyTeamsState extends State<MyTeams> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.blue,
+        backgroundColor: const Color(0xFF1380FE),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -887,6 +888,12 @@ class _MyTeamsState extends State<MyTeams> {
           //       : const SizedBox.shrink(),
           // ),
         ],
+      ),
+      floatingActionButton: CustomFloatingButton(
+        onPressed: () {
+          // Your action here
+          print("Floating Button Pressed on Home");
+        },
       ),
 
       // body: Stack(
@@ -2707,7 +2714,6 @@ class _MyTeamsState extends State<MyTeams> {
             offset: Offset(0, 0), // Equal shadow on all sides
           ),
         ],
-
       ),
 
       child: Column(
@@ -3057,7 +3063,6 @@ class _MyTeamsState extends State<MyTeams> {
         return CircleAvatar(
           radius: 12,
           backgroundColor: (imageUrl == null || imageUrl.isEmpty)
-
               ? getRandomColor(name)
               : Colors.transparent,
           backgroundImage: (imageUrl != null && imageUrl.isNotEmpty)
@@ -3110,7 +3115,6 @@ class _MyTeamsState extends State<MyTeams> {
                   return CircleAvatar(
                     radius: 12,
                     backgroundColor: (imageUrl == null || imageUrl.isEmpty)
-
                         ? getRandomColor(name)
                         : Colors.transparent,
                     backgroundImage: (imageUrl != null && imageUrl.isNotEmpty)

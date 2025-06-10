@@ -10,6 +10,7 @@ import 'package:smartassist/widgets/followups/all_followups.dart';
 import 'package:smartassist/widgets/followups/overdue_followup.dart';
 import 'package:smartassist/widgets/followups/upcoming_row.dart';
 import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/create_Followups_popups.dart';
+import 'package:smartassist/widgets/buttons/add_btn.dart';
 
 class AddFollowups extends StatefulWidget {
   const AddFollowups({super.key});
@@ -118,35 +119,32 @@ class _AddFollowupsState extends State<AddFollowups> {
           ),
           icon: const Icon(Icons.arrow_back_ios_outlined, color: Colors.white),
         ),
-        backgroundColor: const Color.fromRGBO(19, 128, 254, 1),
+        backgroundColor: const Color(0xFF1380FE),
         title: const Text(
-          'All Follow ups',
+          'Your Follow ups',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w500,
             color: Colors.white,
           ),
         ),
-        actions: [
-          IconButton(
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) {
-                  return Dialog(
-                    insetPadding: const EdgeInsets.symmetric(horizontal: 10),
-                    backgroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: _createFollowups,
-                  );
-                },
+      ),
+      floatingActionButton: CustomFloatingButton(
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (context) {
+              return Dialog(
+                insetPadding: const EdgeInsets.symmetric(horizontal: 10),
+                backgroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: _createFollowups, // Your follow-up widget
               );
             },
-            icon: const Icon(Icons.add, color: Colors.white, size: 36),
-          ),
-        ],
+          );
+        },
       ),
       body: RefreshIndicator(
         onRefresh: fetchTasks,

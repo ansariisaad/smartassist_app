@@ -123,9 +123,12 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
-        title: Text(
-          'Test Drive summary',
-          style: AppFont.popupTitleWhite(context),
+        title: Align(
+           alignment: Alignment.centerLeft,
+          child: Text(
+            'Test Drive summary',
+            style: AppFont.popupTitleWhite(context),
+          ),
         ),
         leading: IconButton(
           icon: const Icon(

@@ -244,7 +244,18 @@ class _TestdriveState extends State<Testdrive> {
         print(response.body);
         Navigator.pop(context, true);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Follow-up submitted successfully!')),
+          SnackBar(
+            content: Text('Test drive updated', style: GoogleFonts.poppins()),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+            behavior:
+                SnackBarBehavior.floating, // Optional: Makes it float above UI
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(
+                10,
+              ), // Optional: rounded corners
+            ),
+          ),
         );
       } else {
         final Map<String, dynamic> responseData = json.decode(response.body);

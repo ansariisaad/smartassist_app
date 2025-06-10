@@ -71,7 +71,9 @@ class _FavoritePageState extends State<FavoritePage> {
           },
           icon: const Icon(FontAwesomeIcons.angleLeft, color: Colors.white),
         ),
-        title: Text('Favourite', style: AppFont.appbarfontWhite(context)),
+        title: Align(
+          alignment: Alignment.centerLeft,
+          child: Text('Favourite', style: AppFont.appbarfontWhite(context))),
         backgroundColor: Colors.blue,
         automaticallyImplyLeading: false,
       ),

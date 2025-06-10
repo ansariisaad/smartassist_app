@@ -254,7 +254,9 @@ class _LicenseVarificationState extends State<LicenseVarification> {
           ),
         ),
         // backgroundColor: Colors.black,
-        title: Text('License', style: AppFont.appbarfontWhite(context)),
+        title: Align(
+           alignment: Alignment.centerLeft,
+          child: Text('License', style: AppFont.appbarfontWhite(context))),
         backgroundColor: Colors.blue,
         automaticallyImplyLeading: false,
       ),

@@ -191,7 +191,9 @@ class _CalenderState extends State<Calender> {
         //   style: GoogleFonts.poppins(
         //       fontSize: 18, fontWeight: FontWeight.w500, color: Colors.white),
         // ),
-        title: Text('Calendar', style: AppFont.appbarfontWhite(context)),
+        title: Align(
+          alignment: Alignment.centerLeft,
+          child: Text('Calendar', style: AppFont.appbarfontWhite(context))),
         actions: [
           IconButton(
             onPressed: () {

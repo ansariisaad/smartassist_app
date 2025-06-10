@@ -101,6 +101,15 @@ class BottomNavigation extends StatelessWidget {
                 ),
               );
             } else {
+              navItems.add(
+                _buildNavItem(
+                  icon: Icons.home,
+                  label: 'Home',
+                  index: 0,
+                  isIcon: true,
+                  isImg: false,
+                ),
+              );
               // Other users: show image-based Calendar nav item
               navItems.add(
                 _buildNavItem(
@@ -111,29 +120,7 @@ class BottomNavigation extends StatelessWidget {
                   index: 1,
                 ),
               );
-
-              navItems.add(
-                _buildNavItem(
-                  icon: Icons.home,
-                  label: 'Home',
-                  index: 0,
-                  isIcon: true,
-                  isImg: false,
-                ),
-              );
             }
-
-            // Add Calendar - index needs to be adjusted based on whether Teams is present
-            // int calendarIndex = controller.userRole.value == "SM" ? 2 : 1;
-            // navItems.add(
-            //   _buildNavItem(
-            //     isImg: true,
-            //     isIcon: false,
-            //     img: Image.asset('assets/calendar.png', fit: BoxFit.contain),
-            //     label: 'Calendar',
-            //     index: calendarIndex,
-            //   ),
-            // );
 
             // Add More/Settings - index needs to be adjusted based on whether Teams is present
             int moreIndex = controller.userRole.value == "SM" ? 3 : 2;

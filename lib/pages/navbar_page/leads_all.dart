@@ -211,12 +211,15 @@ class _AllLeadsState extends State<AllLeads> {
           },
           icon: const Icon(FontAwesomeIcons.angleLeft, color: Colors.white),
         ),
-        title: Text(
-          'My Enquiries',
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w400,
-            color: Colors.white,
+        title: Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'My Enquiries',
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.w400,
+              color: Colors.white,
+            ),
           ),
         ),
         backgroundColor: Colors.blue,

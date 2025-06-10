@@ -1521,7 +1521,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        widget.isFromFreshlead ? 'Followups' : 'Lost',
+                        widget.isFromFreshlead ? 'Follow up?' : 'Lost',
                         style: widget.isFromFreshlead
                             ? AppFont.mediumText14bluee(context)
                             : AppFont.mediumText14red(context),

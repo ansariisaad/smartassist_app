@@ -1,32 +1,3 @@
-// import 'package:get/get.dart';
-// import 'package:flutter/material.dart';
-// import 'package:smartassist/pages/Leads/home_screen.dart';
-// import 'package:smartassist/pages/navbar_page/my_teams.dart';
-// import 'package:smartassist/pages/Calendar/calender.dart';
-// import 'package:smartassist/widgets/timeline_view_calender.dart'; // Adjust your imports based on your actual page locations
-
-// class NavigationController extends GetxController {
-//   // Observable to track selected index in bottom navigation
-//   final RxInt selectedIndex = 0.obs;
-
-//   // Define screens corresponding to the navigation items
-//   List<Widget> get screens => [
-//         HomeScreen(
-//           greeting: '',
-//           leadId: '',
-//         ), // Replace with your actual screen widget
-//         const MyTeams(), // Replace with your actual screen widget
-//         CalendarWithTimeline(
-//           leadName: '',
-//         ), // Replace with your actual screen widget
-//       ];
-
-//   // Method to set selected index for bottom navigation
-//   void setSelectedIndex(int index) {
-//     selectedIndex.value = index;
-//   }
-// }
-
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -124,7 +95,7 @@ class NavigationController extends GetxController {
     if (userRole.value == "SM") {
       selectedIndex.value = 0; // Teams screen
     } else {
-      selectedIndex.value = 1; // Home screen
+      selectedIndex.value = 0; // Home screen
     }
   }
 }

@@ -160,11 +160,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             size: 40,
           ),
         ),
-        title: Align(
-          alignment: Alignment.centerLeft,
-          child: Text('Profile', style: AppFont.appbarfontWhite(context)),
-        ),
-        backgroundColor: Colors.blue,
+        title: Text('Your Profile', style: AppFont.appbarfontWhite(context)),
+        backgroundColor: const Color(0xFF1380FE),
+
         automaticallyImplyLeading: false,
       ),
       body: isLoading
@@ -194,13 +192,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       )
                                     : CircleAvatar(
                                         radius: 60,
-                                        backgroundColor: Colors.grey[300],
-                                        child: Icon(
-                                          Icons.person,
-                                          size: 60,
-                                          color: Colors.grey[700],
+                                        backgroundColor: AppColors.containerBg,
+                                        child: Text(
+                                          (name?.isNotEmpty ?? false)
+                                              ? name![0].toUpperCase()
+                                              : '?',
+                                          style: TextStyle(
+                                            fontSize: 70,
+                                            color: Colors.grey[700],
+                                            fontWeight: FontWeight.normal,
+                                          ),
                                         ),
                                       )),
+
                           if (_isUploading) const CircularProgressIndicator(),
                           Positioned(
                             bottom: -8,

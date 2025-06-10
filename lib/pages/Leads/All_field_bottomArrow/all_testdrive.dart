@@ -5,6 +5,7 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/utils/bottom_navigation.dart';
 import 'package:smartassist/utils/storage.dart';
+import 'package:smartassist/widgets/buttons/add_btn.dart';
 import 'package:smartassist/widgets/followups/all_followups.dart';
 import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/create_testDrive.dart';
 import 'package:smartassist/widgets/oppointment/overdue.dart';
@@ -114,38 +115,33 @@ class _AllTestdriveState extends State<AllTestdrive> {
           ),
           icon: const Icon(Icons.arrow_back_ios_outlined, color: Colors.white),
         ),
-        backgroundColor: Colors.blue,
-        title: Align(
-           alignment: Alignment.centerLeft,
-          child: const Text(
-            'All Test Drive',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-              color: Colors.white,
-            ),
+        backgroundColor: const Color(0xFF1380FE),
+        title: const Text(
+          'Your Test Drives',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+
           ),
         ),
-        actions: [
-          IconButton(
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) {
-                  return Dialog(
-                    insetPadding: const EdgeInsets.symmetric(horizontal: 10),
-                    backgroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: _createTestDrive, // Your follow-up widget
-                  );
-                },
+      ),
+      floatingActionButton: CustomFloatingButton(
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (context) {
+              return Dialog(
+                insetPadding: const EdgeInsets.symmetric(horizontal: 10),
+                backgroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: _createTestDrive, // Your follow-up widget
               );
             },
-            icon: const Icon(Icons.add, color: Colors.white, size: 36),
-          ),
-        ],
+          );
+        },
       ),
       body: CustomScrollView(
         slivers: [
@@ -172,10 +168,10 @@ class _AllTestdriveState extends State<AllTestdrive> {
                         borderSide: BorderSide.none,
                       ),
                       filled: true,
-                      fillColor: AppColors.searchBar,
+                      fillColor: AppColors.containerBg,
                       contentPadding: const EdgeInsets.fromLTRB(1, 1, 0, 1),
                       border: InputBorder.none,
-                      hintText: 'Search',
+                      hintText: 'Search by name, email or phone',
                       hintStyle: const TextStyle(
                         color: Colors.grey,
                         fontWeight: FontWeight.w400,

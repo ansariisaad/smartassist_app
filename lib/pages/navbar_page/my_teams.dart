@@ -1907,31 +1907,8 @@ class _MyTeamsState extends State<MyTeams> {
     );
   }
 
-  // Widget _buildProfileAvatars() {
-  //   return SingleChildScrollView(
-  //     scrollDirection: Axis.horizontal,
-  //     child: Container(
-  //       margin: const EdgeInsets.only(top: 10),
-  //       height: 90,
-  //       padding: const EdgeInsets.symmetric(horizontal: 0),
-  //       child: Row(
-  //         crossAxisAlignment: CrossAxisAlignment.center,
-  //         children: [
-  //           for (int i = 0; i < _teamMembers.length; i++)
-  //             _buildProfileAvatar(
-  //               _teamMembers[i]['fname'] ?? '',
-  //               i + 1, // Starts from 1 because 0 is 'All'
-  //               _teamMembers[i]['user_id'] ?? '',
-  //               _teamMembers[i]['profile'], // Pass the profile URL
-  //               _teamMembers[i]['initials'] ?? '', // Pass the initials
-  //             ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
+   
 
-  // Individual profile avatar saad
   // Individual Performance Tab Content
   Widget _buildIndividualPerformanceTab(
     BuildContext context,

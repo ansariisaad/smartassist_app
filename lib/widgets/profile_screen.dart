@@ -162,6 +162,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         title: Text('Your Profile', style: AppFont.appbarfontWhite(context)),
         backgroundColor: const Color(0xFF1380FE),
+
         automaticallyImplyLeading: false,
       ),
       body: isLoading

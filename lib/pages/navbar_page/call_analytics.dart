@@ -401,12 +401,15 @@ class _CallAnalyticsState extends State<CallAnalytics>
           },
           icon: const Icon(FontAwesomeIcons.angleLeft, color: Colors.white),
         ),
-        title: Text(
-          'My Call Analytics',
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w400,
-            color: Colors.white,
+        title: Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'My Call Analytics',
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.w400,
+              color: Colors.white,
+            ),
           ),
         ),
         backgroundColor: Colors.blue,

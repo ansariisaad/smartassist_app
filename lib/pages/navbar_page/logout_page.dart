@@ -61,7 +61,8 @@ class LogoutPage extends StatelessWidget {
           },
           icon: const Icon(FontAwesomeIcons.angleLeft, color: Colors.white),
         ),
-        title: Text('Logout', style: AppFont.appbarfontWhite(context)),
+        title: Align(
+          alignment: Alignment.centerLeft, child: Text('Logout', style: AppFont.appbarfontWhite(context))),
         backgroundColor: AppColors.colorsBlue,
         automaticallyImplyLeading: false,
       ),

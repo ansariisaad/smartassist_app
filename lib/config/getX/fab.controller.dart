@@ -59,7 +59,8 @@ class FabController extends GetxController {
 
   // New method to handle scroll events
   void _scrollListener() {
-    final currentScrollPosition = scrollController.offset;
+    final currentScrollPosition = scrollController.
+    offset;
     
     // If scrolling down (current position > last position)
     if (currentScrollPosition > lastScrollPosition && currentScrollPosition > 50) {

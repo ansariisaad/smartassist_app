@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:smartassist/widgets/buttons/reassign_btn.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/config/controller/tab_controller.dart';
@@ -75,7 +76,7 @@ class _MyTeamsState extends State<MyTeams> {
   // Data state
   bool isLoading = false;
   Map<String, dynamic> _teamData = {};
-  Map<String, dynamic> _selectedUserData = {};
+  Map<String, dynamic>? _selectedUserData = {};
   List<Map<String, dynamic>> _teamMembers = [];
 
   // call log all
@@ -94,7 +95,17 @@ class _MyTeamsState extends State<MyTeams> {
 
   // Controller for FAB
   final FabController fabController = Get.put(FabController());
-
+  final GlobalKey incomingKey = GlobalKey();
+  final GlobalKey outgoingKey = GlobalKey();
+  final GlobalKey connectedKey = GlobalKey();
+  final GlobalKey durationKey = GlobalKey();
+  final GlobalKey rejectedKey = GlobalKey();
+  final GlobalKey enquiries = GlobalKey();
+  final GlobalKey tDrives = GlobalKey();
+  final GlobalKey orders = GlobalKey();
+  final GlobalKey cancel = GlobalKey();
+  final GlobalKey netOrd = GlobalKey();
+  final GlobalKey retails = GlobalKey();
   @override
   void initState() {
     super.initState();
@@ -137,6 +148,60 @@ class _MyTeamsState extends State<MyTeams> {
         _currentDisplayCount + _incrementCount,
         _membersData.length,
       );
+    });
+  }
+
+  void showBubbleTooltip(BuildContext context, GlobalKey key, String message) {
+    final overlay = Overlay.of(context);
+    final renderBox = key.currentContext?.findRenderObject() as RenderBox?;
+    final size = renderBox?.size;
+    final offset = renderBox?.localToGlobal(Offset.zero);
+
+    if (overlay == null || renderBox == null || offset == null || size == null)
+      return;
+
+    // Estimate the tooltip width (you could also use TextPainter for precise width if needed)
+    const double tooltipPadding = 20.0;
+    final double estimatedTooltipWidth = message.length * 7.0 + tooltipPadding;
+
+    final overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: offset.dy - 35, // above the icon
+        left:
+            offset.dx +
+            size.width / 2 -
+            estimatedTooltipWidth / 2, // centered horizontally
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color.fromARGB(255, 0, 0, 0),
+              borderRadius: BorderRadius.circular(8),
+              // boxShadow: const [
+              //   BoxShadow(
+              //     color: Colors.black26,
+              //     blurRadius: 6,
+              //     offset: Offset(2, 2),
+              //   ),
+              // ],
+            ),
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: Color.fromARGB(255, 255, 255, 255),
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    overlay.insert(overlayEntry);
+
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      overlayEntry.remove();
     });
   }
 
@@ -318,7 +383,6 @@ class _MyTeamsState extends State<MyTeams> {
     }
   }
 
-
   // Create a helper method to properly clear all selections
   void _clearAllSelections() {
     setState(() {
@@ -464,7 +528,7 @@ class _MyTeamsState extends State<MyTeams> {
 
           // Save total performance
           if (_teamData.containsKey('totalPerformance')) {
-            _selectedUserData['totalPerformance'] =
+            _selectedUserData?['totalPerformance'] =
                 _teamData['totalPerformance'];
           }
 
@@ -486,7 +550,7 @@ class _MyTeamsState extends State<MyTeams> {
           if (_selectedProfileIndex == 0) {
             // Summary data
             _selectedUserData = _teamData['summary'] ?? {};
-            _selectedUserData['totalPerformance'] =
+            _selectedUserData?['totalPerformance'] =
                 _teamData['totalPerformance'] ?? {};
           } else if (_selectedProfileIndex - 1 < _teamMembers.length) {
             // Specific user selected
@@ -528,7 +592,6 @@ class _MyTeamsState extends State<MyTeams> {
       print('Error fetching team details: $e');
     }
   }
-
 
   // Future<void> _fetchTeamDetails() async {
   //   try {
@@ -709,7 +772,6 @@ class _MyTeamsState extends State<MyTeams> {
   //   }
   // }
 
-
   // Process team data for team comparison display
   List<Map<String, dynamic>> _processTeamComparisonData() {
     if (!(_teamData.containsKey('teamComparsion') &&
@@ -727,7 +789,7 @@ class _MyTeamsState extends State<MyTeams> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.blue,
+        backgroundColor: const Color(0xFF1380FE),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -799,34 +861,39 @@ class _MyTeamsState extends State<MyTeams> {
                         ),
                       ),
                     ),
-
             ),
           ),
 
           // FAB Button animation
-          Obx(
-            () => AnimatedPositioned(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              bottom: fabController.isFabVisible.value ? 26 : -80,
-              right: 18,
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 300),
-                opacity: fabController.isFabVisible.value ? 1.0 : 0.0,
-                child: _buildFloatingActionButton(context),
-              ),
-            ),
-          ),
+          // Obx(
+          //   () => AnimatedPositioned(
+          //     duration: const Duration(milliseconds: 300),
+          //     curve: Curves.easeInOut,
+          //     bottom: fabController.isFabVisible.value ? 26 : -80,
+          //     right: 18,
+          //     child: AnimatedOpacity(
+          //       duration: const Duration(milliseconds: 300),
+          //       opacity: fabController.isFabVisible.value ? 1.0 : 0.0,
+          //       child: _buildFloatingActionButton(context),
+          //     ),
+          //   ),
+          // ),
 
           // FAB Popup menu
-          Obx(
-            () =>
-                fabController.isFabExpanded.value &&
-                    fabController.isFabVisible.value
-                ? _buildPopupMenu(context)
-                : const SizedBox.shrink(),
-          ),
+          // Obx(
+          //   () =>
+          //       fabController.isFabExpanded.value &&
+          //           fabController.isFabVisible.value
+          //       ? _buildPopupMenu(context)
+          //       : const SizedBox.shrink(),
+          // ),
         ],
+      ),
+      floatingActionButton: CustomFloatingButton(
+        onPressed: () {
+          // Your action here
+          print("Floating Button Pressed on Home");
+        },
       ),
 
       // body: Stack(
@@ -1309,10 +1376,12 @@ class _MyTeamsState extends State<MyTeams> {
                   if (_selectedLetters.isEmpty) {
                     _isMultiSelectMode = false;
                     _selectedType = 'All';
+                    _selectedProfileIndex = 0;
                   }
                 } else {
                   _selectedLetters.add(letter);
                   _selectedType = 'Letter';
+                  _selectedProfileIndex = -1; // Letter selection
                 }
               } else {
                 // Single select mode - but keep existing selections and add new one
@@ -1321,11 +1390,13 @@ class _MyTeamsState extends State<MyTeams> {
                   _selectedLetters.remove(letter);
                   if (_selectedLetters.isEmpty) {
                     _selectedType = 'All';
+                    _selectedProfileIndex = 0; // Back to "All"
                   }
                 } else {
                   // Add this letter to selection (don't clear existing)
                   _selectedLetters.add(letter);
                   _selectedType = 'Letter';
+                  _selectedProfileIndex = -1; // Letter selection
                 }
               }
 
@@ -1426,6 +1497,7 @@ class _MyTeamsState extends State<MyTeams> {
               _selectedType = 'All';
               _selectedLetters.clear(); // Clear all letter selections
               _isMultiSelectMode = false; // Exit multi-select mode
+              _isComparing = false; // Exit comparison mode when selecting "All"
 
               if (!_isComparing) {
                 _clearAllSelections();
@@ -1537,55 +1609,22 @@ class _MyTeamsState extends State<MyTeams> {
         ),
         const SizedBox(height: 8),
 
-        // InkWell(
-        //   onTap: () async {
-        //     setState(() {
-        //       _selectedProfileIndex = index;
-        //       _selectedType = 'All';
-        //       _selectedLetters.clear(); // Clear all letter selections
-        //       _isMultiSelectMode = false; // Exit multi-select mode
-        //       _metricIndex = 0;
-        //       if (!_isComparing) {
-        //         _clearAllSelections();
-        //       }
-        //     });
-        //     // await _fetchAllCalllog();
-        //     await _fetchTeamDetails();
-        //   },
-        //   child: AnimatedDefaultTextStyle(
-        //     duration: const Duration(milliseconds: 200),
-        //     style: AppFont.mediumText14(context).copyWith(
-        //       color: isSelected
-        //           ? Colors.blue
-        //           : (_isMultiSelectMode ? Colors.orange : null),
-        //       fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-        //     ),
-        //     child: Text(_isMultiSelectMode ? 'Reset' : 'Alls '),
-        //   ),
-        // ),
         InkWell(
           onTap: () async {
-            try {
-              // First: update selection state only
+            setState(() {
               _selectedProfileIndex = index;
               _selectedType = 'All';
-              _selectedLetters.clear();
-              _isMultiSelectMode = false;
+              _selectedLetters.clear(); // Clear all letter selections
+              _isMultiSelectMode = false; // Exit multi-select mode
+              _isComparing = false; // Exit comparison mode when selecting "All"
               _metricIndex = 0;
               if (!_isComparing) {
                 _clearAllSelections();
               }
-
-              // Wait for data fetch
-              await _fetchTeamDetails();
-
-              // Then: rebuild the UI with new data
-              setState(() {});
-            } catch (e) {
-              print('Error fetching team details: $e');
-            }
+            });
+            // await _fetchAllCalllog();
+            await _fetchTeamDetails();
           },
-
           child: AnimatedDefaultTextStyle(
             duration: const Duration(milliseconds: 200),
             style: AppFont.mediumText14(context).copyWith(
@@ -1594,31 +1633,169 @@ class _MyTeamsState extends State<MyTeams> {
                   : (_isMultiSelectMode ? Colors.orange : null),
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
             ),
-            child: Text(
-              _isMultiSelectMode ? 'Reset' : 'All',
-            ), // Fixed typo 'Alls '
+            child: Text(_isMultiSelectMode ? 'Reset' : 'All'),
           ),
         ),
-        // InkWell(
-        //   onTap: () {
-        //     if (!_isComparing) {
-        //       _clearAllSelections();
-        //     }
-        //   },
-        //   child: AnimatedDefaultTextStyle(
-        //     duration: const Duration(milliseconds: 200),
-        //     style: AppFont.mediumText14(context).copyWith(
-        //       color: isSelected
-        //           ? Colors.blue
-        //           : (_isMultiSelectMode ? Colors.orange : null),
-        //       fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-        //     ),
-        //     child: Text(_isMultiSelectMode ? 'Reset' : 'All'),
-        //   ),
-        // ),
       ],
     );
   }
+  // Widget _buildProfileAvatarStaticsAll(String firstName, int index) {
+  //   bool isSelected = _selectedType == 'All' && _selectedLetters.isEmpty;
+
+  //   return Column(
+  //     mainAxisSize: MainAxisSize.min,
+  //     children: [
+  //       GestureDetector(
+  //         onTap: () async {
+  //           // Medium haptic feedback for "All" button
+  //           HapticFeedback.mediumImpact();
+
+  //           setState(() {
+  //             _selectedProfileIndex = index;
+  //             _selectedType = 'All';
+  //             _selectedLetters.clear(); // Clear all letter selections
+  //             _isMultiSelectMode = false; // Exit multi-select mode
+
+  //             if (!_isComparing) {
+  //               _clearAllSelections();
+  //             }
+  //           });
+  //           await _fetchTeamDetails();
+  //         },
+  //         onLongPress: () {
+  //           // Heavy haptic feedback for long press on "All"
+  //           HapticFeedback.heavyImpact();
+
+  //           // Show info about total members
+  //           int totalMembers = _teamMembers.length;
+  //           ScaffoldMessenger.of(context).showSnackBar(
+  //             SnackBar(
+  //               content: Row(
+  //                 mainAxisSize: MainAxisSize.min,
+  //                 children: [
+  //                   Icon(Icons.info_outline, color: Colors.white, size: 16),
+  //                   SizedBox(width: 8),
+  //                   Text('Total $totalMembers team members'),
+  //                 ],
+  //               ),
+  //               duration: const Duration(seconds: 1),
+  //               backgroundColor: Colors.green.shade600,
+  //               behavior: SnackBarBehavior.floating,
+  //               margin: EdgeInsets.only(
+  //                 bottom: MediaQuery.of(context).size.height - 150,
+  //                 left: 20,
+  //                 right: 20,
+  //               ),
+  //               shape: RoundedRectangleBorder(
+  //                 borderRadius: BorderRadius.circular(8),
+  //               ),
+  //             ),
+  //           );
+  //         },
+  //         child: Stack(
+  //           children: [
+  //             AnimatedContainer(
+  //               duration: const Duration(milliseconds: 300),
+  //               curve: Curves.easeInOut,
+  //               margin: const EdgeInsets.fromLTRB(10, 0, 5, 0),
+  //               width: 50,
+  //               height: 50,
+  //               decoration: BoxDecoration(
+  //                 shape: BoxShape.circle,
+  //                 color: isSelected
+  //                     ? Colors.blue.withOpacity(0.15)
+  //                     : AppColors.backgroundLightGrey,
+  //                 border: isSelected
+  //                     ? Border.all(color: Colors.blue, width: 2.5)
+  //                     : Border.all(
+  //                         color: Colors.grey.withOpacity(0.3),
+  //                         width: 1,
+  //                       ),
+  //               ),
+  //               child: Center(
+  //                 child: AnimatedSwitcher(
+  //                   duration: const Duration(milliseconds: 200),
+  //                   child: Icon(
+  //                     _isMultiSelectMode
+  //                         ? Icons.clear_all
+  //                         : (isSelected ? Icons.groups : Icons.people),
+  //                     key: ValueKey(
+  //                       _isMultiSelectMode
+  //                           ? 'clear'
+  //                           : (isSelected ? 'groups' : 'people'),
+  //                     ),
+  //                     color: isSelected ? Colors.blue : Colors.grey.shade400,
+  //                     size: isSelected ? 34 : 32,
+  //                   ),
+  //                 ),
+  //               ),
+  //             ),
+  //             // Multi-select mode indicator
+  //             if (_isMultiSelectMode)
+  //               Positioned(
+  //                 top: -2,
+  //                 right: 3,
+  //                 child: AnimatedScale(
+  //                   scale: 1.0,
+  //                   duration: const Duration(milliseconds: 200),
+  //                   child: Container(
+  //                     width: 18,
+  //                     height: 18,
+  //                     decoration: BoxDecoration(
+  //                       color: Colors.orange,
+  //                       shape: BoxShape.circle,
+  //                       border: Border.all(color: Colors.white, width: 2),
+  //                       boxShadow: [
+  //                         BoxShadow(
+  //                           color: Colors.orange.withOpacity(0.3),
+  //                           blurRadius: 4,
+  //                           offset: const Offset(0, 1),
+  //                         ),
+  //                       ],
+  //                     ),
+  //                     child: Icon(
+  //                       Icons.touch_app,
+  //                       color: Colors.white,
+  //                       size: 10,
+  //                     ),
+  //                   ),
+  //                 ),
+  //               ),
+  //           ],
+  //         ),
+  //       ),
+  //       const SizedBox(height: 8),
+
+  //       InkWell(
+  //         onTap: () async {
+  //           setState(() {
+  //             _selectedProfileIndex = index;
+  //             _selectedType = 'All';
+  //             _selectedLetters.clear(); // Clear all letter selections
+  //             _isMultiSelectMode = false; // Exit multi-select mode
+  //             _metricIndex = 0;
+  //             if (!_isComparing) {
+  //               _clearAllSelections();
+  //             }
+  //           });
+  //           // await _fetchAllCalllog();
+  //           await _fetchTeamDetails();
+  //         },
+  //         child: AnimatedDefaultTextStyle(
+  //           duration: const Duration(milliseconds: 200),
+  //           style: AppFont.mediumText14(context).copyWith(
+  //             color: isSelected
+  //                 ? Colors.blue
+  //                 : (_isMultiSelectMode ? Colors.orange : null),
+  //             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+  //           ),
+  //           child: Text(_isMultiSelectMode ? 'Reset' : 'Alls '),
+  //         ),
+  //       ),
+
+  //     ],
+  //   );
+  // }
 
   Widget _buildProfileAvatar(
     String firstName,
@@ -1729,7 +1906,6 @@ class _MyTeamsState extends State<MyTeams> {
       ],
     );
   }
-
 
   // Widget _buildProfileAvatars() {
   //   return SingleChildScrollView(
@@ -1893,7 +2069,6 @@ class _MyTeamsState extends State<MyTeams> {
         // _buildTeamComparisonChart(context),
         if (_isComparing) _buildTeamComparisonChart(context),
         if (!_isComparing) _callAnalyticAll(context),
-
       ],
     );
   }
@@ -1974,7 +2149,7 @@ class _MyTeamsState extends State<MyTeams> {
   //   final stats = (_metricIndex >= 0)
   //       ? (isUserSelected
   //             ? _teamData['selectedUserPerformance'] ?? {}
-  //             : _selectedUserData['totalPerformance'] ?? {})
+  //             : _selectedUserData?['totalPerformance'] ?? {})
   //       : {};
 
   //   final metrics = [
@@ -1985,7 +2160,7 @@ class _MyTeamsState extends State<MyTeams> {
   //     {
   //       'label': 'Net Orders',
   //       'key': 'Net orders',
-  //       // 'value': (stats['Orders'] ?? 0) - (stats['Cancellation'] ?? 0)
+  //       'value': (stats['Orders'] ?? 0) - (stats['Cancellation'] ?? 0),
   //     },
   //     {'label': 'Retails', 'key': 'retail'},
   //   ];
@@ -2029,29 +2204,61 @@ class _MyTeamsState extends State<MyTeams> {
   //   );
   // }
 
+  // Fixed Performance Metrics Widget all
   Widget _buildIndividualPerformanceMetrics(BuildContext context) {
-    final bool isUserSelected = _selectedProfileIndex != 0;
+    // Determine selection state
+    final bool isSpecificUserSelected = _selectedProfileIndex > 0;
+    final bool isAllSelected =
+        _selectedProfileIndex == 0 && _selectedLetters.isEmpty;
+    final bool isLetterSelected = _selectedLetters.isNotEmpty;
 
-    // Choose appropriate stats object with fallback
-    final stats = isUserSelected
-        ? (_teamData['selectedUserPerformance'] ?? {})
-        : (_selectedUserData['totalPerformance'] ?? {});
-    //  final stats = (_isMultiSelectMode || _isComparing)
-    //       ? (_teamData["teamComparsion"] as List<dynamic>? ?? [])
-    //             .where((member) => member["isSelected"] == true)
-    //             .toList()
-    //       : (_teamData["teamComparsion"] as List<dynamic>? ?? []);
+    // Debug prints
+    print(
+      'Selection state - ProfileIndex: $_selectedProfileIndex, Letters: $_selectedLetters, Type: $_selectedType',
+    );
+    print(
+      'Flags - isSpecificUser: $isSpecificUserSelected, isAll: $isAllSelected, isLetter: $isLetterSelected',
+    );
 
-    // Debug print to check stats
-    print('Stats for metrics: $stats, isUserSelected: $isUserSelected');
+    // Function to get total for a specific key based on selection
+    int getTotalForKey(String key) {
+      if (isSpecificUserSelected) {
+        // Individual user - use selectedUserPerformance from _teamData or _selectedUserData
+        final userStats =
+            _teamData['selectedUserPerformance'] ?? _selectedUserData ?? {};
+        return int.tryParse(userStats[key]?.toString() ?? '0') ?? 0;
+      } else {
+        // All users or letter selection - use team comparison data
+        final stats = (_isMultiSelectMode || _isComparing)
+            ? (_teamData["teamComparsion"] as List? ?? [])
+                  .where((member) => member["isSelected"] == true)
+                  .toList()
+            : (_teamData["teamComparsion"] as List? ?? []);
 
-    if (stats.isEmpty) {
-      print(
-        'Warning: Stats is empty. _selectedUserData: $_selectedUserData, _teamData: $_teamData',
-      );
+        if (stats.isNotEmpty) {
+          // Aggregate from team members
+          return stats.fold(
+            0,
+            (sum, member) =>
+                sum + (int.tryParse(member[key]?.toString() ?? '0') ?? 0),
+          );
+        } else if (isAllSelected) {
+          // Fallback to totalPerformance for "All" selection
+          final totalStats = _selectedUserData?['totalPerformance'] ?? {};
+          return int.tryParse(totalStats[key]?.toString() ?? '0') ?? 0;
+        }
+      }
+      return 0;
     }
 
-    final metrics = [
+    // Calculate net orders
+    int calculateNetOrders() {
+      final orders = getTotalForKey('orders');
+      final cancellations = getTotalForKey('cancellation');
+      return math.max(0, orders - cancellations);
+    }
+
+    final List<Map<String, dynamic>> metrics = [
       {'label': 'Enquiries', 'key': 'enquiries'},
       {'label': 'Test Drive', 'key': 'testDrives'},
       {'label': 'Orders', 'key': 'orders'},
@@ -2059,9 +2266,7 @@ class _MyTeamsState extends State<MyTeams> {
       {
         'label': 'Net Orders',
         'key': 'netOrders',
-        'value': ((stats['orders'] ?? 0) - (stats['cancellation'] ?? 0))
-            .clamp(0, double.infinity)
-            .toInt(),
+        'value': calculateNetOrders(),
       },
       {'label': 'Retails', 'key': 'retail'},
     ];
@@ -2077,37 +2282,126 @@ class _MyTeamsState extends State<MyTeams> {
                   onTap: () {
                     setState(() {
                       _metricIndex = j;
-                      _fetchTeamDetails(); // Refresh with selected metric
                     });
+                    _fetchTeamDetails(); // Refresh with selected metric
                   },
                   child: _buildMetricCard(
                     metrics[j].containsKey('value')
                         ? metrics[j]['value'].toString()
-                        : (stats[metrics[j]['key']]?.toString() ?? '0'),
-                    metrics[j]['label']!,
+                        : getTotalForKey(
+                            metrics[j]['key'] as String,
+                          ).toString(),
+                    metrics[j]['label'] as String,
                     Colors.blue,
                     isSelected: _metricIndex == j,
                   ),
                 ),
               ),
-              if (j % 2 == 0) const SizedBox(width: 12),
+              if (j % 2 == 0 && j + 1 < metrics.length)
+                const SizedBox(width: 12),
             ],
           ],
         ),
       );
-      rows.add(const SizedBox(height: 12));
+      if (i + 2 < metrics.length) rows.add(const SizedBox(height: 12));
     }
+
+    // Check if we have any data to display
+    bool hasData =
+        isSpecificUserSelected ||
+        (_teamData["teamComparsion"] as List? ?? []).isNotEmpty ||
+        (_selectedUserData?['totalPerformance'] != null);
 
     return Padding(
       padding: const EdgeInsets.all(10),
-      child: stats.isEmpty
-          ? const Center(child: Text('No data available'))
-          : Column(
+      child: hasData
+          ? Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: rows,
-            ),
+            )
+          : const Center(child: Text('No data available')),
     );
   }
+  // Widget _buildIndividualPerformanceMetrics(BuildContext context) {
+
+  //   final bool isUserSelected = _selectedProfileIndex != 0;
+
+  //   // Choose appropriate stats object with fallback
+  //   final stats = isUserSelected
+  //       ? (_teamData['selectedUserPerformance'] ?? {})
+  //       : (_selectedUserData['totalPerformance'] ?? {});
+  //   //  final stats = (_isMultiSelectMode || _isComparing)
+  //   //       ? (_teamData["teamComparsion"] as List<dynamic>? ?? [])
+  //   //             .where((member) => member["isSelected"] == true)
+  //   //             .toList()
+  //   //       : (_teamData["teamComparsion"] as List<dynamic>? ?? []);
+
+  //   // Debug print to check stats
+  //   print('Stats for metrics: $stats, isUserSelected: $isUserSelected');
+
+  //   if (stats.isEmpty) {
+  //     print(
+  //       'Warning: Stats is empty. _selectedUserData: $_selectedUserData, _teamData: $_teamData',
+  //     );
+  //   }
+
+  //   final metrics = [
+  //     {'label': 'Enquiries', 'key': 'enquiries'},
+  //     {'label': 'Test Drive', 'key': 'testDrives'},
+  //     {'label': 'Orders', 'key': 'orders'},
+  //     {'label': 'Cancellations', 'key': 'cancellation'},
+  //     {
+  //       'label': 'Net Orders',
+  //       'key': 'netOrders',
+  //       'value': ((stats['orders'] ?? 0) - (stats['cancellation'] ?? 0))
+  //           .clamp(0, double.infinity)
+  //           .toInt(),
+  //     },
+  //     {'label': 'Retails', 'key': 'retail'},
+  //   ];
+
+  //   List<Widget> rows = [];
+  //   for (int i = 0; i < metrics.length; i += 2) {
+  //     rows.add(
+  //       Row(
+  //         children: [
+  //           for (int j = i; j < i + 2 && j < metrics.length; j++) ...[
+  //             Expanded(
+  //               child: InkWell(
+  //                 onTap: () {
+  //                   setState(() {
+  //                     _metricIndex = j;
+  //                     _fetchTeamDetails(); // Refresh with selected metric
+  //                   });
+  //                 },
+  //                 child: _buildMetricCard(
+  //                   metrics[j].containsKey('value')
+  //                       ? metrics[j]['value'].toString()
+  //                       : (stats[metrics[j]['key']]?.toString() ?? '0'),
+  //                   metrics[j]['label']!,
+  //                   Colors.blue,
+  //                   isSelected: _metricIndex == j,
+  //                 ),
+  //               ),
+  //             ),
+  //             if (j % 2 == 0) const SizedBox(width: 12),
+  //           ],
+  //         ],
+  //       ),
+  //     );
+  //     rows.add(const SizedBox(height: 12));
+  //   }
+
+  //   return Padding(
+  //     padding: const EdgeInsets.all(10),
+  //     child: stats.isEmpty
+  //         ? const Center(child: Text('No data available'))
+  //         : Column(
+  //             crossAxisAlignment: CrossAxisAlignment.stretch,
+  //             children: rows,
+  //           ),
+  //   );
+  // }
 
   // Team Comparison Chart
   Widget _buildTeamComparisonChart(BuildContext context) {
@@ -2193,9 +2487,19 @@ class _MyTeamsState extends State<MyTeams> {
     return Container(
       margin: const EdgeInsets.only(top: 10),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(5),
-        color: AppColors.backgroundLightGrey,
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.withOpacity(0.5), width: 1.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 1,
+            spreadRadius: 1,
+            offset: Offset(0, 0), // Equal shadow on all sides
+          ),
+        ],
       ),
+
       child: hasData
           ? Table(
               defaultVerticalAlignment: TableCellVerticalAlignment.middle,
@@ -2219,73 +2523,100 @@ class _MyTeamsState extends State<MyTeams> {
                 TableRow(
                   children: [
                     const SizedBox(), // Empty cell for name column
-                    Container(
-                      alignment: Alignment.centerLeft,
-                      margin: const EdgeInsets.only(
-                        bottom: 10,
-                        top: 10,
-                        right: 2,
+                    GestureDetector(
+                      key: enquiries,
+                      onTap: () =>
+                          showBubbleTooltip(context, enquiries, 'Equiries'),
+                      child: Container(
+                        alignment: Alignment.centerLeft,
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 2,
+                        ),
+                        child: Text(
+                          'EQ',
+                          style: AppFont.smallTextBold(context),
+                        ),
                       ),
-                      child: Text('Enq', style: AppFont.smallTextBold(context)),
-                      // Text('Incoming',
-                      //     textAlign: TextAlign.start,
-                      //     style: AppFont.smallText10(context))
                     ),
-                    Container(
-                      alignment: Alignment.centerLeft,
-                      margin: const EdgeInsets.only(
-                        bottom: 10,
-                        top: 10,
-                        right: 2,
+                    GestureDetector(
+                      key: tDrives,
+                      onTap: () =>
+                          showBubbleTooltip(context, tDrives, 'Test Drives'),
+                      child: Container(
+                        alignment: Alignment.centerLeft,
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 2,
+                        ),
+                        child: Text(
+                          'TD',
+                          style: AppFont.smallTextBold(context),
+                        ),
                       ),
-                      child: Text('TD', style: AppFont.smallTextBold(context)),
-                      // Text('Incoming',
-                      //     textAlign: TextAlign.start,
-                      //     style: AppFont.smallText10(context))
                     ),
-                    Container(
-                      alignment: Alignment.centerLeft,
-                      margin: const EdgeInsets.only(
-                        bottom: 10,
-                        top: 10,
-                        right: 2,
+                    GestureDetector(
+                      key: orders,
+                      onTap: () => showBubbleTooltip(context, orders, 'Orders'),
+                      child: Container(
+                        alignment: Alignment.centerLeft,
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 2,
+                        ),
+                        child: Text(
+                          'OD',
+                          style: AppFont.smallTextBold(context),
+                        ),
                       ),
-                      child: Text('Ord', style: AppFont.smallTextBold(context)),
-                      //  Text('Outgoing',
-                      //     textAlign: TextAlign.start,
-                      //     style: AppFont.smallText10(context)),
                     ),
-                    Container(
-                      alignment: Alignment.centerLeft,
-                      margin: const EdgeInsets.only(
-                        bottom: 10,
-                        top: 10,
-                        right: 2,
+                    GestureDetector(
+                      key: cancel,
+                      onTap: () =>
+                          showBubbleTooltip(context, cancel, 'Cancellations'),
+                      child: Container(
+                        alignment: Alignment.centerLeft,
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 2,
+                        ),
+                        child: Text(
+                          'CL',
+                          style: AppFont.smallTextBold(context),
+                        ),
                       ),
-                      child: Text('CI', style: AppFont.smallTextBold(context)),
                     ),
-                    Container(
-                      alignment: Alignment.centerLeft,
-                      margin: const EdgeInsets.only(bottom: 10, top: 10),
-                      child: Text(
-                        'N-Ord',
-                        style: AppFont.smallTextBold(context),
+                    GestureDetector(
+                      key: netOrd,
+                      onTap: () =>
+                          showBubbleTooltip(context, netOrd, 'Net Orders'),
+                      child: Container(
+                        alignment: Alignment.centerLeft,
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 2,
+                        ),
+                        child: Text(
+                          'ND',
+                          style: AppFont.smallTextBold(context),
+                        ),
                       ),
-                      // Text('Duration',
-                      //     textAlign: TextAlign.start,
-                      //     style: AppFont.smallText10(context)),
                     ),
-                    Container(
-                      alignment: Alignment.centerLeft,
-                      margin: const EdgeInsets.only(
-                        bottom: 10,
-                        top: 10,
-                        right: 0,
+                    GestureDetector(
+                      key: retails,
+                      onTap: () =>
+                          showBubbleTooltip(context, retails, 'Retails'),
+                      child: Container(
+                        alignment: Alignment.centerLeft,
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 2,
+                        ),
+                        child: Text(
+                          'RS',
+                          style: AppFont.smallTextBold(context),
+                        ),
                       ),
-                      child: Text('Rtl', style: AppFont.smallTextBold(context)),
-                      //  Text('Declined',
-                      //     textAlign: TextAlign.start,
-                      //     style: AppFont.smallText10(context))
                     ),
                   ],
                 ),
@@ -2316,6 +2647,7 @@ class _MyTeamsState extends State<MyTeams> {
                   color: AppColors.backgroundLightGrey,
                   borderRadius: BorderRadius.circular(10),
                 ),
+
                 child: Column(
                   children: [
                     Row(
@@ -2373,10 +2705,15 @@ class _MyTeamsState extends State<MyTeams> {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: Colors.grey.withOpacity(0.5), // border color
-          width: 1.0, // border width
-        ),
+        border: Border.all(color: Colors.grey.withOpacity(0.5), width: 1.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 1,
+            spreadRadius: 1,
+            offset: Offset(0, 0), // Equal shadow on all sides
+          ),
+        ],
       ),
 
       child: Column(
@@ -2391,9 +2728,22 @@ class _MyTeamsState extends State<MyTeams> {
                   vertical: 5,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.homeContainerLeads,
-                  borderRadius: BorderRadius.circular(30),
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Colors.grey.withOpacity(0.5),
+                    width: 1.0,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 1,
+                      spreadRadius: 1,
+                      offset: Offset(0, 0), // Equal shadow on all sides
+                    ),
+                  ],
                 ),
+
                 child: Text(
                   'Team size : ${_analyticsData['teamSize'] ?? '0'}',
                   style: AppFont.mediumText14(context),
@@ -2698,7 +3048,7 @@ class _MyTeamsState extends State<MyTeams> {
         Colors.indigo,
         Colors.purpleAccent,
       ];
-      Color _getRandomColor(String name) {
+      Color getRandomColor(String name) {
         final int hash = name.codeUnits.fold(0, (prev, el) => prev + el);
         return _bgColors[hash % _bgColors.length].withOpacity(0.8);
       }
@@ -2713,7 +3063,7 @@ class _MyTeamsState extends State<MyTeams> {
         return CircleAvatar(
           radius: 12,
           backgroundColor: (imageUrl == null || imageUrl.isEmpty)
-              ? _getRandomColor(name)
+              ? getRandomColor(name)
               : Colors.transparent,
           backgroundImage: (imageUrl != null && imageUrl.isNotEmpty)
               ? NetworkImage(imageUrl)
@@ -2765,7 +3115,7 @@ class _MyTeamsState extends State<MyTeams> {
                   return CircleAvatar(
                     radius: 12,
                     backgroundColor: (imageUrl == null || imageUrl.isEmpty)
-                        ? _getRandomColor(name)
+                        ? getRandomColor(name)
                         : Colors.transparent,
                     backgroundImage: (imageUrl != null && imageUrl.isNotEmpty)
                         ? NetworkImage(imageUrl)
@@ -2824,6 +3174,56 @@ class _MyTeamsState extends State<MyTeams> {
   // teams comparison table
   List<TableRow> _buildMemberRowsTeams() {
     List<dynamic> dataToDisplay;
+    final List<Color> _bgColors = [
+      Colors.red,
+      Colors.green,
+      Colors.blue,
+      Colors.orange,
+      Colors.purple,
+      Colors.teal,
+      Colors.indigo,
+      Colors.purpleAccent,
+    ];
+
+    Color getRandomColor(String name) {
+      final int hash = name.codeUnits.fold(0, (prev, el) => prev + el);
+      return _bgColors[hash % _bgColors.length].withOpacity(0.8);
+    }
+
+    CircleAvatar buildAvatar(Map<String, dynamic> member) {
+      final String? imageUrl = member['profileImage'];
+      final String initials =
+          (member['fname'] ?? member['name'] ?? '').toString().trim().isNotEmpty
+          ? (member['fname'] ?? member['name'] ?? '')
+                .toString()
+                .trim()
+                .substring(0, 1)
+                .toUpperCase()
+          : '?';
+
+      final String colorSeed = (member['fname'] ?? member['name'] ?? '')
+          .toString();
+
+      return CircleAvatar(
+        radius: 12,
+        backgroundColor: (imageUrl == null || imageUrl.isEmpty)
+            ? getRandomColor(colorSeed)
+            : Colors.transparent,
+        backgroundImage: (imageUrl != null && imageUrl.isNotEmpty)
+            ? NetworkImage(imageUrl)
+            : null,
+        child: (imageUrl == null || imageUrl.isEmpty)
+            ? Text(
+                initials,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              )
+            : null,
+      );
+    }
 
     if (_isComparing &&
         selectedUserIds.isNotEmpty &&
@@ -2882,14 +3282,7 @@ class _MyTeamsState extends State<MyTeams> {
             children: [
               Stack(
                 children: [
-                  CircleAvatar(
-                    radius: 12,
-                    backgroundColor: Colors.blue.withOpacity(0.2),
-                    child: Text(
-                      member['fname'].toString().substring(0, 1).toUpperCase(),
-                      style: const TextStyle(fontSize: 12, color: Colors.blue),
-                    ),
-                  ),
+                  buildAvatar(member), // 👈 using the random color avatar
                 ],
               ),
               const SizedBox(width: 6),

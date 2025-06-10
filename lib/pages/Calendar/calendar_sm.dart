@@ -365,7 +365,7 @@ class _CalendarSmState extends State<CalendarSm> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.blue,
+        backgroundColor: const Color(0xFF1380FE),
         automaticallyImplyLeading: false,
         title: Text(
           'Calendar',
@@ -824,7 +824,8 @@ class _CalendarSmState extends State<CalendarSm> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => FollowupsDetails(leadId: leadId, isFromFreshlead: false),
+                builder: (context) =>
+                    FollowupsDetails(leadId: leadId, isFromFreshlead: false),
               ),
             );
           },
@@ -1013,7 +1014,8 @@ class _CalendarSmState extends State<CalendarSm> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => FollowupsDetails(leadId: leadId , isFromFreshlead: false),
+                builder: (context) =>
+                    FollowupsDetails(leadId: leadId, isFromFreshlead: false),
               ),
             );
           },

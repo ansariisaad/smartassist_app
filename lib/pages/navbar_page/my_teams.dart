@@ -423,9 +423,185 @@ class _MyTeamsState extends State<MyTeams> {
   // }
 
   // Fetch team details using the new API endpoint
+  // Future<void> _fetchTeamDetails() async {
+  //   try {
+  //     final token = await Storage.getToken();
+
+  //     // Build period parameter
+  //     String? periodParam;
+  //     switch (_periodIndex) {
+  //       case 1:
+  //         periodParam = 'MTD';
+  //         break;
+  //       case 0:
+  //         periodParam = 'QTD';
+  //         break;
+  //       case 2:
+  //         periodParam = 'YTD';
+  //         break;
+  //       default:
+  //         periodParam = 'QTD';
+  //     }
+
+  //     final Map<String, String> queryParams = {};
+
+  //     if (periodParam != null) {
+  //       queryParams['type'] = periodParam;
+  //     }
+
+  //     final targetMetric = [
+  //       'target_enquiries',
+  //       'target_testDrives',
+  //       'target_orders',
+  //       'target_cancellation',
+  //       'target_netOrders',
+  //       'target_retail',
+  //     ];
+
+  //     // Define summary metrics (moved outside to be available for both cases)
+  //     final summaryMetrics = [
+  //       'enquiries',
+  //       'testDrives',
+  //       'orders',
+  //       'cancellation',
+  //       'netOrders',
+  //       'retail',
+  //     ];
+  //     final summaryParam = summaryMetrics[_metricIndex];
+  //     final targetParam = targetMetric[_metricIndex];
+
+  //     // ✅ Add summary parameter for both All and specific user selection
+  //     queryParams['summary'] = summaryParam;
+  //     queryParams['target'] = targetParam;
+
+  //     // 🔥 REMOVE THE DUPLICATE LOGIC - Only keep this single user selection logic
+  //     // ❌ REMOVED: Duplicate user_id logic that was causing the issue
+  //     // if (_selectedProfileIndex != 0 && _selectedUserId.isNotEmpty) {
+  //     //   queryParams['user_id'] = _selectedUserId;
+  //     // }
+
+  //     // 🔥 MODIFIED LOGIC: Handle user selection based on comparison mode
+  //     if (_isComparing && selectedUserIds.isNotEmpty) {
+  //       // ✅ If comparison mode is ON, ONLY pass userIds (NO user_id)
+  //       queryParams['userIds'] = selectedUserIds.join(',');
+  //     } else if (!_isComparing &&
+  //         _selectedProfileIndex != 0 &&
+  //         _selectedUserId.isNotEmpty) {
+  //       // ✅ If comparison mode is OFF and specific user is selected, pass user_id
+  //       queryParams['user_id'] = _selectedUserId;
+  //     }
+  //     // ✅ If "All" is selected (_selectedProfileIndex == 0), no user parameters are added
+
+  //     final baseUri = Uri.parse(
+  //       'https://api.smartassistapp.in/api/users/sm/dashboard/team-dashboard',
+  //     );
+
+  //     final uri = baseUri.replace(queryParameters: queryParams);
+
+  //     print('📤 Fetching from: $uri');
+
+  //     final response = await http.get(
+  //       uri,
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+
+  //     print('📥 Status Code: ${response.statusCode}');
+  //     print('📥 Response: ${response.body}');
+
+  //     if (response.statusCode == 200) {
+  //       final data = json.decode(response.body);
+
+  //       setState(() {
+  //         _teamData = data['data'] ?? {};
+
+  //         // teams comparison
+  //         if (_teamData.containsKey('teamComparsion')) {
+  //           _teamComparisonData = List<dynamic>.from(
+  //             _teamData['teamComparsion'] ?? [],
+  //           );
+  //           print('📊 Team Comparison Data: $_teamComparisonData');
+  //         } else {
+  //           _teamComparisonData = [];
+  //         }
+
+  //         // Save total performance
+  //         if (_teamData.containsKey('totalPerformance')) {
+  //           _selectedUserData?['totalPerformance'] =
+  //               _teamData['totalPerformance'];
+  //         }
+
+  //         if (_teamData.containsKey('allMember') &&
+  //             _teamData['allMember'].isNotEmpty) {
+  //           _teamMembers = [];
+
+  //           for (var member in _teamData['allMember']) {
+  //             _teamMembers.add({
+  //               'fname': member['fname'] ?? '',
+  //               'lname': member['lname'] ?? '',
+  //               'user_id': member['user_id'] ?? '',
+  //               'profile': member['profile'],
+  //               'initials': member['initials'] ?? '',
+  //             });
+  //           }
+  //         }
+
+  //         if (_selectedProfileIndex == 0) {
+  //           // Summary data
+  //           _selectedUserData = _teamData['summary'] ?? {};
+  //           _selectedUserData?['totalPerformance'] =
+  //               _teamData['totalPerformance'] ?? {};
+  //         } else if (_selectedProfileIndex - 1 < _teamMembers.length) {
+  //           // Specific user selected
+  //           final selectedMember = _teamMembers[_selectedProfileIndex - 1];
+  //           _selectedUserData = selectedMember;
+
+  //           final selectedUserPerformance =
+  //               _teamData['selectedUserPerformance'] ?? {};
+  //           final upcoming = selectedUserPerformance['Upcoming'] ?? {};
+  //           final overdue = selectedUserPerformance['Overdue'] ?? {};
+
+  //           if (_upcommingButtonIndex == 0) {
+  //             _upcomingFollowups = List<Map<String, dynamic>>.from(
+  //               upcoming['upComingFollowups'] ?? [],
+  //             );
+  //             _upcomingAppointments = List<Map<String, dynamic>>.from(
+  //               upcoming['upComingAppointment'] ?? [],
+  //             );
+  //             _upcomingTestDrives = List<Map<String, dynamic>>.from(
+  //               upcoming['upComingTestDrive'] ?? [],
+  //             );
+  //           } else {
+  //             _upcomingFollowups = List<Map<String, dynamic>>.from(
+  //               overdue['overdueFollowups'] ?? [],
+  //             );
+  //             _upcomingAppointments = List<Map<String, dynamic>>.from(
+  //               overdue['overdueAppointments'] ?? [],
+  //             );
+  //             _upcomingTestDrives = List<Map<String, dynamic>>.from(
+  //               overdue['overdueTestDrives'] ?? [],
+  //             );
+  //           }
+  //         }
+  //       });
+  //     } else {
+  //       throw Exception('Failed to fetch team details: ${response.statusCode}');
+  //     }
+  //   } catch (e) {
+  //     print('Error fetching team details: $e');
+  //   }
+  // } rpujari@modimotorsjlr.com Rakesh@01
+
   Future<void> _fetchTeamDetails() async {
     try {
+      setState(() {
+        isLoading = true; // Set loading state
+      });
+
       final token = await Storage.getToken();
+      // ... (rest of your existing API call logic)
 
       // Build period parameter
       String? periodParam;
@@ -490,6 +666,13 @@ class _MyTeamsState extends State<MyTeams> {
         // ✅ If comparison mode is OFF and specific user is selected, pass user_id
         queryParams['user_id'] = _selectedUserId;
       }
+
+      if (_isComparing && selectedUserIds.isEmpty) {
+        setState(() {
+          _isComparing = false;
+          _teamComparisonData = [];
+        });
+      }
       // ✅ If "All" is selected (_selectedProfileIndex == 0), no user parameters are added
 
       final baseUri = Uri.parse(
@@ -507,22 +690,20 @@ class _MyTeamsState extends State<MyTeams> {
           'Content-Type': 'application/json',
         },
       );
-
       print('📥 Status Code: ${response.statusCode}');
       print('📥 Response: ${response.body}');
-
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
 
         setState(() {
           _teamData = data['data'] ?? {};
 
-          // teams comparison
+          // Team comparison data
           if (_teamData.containsKey('teamComparsion')) {
             _teamComparisonData = List<dynamic>.from(
               _teamData['teamComparsion'] ?? [],
             );
-            print('📊 Team Comparison Data: $_teamComparisonData');
+            print('📊 Team Comparison Data Updated: $_teamComparisonData');
           } else {
             _teamComparisonData = [];
           }
@@ -585,12 +766,18 @@ class _MyTeamsState extends State<MyTeams> {
               );
             }
           }
+          // ... (rest of your existing state updates)
+
+          isLoading = false; // Clear loading state
         });
       } else {
         throw Exception('Failed to fetch team details: ${response.statusCode}');
       }
     } catch (e) {
       print('Error fetching team details: $e');
+      setState(() {
+        isLoading = false; // Clear loading state on error
+      });
     }
   }
 
@@ -795,41 +982,56 @@ class _MyTeamsState extends State<MyTeams> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('My Team', style: AppFont.appbarfontWhite(context)),
+            // if (selectedUserIds.length >= 2)
+            //   Container(
+            //     padding: const EdgeInsets.symmetric(
+            //       horizontal: 10,
+            //       vertical: 0,
+            //     ),
+            //     decoration: BoxDecoration(
+            //       color: Colors.transparent,
+            //       borderRadius: BorderRadius.circular(10),
+            //     ),
+            //     child: InkWell(
+            //       onTap: () async {
+            //         setState(() {
+            //           _isComparing = true;
+            //         });
+            //         // Wait for the next frame to ensure setState is complete
+            //         await Future.delayed(Duration.zero);
+            //         _fetchTeamDetails();
+            //       },
+            //       child: Text(
+            //         'Compare',
+            //         style: AppFont.mediumText14white(context),
+            //       ),
+            //     ),
+            //   ),
             if (selectedUserIds.length >= 2)
-              Align(
-                alignment: Alignment.centerRight,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 0,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.transparent,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: TextButton(
-                    style: ButtonStyle(
-                      padding: MaterialStateProperty.all<EdgeInsets>(
-                        EdgeInsets.zero,
-                      ),
-                    ),
-
-                    onPressed: () async {
-                      setState(() {
-                        _isComparing = true;
-                      });
-                      // Wait for the next frame to ensure setState is complete
-                      await Future.delayed(Duration.zero);
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 0,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: InkWell(
+                  onTap: () {
+                    setState(() {
+                      _isComparing = true;
+                    });
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
                       _fetchTeamDetails();
-                    },
-                    child: Text(
-                      'Compare',
-                      style: AppFont.mediumText14white(context),
-                    ),
+                    });
+                  },
+                  child: Text(
+                    'Compare',
+                    style: AppFont.mediumText14white(context),
                   ),
                 ),
               ),
-          
           ],
         ),
       ),
@@ -1441,33 +1643,34 @@ class _MyTeamsState extends State<MyTeams> {
                   ),
                 ),
               ),
+
               // Multi-select indicator with animation
-              if (_isMultiSelectMode && isSelected)
-                Positioned(
-                  top: -2,
-                  right: 3,
-                  child: AnimatedScale(
-                    scale: 1.0,
-                    duration: const Duration(milliseconds: 200),
-                    child: Container(
-                      width: 18,
-                      height: 18,
-                      decoration: BoxDecoration(
-                        color: Colors.blue,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.blue.withOpacity(0.3),
-                            blurRadius: 4,
-                            offset: const Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                      child: Icon(Icons.check, color: Colors.white, size: 12),
-                    ),
-                  ),
-                ),
+              // if (_isMultiSelectMode && isSelected)
+              //   Positioned(
+              //     top: -2,
+              //     right: 3,
+              //     child: AnimatedScale(
+              //       scale: 1.0,
+              //       duration: const Duration(milliseconds: 200),
+              //       child: Container(
+              //         width: 18,
+              //         height: 18,
+              //         decoration: BoxDecoration(
+              //           color: Colors.blue,
+              //           shape: BoxShape.circle,
+              //           border: Border.all(color: Colors.white, width: 2),
+              //           boxShadow: [
+              //             BoxShadow(
+              //               color: Colors.blue.withOpacity(0.3),
+              //               blurRadius: 4,
+              //               offset: const Offset(0, 1),
+              //             ),
+              //           ],
+              //         ),
+              //         // child: Icon(Icons.check, color: Colors.white, size: 12),
+              //       ),
+              //     ),
+              //   ),
             ],
           ),
         ),
@@ -1495,18 +1698,27 @@ class _MyTeamsState extends State<MyTeams> {
           onTap: () async {
             // Medium haptic feedback for "All" button
             HapticFeedback.mediumImpact();
-
             setState(() {
               _selectedProfileIndex = index;
               _selectedType = 'All';
-              _selectedLetters.clear(); // Clear all letter selections
-              _isMultiSelectMode = false; // Exit multi-select mode
-              _isComparing = false; // Exit comparison mode when selecting "All"
-
-              if (!_isComparing) {
-                _clearAllSelections();
-              }
+              _selectedLetters.clear();
+              _isMultiSelectMode = false;
+              _isComparing = false;
+              selectedUserIds.clear(); // Clear selected users
+              _teamComparisonData = []; // Clear comparison data
             });
+            // setState(() {
+            //   _selectedProfileIndex = index;
+            //   _selectedType = 'All';
+            //   _selectedLetters.clear(); // Clear all letter selections
+            //   _isMultiSelectMode = false; // Exit multi-select mode
+            //   _isComparing = false; // Exit comparison mode when selecting "All"
+
+            //   if (!_isComparing) {
+            //     _clearAllSelections();
+            //   }
+            // }
+            // );
             await _fetchTeamDetails();
           },
           onLongPress: () {
@@ -1901,14 +2113,26 @@ class _MyTeamsState extends State<MyTeams> {
   Widget _buildTeamComparisonTab(BuildContext context, double screenWidth) {
     return Column(
       children: [
-        // _buildPeriodFilter(screenWidth),
-        // _buildMetricButtons(),
-        // _buildTeamComparisonChart(context),
-        if (_isComparing) _buildTeamComparisonChart(context),
-        if (!_isComparing) _callAnalyticAll(context),
+        if (isLoading)
+          Center(child: CircularProgressIndicator())
+        else if (_isComparing)
+          _buildTeamComparisonChart(context)
+        else
+          _callAnalyticAll(context),
       ],
     );
   }
+  // Widget _buildTeamComparisonTab(BuildContext context, double screenWidth) {
+  //   return Column(
+  //     children: [
+  //       // _buildPeriodFilter(screenWidth),
+  //       // _buildMetricButtons(),
+  //       // _buildTeamComparisonChart(context),
+  //       if (_isComparing) _buildTeamComparisonChart(context),
+  //       if (!_isComparing) _callAnalyticAll(context),
+  //     ],
+  //   );
+  // }
 
   // Period filter (ALL, MTD, QTD, YTD)
   Widget _buildPeriodFilter(double screenWidth) {
@@ -3063,24 +3287,36 @@ class _MyTeamsState extends State<MyTeams> {
       );
     }
 
-    if (_isComparing &&
-        selectedUserIds.isNotEmpty &&
-        _teamComparisonData.isNotEmpty) {
+    if (_isComparing && _teamComparisonData.isNotEmpty) {
       dataToDisplay = _teamComparisonData;
       print('📊 Using team comparison data: ${dataToDisplay.length} members');
+    } else if (_isComparing && selectedUserIds.isNotEmpty) {
+      dataToDisplay = _membersData.where((member) {
+        return selectedUserIds.contains(member['user_id'].toString());
+      }).toList();
+      print('📊 Using filtered members data: ${dataToDisplay.length} members');
     } else {
-      if (_isComparing && selectedUserIds.isNotEmpty) {
-        dataToDisplay = _membersData.where((member) {
-          return selectedUserIds.contains(member['user_id'].toString());
-        }).toList();
-        print(
-          '📊 Using filtered members data: ${dataToDisplay.length} members',
-        );
-      } else {
-        dataToDisplay = _membersData;
-        print('📊 Using regular members data: ${dataToDisplay.length} members');
-      }
+      dataToDisplay = _membersData;
+      print('📊 Using regular members data: ${dataToDisplay.length} members');
     }
+    // if (_isComparing &&
+    //     selectedUserIds.isNotEmpty &&
+    //     _teamComparisonData.isNotEmpty) {
+    //   dataToDisplay = _teamComparisonData;
+    //   print('📊 Using team comparison data: ${dataToDisplay.length} members');
+    // } else {
+    //   if (_isComparing && selectedUserIds.isNotEmpty) {
+    //     dataToDisplay = _membersData.where((member) {
+    //       return selectedUserIds.contains(member['user_id'].toString());
+    //     }).toList();
+    //     print(
+    //       '📊 Using filtered members data: ${dataToDisplay.length} members',
+    //     );
+    //   } else {
+    //     dataToDisplay = _membersData;
+    //     print('📊 Using regular members data: ${dataToDisplay.length} members');
+    //   }
+    // }
 
     if (dataToDisplay.isEmpty) {
       return [];
@@ -3101,12 +3337,29 @@ class _MyTeamsState extends State<MyTeams> {
       int index = entry.key;
       var member = entry.value;
 
-      // Safe access with null checks
-      if (member == null) return TableRow(children: []);
+      if (member == null) return TableRow(children: List.filled(6, Text('')));
 
       bool isSelected = selectedUserIds.contains(
         member['user_id']?.toString() ?? '',
       );
+      // int safeDisplayCount = math.max(
+      //   0,
+      //   math.min(_currentDisplayCount, dataToDisplay.length),
+      // );
+      // List<dynamic> displayMembers = dataToDisplay
+      //     .take(safeDisplayCount)
+      //     .toList();
+
+      // return displayMembers.asMap().entries.map((entry) {
+      //   int index = entry.key;
+      //   var member = entry.value;
+
+      //   // Safe access with null checks
+      //   if (member == null) return TableRow(children: []);
+
+      //   bool isSelected = selectedUserIds.contains(
+      //     member['user_id']?.toString() ?? '',
+      //   );
 
       return _buildTableRow([
         InkWell(

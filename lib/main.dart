@@ -22,6 +22,9 @@ void main() async {
       DeviceOrientation.portraitUp,
     ]);
     print("Firebase initialized successfully!");
+
+
+    
   } catch (e) {
     print("Firebase initialization failed: $e");
   }
@@ -39,6 +42,9 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
+
+
+  
   const MyApp({super.key});
 
   @override

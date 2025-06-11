@@ -109,13 +109,13 @@
 	</dict>
 
 	<!-- Background modes (if your app needs background processing) -->
-	<key>UIBackgroundModes</key>
+	<!-- <key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>
 		<string>background-processing</string>
 		<string>bluetooth-central</string>
 		<string>bluetooth-peripheral</string>
-	</array>
+	</array> -->
 
 	<!-- Required device capabilities -->
 	<key>UIRequiredDeviceCapabilities</key>

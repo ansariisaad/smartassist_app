@@ -258,6 +258,7 @@ class _MyTeamsState extends State<MyTeams> {
       // ✅ Fixed: Use the correct base URL without concatenating userId
       final baseUri = Uri.parse(
         'https://api.smartassistapp.in/api/users/sm/dashboard/individual/call-analytics',
+        // 'https://api.smartassistapp.in/api/users/sm/dashboard/call-analytics'
       );
 
       final uri = baseUri.replace(queryParameters: queryParams);
@@ -813,10 +814,12 @@ class _MyTeamsState extends State<MyTeams> {
                       ),
                     ),
 
-                    onPressed: () {
+                    onPressed: () async {
                       setState(() {
                         _isComparing = true;
                       });
+                      // Wait for the next frame to ensure setState is complete
+                      await Future.delayed(Duration.zero);
                       _fetchTeamDetails();
                     },
                     child: Text(
@@ -826,6 +829,7 @@ class _MyTeamsState extends State<MyTeams> {
                   ),
                 ),
               ),
+          
           ],
         ),
       ),
@@ -1381,7 +1385,7 @@ class _MyTeamsState extends State<MyTeams> {
                 } else {
                   _selectedLetters.add(letter);
                   _selectedType = 'Letter';
-                  _selectedProfileIndex = -1; // Letter selection
+                  // _selectedProfileIndex = -1; // Letter selection
                 }
               } else {
                 // Single select mode - but keep existing selections and add new one
@@ -1396,13 +1400,13 @@ class _MyTeamsState extends State<MyTeams> {
                   // Add this letter to selection (don't clear existing)
                   _selectedLetters.add(letter);
                   _selectedType = 'Letter';
-                  _selectedProfileIndex = -1; // Letter selection
+                  // _selectedProfileIndex = -1; // Letter selection
                 }
               }
 
               _selectedProfileIndex = -1;
             });
-            _fetchTeamDetails();
+            // _fetchTeamDetails();  new
           },
 
           child: Stack(
@@ -1545,9 +1549,11 @@ class _MyTeamsState extends State<MyTeams> {
                 height: 50,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isSelected
-                      ? Colors.blue.withOpacity(0.15)
-                      : AppColors.backgroundLightGrey,
+                  color: _isMultiSelectMode
+                      ? AppColors.sideRed
+                      : (isSelected
+                            ? Colors.blue.withOpacity(0.15)
+                            : AppColors.backgroundLightGrey),
                   border: isSelected
                       ? Border.all(color: Colors.blue, width: 2.5)
                       : Border.all(
@@ -1560,14 +1566,16 @@ class _MyTeamsState extends State<MyTeams> {
                     duration: const Duration(milliseconds: 200),
                     child: Icon(
                       _isMultiSelectMode
-                          ? Icons.clear_all
+                          ? Icons.close_rounded
                           : (isSelected ? Icons.groups : Icons.people),
                       key: ValueKey(
                         _isMultiSelectMode
                             ? 'clear'
                             : (isSelected ? 'groups' : 'people'),
                       ),
-                      color: isSelected ? Colors.blue : Colors.grey.shade400,
+                      color: _isMultiSelectMode
+                          ? Colors.white
+                          : (isSelected ? Colors.blue : Colors.grey),
                       size: isSelected ? 34 : 32,
                     ),
                   ),
@@ -1617,7 +1625,9 @@ class _MyTeamsState extends State<MyTeams> {
               _selectedLetters.clear(); // Clear all letter selections
               _isMultiSelectMode = false; // Exit multi-select mode
               _isComparing = false; // Exit comparison mode when selecting "All"
+
               _metricIndex = 0;
+              isSelected = true; // new
               if (!_isComparing) {
                 _clearAllSelections();
               }
@@ -1630,172 +1640,18 @@ class _MyTeamsState extends State<MyTeams> {
             style: AppFont.mediumText14(context).copyWith(
               color: isSelected
                   ? Colors.blue
-                  : (_isMultiSelectMode ? Colors.orange : null),
+                  : (_isMultiSelectMode ? AppColors.fontColor : null),
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
             ),
-            child: Text(_isMultiSelectMode ? 'Reset' : 'All'),
+            child: Text(
+              _isMultiSelectMode ? 'Reset' : 'All',
+              style: AppFont.mediumText14(context),
+            ),
           ),
         ),
       ],
     );
   }
-  // Widget _buildProfileAvatarStaticsAll(String firstName, int index) {
-  //   bool isSelected = _selectedType == 'All' && _selectedLetters.isEmpty;
-
-  //   return Column(
-  //     mainAxisSize: MainAxisSize.min,
-  //     children: [
-  //       GestureDetector(
-  //         onTap: () async {
-  //           // Medium haptic feedback for "All" button
-  //           HapticFeedback.mediumImpact();
-
-  //           setState(() {
-  //             _selectedProfileIndex = index;
-  //             _selectedType = 'All';
-  //             _selectedLetters.clear(); // Clear all letter selections
-  //             _isMultiSelectMode = false; // Exit multi-select mode
-
-  //             if (!_isComparing) {
-  //               _clearAllSelections();
-  //             }
-  //           });
-  //           await _fetchTeamDetails();
-  //         },
-  //         onLongPress: () {
-  //           // Heavy haptic feedback for long press on "All"
-  //           HapticFeedback.heavyImpact();
-
-  //           // Show info about total members
-  //           int totalMembers = _teamMembers.length;
-  //           ScaffoldMessenger.of(context).showSnackBar(
-  //             SnackBar(
-  //               content: Row(
-  //                 mainAxisSize: MainAxisSize.min,
-  //                 children: [
-  //                   Icon(Icons.info_outline, color: Colors.white, size: 16),
-  //                   SizedBox(width: 8),
-  //                   Text('Total $totalMembers team members'),
-  //                 ],
-  //               ),
-  //               duration: const Duration(seconds: 1),
-  //               backgroundColor: Colors.green.shade600,
-  //               behavior: SnackBarBehavior.floating,
-  //               margin: EdgeInsets.only(
-  //                 bottom: MediaQuery.of(context).size.height - 150,
-  //                 left: 20,
-  //                 right: 20,
-  //               ),
-  //               shape: RoundedRectangleBorder(
-  //                 borderRadius: BorderRadius.circular(8),
-  //               ),
-  //             ),
-  //           );
-  //         },
-  //         child: Stack(
-  //           children: [
-  //             AnimatedContainer(
-  //               duration: const Duration(milliseconds: 300),
-  //               curve: Curves.easeInOut,
-  //               margin: const EdgeInsets.fromLTRB(10, 0, 5, 0),
-  //               width: 50,
-  //               height: 50,
-  //               decoration: BoxDecoration(
-  //                 shape: BoxShape.circle,
-  //                 color: isSelected
-  //                     ? Colors.blue.withOpacity(0.15)
-  //                     : AppColors.backgroundLightGrey,
-  //                 border: isSelected
-  //                     ? Border.all(color: Colors.blue, width: 2.5)
-  //                     : Border.all(
-  //                         color: Colors.grey.withOpacity(0.3),
-  //                         width: 1,
-  //                       ),
-  //               ),
-  //               child: Center(
-  //                 child: AnimatedSwitcher(
-  //                   duration: const Duration(milliseconds: 200),
-  //                   child: Icon(
-  //                     _isMultiSelectMode
-  //                         ? Icons.clear_all
-  //                         : (isSelected ? Icons.groups : Icons.people),
-  //                     key: ValueKey(
-  //                       _isMultiSelectMode
-  //                           ? 'clear'
-  //                           : (isSelected ? 'groups' : 'people'),
-  //                     ),
-  //                     color: isSelected ? Colors.blue : Colors.grey.shade400,
-  //                     size: isSelected ? 34 : 32,
-  //                   ),
-  //                 ),
-  //               ),
-  //             ),
-  //             // Multi-select mode indicator
-  //             if (_isMultiSelectMode)
-  //               Positioned(
-  //                 top: -2,
-  //                 right: 3,
-  //                 child: AnimatedScale(
-  //                   scale: 1.0,
-  //                   duration: const Duration(milliseconds: 200),
-  //                   child: Container(
-  //                     width: 18,
-  //                     height: 18,
-  //                     decoration: BoxDecoration(
-  //                       color: Colors.orange,
-  //                       shape: BoxShape.circle,
-  //                       border: Border.all(color: Colors.white, width: 2),
-  //                       boxShadow: [
-  //                         BoxShadow(
-  //                           color: Colors.orange.withOpacity(0.3),
-  //                           blurRadius: 4,
-  //                           offset: const Offset(0, 1),
-  //                         ),
-  //                       ],
-  //                     ),
-  //                     child: Icon(
-  //                       Icons.touch_app,
-  //                       color: Colors.white,
-  //                       size: 10,
-  //                     ),
-  //                   ),
-  //                 ),
-  //               ),
-  //           ],
-  //         ),
-  //       ),
-  //       const SizedBox(height: 8),
-
-  //       InkWell(
-  //         onTap: () async {
-  //           setState(() {
-  //             _selectedProfileIndex = index;
-  //             _selectedType = 'All';
-  //             _selectedLetters.clear(); // Clear all letter selections
-  //             _isMultiSelectMode = false; // Exit multi-select mode
-  //             _metricIndex = 0;
-  //             if (!_isComparing) {
-  //               _clearAllSelections();
-  //             }
-  //           });
-  //           // await _fetchAllCalllog();
-  //           await _fetchTeamDetails();
-  //         },
-  //         child: AnimatedDefaultTextStyle(
-  //           duration: const Duration(milliseconds: 200),
-  //           style: AppFont.mediumText14(context).copyWith(
-  //             color: isSelected
-  //                 ? Colors.blue
-  //                 : (_isMultiSelectMode ? Colors.orange : null),
-  //             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-  //           ),
-  //           child: Text(_isMultiSelectMode ? 'Reset' : 'Alls '),
-  //         ),
-  //       ),
-
-  //     ],
-  //   );
-  // }
 
   Widget _buildProfileAvatar(
     String firstName,
@@ -1856,7 +1712,11 @@ class _MyTeamsState extends State<MyTeams> {
                   _selectedType = 'dynamic';
                 }
               });
-              await _fetchTeamDetails();
+              // ✅ This ensures _fetchTeamDetails runs AFTER setState completes
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _fetchTeamDetails();
+              });
+              // await _fetchTeamDetails();
             }
           },
 
@@ -1866,9 +1726,11 @@ class _MyTeamsState extends State<MyTeams> {
             height: 50,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.backgroundLightGrey,
+              color: isSelectedForComparison
+                  ? AppColors.colorsBlue
+                  : AppColors.backgroundLightGrey,
               border: isSelectedForComparison
-                  ? Border.all(color: Colors.green, width: 3)
+                  ? Border.all(color: Colors.white, width: 2)
                   : _selectedProfileIndex == index
                   ? Border.all(color: Colors.blue, width: 2)
                   : null,
@@ -1906,8 +1768,6 @@ class _MyTeamsState extends State<MyTeams> {
       ],
     );
   }
-
-   
 
   // Individual Performance Tab Content
   Widget _buildIndividualPerformanceTab(
@@ -2753,7 +2613,7 @@ class _MyTeamsState extends State<MyTeams> {
     );
   }
 
-  Widget  _buildAnalyticsTable() {
+  Widget _buildAnalyticsTable() {
     return _buildTableContent();
   }
 
@@ -3068,7 +2928,7 @@ class _MyTeamsState extends State<MyTeams> {
                 builder: (context) => CallAnalytics(
                   userName: member['name'].toString(),
                   userId: member['user_id'].toString(),
-                  isFromSM: true,  
+                  isFromSM: true,
                 ),
               ),
             );
@@ -3227,7 +3087,12 @@ class _MyTeamsState extends State<MyTeams> {
     }
 
     // 🔥 FIX: Use safe count calculation
-    int safeDisplayCount = math.min(_currentDisplayCount, dataToDisplay.length);
+    // int safeDisplayCount = math.min(_currentDisplayCount, dataToDisplay.length);
+    // 🔥 FIX: Add safety check for _currentDisplayCount
+    int safeDisplayCount = math.max(
+      0,
+      math.min(_currentDisplayCount, dataToDisplay.length),
+    );
     List<dynamic> displayMembers = dataToDisplay
         .take(safeDisplayCount)
         .toList();

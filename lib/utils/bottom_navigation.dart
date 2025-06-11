@@ -424,82 +424,130 @@ class BottomNavigation extends StatelessWidget {
             child: Obx(() {
               List<Widget> navItems = [];
 
-              // Insert Teams navigation only for SM role
-              if (controller.userRole.value == "SM") {
-                navItems.add(
-                  _buildNavItem(
-                    context: context,
-                    icon: Icons.people,
-                    label: 'My Team', 
-                    index: 0,
-                    isIcon: true,
-                    isImg: false,
-                  ),
-                );
-                // Home comes second at index 1
-                navItems.add(
-                  _buildNavItem(
-                    context: context,
-                    icon: Icons.auto_graph,
-                    label: 'Dashboard',
-                    index: 1,
-                    isIcon: true,
-                    isImg: false,
-                  ),
-                );
-              }
 
-              if (controller.userRole.value == "SM") {
-                // SM users: show icon-based Calendar nav item
-                navItems.add(
-                  _buildNavItem(
-                    context: context,
-                    isImg: true,
-                    isIcon: false,
-                    icon: Icons.calendar_month_outlined,
-                    label: 'Calendar',
-                    index: 2,
-                    img: Image.asset('assets/calendar.png', fit: BoxFit.contain),
-                  ),
-                );
-              } else {
-                // Other users: show image-based Calendar nav item
-                navItems.add(
-                  _buildNavItem(
-                    context: context,
-                    isImg: true,
-                    isIcon: false,
-                    img: Image.asset('assets/calendar.png', fit: BoxFit.contain),
-                    label: 'Calendar',
-                    index: 1,
-                  ),
-                );
+//               // Insert Teams navigation only for SM role
+//               if (controller.userRole.value == "SM") {
+//                 navItems.add(
+//                   _buildNavItem(
+//                     context: context,
+//                     icon: Icons.people,
+//                     label: 'My Team', 
+//                     index: 0,
+//                     isIcon: true,
+//                     isImg: false,
+//                   ),
+//                 );
+//                 // Home comes second at index 1
+//                 navItems.add(
+//                   _buildNavItem(
+//                     context: context,
+//                     icon: Icons.auto_graph,
+//                     label: 'Dashboard',
+//                     index: 1,
+//                     isIcon: true,
+//                     isImg: false,
+//                   ),
+//                 );
+//               }
 
-                navItems.add(
-                  _buildNavItem(
-                    context: context,
-                    icon: Icons.home,
-                    label: 'Home',
-                    index: 0,
-                    isIcon: true,
-                    isImg: false,
-                  ),
-                );
-              }
+//               if (controller.userRole.value == "SM") {
+//                 // SM users: show icon-based Calendar nav item
+//                 navItems.add(
+//                   _buildNavItem(
+//                     context: context,
+//                     isImg: true,
+//                     isIcon: false,
+//                     icon: Icons.calendar_month_outlined,
+//                     label: 'Calendar',
+//                     index: 2,
+//                     img: Image.asset('assets/calendar.png', fit: BoxFit.contain),
+//                   ),
+//                 );
+//               } else {
+//                 // Other users: show image-based Calendar nav item
+//                 navItems.add(
+//                   _buildNavItem(
+//                     context: context,
+//                     isImg: true,
+//                     isIcon: false,
+//                     img: Image.asset('assets/calendar.png', fit: BoxFit.contain),
+//                     label: 'Calendar',
+//                     index: 1,
+//                   ),
+//                 );
 
-              // Add More/Settings - index needs to be adjusted based on whether Teams is present
-              int moreIndex = controller.userRole.value == "SM" ? 3 : 2;
+//                 navItems.add(
+//                   _buildNavItem(
+//                     context: context,
+//                     icon: Icons.home,
+//                     label: 'Home',
+//                     index: 0,
+//                     isIcon: true,
+//                     isImg: false,
+//                   ),
+//                 );
+//               }
+
+//               // Add More/Settings - index needs to be adjusted based on whether Teams is present
+//               int moreIndex = controller.userRole.value == "SM" ? 3 : 2;
+//               navItems.add(
+//                 _buildNavItem(
+//                   context: context,
+//                   icon: Icons.more_horiz_sharp,
+//                   label: 'More',
+//                   index: moreIndex,
+//                   isIcon: true,
+//                   isImg: false,
+//                   onTap: _showMoreBottomSheet,
+//                 ),
+//               );
+            if (controller.userRole.value == "SM") {
+              // SM users: show icon-based Calendar nav item
               navItems.add(
                 _buildNavItem(
-                  context: context,
-                  icon: Icons.more_horiz_sharp,
-                  label: 'More',
-                  index: moreIndex,
-                  isIcon: true,
-                  isImg: false,
-                  onTap: _showMoreBottomSheet,
+                  isImg: true,
+                  isIcon: false,
+                  icon: Icons.calendar_month_outlined,
+                  label: 'Calendar',
+                  index: 2,
+                  // isIcon: true,
+                  img: Image.asset('assets/calendar.png', fit: BoxFit.contain),
                 ),
               );
+            } else {
+              navItems.add(
+                _buildNavItem(
+                  icon: Icons.home,
+                  label: 'Home',
+                  index: 0,
+                  isIcon: true,
+                  isImg: false,
+                ),
+              );
+              // Other users: show image-based Calendar nav item
+              navItems.add(
+                _buildNavItem(
+                  isImg: true,
+                  isIcon: false,
+                  img: Image.asset('assets/calendar.png', fit: BoxFit.contain),
+                  label: 'Calendar',
+                  index: 1,
+                ),
+              );
+            }
+
+            // Add More/Settings - index needs to be adjusted based on whether Teams is present
+            int moreIndex = controller.userRole.value == "SM" ? 3 : 2;
+            navItems.add(
+              _buildNavItem(
+                icon: Icons.more_horiz_sharp,
+                label: 'More',
+                index: moreIndex,
+                isIcon: true,
+                isImg: false,
+                onTap: _showMoreBottomSheet,
+              ),
+            );
 
               return Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -643,6 +691,7 @@ class BottomNavigation extends StatelessWidget {
                 ),
                 onTap: () => Get.to(() => const AllLeads()),
               ),
+
               ListTile(
                 leading: const Icon(Icons.call_outlined, size: 28),
                 title: Text(
@@ -652,6 +701,7 @@ class BottomNavigation extends StatelessWidget {
                 onTap: () => Get.to(
                   () => const CallAnalytics(userId: ''),
                 ),
+
               ),
               ListTile(
                 leading: const Icon(Icons.star_border_rounded, size: 28),

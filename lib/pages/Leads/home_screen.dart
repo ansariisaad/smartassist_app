@@ -439,6 +439,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final responsiveFontSize = screenWidth * 0.035;
     return WillPopScope(
       onWillPop: _onWillPop,
       child: GestureDetector(
@@ -451,13 +453,16 @@ class _HomeScreenState extends State<HomeScreen> {
               appBar: AppBar(
                 automaticallyImplyLeading: false,
                 backgroundColor: const Color(0xFF1380FE),
-                title: Text(
-                  ' $greeting',
-                  textAlign: TextAlign.start,
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.white,
+                title: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    ' $greeting',
+                    textAlign: TextAlign.start,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
                 actions: [
@@ -555,9 +560,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 filled: true,
                                                 fillColor:
                                                     AppColors.containerBg,
-                                                hintText: 'Search',
+                                                hintText:
+                                                    'Search by name, email or phone',
                                                 hintStyle: GoogleFonts.poppins(
-                                                  fontSize: 14,
+                                                  fontSize: responsiveFontSize,
                                                   color: AppColors.fontColor,
                                                   fontWeight: FontWeight.w400,
                                                 ),
@@ -754,7 +760,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         : const SizedBox.shrink(),
                   ),
 
-                  // Positioned(
+                  // Positioned( rpujari@modimotorsjlr.com Rakesh@01
                   //   bottom: 26,
                   //   right: 18,
                   //   child: _buildFloatingActionButton(context),

@@ -999,7 +999,9 @@ class _MyteamState extends State<Myteam> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Colors.blue,
-        title: Text('My team', style: AppFont.appbarfontWhite(context)),
+        title: Align(
+           alignment: Alignment.centerLeft,
+          child: Text('My team', style: AppFont.appbarfontWhite(context))),
       ),
       body: Stack(
         children: [

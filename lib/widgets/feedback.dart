@@ -453,9 +453,12 @@ class _FeedbackscreenState extends State<Feedbackscreen> {
         //     color: Colors.white,
         //   ),
         // ),
-        title: Text(
-          'Test drive Feedback form',
-          style: AppFont.appbarfontblack(context),
+        title: Align(
+           alignment: Alignment.centerLeft,
+          child: Text(
+            'Test drive Feedback form',
+            style: AppFont.appbarfontblack(context),
+          ),
         ),
         backgroundColor: Colors.white,
         automaticallyImplyLeading: false,

@@ -127,7 +127,7 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
 
     try {
       final response = await http.get(
-        Uri.parse('https://api.smartassistapp.in/api/events/${widget.eventId}'),
+        Uri.parse('https://api.smartassistapp.in/api/tasks/${widget.eventId}'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -173,21 +173,6 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
     }
   }
 
-  // bool _validation() {
-  //   bool isValid = true;
-
-  //   setState(() {
-  //     _errors = {};
-
-  //     if (dateController.text.trim().isEmpty) {
-  //       _errors['date'] = 'Date is required';
-  //       isValid = false;
-  //     }
-  //   });
-
-  //   return isValid;
-  // }
-
   void _submit() {
     // if (_validation()) {
     submitForm();
@@ -220,7 +205,7 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
     try {
       final response = await http.put(
         Uri.parse(
-          'https://api.smartassistapp.in/api/events/update/${widget.eventId}',
+          'https://api.smartassistapp.in/api/tasks/${widget.eventId}/update',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -237,7 +222,21 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
         print(response.body);
         Navigator.pop(context, true);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Follow-up submitted successfully!')),
+          SnackBar(
+            content: Text(
+              'Appointment updated successfully',
+              style: GoogleFonts.poppins(),
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+            behavior:
+                SnackBarBehavior.floating, // Optional: Makes it float above UI
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(
+                10,
+              ), // Optional: rounded corners
+            ),
+          ),
         );
       } else {
         final Map<String, dynamic> responseData = json.decode(response.body);
@@ -263,17 +262,6 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Padding(
-        //   padding: const EdgeInsets.symmetric(vertical: 5.0),
-        //   child: Text(
-        //     label,
-        //     style: GoogleFonts.poppins(
-        //       fontSize: 14,
-        //       fontWeight: FontWeight.w500,
-        //       color: AppColors.fontBlack,
-        //     ),
-        //   ),
-        // ),
         Container(
           width: double.infinity,
           decoration: BoxDecoration(
@@ -427,7 +415,7 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
     }
   }
 
-  final List<String> items = ['Planned', 'No Show'];
+  final List<String> items = ['Not Started', 'Completed', 'Deferred'];
   String? selectedValue;
 
   List<DropdownMenuItem<String>> _addDividersAfterItems(List<String> items) {

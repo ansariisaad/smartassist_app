@@ -1301,9 +1301,10 @@ class _AllLeadsState extends State<AllLeads> {
             fontSize: isTablet ? 22 : 18,
             fontWeight: FontWeight.w400,
             color: Colors.white,
+
           ),
         ),
-        backgroundColor: Colors.blue,
+        backgroundColor: const Color(0xFF1380FE),
         automaticallyImplyLeading: false,
       ),
       body: isLoading

@@ -860,6 +860,7 @@ class _ThreebtnState extends State<Threebtn> {
                         : const Color(0xff000000).withOpacity(0.56),
                   ),
                 ),
+
                 if (showCount) ...[
                   SizedBox(width: 4.0 * _getResponsiveScale()),
                   Text(
@@ -876,6 +877,7 @@ class _ThreebtnState extends State<Threebtn> {
               ],
             ),
           ),
+
         ),
       ),
     );

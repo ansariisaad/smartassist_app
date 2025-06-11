@@ -5,6 +5,7 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/utils/bottom_navigation.dart';
 import 'package:smartassist/utils/storage.dart';
+import 'package:smartassist/widgets/buttons/add_btn.dart';
 import 'package:smartassist/widgets/followups/all_followups.dart';
 import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/appointment_popup.dart';
 import 'package:smartassist/widgets/oppointment/overdue.dart';
@@ -41,7 +42,7 @@ class _AllAppointmentState extends State<AllAppointment> {
     try {
       final token = await Storage.getToken();
       const String apiUrl =
-          "https://api.smartassistapp.in/api/tasks/all-tasks?category=Appointment";
+          "https://api.smartassistapp.in/api/tasks/all-appointments";
 
       final response = await http.get(
         Uri.parse(apiUrl),
@@ -56,8 +57,6 @@ class _AllAppointmentState extends State<AllAppointment> {
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
         setState(() {
-          print(data);
-          print('helloee');
           count = data['data']['overdueTasks']?['overdueEvents'] ?? 0;
           _originalAllTasks = data['data']['allTasks']?['rows'] ?? [];
           _originalUpcomingTasks = data['data']['upcomingTasks']?['rows'] ?? [];
@@ -116,35 +115,33 @@ class _AllAppointmentState extends State<AllAppointment> {
           ),
           icon: const Icon(Icons.arrow_back_ios_outlined, color: Colors.white),
         ),
-        backgroundColor: Colors.blue,
+
+        backgroundColor: const Color(0xFF1380FE),
         title: const Text(
-          'All Appointment',
+          'Your Appointments',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w500,
             color: Colors.white,
           ),
         ),
-        actions: [
-          IconButton(
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) {
-                  return Dialog(
-                    insetPadding: const EdgeInsets.symmetric(horizontal: 10),
-                    backgroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: _createAppoinment, // Your follow-up widget
-                  );
-                },
+      ),
+      floatingActionButton: CustomFloatingButton(
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (context) {
+              return Dialog(
+                insetPadding: const EdgeInsets.symmetric(horizontal: 10),
+                backgroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: _createAppoinment, // Your follow-up widget
               );
             },
-            icon: const Icon(Icons.add, color: Colors.white, size: 36),
-          ),
-        ],
+          );
+        },
       ),
       body: RefreshIndicator(
         onRefresh: fetchTasks,
@@ -170,10 +167,10 @@ class _AllAppointmentState extends State<AllAppointment> {
                           borderSide: BorderSide.none,
                         ),
                         filled: true,
-                        fillColor: const Color(0xFFE1EFFF),
+                        fillColor: AppColors.containerBg,
                         contentPadding: const EdgeInsets.fromLTRB(1, 4, 0, 4),
                         border: InputBorder.none,
-                        hintText: 'Search',
+                        hintText: 'Search by name, email or phone',
                         hintStyle: const TextStyle(
                           color: Colors.grey,
                           fontWeight: FontWeight.w400,

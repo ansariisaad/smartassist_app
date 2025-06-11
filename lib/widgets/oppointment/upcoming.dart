@@ -488,10 +488,20 @@ class _OppUpcomingItemState extends State<OppUpcomingItem>
   }
 
   Widget _buildSubjectDetails(BuildContext context) {
+    IconData icon;
+    if (widget.subject == 'Meeting') {
+      icon = Icons.phone_in_talk;
+    } else if (widget.subject == 'Provide Quotation') {
+      icon = Icons.mail_rounded;
+    } else if (widget.subject == 'Showroom appointment') {
+      icon = Icons.mail_rounded;
+    } else {
+      icon = Icons.phone; // fallback icon
+    }
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Icon(Icons.people_alt_rounded, color: Colors.blue, size: 18),
+        Icon(icon, color: Colors.blue, size: 18),
         const SizedBox(width: 5),
         Text('${widget.subject},', style: AppFont.smallText(context)),
       ],
@@ -633,39 +643,72 @@ class _OppUpcomingItemState extends State<OppUpcomingItem>
   void _phoneAction() {
     print("Call action triggered for ${widget.mobile}");
 
-    // String mobile = item['mobile'] ?? '';
-
     if (widget.mobile.isNotEmpty) {
       try {
         // Set flag that we're making a phone call
         _wasCallingPhone = true;
 
-        // Simple approach without canLaunchUrl check
-        final phoneNumber = 'tel:${widget.mobile}';
-        launchUrl(
-          Uri.parse(phoneNumber),
-          mode: LaunchMode.externalNonBrowserApplication,
-        );
+        // Use the same approach as _handleCall - no launch mode specified
+        launchUrl(Uri.parse('tel:${widget.mobile}'));
+
+        print('Phone dialer launched');
       } catch (e) {
         print('Error launching phone app: $e');
 
         // Reset flag if there was an error
         _wasCallingPhone = false;
-        // Show error message to user
+
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Could not launch phone dialer')),
+            const SnackBar(content: Text('Could not launch phone dialer')),
           );
         }
       }
     } else {
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('No phone number available')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No phone number available')),
+        );
       }
     }
   }
+
+  // void _phoneAction() {
+  //   print("Call action triggered for ${widget.mobile}");
+
+  //   // String mobile = item['mobile'] ?? '';
+
+  //   if (widget.mobile.isNotEmpty) {
+  //     try {
+  //       // Set flag that we're making a phone call
+  //       _wasCallingPhone = true;
+
+  //       // Simple approach without canLaunchUrl check
+  //       final phoneNumber = 'tel:${widget.mobile}';
+  //       launchUrl(
+  //         Uri.parse(phoneNumber),
+  //         mode: LaunchMode.externalNonBrowserApplication,
+  //       );
+  //     } catch (e) {
+  //       print('Error launching phone app: $e');
+
+  //       // Reset flag if there was an error
+  //       _wasCallingPhone = false;
+  //       // Show error message to user
+  //       if (context.mounted) {
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           SnackBar(content: Text('Could not launch phone dialer')),
+  //         );
+  //       }
+  //     }
+  //   } else {
+  //     if (context.mounted) {
+  //       ScaffoldMessenger.of(
+  //         context,
+  //       ).showSnackBar(SnackBar(content: Text('No phone number available')));
+  //     }
+  //   }
+  // }
 
   void _messageAction() {
     print("Message action triggered");

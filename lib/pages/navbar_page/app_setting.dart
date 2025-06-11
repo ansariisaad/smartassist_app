@@ -20,12 +20,15 @@ class AppSetting extends StatelessWidget {
           },
           icon: const Icon(FontAwesomeIcons.angleLeft, color: Colors.white),
         ),
-        title: Text(
-          'App Settings',
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w400,
-            color: Colors.white,
+        title: Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'App Settings',
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.w400,
+              color: Colors.white,
+            ),
           ),
         ),
         backgroundColor: Colors.blue,

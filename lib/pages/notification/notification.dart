@@ -280,12 +280,15 @@ class _NotificationPageState extends State<NotificationPage> {
           },
           icon: const Icon(FontAwesomeIcons.angleLeft, color: Colors.white),
         ),
-        title: Text(
-          'Notifications',
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w400,
-            color: Colors.white,
+        title: Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'Notifications',
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.w400,
+              color: Colors.white,
+            ),
           ),
         ),
         backgroundColor: Colors.blue,

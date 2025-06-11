@@ -78,29 +78,55 @@ class _FollowupsUpcomingState extends State<FollowupsUpcoming> {
 
     if (mobile.isNotEmpty) {
       try {
-        // Simple approach without canLaunchUrl check
-        final phoneNumber = 'tel:$mobile';
-        launchUrl(
-          Uri.parse(phoneNumber),
-          mode: LaunchMode.externalNonBrowserApplication,
-        );
+        launchUrl(Uri.parse('tel:$mobile'));
+        print('Phone dialer launched');
       } catch (e) {
         print('Error launching phone app: $e');
-        // Show error message to user
-        if (context.mounted) {
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Could not launch phone dialer')),
+            const SnackBar(content: Text('Could not launch phone dialer')),
           );
         }
       }
     } else {
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('No phone number available')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No phone number available')),
+        );
       }
     }
   }
+
+  // void _handleCall(dynamic item) {
+  //   print("Call action triggered for ${item['name']}");
+
+  //   String mobile = item['mobile'] ?? '';
+
+  //   if (mobile.isNotEmpty) {
+  //     try {
+  //       // Simple approach without canLaunchUrl check
+  //       final phoneNumber = 'tel:$mobile';
+  //       launchUrl(
+  //         Uri.parse(phoneNumber),
+  //         mode: LaunchMode.externalNonBrowserApplication,
+  //       );
+  //     } catch (e) {
+  //       print('Error launching phone app: $e');
+  //       // Show error message to user
+  //       if (context.mounted) {
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           SnackBar(content: Text('Could not launch phone dialer')),
+  //         );
+  //       }
+  //     }
+  //   } else {
+  //     if (context.mounted) {
+  //       ScaffoldMessenger.of(
+  //         context,
+  //       ).showSnackBar(SnackBar(content: Text('No phone number available')));
+  //     }
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -315,14 +341,9 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              _buildUserDetails(context),
-                              _buildVerticalDivider(15),
-                              _buildCarModel(context),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
+                          _buildUserDetails(context),
+                          _buildCarModel(context),
+                          const SizedBox(height: 2),
                           Row(
                             children: [
                               _buildSubjectDetails(context),
@@ -416,6 +437,10 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
       icon = Icons.phone_in_talk;
     } else if (widget.subject == 'Send SMS') {
       icon = Icons.mail_rounded;
+    } else if (widget.subject == 'Provide quotation') {
+      icon = Icons.mail_rounded;
+    } else if (widget.subject == 'Send Email') {
+      icon = Icons.mail_rounded;
     } else {
       icon = Icons.phone; // fallback icon
     }
@@ -499,16 +524,13 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
   // }
 
   Widget _buildCarModel(BuildContext context) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 100),
-      child: Text(
-        widget.vehicle,
-        style: AppFont.dashboardCarName(context),
-        maxLines: 2, // Allow up to 2 lines
-        overflow: TextOverflow
-            .ellipsis, // Show ellipsis if it overflows beyond 2 lines
-        softWrap: true, // Allow wrapping
-      ),
+    return Text(
+      widget.vehicle,
+      style: AppFont.dashboardCarName(context),
+      maxLines: 2, // Allow up to 2 lines
+      overflow:
+          TextOverflow.ellipsis, // Show ellipsis if it overflows beyond 2 lines
+      softWrap: true, // Allow wrapping
     );
   }
 
@@ -547,39 +569,72 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
   void _phoneAction() {
     print("Call action triggered for ${widget.mobile}");
 
-    // String mobile = item['mobile'] ?? '';
-
     if (widget.mobile.isNotEmpty) {
       try {
         // Set flag that we're making a phone call
         _wasCallingPhone = true;
 
-        // Simple approach without canLaunchUrl check
-        final phoneNumber = 'tel:${widget.mobile}';
-        launchUrl(
-          Uri.parse(phoneNumber),
-          mode: LaunchMode.externalNonBrowserApplication,
-        );
+        // Use the same approach as _handleCall - no launch mode specified
+        launchUrl(Uri.parse('tel:${widget.mobile}'));
+
+        print('Phone dialer launched');
       } catch (e) {
         print('Error launching phone app: $e');
 
         // Reset flag if there was an error
         _wasCallingPhone = false;
-        // Show error message to user
+
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Could not launch phone dialer')),
+            const SnackBar(content: Text('Could not launch phone dialer')),
           );
         }
       }
     } else {
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('No phone number available')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No phone number available')),
+        );
       }
     }
   }
+
+  // void _phoneAction() {
+  //   print("Call action triggered for ${widget.mobile}");
+
+  //   // String mobile = item['mobile'] ?? '';
+
+  //   if (widget.mobile.isNotEmpty) {
+  //     try {
+  //       // Set flag that we're making a phone call
+  //       _wasCallingPhone = true;
+
+  //       // Simple approach without canLaunchUrl check
+  //       final phoneNumber = 'tel:${widget.mobile}';
+  //       launchUrl(
+  //         Uri.parse(phoneNumber),
+  //         mode: LaunchMode.externalNonBrowserApplication,
+  //       );
+  //     } catch (e) {
+  //       print('Error launching phone app: $e');
+
+  //       // Reset flag if there was an error
+  //       _wasCallingPhone = false;
+  //       // Show error message to user
+  //       if (context.mounted) {
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           SnackBar(content: Text('Could not launch phone dialer')),
+  //         );
+  //       }
+  //     }
+  //   } else {
+  //     if (context.mounted) {
+  //       ScaffoldMessenger.of(
+  //         context,
+  //       ).showSnackBar(SnackBar(content: Text('No phone number available')));
+  //     }
+  //   }
+  // }
 
   void _messageAction() {
     print("Message action triggered");

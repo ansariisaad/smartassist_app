@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/services/notifacation_srv.dart';
 import 'package:smartassist/utils/biometric_prefrence.dart';
@@ -316,15 +317,20 @@ class _BiometricScreenState extends State<BiometricScreen> {
 
   void _showFallbackOptions() {
     showDialog(
+      // barrierColor: AppColors.backgroundLightGrey,
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
+        backgroundColor: AppColors.containerPopBg,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.r),
+        ),
         title: Align(
           alignment: Alignment.center,
           child: Text(
             textAlign: TextAlign.center,
             'Authentication Failed',
-            style: AppFont.popupTitleWhite(context),
+            style: AppFont.popupTitleBlack(context),
           ),
         ),
         content: const Text(
@@ -336,7 +342,7 @@ class _BiometricScreenState extends State<BiometricScreen> {
               Navigator.pop(context);
               _skipAndLogin();
             },
-            child: const Text('Use Password'),
+            child: Text('Use Password', style: AppFont.mediumText14(context)),
           ),
           TextButton(
             onPressed: () {
@@ -345,7 +351,7 @@ class _BiometricScreenState extends State<BiometricScreen> {
               _failedBiometricTypes.clear();
               _authenticateWithFallback();
             },
-            child: const Text('Try Again'),
+            child: Text('Try Again', style: AppFont.mediumText14(context)),
           ),
         ],
       ),
@@ -601,10 +607,13 @@ class _BiometricScreenState extends State<BiometricScreen> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         title: Center(
-          child: Text(
-            textAlign: TextAlign.center,
-            _showBiometricChoice ? 'Setup Biometrics' : 'Authentication',
-            style: AppFont.popupTitleWhite(context),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              textAlign: TextAlign.center,
+              _showBiometricChoice ? 'Setup Biometrics' : 'Authentication',
+              style: AppFont.popupTitleWhite(context),
+            ),
           ),
         ),
         iconTheme: const IconThemeData(color: Colors.white),

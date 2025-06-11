@@ -345,39 +345,11 @@ class _ThreebtnState extends State<Threebtn> {
                       : const Color(0xff000000).withOpacity(0.56),
                 ),
               ),
-
-            // if (showCount && overdueCount > 0)
-            //   Text(
-            //     '($overdueCount)',
-            //     style: GoogleFonts.poppins(
-            //       fontSize: 10,
-            //       fontWeight: FontWeight.w400,
-            //       color: isActive
-            //           ? const Color.fromRGBO(236, 81, 81, 1)
-            //           : const Color(0xff000000).withOpacity(0.56),
-            //     ),
-            //   ),
           ],
         ),
       ),
     );
   }
-
-  // Widget _buildNavigationArrow() {
-  //   return Row(
-  //     mainAxisAlignment: MainAxisAlignment.center,
-  //     children: [
-  //       GestureDetector(
-  //         onTap: _navigateToDetailPage,
-  //         child: const Icon(
-  //           color: AppColors.fontColor,
-  //           Icons.keyboard_arrow_down_rounded,
-  //           size: 36,
-  //         ),
-  //       ),
-  //     ],
-  //   );
-  // }
 
   bool _showText = false;
   Timer? _toggleTimer;

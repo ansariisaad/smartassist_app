@@ -291,7 +291,7 @@ class BottomNavigation extends StatelessWidget {
               onTap: () => Get.to(
                 () =>
                     const //CallLogs()
-                    CallAnalytics(userId: '' , userName: '',),
+                    CallAnalytics(userId: '', userName: ''),
               ),
             ),
             // if (teamRole == "Owner")

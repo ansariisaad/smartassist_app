@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:math' as math;
-import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -22,6 +24,7 @@ import 'package:smartassist/widgets/home_btn.dart/teams_popups.dart/followups_te
 import 'package:smartassist/widgets/home_btn.dart/teams_popups.dart/lead_teams.dart';
 import 'package:smartassist/widgets/home_btn.dart/teams_popups.dart/testdrive_teams.dart';
 import 'package:smartassist/widgets/team_calllog_userid.dart';
+import 'package:smartassist/pages/Leads/reassign_enq.dart';
 import 'package:azlistview/azlistview.dart';
 
 class MyTeams extends StatefulWidget {
@@ -40,6 +43,7 @@ class _MyTeamsState extends State<MyTeams> {
   // List<dynamic> _membersData = []; // Your existing data list
 
   final ScrollController _scrollController = ScrollController();
+  bool _isFabVisible = true;
   String _selectedLetter = '';
   List<Map<String, dynamic>> _filteredByLetter = [];
 
@@ -109,6 +113,19 @@ class _MyTeamsState extends State<MyTeams> {
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(() {
+      if (_scrollController.position.userScrollDirection ==
+          ScrollDirection.reverse) {
+        if (_isFabVisible) {
+          setState(() => _isFabVisible = false);
+        }
+      } else if (_scrollController.position.userScrollDirection ==
+          ScrollDirection.forward) {
+        if (!_isFabVisible) {
+          setState(() => _isFabVisible = true);
+        }
+      }
+    });
     _tabController = TabControllerNew();
     _initialize();
   }
@@ -402,25 +419,6 @@ class _MyTeamsState extends State<MyTeams> {
       }
     });
   }
-  // Future<void> _fetchAllCalllog() async {
-  //   setState(() {
-  //     isLoading = true;
-  //   });
-
-  //   try {
-  //     final data = await LeadsSrv.fetchAllCalllog(periodIndex: _periodIndex);
-  //     setState(() {
-  //       _analyticsData = data['analyticsData'];
-  //       _membersData = data['membersData'];
-  //       isLoading = false;
-  //     });
-  //   } catch (e) {
-  //     print('Error: $e');
-  //     setState(() {
-  //       isLoading = false;
-  //     });
-  //   }
-  // }
 
   // Fetch team details using the new API endpoint
   // Future<void> _fetchTeamDetails() async {
@@ -781,185 +779,6 @@ class _MyTeamsState extends State<MyTeams> {
     }
   }
 
-  // Future<void> _fetchTeamDetails() async {
-  //   try {
-  //     final token = await Storage.getToken();
-
-  //     // Build period parameter
-  //     String? periodParam;
-  //     switch (_periodIndex) {
-  //       // case 0:
-  //       //   periodParam = 'DAY';
-  //       //   break;
-  //       // case 1:
-  //       //   periodParam = 'WEEK';
-  //       //   break;
-  //       case 1:
-  //         periodParam = 'MTD';
-  //         break;
-  //       case 0:
-  //         periodParam = 'QTD';
-  //         break;
-  //       case 2:
-  //         periodParam = 'YTD';
-  //         break;
-  //       default:
-  //         periodParam = 'QTD';
-  //     }
-
-  //     final Map<String, String> queryParams = {};
-
-  //     if (periodParam != null) {
-  //       queryParams['type'] = periodParam;
-  //     }
-
-  //     final targetMetric = [
-  //       'target_enquiries',
-  //       'target_testDrives',
-  //       'target_orders',
-  //       'target_cancellation',
-  //       'target_netOrders',
-  //       'target_retail',
-  //     ];
-
-  //     // Define summary metrics (moved outside to be available for both cases)
-  //     final summaryMetrics = [
-  //       'enquiries',
-  //       'testDrives',
-  //       'orders',
-  //       'cancellation',
-  //       'netOrders',
-  //       'retail',
-  //     ];
-  //     final summaryParam = summaryMetrics[_metricIndex];
-  //     final targetParam = targetMetric[_metricIndex];
-
-  //     // ✅ Add summary parameter for both All and specific user selection
-  //     queryParams['summary'] = summaryParam;
-  //     queryParams['target'] = targetParam;
-  //     // ✅ Only add user_id if a specific user is selected (not for "All")
-  //     if (_selectedProfileIndex != 0 && _selectedUserId.isNotEmpty) {
-  //       queryParams['user_id'] = _selectedUserId;
-  //     }
-
-  //     // Add userIds if checkboxes are selected
-  //     // ✅ If comparison mode is OFF (only single user is selected), pass user_id
-  //     // if (!_isComparing &&
-  //     //     _selectedProfileIndex != 0 &&
-  //     //     _selectedUserId.isNotEmpty) {
-  //     //   queryParams['user_id'] = _selectedUserId;
-  //     // }
-  //     // 🔥 MODIFIED LOGIC: Handle user selection based on comparison mode
-  //     if (_isComparing && selectedUserIds.isNotEmpty) {
-  //       // ✅ If comparison mode is ON, ONLY pass userIds (remove user_id)
-  //       queryParams['userIds'] = selectedUserIds.join(',');
-  //     } else if (!_isComparing &&
-  //         _selectedProfileIndex != 0 &&
-  //         _selectedUserId.isNotEmpty) {
-  //       // ✅ If comparison mode is OFF and specific user is selected, pass user_id
-  //       queryParams['user_id'] = _selectedUserId;
-  //     }
-
-  //     // ✅ If comparison mode is ON, pass all selected user IDs
-  //     // if (_isComparing && selectedUserIds.isNotEmpty) {
-  //     //   queryParams['userIds'] = selectedUserIds.join(',');
-  //     // }
-  //     // if (selectedUserIds.isNotEmpty) {
-  //     //   queryParams['userIds'] = selectedUserIds.join(',');
-  //     // }
-
-  //     final baseUri = Uri.parse(
-  //       'https://api.smartassistapp.in/api/users/sm/dashboard/team-dashboard',
-  //     );
-
-  //     final uri = baseUri.replace(queryParameters: queryParams);
-
-  //     print('📤 Fetching from: $uri');
-
-  //     final response = await http.get(
-  //       uri,
-  //       headers: {
-  //         'Authorization': 'Bearer $token',
-  //         'Content-Type': 'application/json',
-  //       },
-  //     );
-
-  //     print('📥 Status Code: ${response.statusCode}');
-  //     print('📥 Response: ${response.body}');
-
-  //     if (response.statusCode == 200) {
-  //       final data = json.decode(response.body);
-
-  //       setState(() {
-  //         _teamData = data['data'] ?? {};
-
-  //         // Save total performance
-  //         if (_teamData.containsKey('totalPerformance')) {
-  //           _selectedUserData['totalPerformance'] =
-  //               _teamData['totalPerformance'];
-  //         }
-
-  //         if (_teamData.containsKey('allMember') &&
-  //             _teamData['allMember'].isNotEmpty) {
-  //           _teamMembers = [];
-
-  //           for (var member in _teamData['allMember']) {
-  //             _teamMembers.add({
-  //               'fname': member['fname'] ?? '',
-  //               'lname': member['lname'] ?? '',
-  //               'user_id': member['user_id'] ?? '',
-  //               'profile': member['profile'],
-  //               'initials': member['initials'] ?? '',
-  //             });
-  //           }
-  //         }
-
-  //         if (_selectedProfileIndex == 0) {
-  //           // Summary data
-  //           _selectedUserData = _teamData['summary'] ?? {};
-  //           _selectedUserData['totalPerformance'] =
-  //               _teamData['totalPerformance'] ?? {};
-  //         } else if (_selectedProfileIndex - 1 < _teamMembers.length) {
-  //           // Specific user selected
-  //           final selectedMember = _teamMembers[_selectedProfileIndex - 1];
-  //           _selectedUserData = selectedMember;
-
-  //           final selectedUserPerformance =
-  //               _teamData['selectedUserPerformance'] ?? {};
-  //           final upcoming = selectedUserPerformance['Upcoming'] ?? {};
-  //           final overdue = selectedUserPerformance['Overdue'] ?? {};
-
-  //           if (_upcommingButtonIndex == 0) {
-  //             _upcomingFollowups = List<Map<String, dynamic>>.from(
-  //               upcoming['upComingFollowups'] ?? [],
-  //             );
-  //             _upcomingAppointments = List<Map<String, dynamic>>.from(
-  //               upcoming['upComingAppointment'] ?? [],
-  //             );
-  //             _upcomingTestDrives = List<Map<String, dynamic>>.from(
-  //               upcoming['upComingTestDrive'] ?? [],
-  //             );
-  //           } else {
-  //             _upcomingFollowups = List<Map<String, dynamic>>.from(
-  //               overdue['overdueFollowups'] ?? [],
-  //             );
-  //             _upcomingAppointments = List<Map<String, dynamic>>.from(
-  //               overdue['overdueAppointments'] ?? [],
-  //             );
-  //             _upcomingTestDrives = List<Map<String, dynamic>>.from(
-  //               overdue['overdueTestDrives'] ?? [],
-  //             );
-  //           }
-  //         }
-  //       });
-  //     } else {
-  //       throw Exception('Failed to fetch team details: ${response.statusCode}');
-  //     }
-  //   } catch (e) {
-  //     print('Error fetching team details: $e');
-  //   }
-  // }
-
   // Process team data for team comparison display
   List<Map<String, dynamic>> _processTeamComparisonData() {
     if (!(_teamData.containsKey('teamComparsion') &&
@@ -1035,139 +854,119 @@ class _MyTeamsState extends State<MyTeams> {
           ],
         ),
       ),
-      body: Stack(
-        children: [
-          SafeArea(
-            child: RefreshIndicator(
-              onRefresh: _fetchTeamDetails,
-              child: isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : SingleChildScrollView(
-                      controller: fabController.scrollController,
-                      child: Container(
-                        color: Colors.white,
-                        padding: const EdgeInsets.all(10.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(children: [_buildProfileAvatars()]),
-                            ),
-                            const SizedBox(height: 10),
-                            if (!_isComparing)
-                              _buildIndividualPerformanceTab(
-                                context,
-                                screenWidth,
+      body: NotificationListener<ScrollNotification>(
+        onNotification: (ScrollNotification notification) {
+          if (notification is UserScrollNotification) {
+            final direction = notification.direction;
+            if (direction == ScrollDirection.reverse && _isFabVisible) {
+              setState(() => _isFabVisible = false);
+            } else if (direction == ScrollDirection.forward && !_isFabVisible) {
+              setState(() => _isFabVisible = true);
+            }
+          }
+          return false;
+        },
+        child: Stack(
+          children: [
+            SafeArea(
+              child: RefreshIndicator(
+                onRefresh: _fetchTeamDetails,
+                child: isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : SingleChildScrollView(
+                        controller: fabController.scrollController,
+                        child: Container(
+                          color: Colors.white,
+                          padding: const EdgeInsets.all(10.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(children: [_buildProfileAvatars()]),
                               ),
-                            const SizedBox(height: 10),
-                            _buildTeamComparisonTab(context, screenWidth),
-                            const SizedBox(height: 10),
-                          ],
+                              const SizedBox(height: 10),
+                              if (!_isComparing)
+                                _buildIndividualPerformanceTab(
+                                  context,
+                                  screenWidth,
+                                ),
+                              const SizedBox(height: 10),
+                              _buildTeamComparisonTab(context, screenWidth),
+                              const SizedBox(height: 10),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
+              ),
             ),
-          ),
-
-          // FAB Button animation
-          // Obx(
-          //   () => AnimatedPositioned(
-          //     duration: const Duration(milliseconds: 300),
-          //     curve: Curves.easeInOut,
-          //     bottom: fabController.isFabVisible.value ? 26 : -80,
-          //     right: 18,
-          //     child: AnimatedOpacity(
-          //       duration: const Duration(milliseconds: 300),
-          //       opacity: fabController.isFabVisible.value ? 1.0 : 0.0,
-          //       child: _buildFloatingActionButton(context),
-          //     ),
-          //   ),
-          // ),
-
-          // FAB Popup menu
-          // Obx(
-          //   () =>
-          //       fabController.isFabExpanded.value &&
-          //           fabController.isFabVisible.value
-          //       ? _buildPopupMenu(context)
-          //       : const SizedBox.shrink(),
-          // ),
-        ],
-      ),
-      floatingActionButton: CustomFloatingButton(
-        onPressed: () {
-          // Your action here
-          print("Floating Button Pressed on Home");
-        },
+          ],
+        ),
       ),
 
       // body: Stack(
       //   children: [
-      //     isLoading
-      //         ? const Center(child: CircularProgressIndicator())
-      //         : SingleChildScrollView(
-      //             controller: fabController.scrollController,
-      //             child: Container(
-      //               color: Colors.white,
-      //               padding: const EdgeInsets.all(10.0),
-      //               child: Column(
-      //                 crossAxisAlignment: CrossAxisAlignment.start,
-      //                 children: [
-      //                   SingleChildScrollView(
-      //                     scrollDirection: Axis.horizontal,
-      //                     child: Row(
-      //                       children: [
-      //                         // _buildProfileAvatarStaticsAll('All', 0),
-      //                         _buildProfileAvatars(),
-      //                       ],
-      //                     ),
+      //     SafeArea(
+      //       child: RefreshIndicator(
+      //         onRefresh: _fetchTeamDetails,
+      //         child: isLoading
+      //             ? const Center(child: CircularProgressIndicator())
+      //             : SingleChildScrollView(
+      //                 controller: fabController.scrollController,
+      //                 child: Container(
+      //                   color: Colors.white,
+      //                   padding: const EdgeInsets.all(10.0),
+      //                   child: Column(
+      //                     crossAxisAlignment: CrossAxisAlignment.start,
+      //                     children: [
+      //                       SingleChildScrollView(
+      //                         scrollDirection: Axis.horizontal,
+      //                         child: Row(children: [_buildProfileAvatars()]),
+      //                       ),
+      //                       const SizedBox(height: 10),
+      //                       if (!_isComparing)
+      //                         _buildIndividualPerformanceTab(
+      //                           context,
+      //                           screenWidth,
+      //                         ),
+      //                       const SizedBox(height: 10),
+      //                       _buildTeamComparisonTab(context, screenWidth),
+      //                       const SizedBox(height: 10),
+      //                     ],
       //                   ),
-
-      //                   // Vertical scrollbar only - no item display needed
-      //                   const SizedBox(height: 10),
-
-      //                   // Individual Performance content
-      //                   if (!_isComparing)
-      //                     _buildIndividualPerformanceTab(context, screenWidth),
-
-      //                   // _buildIndividualPerformanceTab(context, screenWidth),
-      //                   const SizedBox(height: 10),
-
-      //                   // Team Comparison content
-      //                   _buildTeamComparisonTab(context, screenWidth),
-
-      //                   const SizedBox(height: 10),
-      //                 ],
+      //                 ),
       //               ),
-      //             ),
-      //           ),
-
-      //     // Replace your current Positioned widget with:
-      //     Obx(
-      //       () => AnimatedPositioned(
-      //         duration: const Duration(milliseconds: 300),
-      //         curve: Curves.easeInOut,
-      //         bottom: fabController.isFabVisible.value ? 26 : -80,
-      //         right: 18,
-      //         child: AnimatedOpacity(
-      //           duration: const Duration(milliseconds: 300),
-      //           opacity: fabController.isFabVisible.value ? 1.0 : 0.0,
-      //           child: _buildFloatingActionButton(context),
-      //         ),
       //       ),
-      //     ),
-
-      //     // Update your popup menu condition:
-      //     Obx(
-      //       () =>
-      //           fabController.isFabExpanded.value &&
-      //               fabController.isFabVisible.value
-      //           ? _buildPopupMenu(context)
-      //           : const SizedBox.shrink(),
       //     ),
       //   ],
       // ),
+      // floatingActionButton: _isFabVisible
+      //     ? CustomFloatingButton(
+      //         onPressed: () {
+      //           Navigator.push(
+      //             context,
+      //             MaterialPageRoute(builder: (context) => AllLeads()),
+      //           );
+      //         },
+      //       )
+      //     : null,
+      floatingActionButton: AnimatedSlide(
+        offset: _isFabVisible ? Offset(0, 0) : Offset(0, 2),
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        child: AnimatedOpacity(
+          opacity: _isFabVisible ? 1.0 : 0.0,
+          duration: const Duration(milliseconds: 300),
+          child: CustomFloatingButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AllLeads()),
+              );
+            },
+          ),
+        ),
+      ),
     );
   }
 
@@ -2198,73 +1997,6 @@ class _MyTeamsState extends State<MyTeams> {
     );
   }
 
-  // Individual Performance Metrics Display
-  // Widget _buildIndividualPerformanceMetrics(BuildContext context) {
-  //   // Use selectedUserPerformance if a user is selected, else use totalPerformance
-  //   final bool isUserSelected = _selectedProfileIndex != 0;
-
-  //   // Choose appropriate stats object
-  //   // final stats = isUserSelected
-  //   //     ? _teamData['selectedUserPerformance'] ?? {}
-  //   //     : _selectedUserData['totalPerformance'] ?? {};
-  //   final stats = (_metricIndex >= 0)
-  //       ? (isUserSelected
-  //             ? _teamData['selectedUserPerformance'] ?? {}
-  //             : _selectedUserData?['totalPerformance'] ?? {})
-  //       : {};
-
-  //   final metrics = [
-  //     {'label': 'Enquiries', 'key': 'enquiries'},
-  //     {'label': 'Test Drive', 'key': 'testDrives'},
-  //     {'label': 'Orders', 'key': 'orders'},
-  //     {'label': 'Cancellations', 'key': 'cancellation'},
-  //     {
-  //       'label': 'Net Orders',
-  //       'key': 'Net orders',
-  //       'value': (stats['Orders'] ?? 0) - (stats['Cancellation'] ?? 0),
-  //     },
-  //     {'label': 'Retails', 'key': 'retail'},
-  //   ];
-
-  //   List<Widget> rows = [];
-  //   for (int i = 0; i < metrics.length; i += 2) {
-  //     rows.add(
-  //       Row(
-  //         children: [
-  //           for (int j = i; j < i + 2 && j < metrics.length; j++) ...[
-  //             Expanded(
-  //               child: InkWell(
-  //                 onTap: () {
-  //                   setState(() {
-  //                     _metricIndex = j;
-  //                     _fetchTeamDetails(); // Refresh with selected metric
-  //                   });
-  //                 },
-  //                 child: _buildMetricCard(
-  //                   "${metrics[j].containsKey('value') ? metrics[j]['value'] : stats[metrics[j]['key']] ?? 0}",
-  //                   metrics[j]['label']!,
-  //                   Colors.blue,
-  //                   isSelected: _metricIndex == j,
-  //                 ),
-  //               ),
-  //             ),
-  //             if (j % 2 == 0) const SizedBox(width: 12),
-  //           ],
-  //         ],
-  //       ),
-  //     );
-  //     rows.add(const SizedBox(height: 12));
-  //   }
-
-  //   return Padding(
-  //     padding: const EdgeInsets.all(10),
-  //     child: Column(
-  //       crossAxisAlignment: CrossAxisAlignment.stretch,
-  //       children: rows,
-  //     ),
-  //   );
-  // }
-
   // Fixed Performance Metrics Widget all
   Widget _buildIndividualPerformanceMetrics(BuildContext context) {
     // Determine selection state
@@ -2353,7 +2085,7 @@ class _MyTeamsState extends State<MyTeams> {
                             metrics[j]['key'] as String,
                           ).toString(),
                     metrics[j]['label'] as String,
-                    Colors.blue,
+                    const Color(0xFF1380FE),
                     isSelected: _metricIndex == j,
                   ),
                 ),
@@ -2383,86 +2115,6 @@ class _MyTeamsState extends State<MyTeams> {
           : const Center(child: Text('No data available')),
     );
   }
-  // Widget _buildIndividualPerformanceMetrics(BuildContext context) {
-
-  //   final bool isUserSelected = _selectedProfileIndex != 0;
-
-  //   // Choose appropriate stats object with fallback
-  //   final stats = isUserSelected
-  //       ? (_teamData['selectedUserPerformance'] ?? {})
-  //       : (_selectedUserData['totalPerformance'] ?? {});
-  //   //  final stats = (_isMultiSelectMode || _isComparing)
-  //   //       ? (_teamData["teamComparsion"] as List<dynamic>? ?? [])
-  //   //             .where((member) => member["isSelected"] == true)
-  //   //             .toList()
-  //   //       : (_teamData["teamComparsion"] as List<dynamic>? ?? []);
-
-  //   // Debug print to check stats
-  //   print('Stats for metrics: $stats, isUserSelected: $isUserSelected');
-
-  //   if (stats.isEmpty) {
-  //     print(
-  //       'Warning: Stats is empty. _selectedUserData: $_selectedUserData, _teamData: $_teamData',
-  //     );
-  //   }
-
-  //   final metrics = [
-  //     {'label': 'Enquiries', 'key': 'enquiries'},
-  //     {'label': 'Test Drive', 'key': 'testDrives'},
-  //     {'label': 'Orders', 'key': 'orders'},
-  //     {'label': 'Cancellations', 'key': 'cancellation'},
-  //     {
-  //       'label': 'Net Orders',
-  //       'key': 'netOrders',
-  //       'value': ((stats['orders'] ?? 0) - (stats['cancellation'] ?? 0))
-  //           .clamp(0, double.infinity)
-  //           .toInt(),
-  //     },
-  //     {'label': 'Retails', 'key': 'retail'},
-  //   ];
-
-  //   List<Widget> rows = [];
-  //   for (int i = 0; i < metrics.length; i += 2) {
-  //     rows.add(
-  //       Row(
-  //         children: [
-  //           for (int j = i; j < i + 2 && j < metrics.length; j++) ...[
-  //             Expanded(
-  //               child: InkWell(
-  //                 onTap: () {
-  //                   setState(() {
-  //                     _metricIndex = j;
-  //                     _fetchTeamDetails(); // Refresh with selected metric
-  //                   });
-  //                 },
-  //                 child: _buildMetricCard(
-  //                   metrics[j].containsKey('value')
-  //                       ? metrics[j]['value'].toString()
-  //                       : (stats[metrics[j]['key']]?.toString() ?? '0'),
-  //                   metrics[j]['label']!,
-  //                   Colors.blue,
-  //                   isSelected: _metricIndex == j,
-  //                 ),
-  //               ),
-  //             ),
-  //             if (j % 2 == 0) const SizedBox(width: 12),
-  //           ],
-  //         ],
-  //       ),
-  //     );
-  //     rows.add(const SizedBox(height: 12));
-  //   }
-
-  //   return Padding(
-  //     padding: const EdgeInsets.all(10),
-  //     child: stats.isEmpty
-  //         ? const Center(child: Text('No data available'))
-  //         : Column(
-  //             crossAxisAlignment: CrossAxisAlignment.stretch,
-  //             children: rows,
-  //           ),
-  //   );
-  // }
 
   // Team Comparison Chart
   Widget _buildTeamComparisonChart(BuildContext context) {
@@ -2550,7 +2202,7 @@ class _MyTeamsState extends State<MyTeams> {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.withOpacity(0.5), width: 1.0),
+        // border: Border.all(color: Colors.grey.withOpacity(0.5), width: 1.0),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
@@ -2766,7 +2418,7 @@ class _MyTeamsState extends State<MyTeams> {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.withOpacity(0.5), width: 1.0),
+        // border: Border.all(color: Colors.grey.withOpacity(0.5), width: 1.0),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
@@ -2791,10 +2443,10 @@ class _MyTeamsState extends State<MyTeams> {
                 decoration: BoxDecoration(
                   color: AppColors.white,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: Colors.grey.withOpacity(0.5),
-                    width: 1.0,
-                  ),
+                  // border: Border.all(
+                  //   color: Colors.grey.withOpacity(0.5),
+                  //   width: 0,
+                  // ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.1),
@@ -2919,15 +2571,15 @@ class _MyTeamsState extends State<MyTeams> {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: Colors.grey.withOpacity(0.5), // border color
-          width: 1.0, // border width
-        ),
+        // border: Border.all(
+        //   color: Colors.grey.withOpacity(0.5), // border color
+        //   width: 1.0, // border width
+        // ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
             blurRadius: 1,
-            spreadRadius: 2,
+            spreadRadius: 1,
             offset: Offset(0, 0), // Equal shadow on all sides
           ),
         ],

@@ -222,7 +222,7 @@ class _AllLeadsState extends State<AllLeads> {
             ),
           ),
         ),
-        backgroundColor: Colors.blue,
+        backgroundColor: const Color(0xFF1380FE),
         automaticallyImplyLeading: false,
       ),
       body: isLoading
@@ -658,7 +658,8 @@ class _TaskItemState extends State<TaskItem> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => FollowupsDetails(leadId: widget.leadId,
+              builder: (context) => FollowupsDetails(
+                leadId: widget.leadId,
                 isFromFreshlead: false,
               ),
             ),

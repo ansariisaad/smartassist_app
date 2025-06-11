@@ -1,3 +1,743 @@
+// // import 'package:call_log/call_log.dart';
+// import 'package:flutter/material.dart';
+// import 'package:fl_chart/fl_chart.dart';
+// import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+// import 'package:google_fonts/google_fonts.dart';
+// import 'package:smartassist/config/component/color/colors.dart';
+// import 'package:smartassist/config/component/font/font.dart';
+// import 'dart:convert';
+// import 'package:http/http.dart' as http;
+// import 'package:smartassist/pages/navbar_page/call_logs.dart';
+// import 'package:smartassist/utils/storage.dart';
+
+// class CallAnalytics extends StatefulWidget {
+//   final String userId;
+//   final String userName;
+//   final bool isFromSM;
+//   const CallAnalytics({
+//     super.key,
+//     required this.userId,
+//     this.isFromSM = false,
+//     required this.userName,
+//   });
+
+//   @override
+//   State<CallAnalytics> createState() => _CallAnalyticsState();
+// }
+
+// class _CallAnalyticsState extends State<CallAnalytics>
+//     with TickerProviderStateMixin {
+//   late TabController _tabController;
+//   final List<String> tabTitles = ['Enquiry', 'Cold Calls'];
+
+//   String selectedTimeRange = '1D';
+//   int selectedTabIndex = 0;
+//   int touchedIndex = -1;
+//   int _childButtonIndex = 0;
+
+//   bool _isLoading = true;
+//   Map<String, dynamic>? _dashboardData;
+//   Map<String, dynamic>? _enquiryData;
+//   Map<String, dynamic>? _coldCallData;
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     _tabController = TabController(length: tabTitles.length, vsync: this);
+//     _tabController.addListener(() {
+//       if (_tabController.indexIsChanging == false) {
+//         setState(() {
+//           selectedTabIndex = _tabController.index;
+//           // No need to fetch data again as we already have both tab data
+//         });
+//       }
+//     });
+//     print('this is userid ${widget.userId}');
+//     _fetchDashboardData();
+//   }
+
+//   @override
+//   void dispose() {
+//     _tabController.dispose();
+//     super.dispose();
+//   }
+
+//   Future<void> _fetchDashboardData() async {
+//     try {
+//       setState(() {
+//         _isLoading = true;
+//       });
+
+//       final token = await Storage.getToken();
+
+//       // Determine period parameter based on selection
+//       String periodParam = '';
+//       switch (selectedTimeRange) {
+//         case '1D':
+//           periodParam = '?type=DAY';
+//           break;
+//         case '1W':
+//           periodParam = '?type=WEEK';
+//           break;
+//         case '1M':
+//           periodParam = '?type=MTD';
+//           break;
+//         case '1Q':
+//           periodParam = '?type=QTD';
+//           break;
+//         case '1Y':
+//           periodParam = '?type=YTD';
+//           break;
+//         default:
+//           periodParam = '?type=DAY';
+//       }
+
+//       late Uri uri;
+
+//       if (widget.isFromSM) {
+//         uri = Uri.parse(
+//           'https://api.smartassistapp.in/api/users/sm/dashboard/individual/call-analytics?userId=${widget.userId}',
+//         );
+//       } else {
+//         uri = Uri.parse(
+//           'https://api.smartassistapp.in/api/users/ps/dashboard/call-analytics$periodParam',
+//         );
+//       }
+//       // final uri = Uri.parse(
+//       //     'https://api.smartassistapp.in/api/users/ps/dashboard/call-analytics$periodParam');
+
+//       final response = await http.get(
+//         uri,
+//         headers: {
+//           'Authorization': 'Bearer $token',
+//           'Content-Type': 'application/json',
+//         },
+//       );
+
+//       print(uri);
+//       print(response.body);
+
+//       if (response.statusCode == 200) {
+//         final jsonData = json.decode(response.body);
+//         // Check if the widget is still in the widget tree before calling setState
+//         if (mounted) {
+//           setState(() {
+//             _dashboardData = jsonData['data'];
+//             _enquiryData = jsonData['data']['summaryEnquiry'];
+//             _coldCallData = jsonData['data']['summaryColdCalls'];
+//             _isLoading = false;
+//           });
+//         }
+//       } else {
+//         // Handle unsuccessful status codes
+//         throw Exception(
+//           'Failed to load dashboard data. Status code: ${response.statusCode}',
+//         );
+//       }
+//     } catch (e) {
+//       // Check if the widget is still in the widget tree before calling setState
+//       if (mounted) {
+//         setState(() {
+//           _isLoading = false;
+//         });
+//       }
+
+//       // Handle different types of errors
+//       if (e is http.ClientException) {
+//         debugPrint('Network error: $e');
+//       } else if (e is FormatException) {
+//         debugPrint('Error parsing data: $e');
+//       } else {
+//         debugPrint('Unexpected error: $e');
+//       }
+//     }
+//   }
+
+//   void _updateSelectedTimeRange(String range) {
+//     setState(() {
+//       selectedTimeRange = range;
+//       // Fetch data when time range changes
+//       _fetchDashboardData();
+//     });
+//   }
+
+//   void _updateSelectedTab(int index) {
+//     setState(() {
+//       selectedTabIndex = index;
+//       _tabController.animateTo(index);
+//     });
+//   }
+
+//   // Get current data based on selected tab
+//   Map<String, dynamic> get currentTabData {
+//     if (_dashboardData == null) {
+//       return {};
+//     }
+//     return selectedTabIndex == 0 ? _enquiryData ?? {} : _coldCallData ?? {};
+//   }
+
+//   // Get summary data based on selected tab
+//   Map<String, dynamic> get summarySectionData {
+//     if (currentTabData.isEmpty) {
+//       return {};
+//     }
+//     return currentTabData['summary'] ?? {};
+//   }
+
+//   // Get hourly analysis data based on selected tab
+//   Map<String, dynamic> get hourlyAnalysisData {
+//     if (currentTabData.isEmpty) {
+//       return {};
+//     }
+//     return currentTabData['hourlyAnalysis'] ?? {};
+//   }
+
+//   // Generate table rows based on API data for the selected tab
+//   List<List<Widget>> get tableData {
+//     List<List<Widget>> data = [];
+//     final summary = summarySectionData;
+
+//     // Always show these rows even if data is empty
+//     // Add All Calls row
+//     data.add([
+//       const Row(
+//         children: [
+//           Icon(Icons.call, size: 16, color: Color(0xFF1380FE)),
+//           SizedBox(width: 6),
+//           Text('All Calls'),
+//         ],
+//       ),
+//       Text(
+//         summary.containsKey('All Calls')
+//             ? summary['All Calls']['calls']?.toString() ?? '0'
+//             : '0',
+//       ),
+//       Text(
+//         summary.containsKey('All Calls')
+//             ? summary['All Calls']['duration']?.toString() ?? '0'
+//             : '0',
+//       ),
+//       Text(
+//         summary.containsKey('All Calls')
+//             ? summary['All Calls']['uniqueClients']?.toString() ?? '0'
+//             : '0',
+//       ),
+//     ]);
+
+//     // Add Connected row
+//     data.add([
+//       const Row(
+//         children: [
+//           Icon(Icons.call, size: 16, color: Colors.green),
+//           SizedBox(width: 6),
+//           Text('Connected'),
+//         ],
+//       ),
+//       Text(
+//         summary.containsKey('Connected')
+//             ? summary['Connected']['calls']?.toString() ?? '0'
+//             : '0',
+//       ),
+//       Text(
+//         summary.containsKey('Connected')
+//             ? summary['Connected']['duration']?.toString() ?? '0'
+//             : '0',
+//       ),
+//       Text(
+//         summary.containsKey('Connected')
+//             ? summary['Connected']['uniqueClients']?.toString() ?? '0'
+//             : '0',
+//       ),
+//     ]);
+
+//     // Add Missed row
+//     data.add([
+//       const Row(
+//         children: [
+//           Icon(Icons.call_missed, size: 16, color: Colors.redAccent),
+//           SizedBox(width: 6),
+//           Text('Missed'),
+//         ],
+//       ),
+//       Text(
+//         summary.containsKey('Missed')
+//             ? summary['Missed']['calls']?.toString() ?? '0'
+//             : '0',
+//       ),
+//       Text(
+//         summary.containsKey('Missed')
+//             ? summary['Missed']['duration']?.toString() ?? '0'
+//             : '0',
+//       ),
+//       Text(
+//         summary.containsKey('Missed')
+//             ? summary['Missed']['uniqueClients']?.toString() ?? '0'
+//             : '0',
+//       ),
+//     ]);
+
+//     // Add Rejected row
+//     data.add([
+//       const Row(
+//         children: [
+//           Icon(
+//             Icons.call_missed_outgoing_rounded,
+//             size: 16,
+//             color: Colors.redAccent,
+//           ),
+//           SizedBox(width: 6),
+//           Text('Rejected'),
+//         ],
+//       ),
+//       Text(
+//         summary.containsKey('Rejected')
+//             ? summary['Rejected']['calls']?.toString() ?? '0'
+//             : '0',
+//       ),
+//       Text(
+//         summary.containsKey('Rejected')
+//             ? summary['Rejected']['duration']?.toString() ?? '0'
+//             : '0',
+//       ),
+//       Text(
+//         summary.containsKey('Rejected')
+//             ? summary['Rejected']['uniqueClients']?.toString() ?? '0'
+//             : '0',
+//       ),
+//     ]);
+
+//     return data;
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         leading: IconButton(
+//           onPressed: () {
+//             Navigator.pop(context);
+//           },
+//           icon: const Icon(FontAwesomeIcons.angleLeft, color: Colors.white),
+//         ),
+//         title: Align(
+//           alignment: Alignment.centerLeft,
+//           child: Text(
+//             widget.isFromSM ? widget.userName : 'Call Analysis',
+//             style: GoogleFonts.poppins(
+//               fontSize: 18,
+//               fontWeight: FontWeight.w400,
+//               color: Colors.white,
+//             ),
+//           ),
+//         ),
+//         backgroundColor: const Color(0xFF1380FE),
+//         automaticallyImplyLeading: false,
+//       ),
+//       body: SafeArea(
+//         child: _isLoading
+//             ? const Center(child: CircularProgressIndicator())
+//             : SingleChildScrollView(
+//                 child: Column(
+//                   children: [
+//                     _buildTabBar(),
+//                     _buildUserStatsCard(),
+//                     const SizedBox(height: 16),
+//                     _buildCallsSummary(),
+//                     const SizedBox(height: 16),
+//                     _buildHourlyAnalysis(),
+//                   ],
+//                 ),
+//               ),
+//       ),
+
+//       floatingActionButton: !widget.isFromSM
+//           ? SizedBox(
+//               width: 120,
+//               child: FloatingActionButton(
+//                 backgroundColor: const Color(0xFF1380FE),
+//                 // elevation: 0,
+//                 onPressed: () {
+//                   // CallLog();
+//                   Navigator.push(
+//                     context,
+//                     MaterialPageRoute(builder: (context) => const CallLogs()),
+//                   );
+//                 },
+//                 tooltip: 'Exclude your numbers..',
+//                 child: Text(
+//                   'Exclude Contacts',
+//                   style: AppFont.smallTextWhite1(context),
+//                 ),
+//               ),
+//             )
+//           : null,
+//     );
+//   }
+
+//   Widget _buildTimeFilterRow() {
+//     final timeRanges = ['1D', '1W', '1M', '1Q', '1Y'];
+
+//     return Padding(
+//       padding: const EdgeInsets.only(top: 5, bottom: 10),
+//       child: Align(
+//         alignment: Alignment.centerLeft,
+//         child: Container(
+//           margin: const EdgeInsets.only(left: 0),
+//           width: 200,
+//           // height: 30,
+//           decoration: BoxDecoration(
+//             color: AppColors.backgroundLightGrey,
+//             borderRadius: BorderRadius.circular(22),
+//           ),
+//           child: Row(
+//             children: [
+//               for (final range in timeRanges)
+//                 Expanded(
+//                   child: _buildTimeFilterChip(
+//                     range,
+//                     range == selectedTimeRange,
+//                   ),
+//                 ),
+//             ],
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+
+//   Widget _buildTimeFilterChip(String label, bool isActive) {
+//     return GestureDetector(
+//       onTap: () => _updateSelectedTimeRange(label),
+//       child: Container(
+//         padding: const EdgeInsets.symmetric(horizontal: 5),
+//         decoration: BoxDecoration(
+//           borderRadius: BorderRadius.circular(18),
+//           border: Border.all(
+//             color: isActive ? const Color(0xFF1380FE) : Colors.transparent,
+//           ),
+//         ),
+//         child: Text(
+//           label,
+//           textAlign: TextAlign.center,
+//           style: GoogleFonts.poppins(
+//             color: isActive ? const Color(0xFF1380FE) : AppColors.fontColor,
+//             fontSize: 14,
+//             fontWeight: FontWeight.w500,
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+
+//   Widget _buildUserStatsCard() {
+//     return Container(
+//       margin: const EdgeInsets.symmetric(horizontal: 10),
+//       padding: const EdgeInsets.all(10),
+//       decoration: BoxDecoration(
+//         color: Colors.white,
+//         borderRadius: BorderRadius.circular(8),
+//         boxShadow: [
+//           BoxShadow(
+//             color: Colors.grey.shade200,
+//             blurRadius: 5,
+//             spreadRadius: 1,
+//           ),
+//         ],
+//       ),
+//       child: Column(
+//         crossAxisAlignment: CrossAxisAlignment.start,
+//         children: [
+//           Row(
+//             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//             children: [_buildTimeFilterRow()],
+//           ),
+
+//           const SizedBox(height: 16),
+//           Row(
+//             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//             children: [
+//               _buildStatBox(
+//                 currentTabData['totalConnected']?.toString() ?? '0',
+//                 'Total\nConnected',
+//                 Colors.green,
+//                 Icons.call,
+//               ),
+//               _buildVerticalDivider(50),
+//               _buildStatBox(
+//                 currentTabData['conversationTime']?.toString() ?? '0',
+//                 'Conversation\ntime',
+//                 const Color(0xFF1380FE),
+//                 Icons.access_time,
+//               ),
+//               _buildVerticalDivider(50),
+//               _buildStatBox(
+//                 currentTabData['notConnected']?.toString() ?? '0',
+//                 'Not\nConnected',
+//                 Colors.red,
+//                 Icons.call_missed,
+//               ),
+//             ],
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+
+//   Widget _buildStatBox(String value, String label, Color color, IconData icon) {
+//     return Column(
+//       children: [
+//         Row(
+//           crossAxisAlignment: CrossAxisAlignment.center,
+//           mainAxisAlignment: MainAxisAlignment.start,
+//           children: [
+//             Align(
+//               alignment: Alignment.centerLeft,
+//               child: Text(
+//                 value,
+//                 style: GoogleFonts.poppins(
+//                   fontSize: 24,
+//                   fontWeight: FontWeight.w600,
+//                   color: color,
+//                 ),
+//                 textAlign: TextAlign.center,
+//               ),
+//             ),
+//             const SizedBox(width: 3),
+//             Icon(icon, color: color, size: 20),
+//           ],
+//         ),
+//         const SizedBox(height: 10),
+//         Text(
+//           label,
+//           style: AppFont.smallText12(context),
+//           textAlign: TextAlign.center,
+//         ),
+//       ],
+//     );
+//   }
+
+//   Widget _buildVerticalDivider(double height) {
+//     return Container(
+//       margin: const EdgeInsets.symmetric(horizontal: 5),
+//       height: height,
+//       width: 0.1,
+//       decoration: BoxDecoration(
+//         border: Border(right: BorderSide(color: AppColors.backgroundLightGrey)),
+//       ),
+//     );
+//   }
+
+//   Widget _buildCallsSummary() {
+//     return Container(
+//       padding: EdgeInsets.zero,
+//       margin: EdgeInsets.zero,
+//       decoration: BoxDecoration(
+//         border: Border.all(color: Colors.grey.shade300),
+//         // border: Border.all(color: AppColors.sideRed),
+//         borderRadius: BorderRadius.circular(8),
+//       ),
+//       child: Column(children: [_buildAnalyticsTable()]),
+//     );
+//   }
+
+//   Widget _buildTabBar() {
+//     return Container(
+//       height: 30,
+//       padding: EdgeInsets.zero,
+//       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+//       decoration: BoxDecoration(
+//         color: AppColors.backgroundLightGrey,
+//         borderRadius: BorderRadius.circular(22),
+//       ),
+//       child: Row(
+//         children: [
+//           for (int i = 0; i < tabTitles.length; i++)
+//             Expanded(child: _buildTab(tabTitles[i], i == selectedTabIndex, i)),
+//         ],
+//       ),
+//     );
+//   }
+
+//   Widget _buildAnalyticsTable() {
+//     if (_isLoading) {
+//       return const Center(
+//         child: Padding(
+//           padding: EdgeInsets.all(10.0),
+//           child: CircularProgressIndicator(),
+//         ),
+//       );
+//     }
+
+//     return _buildTableContent();
+//   }
+
+//   Widget _buildTableContent() {
+//     double screenWidth = MediaQuery.of(context).size.width;
+
+//     return Table(
+//       defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+//       border: TableBorder(
+//         horizontalInside: BorderSide(
+//           color: Colors.grey.withOpacity(0.3),
+//           width: 0.6,
+//         ),
+//         verticalInside: BorderSide.none,
+//       ),
+//       columnWidths: {
+//         0: FixedColumnWidth(screenWidth * 0.33), // Metric
+//         1: FixedColumnWidth(screenWidth * 0.20), // Calls
+//         2: FixedColumnWidth(screenWidth * 0.20), // Duration
+//         3: FixedColumnWidth(screenWidth * 0.20), // Unique client
+//       },
+//       children: [
+//         TableRow(
+//           children: [
+//             const SizedBox(), // Empty cell
+//             Container(
+//               margin: const EdgeInsets.only(bottom: 10, top: 10),
+//               child: Text(
+//                 textAlign: TextAlign.start,
+//                 'Calls',
+//                 style: AppFont.smallText10(context),
+//               ),
+//             ),
+//             Container(
+//               margin: const EdgeInsets.only(bottom: 10, top: 10),
+//               child: Text(
+//                 'Duration',
+//                 textAlign: TextAlign.start,
+//                 style: AppFont.smallText10(context),
+//               ),
+//             ),
+//             Container(
+//               margin: const EdgeInsets.only(bottom: 10, top: 10, right: 5),
+//               child: Text(
+//                 textAlign: TextAlign.start,
+//                 'Unique client',
+//                 style: AppFont.smallText10(context),
+//               ),
+//             ),
+//           ],
+//         ),
+//         ...tableData.map((row) => _buildTableRow(row)).toList(),
+//       ],
+//     );
+//   }
+
+//   Widget _buildTab(String label, bool isActive, int index) {
+//     return GestureDetector(
+//       onTap: () => _updateSelectedTab(index),
+//       child: Container(
+//         padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+//         decoration: BoxDecoration(
+//           color: isActive ? const Color(0xFF1380FE) : Colors.transparent,
+//           borderRadius: BorderRadius.circular(18),
+//         ),
+//         child: Text(
+//           label,
+//           textAlign: TextAlign.center,
+//           style: GoogleFonts.poppins(
+//             color: isActive ? Colors.white : const Color(0xFF1380FE),
+//             fontSize: 12,
+//             fontWeight: FontWeight.w500,
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+
+//   Widget _buildHourlyAnalysis() {
+//     return Container(
+//       margin: const EdgeInsets.symmetric(horizontal: 10),
+//       padding: const EdgeInsets.all(10),
+//       decoration: BoxDecoration(
+//         color: Colors.white,
+//         border: Border.all(color: Colors.grey.shade300),
+//         borderRadius: BorderRadius.circular(8),
+//         boxShadow: [
+//           BoxShadow(
+//             color: Colors.grey.shade200,
+//             blurRadius: 5,
+//             spreadRadius: 1,
+//           ),
+//         ],
+//       ),
+//       child: Column(
+//         crossAxisAlignment: CrossAxisAlignment.start,
+//         children: [
+//           Text('Hourly Analysis', style: AppFont.dropDowmLabel(context)),
+//           const SizedBox(height: 10),
+//           _buildCallStatsRows(),
+//           const SizedBox(height: 10),
+//           SizedBox(height: 200, child: _buildCombinedBarChart()),
+//         ],
+//       ),
+//     );
+//   }
+
+//   Widget _buildCallStatsRows() {
+//     // Calculate totals from hourly analysis data
+//     int allCalls = 0;
+//     String allCallsDuration = "0m";
+//     int incomingCalls = 0;
+//     String incomingDuration = "0m";
+//     // int outgoingCalls = 0;
+//     // String outgoingDuration = "0m";
+//     int missedCalls = 0;
+//     String missedDuration = "";
+
+//     // Sum up the calls and durations from hourly data
+//     hourlyAnalysisData.forEach((hour, data) {
+//       if (data['AllCalls'] != null) {
+//         allCalls += (data['AllCalls']['calls'] as num?)?.toInt() ?? 0;
+//         allCallsDuration = data['AllCalls']['duration'] ?? "0m";
+//       }
+
+//       // Connected calls (treating as incoming for now)
+//       if (data['connected'] != null) {
+//         incomingCalls += (data['connected']['calls'] as num?)?.toInt() ?? 0;
+//         incomingDuration = data['connected']['duration']?.toString() ?? "0m";
+//       }
+
+//       // Missed calls
+//       if (data['missedCalls'] != null) {
+//         missedCalls = data['missedCalls'] as int;
+//       }
+//     });
+
+//     return Row(
+//       children: [
+//         Expanded(
+//           child: Container(
+//             padding: const EdgeInsets.all(10),
+//             decoration: BoxDecoration(
+//               color: AppColors.backgroundLightGrey,
+//               borderRadius: BorderRadius.circular(10),
+//             ),
+//             child: Column(
+//               children: [
+//                 _buildCallStatRow(
+//                   'All calls',
+//                   allCalls.toString(),
+//                   allCallsDuration,
+//                 ),
+//                 _buildCallStatRow(
+//                   'Connected',
+//                   incomingCalls.toString(),
+//                   incomingDuration,
+//                 ),
+//                 _buildCallStatRow(
+//                   'Missed calls',
+//                   missedCalls.toString(),
+//                   missedDuration,
+//                 ),
+//               ],
+//             ),
+//           ),
+//         ),
+//       ],
+//     );
+
 // import 'package:call_log/call_log.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -103,8 +843,6 @@ class _CallAnalyticsState extends State<CallAnalytics>
           'https://api.smartassistapp.in/api/users/ps/dashboard/call-analytics$periodParam',
         );
       }
-      // final uri = Uri.parse(
-      //     'https://api.smartassistapp.in/api/users/ps/dashboard/call-analytics$periodParam');
 
       final response = await http.get(
         uri,
@@ -192,6 +930,23 @@ class _CallAnalyticsState extends State<CallAnalytics>
     return currentTabData['hourlyAnalysis'] ?? {};
   }
 
+  // Helper method to get responsive dimensions
+  bool get _isTablet => MediaQuery.of(context).size.width > 768;
+  bool get _isSmallScreen => MediaQuery.of(context).size.width < 400;
+  double get _screenWidth => MediaQuery.of(context).size.width;
+  double get _screenHeight => MediaQuery.of(context).size.height;
+
+  // Responsive padding
+  EdgeInsets get _responsivePadding => EdgeInsets.symmetric(
+    horizontal: _isTablet ? 20 : (_isSmallScreen ? 8 : 10),
+    vertical: _isTablet ? 12 : 8,
+  );
+
+  // Responsive font sizes
+  double get _titleFontSize => _isTablet ? 20 : (_isSmallScreen ? 16 : 18);
+  double get _bodyFontSize => _isTablet ? 16 : (_isSmallScreen ? 12 : 14);
+  double get _smallFontSize => _isTablet ? 14 : (_isSmallScreen ? 10 : 12);
+
   // Generate table rows based on API data for the selected tab
   List<List<Widget>> get tableData {
     List<List<Widget>> data = [];
@@ -200,202 +955,158 @@ class _CallAnalyticsState extends State<CallAnalytics>
     // Always show these rows even if data is empty
     // Add All Calls row
     data.add([
-      const Row(
+      Row(
         children: [
-          Icon(Icons.call, size: 16, color: Colors.blue),
-          SizedBox(width: 6),
-          Text('All Calls'),
+          Icon(
+            Icons.call,
+            size: _isSmallScreen ? 14 : 16,
+            color: const Color(0xFF1380FE),
+          ),
+          SizedBox(width: _isSmallScreen ? 4 : 6),
+          Flexible(
+            child: Text(
+              'All Calls',
+              style: TextStyle(fontSize: _smallFontSize),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
       Text(
         summary.containsKey('All Calls')
             ? summary['All Calls']['calls']?.toString() ?? '0'
             : '0',
+        style: TextStyle(fontSize: _smallFontSize),
       ),
       Text(
         summary.containsKey('All Calls')
             ? summary['All Calls']['duration']?.toString() ?? '0'
             : '0',
+        style: TextStyle(fontSize: _smallFontSize),
       ),
       Text(
         summary.containsKey('All Calls')
             ? summary['All Calls']['uniqueClients']?.toString() ?? '0'
             : '0',
+        style: TextStyle(fontSize: _smallFontSize),
       ),
     ]);
 
     // Add Connected row
     data.add([
-      const Row(
+      Row(
         children: [
-          Icon(Icons.call, size: 16, color: Colors.green),
-          SizedBox(width: 6),
-          Text('Connected'),
+          Icon(Icons.call, size: _isSmallScreen ? 14 : 16, color: Colors.green),
+          SizedBox(width: _isSmallScreen ? 4 : 6),
+          Flexible(
+            child: Text(
+              'Connected',
+              style: TextStyle(fontSize: _smallFontSize),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
       Text(
         summary.containsKey('Connected')
             ? summary['Connected']['calls']?.toString() ?? '0'
             : '0',
+        style: TextStyle(fontSize: _smallFontSize),
       ),
       Text(
         summary.containsKey('Connected')
             ? summary['Connected']['duration']?.toString() ?? '0'
             : '0',
+        style: TextStyle(fontSize: _smallFontSize),
       ),
       Text(
         summary.containsKey('Connected')
             ? summary['Connected']['uniqueClients']?.toString() ?? '0'
             : '0',
+        style: TextStyle(fontSize: _smallFontSize),
       ),
     ]);
 
     // Add Missed row
     data.add([
-      const Row(
+      Row(
         children: [
-          Icon(Icons.call_missed, size: 16, color: Colors.redAccent),
-          SizedBox(width: 6),
-          Text('Missed'),
+          Icon(
+            Icons.call_missed,
+            size: _isSmallScreen ? 14 : 16,
+            color: Colors.redAccent,
+          ),
+          SizedBox(width: _isSmallScreen ? 4 : 6),
+          Flexible(
+            child: Text(
+              'Missed',
+              style: TextStyle(fontSize: _smallFontSize),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
       Text(
         summary.containsKey('Missed')
             ? summary['Missed']['calls']?.toString() ?? '0'
             : '0',
+        style: TextStyle(fontSize: _smallFontSize),
       ),
       Text(
         summary.containsKey('Missed')
             ? summary['Missed']['duration']?.toString() ?? '0'
             : '0',
+        style: TextStyle(fontSize: _smallFontSize),
       ),
       Text(
         summary.containsKey('Missed')
             ? summary['Missed']['uniqueClients']?.toString() ?? '0'
             : '0',
+        style: TextStyle(fontSize: _smallFontSize),
       ),
     ]);
 
     // Add Rejected row
     data.add([
-      const Row(
+      Row(
         children: [
           Icon(
             Icons.call_missed_outgoing_rounded,
-            size: 16,
+            size: _isSmallScreen ? 14 : 16,
             color: Colors.redAccent,
           ),
-          SizedBox(width: 6),
-          Text('Rejected'),
+          SizedBox(width: _isSmallScreen ? 4 : 6),
+          Flexible(
+            child: Text(
+              'Rejected',
+              style: TextStyle(fontSize: _smallFontSize),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
       Text(
         summary.containsKey('Rejected')
             ? summary['Rejected']['calls']?.toString() ?? '0'
             : '0',
+        style: TextStyle(fontSize: _smallFontSize),
       ),
       Text(
         summary.containsKey('Rejected')
             ? summary['Rejected']['duration']?.toString() ?? '0'
             : '0',
+        style: TextStyle(fontSize: _smallFontSize),
       ),
       Text(
         summary.containsKey('Rejected')
             ? summary['Rejected']['uniqueClients']?.toString() ?? '0'
             : '0',
+        style: TextStyle(fontSize: _smallFontSize),
       ),
     ]);
 
     return data;
   }
-  // List<List<Widget>> get tableData {
-  //   // final List<List<String>> data = [];
-  //   List<List<Widget>> data = [];
-
-  //   final summary = summarySectionData;
-
-  //   if (summary.isEmpty) return [];
-
-  //   // Add All Calls row
-  //   if (summary.containsKey('All Calls')) {
-  //     data.add([
-  //       // 'All Calls',
-  //       const Row(
-  //         children: [
-  //           Icon(Icons.call, size: 16, color: Colors.blue),
-  //           SizedBox(width: 6),
-  //           Text('All Calls'),
-  //         ],
-  //       ),
-  //       Text(summary['All Calls']['calls']?.toString() ?? '0'),
-  //       Text(summary['All Calls']['duration']?.toString() ?? '0'),
-  //       Text(summary['All Calls']['uniqueClients']?.toString() ?? '0'),
-  //     ]);
-  //   }
-
-  //   // Add Connected row
-  //   if (summary.containsKey('Connected')) {
-  //     data.add([
-  //       const Row(
-  //         children: [
-  //           Icon(Icons.call, size: 16, color: Colors.green),
-  //           SizedBox(width: 6),
-  //           Text('Connected'),
-  //         ],
-  //       ),
-  //       // 'Connected',
-  //       // summary['Connected']['calls']?.toString() ?? '0',
-  //       // summary['Connected']['duration']?.toString() ?? '0',
-  //       // summary['Connected']['uniqueClients']?.toString() ?? '0',
-  //       Text(summary['All Calls']['calls']?.toString() ?? '0'),
-  //       Text(summary['All Calls']['duration']?.toString() ?? '0'),
-  //       Text(summary['All Calls']['uniqueClients']?.toString() ?? '0'),
-  //     ]);
-  //   }
-
-  //   // Add Missed row
-  //   if (summary.containsKey('Missed')) {
-  //     data.add([
-  //       const Row(
-  //         children: [
-  //           Icon(Icons.call_missed, size: 16, color: Colors.redAccent),
-  //           SizedBox(width: 6),
-  //           Text('Missed'),
-  //         ],
-  //       ),
-  //       // 'Missed',
-  //       // summary['Missed']['calls']?.toString() ?? '0',
-  //       // summary['Missed']['duration']?.toString() ?? '0',
-  //       // summary['Missed']['uniqueClients']?.toString() ?? '0',
-  //       Text(summary['All Calls']['calls']?.toString() ?? '0'),
-  //       Text(summary['All Calls']['duration']?.toString() ?? '0'),
-  //       Text(summary['All Calls']['uniqueClients']?.toString() ?? '0'),
-  //     ]);
-  //   }
-
-  //   // Add Rejected row if it exists in future API responses
-  //   if (summary.containsKey('Rejected')) {
-  //     data.add([
-  //       const Row(
-  //         children: [
-  //           Icon(Icons.call_missed_outgoing_rounded,
-  //               size: 16, color: Colors.redAccent),
-  //           SizedBox(width: 6),
-  //           Text('Rejected'),
-  //         ],
-  //       ),
-  //       Text(summary['All Calls']['calls']?.toString() ?? '0'),
-  //       Text(summary['All Calls']['duration']?.toString() ?? '0'),
-  //       Text(summary['All Calls']['uniqueClients']?.toString() ?? '0'),
-  //       // 'Rejected',
-  //       // summary['Rejected']['calls']?.toString() ?? '0',
-  //       // summary['Rejected']['duration']?.toString() ?? '0',
-  //       // summary['Rejected']['uniqueClients']?.toString() ?? '0',
-  //     ]);
-  //   }
-
-  //   return data;
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -405,47 +1116,61 @@ class _CallAnalyticsState extends State<CallAnalytics>
           onPressed: () {
             Navigator.pop(context);
           },
-          icon: const Icon(FontAwesomeIcons.angleLeft, color: Colors.white),
+          icon: Icon(
+            FontAwesomeIcons.angleLeft,
+            color: Colors.white,
+            size: _isSmallScreen ? 18 : 20,
+          ),
         ),
         title: Align(
           alignment: Alignment.centerLeft,
           child: Text(
-            widget.isFromSM ? widget.userName : 'Call Analytics',
+            widget.isFromSM ? widget.userName : 'Call Analysis',
             style: GoogleFonts.poppins(
-              fontSize: 18,
+              fontSize: _titleFontSize,
               fontWeight: FontWeight.w400,
               color: Colors.white,
             ),
           ),
         ),
-        backgroundColor: Colors.blue,
+        backgroundColor: const Color(0xFF1380FE),
         automaticallyImplyLeading: false,
       ),
       body: SafeArea(
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
-            : SingleChildScrollView(
-                child: Column(
-                  children: [
-                    _buildTabBar(),
-                    _buildUserStatsCard(),
-                    const SizedBox(height: 16),
-                    _buildCallsSummary(),
-                    const SizedBox(height: 16),
-                    _buildHourlyAnalysis(),
-                  ],
-                ),
+            : LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: Column(
+                        children: [
+                          _buildTabBar(),
+                          _buildUserStatsCard(),
+                          SizedBox(height: _isTablet ? 20 : 16),
+                          _buildCallsSummary(),
+                          SizedBox(height: _isTablet ? 20 : 16),
+                          _buildHourlyAnalysis(),
+                          // Add bottom padding for FAB on smaller screens
+                          if (!widget.isFromSM && !_isTablet)
+                            const SizedBox(height: 80),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
       ),
-
       floatingActionButton: !widget.isFromSM
-          ? SizedBox(
-              width: 120,
+          ? Container(
+              width: _isTablet ? 150 : (_isSmallScreen ? 100 : 120),
+              height: _isTablet ? 60 : (_isSmallScreen ? 45 : 56),
               child: FloatingActionButton(
-                backgroundColor: Colors.blue,
-                // elevation: 0,
+                backgroundColor: const Color(0xFF1380FE),
                 onPressed: () {
-                  // CallLog();
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const CallLogs()),
@@ -453,26 +1178,39 @@ class _CallAnalyticsState extends State<CallAnalytics>
                 },
                 tooltip: 'Exclude your numbers..',
                 child: Text(
-                  'Exclude Contacts',
-                  style: AppFont.smallTextWhite1(context),
+                  'Exclude',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: _isTablet ? 14 : (_isSmallScreen ? 14 : 16),
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ),
             )
           : null,
+      floatingActionButtonLocation: _isTablet
+          ? FloatingActionButtonLocation.endFloat
+          : FloatingActionButtonLocation.endFloat,
     );
   }
 
   Widget _buildTimeFilterRow() {
     final timeRanges = ['1D', '1W', '1M', '1Q', '1Y'];
+    double filterWidth = _isTablet ? 250 : (_isSmallScreen ? 180 : 200);
 
     return Padding(
-      padding: const EdgeInsets.only(top: 5, bottom: 10),
+      padding: EdgeInsets.only(
+        top: 5,
+        bottom: 10,
+        left: _responsivePadding.left,
+        right: _responsivePadding.right,
+      ),
       child: Align(
         alignment: Alignment.centerLeft,
         child: Container(
-          margin: const EdgeInsets.only(left: 0),
-          width: 200,
-          // height: 30,
+          width: filterWidth,
+          height: _isTablet ? 35 : (_isSmallScreen ? 28 : 30),
           decoration: BoxDecoration(
             color: AppColors.backgroundLightGrey,
             borderRadius: BorderRadius.circular(22),
@@ -497,19 +1235,22 @@ class _CallAnalyticsState extends State<CallAnalytics>
     return GestureDetector(
       onTap: () => _updateSelectedTimeRange(label),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 5),
+        padding: EdgeInsets.symmetric(
+          horizontal: _isSmallScreen ? 3 : 5,
+          vertical: 2,
+        ),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: isActive ? Colors.blue : Colors.transparent,
+            color: isActive ? const Color(0xFF1380FE) : Colors.transparent,
           ),
         ),
         child: Text(
           label,
           textAlign: TextAlign.center,
           style: GoogleFonts.poppins(
-            color: isActive ? Colors.blue : AppColors.fontColor,
-            fontSize: 14,
+            color: isActive ? const Color(0xFF1380FE) : AppColors.fontColor,
+            fontSize: _isTablet ? 16 : (_isSmallScreen ? 11 : 14),
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -519,8 +1260,8 @@ class _CallAnalyticsState extends State<CallAnalytics>
 
   Widget _buildUserStatsCard() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 10),
-      padding: const EdgeInsets.all(10),
+      margin: _responsivePadding,
+      padding: EdgeInsets.all(_isTablet ? 16 : (_isSmallScreen ? 8 : 10)),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
@@ -535,69 +1276,92 @@ class _CallAnalyticsState extends State<CallAnalytics>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildTimeFilterRow(),
-              // TextButton(
-              //   style: const ButtonStyle(
-              //       foregroundColor: WidgetStatePropertyAll(Colors.black)),
-              //   onPressed: () {
-              //     Navigator.push(
-              //         context,
-              //         MaterialPageRoute(
-              //             builder: (context) => const CallLogs()));
-              //   },
-              //   child: Text(
-              //     'Exclude ',
-              //     style: AppFont.smallText12(context),
-              //   ),
-              // )
-            ],
-          ),
-          // Row(
-          //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          //   children: [
-          //     Text('Abhey Dayal', style: AppFont.popupTitleBlack16(context)),
-          //     Container(
-          //       padding:
-          //           const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          //       decoration: BoxDecoration(
-          //           color: AppColors.homeContainerLeads,
-          //           borderRadius: BorderRadius.circular(30)),
-          //       child: Text(
-          //         'Target: 30',
-          //         style: AppFont.mediumText14(context),
-          //       ),
-          //     ),
-          //   ],
-          // ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildStatBox(
-                currentTabData['totalConnected']?.toString() ?? '0',
-                'Total\nConnected',
-                Colors.green,
-                Icons.call,
-              ),
-              _buildVerticalDivider(50),
-              _buildStatBox(
-                currentTabData['conversationTime']?.toString() ?? '0',
-                'Conversation\ntime',
-                Colors.blue,
-                Icons.access_time,
-              ),
-              _buildVerticalDivider(50),
-              _buildStatBox(
-                currentTabData['notConnected']?.toString() ?? '0',
-                'Not\nConnected',
-                Colors.red,
-                Icons.call_missed,
-              ),
-            ],
-          ),
+          _buildTimeFilterRow(),
+          SizedBox(height: _isTablet ? 20 : 16),
+
+          // Responsive stats layout
+          _isTablet
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Expanded(
+                      child: _buildStatBox(
+                        currentTabData['totalConnected']?.toString() ?? '0',
+                        'Total\nConnected',
+                        Colors.green,
+                        Icons.call,
+                      ),
+                    ),
+                    _buildVerticalDivider(60),
+                    Expanded(
+                      child: _buildStatBox(
+                        currentTabData['conversationTime']?.toString() ?? '0',
+                        'Conversation\ntime',
+                        const Color(0xFF1380FE),
+                        Icons.access_time,
+                      ),
+                    ),
+                    _buildVerticalDivider(60),
+                    Expanded(
+                      child: _buildStatBox(
+                        currentTabData['notConnected']?.toString() ?? '0',
+                        'Not\nConnected',
+                        Colors.red,
+                        Icons.call_missed,
+                      ),
+                    ),
+                  ],
+                )
+              : _isSmallScreen
+              ? Column(
+                  children: [
+                    _buildStatBox(
+                      currentTabData['totalConnected']?.toString() ?? '0',
+                      'Total Connected',
+                      Colors.green,
+                      Icons.call,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildStatBox(
+                      currentTabData['conversationTime']?.toString() ?? '0',
+                      'Conversation time',
+                      const Color(0xFF1380FE),
+                      Icons.access_time,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildStatBox(
+                      currentTabData['notConnected']?.toString() ?? '0',
+                      'Not Connected',
+                      Colors.red,
+                      Icons.call_missed,
+                    ),
+                  ],
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildStatBox(
+                      currentTabData['totalConnected']?.toString() ?? '0',
+                      'Total\nConnected',
+                      Colors.green,
+                      Icons.call,
+                    ),
+                    _buildVerticalDivider(50),
+                    _buildStatBox(
+                      currentTabData['conversationTime']?.toString() ?? '0',
+                      'Conversation\ntime',
+                      const Color(0xFF1380FE),
+                      Icons.access_time,
+                    ),
+                    _buildVerticalDivider(50),
+                    _buildStatBox(
+                      currentTabData['notConnected']?.toString() ?? '0',
+                      'Not\nConnected',
+                      Colors.red,
+                      Icons.call_missed,
+                    ),
+                  ],
+                ),
         ],
       ),
     );
@@ -608,28 +1372,31 @@ class _CallAnalyticsState extends State<CallAnalytics>
       children: [
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisAlignment: _isSmallScreen
+              ? MainAxisAlignment.center
+              : MainAxisAlignment.start,
           children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                value,
-                style: GoogleFonts.poppins(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
-                  color: color,
-                ),
-                textAlign: TextAlign.center,
+            Text(
+              value,
+              style: GoogleFonts.poppins(
+                fontSize: _isTablet ? 28 : (_isSmallScreen ? 20 : 24),
+                fontWeight: FontWeight.w600,
+                color: color,
               ),
+              textAlign: TextAlign.center,
             ),
-            const SizedBox(width: 3),
-            Icon(icon, color: color, size: 20),
+            SizedBox(width: _isSmallScreen ? 2 : 3),
+            Icon(
+              icon,
+              color: color,
+              size: _isTablet ? 24 : (_isSmallScreen ? 16 : 20),
+            ),
           ],
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: _isTablet ? 12 : 10),
         Text(
           label,
-          style: AppFont.smallText12(context),
+          style: TextStyle(fontSize: _smallFontSize, color: Colors.grey[600]),
           textAlign: TextAlign.center,
         ),
       ],
@@ -638,7 +1405,7 @@ class _CallAnalyticsState extends State<CallAnalytics>
 
   Widget _buildVerticalDivider(double height) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 5),
+      margin: EdgeInsets.symmetric(horizontal: _isSmallScreen ? 3 : 5),
       height: height,
       width: 0.1,
       decoration: BoxDecoration(
@@ -649,11 +1416,10 @@ class _CallAnalyticsState extends State<CallAnalytics>
 
   Widget _buildCallsSummary() {
     return Container(
+      margin: _responsivePadding,
       padding: EdgeInsets.zero,
-      margin: EdgeInsets.zero,
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey.shade300),
-        // border: Border.all(color: AppColors.sideRed),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(children: [_buildAnalyticsTable()]),
@@ -662,9 +1428,12 @@ class _CallAnalyticsState extends State<CallAnalytics>
 
   Widget _buildTabBar() {
     return Container(
-      height: 30,
+      height: _isTablet ? 40 : (_isSmallScreen ? 25 : 30),
       padding: EdgeInsets.zero,
-      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      margin: EdgeInsets.symmetric(
+        horizontal: _responsivePadding.horizontal,
+        vertical: 8,
+      ),
       decoration: BoxDecoration(
         color: AppColors.backgroundLightGrey,
         borderRadius: BorderRadius.circular(22),
@@ -692,8 +1461,6 @@ class _CallAnalyticsState extends State<CallAnalytics>
   }
 
   Widget _buildTableContent() {
-    double screenWidth = MediaQuery.of(context).size.width;
-
     return Table(
       defaultVerticalAlignment: TableCellVerticalAlignment.middle,
       border: TableBorder(
@@ -703,38 +1470,77 @@ class _CallAnalyticsState extends State<CallAnalytics>
         ),
         verticalInside: BorderSide.none,
       ),
-      columnWidths: {
-        0: FixedColumnWidth(screenWidth * 0.33), // Metric
-        1: FixedColumnWidth(screenWidth * 0.20), // Calls
-        2: FixedColumnWidth(screenWidth * 0.20), // Duration
-        3: FixedColumnWidth(screenWidth * 0.20), // Unique client
-      },
+      columnWidths: _isTablet
+          ? {
+              0: const FlexColumnWidth(2.5), // Metric
+              1: const FlexColumnWidth(1.5), // Calls
+              2: const FlexColumnWidth(1.5), // Duration
+              3: const FlexColumnWidth(2), // Unique client
+            }
+          : _isSmallScreen
+          ? {
+              0: const FlexColumnWidth(2), // Metric
+              1: const FlexColumnWidth(1), // Calls
+              2: const FlexColumnWidth(1), // Duration
+              3: const FlexColumnWidth(1.3), // Unique client
+            }
+          : {
+              0: const FlexColumnWidth(2.2), // Metric
+              1: const FlexColumnWidth(1.3), // Calls
+              2: const FlexColumnWidth(1.3), // Duration
+              3: const FlexColumnWidth(1.5), // Unique client
+            },
       children: [
         TableRow(
           children: [
             const SizedBox(), // Empty cell
             Container(
-              margin: const EdgeInsets.only(bottom: 10, top: 10),
+              margin: EdgeInsets.only(
+                bottom: 10,
+                top: 10,
+                left: _isSmallScreen ? 2 : 5,
+              ),
               child: Text(
-                textAlign: TextAlign.start,
                 'Calls',
-                style: AppFont.smallText10(context),
+                textAlign: TextAlign.start,
+                style: TextStyle(
+                  fontSize: _smallFontSize,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[600],
+                ),
               ),
             ),
             Container(
-              margin: const EdgeInsets.only(bottom: 10, top: 10),
+              margin: EdgeInsets.only(
+                bottom: 10,
+                top: 10,
+                left: _isSmallScreen ? 2 : 5,
+              ),
               child: Text(
                 'Duration',
                 textAlign: TextAlign.start,
-                style: AppFont.smallText10(context),
+                style: TextStyle(
+                  fontSize: _smallFontSize,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[600],
+                ),
               ),
             ),
             Container(
-              margin: const EdgeInsets.only(bottom: 10, top: 10, right: 5),
+              margin: EdgeInsets.only(
+                bottom: 10,
+                top: 10,
+                right: _isSmallScreen ? 2 : 5,
+                left: _isSmallScreen ? 2 : 5,
+              ),
               child: Text(
+                _isSmallScreen ? 'Clients' : 'Unique client',
                 textAlign: TextAlign.start,
-                'Unique client',
-                style: AppFont.smallText10(context),
+                style: TextStyle(
+                  fontSize: _smallFontSize,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[600],
+                ),
               ),
             ),
           ],
@@ -748,17 +1554,20 @@ class _CallAnalyticsState extends State<CallAnalytics>
     return GestureDetector(
       onTap: () => _updateSelectedTab(index),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+        padding: EdgeInsets.symmetric(
+          horizontal: 0,
+          vertical: _isSmallScreen ? 3 : 5,
+        ),
         decoration: BoxDecoration(
-          color: isActive ? Colors.blue : Colors.transparent,
+          color: isActive ? const Color(0xFF1380FE) : Colors.transparent,
           borderRadius: BorderRadius.circular(18),
         ),
         child: Text(
           label,
           textAlign: TextAlign.center,
           style: GoogleFonts.poppins(
-            color: isActive ? Colors.white : Colors.blue,
-            fontSize: 12,
+            color: isActive ? Colors.white : const Color(0xFF1380FE),
+            fontSize: _isTablet ? 14 : (_isSmallScreen ? 14 : 16),
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -768,8 +1577,8 @@ class _CallAnalyticsState extends State<CallAnalytics>
 
   Widget _buildHourlyAnalysis() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 10),
-      padding: const EdgeInsets.all(10),
+      margin: _responsivePadding,
+      padding: EdgeInsets.all(_isTablet ? 16 : (_isSmallScreen ? 8 : 10)),
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border.all(color: Colors.grey.shade300),
@@ -785,11 +1594,21 @@ class _CallAnalyticsState extends State<CallAnalytics>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Hourly Analysis', style: AppFont.dropDowmLabel(context)),
-          const SizedBox(height: 10),
+          Text(
+            'Hourly Analysis',
+            style: TextStyle(
+              fontSize: _bodyFontSize,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[800],
+            ),
+          ),
+          SizedBox(height: _isTablet ? 15 : 10),
           _buildCallStatsRows(),
-          const SizedBox(height: 10),
-          SizedBox(height: 200, child: _buildCombinedBarChart()),
+          SizedBox(height: _isTablet ? 15 : 10),
+          SizedBox(
+            height: _isTablet ? 300 : (_isSmallScreen ? 180 : 200),
+            child: _buildCombinedBarChart(),
+          ),
         ],
       ),
     );
@@ -801,8 +1620,6 @@ class _CallAnalyticsState extends State<CallAnalytics>
     String allCallsDuration = "0m";
     int incomingCalls = 0;
     String incomingDuration = "0m";
-    // int outgoingCalls = 0;
-    // String outgoingDuration = "0m";
     int missedCalls = 0;
     String missedDuration = "";
 
@@ -825,37 +1642,27 @@ class _CallAnalyticsState extends State<CallAnalytics>
       }
     });
 
-    return Row(
-      children: [
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColors.backgroundLightGrey,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Column(
-              children: [
-                _buildCallStatRow(
-                  'All calls',
-                  allCalls.toString(),
-                  allCallsDuration,
-                ),
-                _buildCallStatRow(
-                  'Connected',
-                  incomingCalls.toString(),
-                  incomingDuration,
-                ),
-                _buildCallStatRow(
-                  'Missed calls',
-                  missedCalls.toString(),
-                  missedDuration,
-                ),
-              ],
-            ),
+    return Container(
+      padding: EdgeInsets.all(_isTablet ? 16 : (_isSmallScreen ? 8 : 10)),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundLightGrey,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        children: [
+          _buildCallStatRow('All calls', allCalls.toString(), allCallsDuration),
+          _buildCallStatRow(
+            'Connected',
+            incomingCalls.toString(),
+            incomingDuration,
           ),
-        ),
-      ],
+          _buildCallStatRow(
+            'Missed calls',
+            missedCalls.toString(),
+            missedDuration,
+          ),
+        ],
+      ),
     );
   }
 
@@ -886,7 +1693,7 @@ class _CallAnalyticsState extends State<CallAnalytics>
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _buildLegendItem('All Calls', Colors.blue),
+              _buildLegendItem('All Calls', Color(0xFF1380FE)),
               const SizedBox(width: 16),
               _buildLegendItem('Incoming', Colors.green),
               const SizedBox(width: 16),
@@ -1099,7 +1906,7 @@ class _CallAnalyticsState extends State<CallAnalytics>
             LineChartBarData(
               spots: allCallSpots,
               isCurved: true,
-              color: Colors.blue,
+              color: const Color(0xFF1380FE),
               barWidth: 3,
               isStrokeCapRound: true,
               dotData: const FlDotData(show: true),
@@ -1140,25 +1947,6 @@ class _CallAnalyticsState extends State<CallAnalytics>
     );
   }
 
-  // TableRow _buildTableRow(List<String> values) {
-  //   return TableRow(
-  //     children: values.map((value) {
-  //       return Padding(
-  //         padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 5.0),
-  //         child: Row(children: [
-  //           Text(
-  //             value,
-  //             style: AppFont.smallText(context),
-  //             textAlign: values.indexOf(value) == 0
-  //                 ? TextAlign.left
-  //                 : TextAlign.center,
-  //             overflow: TextOverflow.ellipsis,
-  //           ),
-  //         ]),
-  //       );
-  //     }).toList(),
-  //   );
-  // }
   TableRow _buildTableRow(List<Widget> widgets) {
     return TableRow(
       children: widgets.map((widget) {

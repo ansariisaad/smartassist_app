@@ -468,8 +468,9 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
               _buildButtons(
                 options: {
                   "Meeting": "Meeting",
-                  "Provide Quotation": "Provide Quotation",
+                  "Vehicle selection": "Vehicle Selection",
                   "Showroom appointment": "Showroom appointment",
+                  "Trade in evaluation": "Trade in evaluation",
                 },
                 groupValue: _selectedSubject,
                 label: 'Action:',

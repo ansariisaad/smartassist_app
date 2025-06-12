@@ -44,6 +44,8 @@ class _CreateAppointmentState extends State<CreateAppointment> {
 
   TextEditingController startdateController = TextEditingController();
   TextEditingController enddateController = TextEditingController();
+
+  final TextEditingController descriptionController = TextEditingController();
   // TextEditingController descriptionController = TextEditingController();
 
   Future<void> _pickDate({required bool isStartDate}) async {
@@ -313,12 +315,13 @@ class _CreateAppointmentState extends State<CreateAppointment> {
 
     // Prepare the lead data
     final newTaskForLead = {
-      'start_date': startdateController.text,
+      'due_date': startdateController.text,
       'end_date': enddateController.text,
       'priority': selectedPriority,
-      'start_time': formattedStartTime, // hh:mm a format
-      'end_time': formattedEndTime,
+      'time': formattedStartTime, // hh:mm a format
+      // 'end_time': formattedEndTime,
       'subject': selectedSubject,
+      'remarks': descriptionController.text,
       'sp_id': spId,
     };
 

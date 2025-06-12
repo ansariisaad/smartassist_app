@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:smartassist/pages/login_steps/login_page.dart';
 import 'package:smartassist/utils/connection_service.dart';
 import 'package:smartassist/utils/storage.dart';
-import 'package:smartassist/utils/token_manager.dart';
+import 'package:smartassist/utils/token_manager.dart'; 
 
 class LeadsSrv {
   static const String baseUrl = 'https://api.smartassistapp.in/api/';
@@ -286,52 +286,7 @@ class LeadsSrv {
     }
   }
 
-  //fetch users
-  // Add this method to your LeadsSrv class
-  static Future<List<Map<String, dynamic>>> fetchUsers() async {
-    final token = await Storage.getToken();
-    try {
-      print('🔍 Fetching users from: ${baseUrl}admin/users/all');
-      print('🔑 Using token: ${token?.substring(0, 10)}...');
-
-      final response = await http.get(
-        Uri.parse('${baseUrl}admin/users/all'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
-
-      print('📊 Response status code: ${response.statusCode}');
-      print('📄 Response body: ${response.body}');
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-
-        // Check if the response has the expected structure
-        if (data['data'] != null && data['data']['rows'] != null) {
-          final rows = data['data']['rows'] as List;
-          print('✅ Found ${rows.length} users');
-
-          // Convert to List<Map<String, dynamic>>
-          return List<Map<String, dynamic>>.from(rows);
-        } else {
-          print('❌ Unexpected response structure: $data');
-          throw Exception('Invalid response structure - missing data.rows');
-        }
-      } else {
-        print('❌ HTTP Error: ${response.statusCode}');
-        print('❌ Error body: ${response.body}');
-        throw Exception(
-          'Failed to fetch users. Status: ${response.statusCode}, Body: ${response.body}',
-        );
-      }
-    } catch (error) {
-      print('💥 Error in fetchUsers: $error');
-      rethrow; // Re-throw so the UI can handle it
-    }
-  }
-  //end
+  // lead model api
 
   static Future<List<String>> fetchDropdownOptions() async {
     const url = '${baseUrl}admin/users/all';
@@ -346,9 +301,7 @@ class LeadsSrv {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
 
-        // Assuming the API response is a list of strings:
-        // Example: { "options": ["Option 1", "Option 2", "Option 3"] }
-
+        
         return List<String>.from(data['options']);
       } else {
         throw Exception('Failed to fetch options');

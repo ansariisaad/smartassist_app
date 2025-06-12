@@ -61,7 +61,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
   bool isLoading = false;
   int _childButtonIndex = 0;
   Widget _selectedTaskWidget = Container();
-  int count = 0;
+  // int overdueCount = 0;
   static Map<String, int> _callLogs = {
     'all': 0,
     'outgoing': 0,
@@ -78,6 +78,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
   List<Map<String, dynamic>> upcomingEvents = [];
   List<Map<String, dynamic>> completedEvents = [];
   List<Map<String, dynamic>> completedTasks = [];
+  int overdueCount = 0;
 
   final TextEditingController descriptionController = TextEditingController();
   late stt.SpeechToText _speech;
@@ -302,11 +303,13 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
         overdueEvents = List<Map<String, dynamic>>.from(data['overdueEvents']);
         upcomingTasks = List<Map<String, dynamic>>.from(data['upcomingTasks']);
         // count = data['overdueWeekTasks']['count'] ?? 0;
-        count =
-            (data['overdueWeekTasks'] != null &&
-                data['overdueWeekTasks']['count'] != null)
-            ? data['overdueWeekTasks']['count']
-            : 0;
+        // count =
+        //     (data['overdueWeekTasks'] != null &&
+        //         data['overdueWeekTasks']['count'] != null)
+        //     ? data['overdueWeekTasks']['count']
+        //     : 0;
+
+        overdueCount = overdueTasks.length + overdueEvents.length;
 
         upcomingEvents = List<Map<String, dynamic>>.from(
           data['upcomingEvents'],
@@ -401,7 +404,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
         const SizedBox(width: 10),
         _buildToggleOption(
           2,
-          'Overdue ($count)',
+          'Overdue ($overdueCount)',
           const Color.fromRGBO(236, 81, 81, 1),
         ),
       ],
@@ -762,6 +765,94 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
     });
   }
 
+  Future<void> _showWhatsappDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // User must tap button to close dialog
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          title: Text(
+            'Check your mail?',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          ),
+          content: Text(
+            'Are you sure you want to mark all notifications as read?',
+            style: GoogleFonts.poppins(),
+          ),
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(
+                overlayColor: Colors.grey.withOpacity(0.1),
+                foregroundColor: Colors.grey,
+              ),
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text('No', style: GoogleFonts.poppins(color: Colors.grey)),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                overlayColor: Colors.blue.withOpacity(0.1),
+                foregroundColor: Colors.blue,
+              ),
+              // onPressed: () => Navigator.of(context).pop(
+              // true),
+              onPressed: () {
+                initwhatsappChat(context); // Pass context to submit
+              },
+              child: Text(
+                'Yes',
+                style: GoogleFonts.poppins(color: Colors.blue),
+              ),
+            ),
+          ],
+        );
+
+        // return AlertDialog(
+        //   shape: RoundedRectangleBorder(
+        //     borderRadius: BorderRadius.circular(15),
+        //   ),
+        //   backgroundColor: Colors.white,
+        //   insetPadding: const EdgeInsets.all(10),
+        //   contentPadding: EdgeInsets.zero,
+        //   title: Column(
+        //     crossAxisAlignment: CrossAxisAlignment.start,
+        //     children: [
+        //       Align(
+        //         alignment: Alignment.bottomLeft,
+        //         child: Text(
+        //           textAlign: TextAlign.center,
+        //           'Share your gmail?',
+        //           style: AppFont.mediumText14(context),
+        //         ),
+        //       ),
+        //       const SizedBox(height: 10),
+        //     ],
+        //   ),
+        //   actions: [
+        //     TextButton(
+        //       onPressed: () {
+        //         Navigator.pop(context);
+        //       },
+        //       child: Text(
+        //         'Cancel',
+        //         // style: TextStyle(color: AppColors.colorsBlue),
+        //         style: AppFont.mediumText14blue(context),
+        //       ),
+        //     ),
+        //     TextButton(
+        //       onPressed: () {
+        //         whatsappChat(context); // Pass context to submit
+        //       },
+        //       child: Text('Submit', style: AppFont.mediumText14blue(context)),
+        //     ),
+        //   ],
+        // );
+      },
+    );
+  }
+
   Future<void> _showSkipDialog() async {
     return showDialog<void>(
       context: context,
@@ -891,6 +982,89 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
     _showSkipDialog();
     // API call for Qualify tab
     print('Qualify API call triggered');
+  }
+
+  void handleWhatsappAction() async {
+    await _showWhatsappDialog();
+
+    // API call for WhatsApp chat
+
+    print('WhatsApp chat API call triggered');
+  }
+
+  Future<void> initwhatsappChat(BuildContext context) async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? spId = prefs.getString('user_id');
+      final url = Uri.parse('https://api.smartassistapp.in/api/init-wa');
+      final token = await Storage.getToken();
+
+      // Create the request body
+      final requestBody = {'sessionId': spId, email: email.toString()};
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode(requestBody),
+      );
+
+      // Print the response
+      print('API Response status: ${response.statusCode}');
+      print('API Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final errorMessage =
+            json.decode(response.body)['message'] ?? 'Unknown error';
+
+        Get.snackbar(
+          'Success',
+          errorMessage,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+        Navigator.pop(context); // Dismiss the dialog after success
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => WhatsappChat(
+              chatId: chatId,
+              userName: lead_owner,
+              email: email,
+              sessionId: spId.toString(),
+            ),
+          ),
+        );
+      } else {
+        // Error handling
+        final errorMessage =
+            json.decode(response.body)['message'] ?? 'Unknown error';
+        print('Failed to submit feedback');
+        Get.snackbar(
+          'Error',
+          errorMessage, // Show the backend error message
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        Navigator.pop(context); // Dismiss the dialog on error
+      }
+    } catch (e) {
+      print('Error fetching WhatsApp chat: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to fetch WhatsApp chat',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   Widget _buildTextField({
@@ -1406,16 +1580,17 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                                             ),
                                           ),
                                           onPressed: () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    WhatsappChat(
-                                                      chatId: chatId,
-                                                      userName: lead_owner,
-                                                    ),
-                                              ),
-                                            );
+                                            // Navigator.push(
+                                            //   context,
+                                            //   MaterialPageRoute(
+                                            //     builder: (context) =>
+                                            //         WhatsappChat(
+                                            //           chatId: chatId,
+                                            //           userName: lead_owner,
+                                            //         ),
+                                            //   ),
+                                            // );
+                                            handleWhatsappAction();
                                           },
                                           child: Text(
                                             'Whatsapp',

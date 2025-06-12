@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/widgets/popups_widget/leadSearch_textfield.dart';
+import 'package:smartassist/widgets/remarks_field.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class CreateFollowupsPopups extends StatefulWidget {
@@ -635,10 +636,19 @@ class _CreateFollowupsPopupsState extends State<CreateFollowupsPopups> {
               ],
             ),
             const SizedBox(height: 10),
-            _buildTextField(
+            // _buildTextField(
+            //   label: 'Remarks:',
+            //   controller: descriptionController,
+            //   hint: 'Type or speak...',
+            // ),
+            EnhancedSpeechTextField(
+              // contentPadding: EdgeInsets.zero,
               label: 'Remarks:',
               controller: descriptionController,
-              hint: 'Type or speak...',
+              hint: 'Type or speak... ',
+              onChanged: (text) {
+                print('Text changed: $text');
+              },
             ),
             const SizedBox(height: 10),
             Row(

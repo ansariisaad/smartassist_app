@@ -446,18 +446,18 @@ class _BottomBtnThirdState extends State<BottomBtnThird> {
         String value = entry.value;
 
         return Container(
-          decoration:
-              index ==
-                  2 // Divider after 2nd column (My, All India Best)
-              ? BoxDecoration(
-                  border: Border(
-                    right: BorderSide(
-                      color: Colors.grey.withOpacity(0.6),
-                      width: 1,
-                    ),
-                  ),
-                )
-              : null,
+          // decoration:
+          //     index ==
+          //         2 // Divider after 2nd column (My, All India Best)
+          //     ? BoxDecoration(
+          //         border: Border(
+          //           right: BorderSide(
+          //             color: Colors.grey.withOpacity(0.6),
+          //             width: 1,
+          //           ),
+          //         ),
+          //       )
+          //     : null,
           padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 5.0),
           child: Text(
             value,

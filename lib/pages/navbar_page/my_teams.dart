@@ -140,7 +140,7 @@ class _MyTeamsState extends State<MyTeams> {
       await _fetchTeamDetails();
       await _fetchAllCalllog();
       // _prepareTeamMembersForAzList();
-      await _fetchSingleCalllog();
+      // await _fetchSingleCalllog();
     } catch (error) {
       print("Error during initialization: $error");
       Get.snackbar(
@@ -871,33 +871,37 @@ class _MyTeamsState extends State<MyTeams> {
             SafeArea(
               child: RefreshIndicator(
                 onRefresh: _fetchTeamDetails,
-                child: isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : SingleChildScrollView(
-                        controller: fabController.scrollController,
-                        child: Container(
-                          color: Colors.white,
-                          padding: const EdgeInsets.all(10.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Row(children: [_buildProfileAvatars()]),
-                              ),
-                              const SizedBox(height: 10),
-                              if (!_isComparing)
-                                _buildIndividualPerformanceTab(
-                                  context,
-                                  screenWidth,
-                                ),
-                              const SizedBox(height: 10),
-                              _buildTeamComparisonTab(context, screenWidth),
-                              const SizedBox(height: 10),
-                            ],
-                          ),
+                child: SingleChildScrollView(
+                  controller: fabController.scrollController,
+                  physics:
+                      const AlwaysScrollableScrollPhysics(), // Required to allow pull-to-refresh
+                  child: Container(
+                    color: Colors.white,
+                    padding: const EdgeInsets.all(10.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(children: [_buildProfileAvatars()]),
                         ),
-                      ),
+                        const SizedBox(height: 10),
+                        if (isLoading)
+                          const Center(child: CircularProgressIndicator())
+                        else ...[
+                          if (!_isComparing)
+                            _buildIndividualPerformanceTab(
+                              context,
+                              screenWidth,
+                            ),
+                          const SizedBox(height: 10),
+                          _buildTeamComparisonTab(context, screenWidth),
+                          const SizedBox(height: 10),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
           ],
@@ -1968,7 +1972,7 @@ class _MyTeamsState extends State<MyTeams> {
         setState(() {
           _periodIndex = index;
           _fetchTeamDetails();
-          _fetchSingleCalllog();
+          // _fetchSingleCalllog();
         });
       },
       child: Container(
@@ -2175,7 +2179,7 @@ class _MyTeamsState extends State<MyTeams> {
             ),
 
             // 👇 Conditionally render chart section
-            if (isHide) ...[
+            if (!isHide) ...[
               if (teamData.isEmpty)
                 const Center(
                   child: Text(
@@ -3412,6 +3416,8 @@ class _MyTeamsState extends State<MyTeams> {
     List<Map<String, dynamic>> activities,
     // String label,
     String dateKey,
+
+ 
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

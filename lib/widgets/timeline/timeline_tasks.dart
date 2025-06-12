@@ -11,6 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 class TimelineUpcoming extends StatelessWidget {
   final bool isFromTeams;
+  final carIcon = '/assets/caricon.png';
   final List<Map<String, dynamic>> tasks;
   final List<Map<String, dynamic>> upcomingEvents;
   const TimelineUpcoming({
@@ -65,22 +66,28 @@ class TimelineUpcoming extends StatelessWidget {
         // Loop through tasks and display them
         ...List.generate(reversedTasks.length, (index) {
           final task = reversedTasks[index];
-          String remarks = task['remarks'] ?? 'No Subject';
+          String remarks = task['remarks'] ?? 'No remarks';
           String mobile = task['mobile'] ?? 'No Subject';
           String dueDate = _formatDate(task['due_date'] ?? 'N/A');
           String subject = task['subject'] ?? 'No Subject';
-          String comment = task['remarks'] ?? 'No Remarks';
+          // String comment = task['remarks'] ?? 'No Remarks';
 
           IconData icon;
 
           if (subject == 'Provide Quotation') {
-            icon = Icons.sms;
+            icon = Icons.receipt_long;
           } else if (subject == 'Send SMS') {
-            icon = Icons.mail_rounded;
+            icon = Icons.message_rounded;
           } else if (subject == 'Call') {
             icon = Icons.phone;
           } else if (subject == 'Send Email') {
             icon = Icons.mail;
+          } else if (subject == 'Showroom appointment') {
+            icon = Icons.person_2_outlined;
+          } else if (subject == 'Trade in evaluation') {
+            icon = Icons.handshake;
+          } else if (subject == 'Test Drive') {
+            icon = carIcon as IconData;
           } else {
             icon = Icons.phone; // default fallback icon
           }

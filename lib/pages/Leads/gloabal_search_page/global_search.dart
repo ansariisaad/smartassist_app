@@ -1,101 +1,3 @@
-// import 'package:flutter/material.dart';
-
-// class GlobalSearch extends StatefulWidget {
-//   const GlobalSearch({super.key});
-
-//   @override
-//   State<GlobalSearch> createState() => _GlobalSearchState();
-// }
-
-// class _GlobalSearchState extends State<GlobalSearch> {
-
-// // Search Functionality
-//   final TextEditingController _searchController = TextEditingController();
-//   List<dynamic> _searchResults = [];
-//   bool _isLoadingSearch = false;
-//   String _query = '';
-
-//    @override
-//   void initState() {
-//     super.initState();
-//     // fetchDashboardData();
-//     _searchController.addListener(_onSearchChanged);
-//   }
-
-//   @override
-//   void dispose() {
-//     _searchController.removeListener(_onSearchChanged);
-//     _searchController.dispose();
-//     super.dispose();
-//   }
-
-//    Future<void> _fetchSearchResults(String query) async {
-//     if (query.isEmpty) {
-//       setState(() {
-//         _searchResults.clear();
-//       });
-//       return;
-//     }
-
-//     setState(() {
-//       _isLoadingSearch = true;
-//     });
-
-//     final token = await Storage.getToken();
-
-//     try {
-//       final response = await http.get(
-//         Uri.parse(
-//             'https://api.smartassistapp.in/api/search/global?query=$query'),
-//         headers: {
-//           'Authorization': 'Bearer $token',
-//           'Content-Type': 'application/json',
-//         },
-//       );
-//       if (response.statusCode == 200) {
-//         final Map<String, dynamic> data = json.decode(response.body);
-//         setState(() {
-//           _searchResults = data['suggestions'] ?? [];
-//         });
-//       }
-//     } catch (e) {
-//       showErrorMessage(context, message: 'Something went wrong..!');
-//     } finally {
-//       setState(() {
-//         _isLoadingSearch = false;
-//       });
-//     }
-//   }
-
-//   void _onSearchChanged() {
-//     final newQuery = _searchController.text.trim();
-//     if (newQuery == _query) return;
-
-//     _query = newQuery;
-//     Future.delayed(const Duration(milliseconds: 500), () {
-//       if (_query == _searchController.text.trim()) {
-//         _fetchSearchResults(_query);
-//       }
-//     });
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text('Global Search'),
-//       ),
-//       body: SingleChildScrollView(
-//         keyboardDismissBehavior:
-//                             ScrollViewKeyboardDismissBehavior.onDrag,
-//         child: Column(
-
-//         ),
-//       ),
-//     );
-//   }
-// }
-
 import 'dart:convert';
 import 'dart:ffi';
 import 'package:flutter/material.dart';
@@ -313,9 +215,12 @@ class _GlobalSearchState extends State<GlobalSearch> {
                 final result = _searchResults[index];
                 return ListTile(
                   onTap: () {
-                    Get.to(() => FollowupsDetails(leadId: result['lead_id'],
+                    Get.to(
+                      () => FollowupsDetails(
+                        leadId: result['lead_id'],
                         isFromFreshlead: false,
-                      ));
+                      ),
+                    );
                   },
                   title: Row(
                     children: [

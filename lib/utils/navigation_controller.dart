@@ -71,7 +71,7 @@ class NavigationController extends GetxController {
       baseScreens.insert(2, CalendarSm(leadName: ''));
     } else {
       // Regular calendar screen for other roles
-      
+
       baseScreens.add(CalendarWithTimeline(leadName: ''));
     }
 

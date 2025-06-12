@@ -264,7 +264,7 @@ class _CreateFollowupsPopupsState extends State<CreateFollowupsPopups> {
     ).parse(endTimeController.text); // Automatically set
 
     // Format for API
-    final formattedStartDate = DateFormat('dd/MM/yyyy').format(rawStartDate);
+    final formattedStartDate = DateFormat('dd-MM-yyyy').format(rawStartDate);
     final formattedEndDate = DateFormat(
       'dd/MM/yyyy',
     ).format(rawEndDate); // Automatically set
@@ -280,7 +280,7 @@ class _CreateFollowupsPopupsState extends State<CreateFollowupsPopups> {
       'priority': 'High',
       'time': formattedStartTime,
       'due_date': formattedStartDate,
-      'comments': descriptionController.text,
+      'remarks': descriptionController.text,
       'sp_id': spId,
       'lead_id': _leadId,
     };

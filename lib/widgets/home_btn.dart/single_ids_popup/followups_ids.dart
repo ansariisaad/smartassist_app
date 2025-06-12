@@ -309,7 +309,7 @@ class _FollowupsIdsState extends State<FollowupsIds> {
       'status': 'Not Started',
       'priority': 'High',
       'due_date': dateController.text,
-      'comments': descriptionController.text,
+      'remarks': descriptionController.text,
       'sp_id': spId,
       'lead_id': widget.leadId,
     };
@@ -318,6 +318,8 @@ class _FollowupsIdsState extends State<FollowupsIds> {
       newTaskForLead,
       widget.leadId,
     );
+
+    // print(s)
 
     if (success) {
       if (!mounted) return;
@@ -400,6 +402,7 @@ class _FollowupsIdsState extends State<FollowupsIds> {
                 });
               },
             ),
+
             // _buildTextField(
             //   label: 'Comments:',
             //   controller: descriptionController,

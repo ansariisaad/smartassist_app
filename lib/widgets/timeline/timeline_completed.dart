@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class TimelineCompleted extends StatelessWidget {
+  final carIcon = '/assets/caricon.png';
   final List<Map<String, dynamic>> events;
   final List<Map<String, dynamic>> completedEvents;
   const TimelineCompleted({
@@ -94,13 +95,19 @@ class TimelineCompleted extends StatelessWidget {
           IconData icon;
 
           if (subject == 'Provide Quotation') {
-            icon = Icons.sms;
+            icon = Icons.receipt_long;
           } else if (subject == 'Send SMS') {
-            icon = Icons.mail_rounded;
+            icon = Icons.message_rounded;
           } else if (subject == 'Call') {
             icon = Icons.phone;
           } else if (subject == 'Send Email') {
             icon = Icons.mail;
+          } else if (subject == 'Showroom appointment') {
+            icon = Icons.person_2_outlined;
+          } else if (subject == 'Trade in evaluation') {
+            icon = Icons.handshake;
+          } else if (subject == 'Test Drive') {
+            icon = carIcon as IconData;
           } else {
             icon = Icons.phone; // default fallback icon
           }
@@ -246,6 +253,7 @@ class TimelineCompleted extends StatelessWidget {
           String mobile = task['mobile'] ?? 'N/A';
           String date = _formatDate(task['start_date'] ?? 'No Date');
           String taskSubject = task['subject'] ?? 'No Subject';
+          String taskRemarks = task['remarks'] ?? 'No Remarks';
           String eventId = task['event_id'] ?? 'No Time';
 
           IconData icon;

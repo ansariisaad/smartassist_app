@@ -403,8 +403,9 @@ class _AppointmentIdsState extends State<AppointmentIds> {
               _buildButtons(
                 options: {
                   "Meeting": "Meeting",
-                  "Quotation": "Quotation",
+                  "Vehicle selection": "Vehicle Selection",
                   "Showroom appointment": "Showroom appointment",
+                  "Trade in evaluation": "Trade in evaluation",
                 },
                 groupValue: _selectedSubject,
                 label: 'Action:',
@@ -938,7 +939,7 @@ class _AppointmentIdsState extends State<AppointmentIds> {
     ).parse(endTimeController.text); // Automatically set
 
     // Format for API
-    final formattedStartDate = DateFormat('dd/MM/yyyy').format(rawStartDate);
+    final formattedStartDate = DateFormat('dd-MM-yyyy').format(rawStartDate);
     final formattedEndDate = DateFormat(
       'dd/MM/yyyy',
     ).format(rawEndDate); // Automatically set
@@ -958,14 +959,14 @@ class _AppointmentIdsState extends State<AppointmentIds> {
 
     // Prepare the appointment data.
     final appointmentData = {
-      'start_date': formattedStartDate,
-      'end_date': formattedEndDate,
+      'due_date': formattedStartDate,
+      // 'end_date': formattedEndDate,
       'priority': selectedPriority,
-      'start_time': formattedStartTime,
-      'end_time': formattedEndTime,
+      'time': formattedStartTime,
+      // 'end_time': formattedEndTime,
       'subject': _selectedSubject,
       'sp_id': spId,
-      'comments': descriptionController.text,
+      'remarks': descriptionController.text,
     };
 
     // Call the service to submit the appointment.
@@ -978,9 +979,23 @@ class _AppointmentIdsState extends State<AppointmentIds> {
       if (context.mounted) {
         Navigator.pop(context, true); // Close the modal on success.
       }
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Form Submit Successful.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Appointment created successfully',
+            style: GoogleFonts.poppins(),
+          ),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+          behavior:
+              SnackBarBehavior.floating, // Optional: Makes it float above UI
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(
+              10,
+            ), // Optional: rounded corners
+          ),
+        ),
+      );
       widget.onFormSubmit(widget.leadId);
     } else {
       showErrorMessage(context, message: 'Failed to submit appointment.');

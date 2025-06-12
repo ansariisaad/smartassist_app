@@ -854,6 +854,58 @@ class _MyTeamsState extends State<MyTeams> {
           ],
         ),
       ),
+
+      // same below code but worst way
+      //  body: NotificationListener<ScrollNotification>(
+      //   onNotification: (ScrollNotification notification) {
+      //     if (notification is UserScrollNotification) {
+      //       final direction = notification.direction;
+      //       if (direction == ScrollDirection.reverse && _isFabVisible) {
+      //         setState(() => _isFabVisible = false);
+      //       } else if (direction == ScrollDirection.forward && !_isFabVisible) {
+      //         setState(() => _isFabVisible = true);
+      //       }
+      //     }
+      //     return false;
+      //   },
+      //   child: Stack(
+      //     children: [
+      //       SafeArea(
+      //         child: RefreshIndicator(
+      //           onRefresh: _fetchTeamDetails,
+      //           child: isLoading
+      //               ? const Center(child: CircularProgressIndicator())
+      //               : SingleChildScrollView(
+      //                   controller: fabController.scrollController,
+      //                   child: Container(
+      //                     color: Colors.white,
+      //                     padding: const EdgeInsets.all(10.0),
+      //                     child: Column(
+      //                       crossAxisAlignment: CrossAxisAlignment.start,
+      //                       children: [
+      //                         SingleChildScrollView(
+      //                           scrollDirection: Axis.horizontal,
+      //                           child: Row(children: [_buildProfileAvatars()]),
+      //                         ),
+
+      //                         const SizedBox(height: 10),
+      //                         if (!_isComparing)
+      //                           _buildIndividualPerformanceTab(
+      //                             context,
+      //                             screenWidth,
+      //                           ),
+      //                         const SizedBox(height: 10),
+      //                         _buildTeamComparisonTab(context, screenWidth),
+      //                         const SizedBox(height: 10),
+      //                       ],
+      //                     ),
+      //                   ),
+      //                 ),
+      //         ), //refreshIndicator
+      //       ),
+      //     ],
+      //   ),
+      // ),
       body: NotificationListener<ScrollNotification>(
         onNotification: (ScrollNotification notification) {
           if (notification is UserScrollNotification) {
@@ -3417,7 +3469,7 @@ class _MyTeamsState extends State<MyTeams> {
     // String label,
     String dateKey,
 
- 
+    // bool hasAvtivities = activities.isNotEmpty,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

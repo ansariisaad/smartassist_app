@@ -140,6 +140,7 @@ class _WhatsappChatState extends State<WhatsappChat> {
   @override
   void initState() {
     super.initState();
+    print(widget.email);
     initSocket();
   }
 
@@ -185,8 +186,12 @@ class _WhatsappChatState extends State<WhatsappChat> {
       }
 
       // Request initial messages for the specific chat
-      socket.emit('init_wa', (widget.email, widget.sessionId));
-      socket.emit('get_messages', widget.chatId);
+      // socket.emit('init_wa', (widget.email, widget.sessionId));
+      socket.emit('init_wa', {
+        'email': widget.email,
+        'sessionId': widget.sessionId,
+      });
+      socket.emit('on', widget.chatId);
       print('Requesting messages for chat ID: ${widget.chatId}');
     });
 

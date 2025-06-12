@@ -61,7 +61,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
   bool isLoading = false;
   int _childButtonIndex = 0;
   Widget _selectedTaskWidget = Container();
-  int count = 0;
+  // int overdueCount = 0;
   static Map<String, int> _callLogs = {
     'all': 0,
     'outgoing': 0,
@@ -78,6 +78,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
   List<Map<String, dynamic>> upcomingEvents = [];
   List<Map<String, dynamic>> completedEvents = [];
   List<Map<String, dynamic>> completedTasks = [];
+  int overdueCount = 0;
 
   final TextEditingController descriptionController = TextEditingController();
   late stt.SpeechToText _speech;
@@ -308,6 +309,8 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
         //     ? data['overdueWeekTasks']['count']
         //     : 0;
 
+        overdueCount = overdueTasks.length + overdueEvents.length;
+
         upcomingEvents = List<Map<String, dynamic>>.from(
           data['upcomingEvents'],
         );
@@ -401,7 +404,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
         const SizedBox(width: 10),
         _buildToggleOption(
           2,
-          'Overdue ($count)',
+          'Overdue ($overdueCount)',
           const Color.fromRGBO(236, 81, 81, 1),
         ),
       ],

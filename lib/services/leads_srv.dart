@@ -301,9 +301,7 @@ class LeadsSrv {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
 
-        // Assuming the API response is a list of strings:
-        // Example: { "options": ["Option 1", "Option 2", "Option 3"] }
-
+        
         return List<String>.from(data['options']);
       } else {
         throw Exception('Failed to fetch options');

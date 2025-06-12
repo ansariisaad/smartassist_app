@@ -78,7 +78,7 @@ class BottomNavigation extends StatelessWidget {
               // Home comes second at index 1
               navItems.add(
                 _buildNavItem(
-                  icon: Icons.auto_graph,
+                  icon: Icons.auto_graph_rounded,
                   label: 'Dashboard',
                   index: 1,
                   isIcon: true,
@@ -101,6 +101,15 @@ class BottomNavigation extends StatelessWidget {
                 ),
               );
             } else {
+              navItems.add(
+                _buildNavItem(
+                  icon: Icons.auto_graph_rounded,
+                  label: 'Dashboard',
+                  index: 0,
+                  isIcon: true,
+                  isImg: false,
+                ),
+              );
               // Other users: show image-based Calendar nav item
               navItems.add(
                 _buildNavItem(
@@ -109,16 +118,6 @@ class BottomNavigation extends StatelessWidget {
                   img: Image.asset('assets/calendar.png', fit: BoxFit.contain),
                   label: 'Calendar',
                   index: 1,
-                ),
-              );
-
-              navItems.add(
-                _buildNavItem(
-                  icon: Icons.home,
-                  label: 'Home',
-                  index: 0,
-                  isIcon: true,
-                  isImg: false,
                 ),
               );
             }

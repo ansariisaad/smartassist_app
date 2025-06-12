@@ -6,12 +6,13 @@ import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Leads/single_details_pages/singleLead_followup.dart';
-import 'package:smartassist/pages/home/single_details_pages/singleLead_followup.dart';
 import 'package:smartassist/utils/bottom_navigation.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
+import 'package:smartassist/services/reassign_enq_srv.dart';
+import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/lead_update.dart';
 
 class AllLeads extends StatefulWidget {
@@ -333,9 +334,174 @@ class _AllLeadsState extends State<AllLeads> {
                             );
 
                       return TextButton(
-                        onPressed: () {
+                        onPressed: () async {
                           HapticFeedback.lightImpact();
                           print("Selected leads: $selectedLeads");
+
+                          if (selectedLeads.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Please select leads to reassign',
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+
+                          // Show user selection dialog
+                          final selectedUser = await showDialog<Map<String, String>>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Select User'),
+                              content: SizedBox(
+                                width: double.maxFinite,
+                                child: FutureBuilder<List<Map<String, dynamic>>>(
+                                  future: LeadsSrv.fetchUsers(),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                      return const Center(
+                                        child: CircularProgressIndicator(),
+                                      );
+                                    }
+
+                                    if (snapshot.hasError) {
+                                      return Text(
+                                        'Error loading users: ${snapshot.error}',
+                                      );
+                                    }
+
+                                    final users = snapshot.data ?? [];
+
+                                    if (users.isEmpty) {
+                                      return const Text('No users available');
+                                    }
+
+                                    return ListView.builder(
+                                      shrinkWrap: true,
+                                      itemCount: users.length,
+                                      itemBuilder: (context, index) {
+                                        final user = users[index];
+
+                                        return ListTile(
+                                          title: Text(
+                                            user['name'] ?? 'Unknown User',
+                                          ),
+                                          subtitle: Text(user['email'] ?? ''),
+                                          onTap: () {
+                                            // Extract user ID and name - we know it's stored as 'user_id' from debugging
+                                            final userId = user['user_id']
+                                                ?.toString();
+                                            final userName =
+                                                user['name']?.toString() ??
+                                                'Unknown User';
+
+                                            if (userId != null &&
+                                                userId.isNotEmpty &&
+                                                userId != 'null') {
+                                              // Return both user ID and name
+                                              Navigator.of(context).pop({
+                                                'id': userId,
+                                                'name': userName,
+                                              });
+                                            } else {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                    'Unable to get user ID',
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                          },
+                                        );
+                                      },
+                                    );
+                                  },
+                                ),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(),
+                                  child: const Text('Cancel'),
+                                ),
+                              ],
+                            ),
+                          );
+
+                          // If no user was selected, return early
+                          if (selectedUser == null) {
+                            return;
+                          }
+
+                          final selectedUserId = selectedUser['id']!;
+                          final selectedUserName = selectedUser['name']!;
+
+                          // Show loading indicator
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (context) => const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+
+                          try {
+                            final result = await ApiService.reassignLeads(
+                              leadIds: selectedLeads,
+                              assignee:
+                                  selectedUserId, // This is the user_id from fetchUsers response
+                            );
+
+                            // Hide loading indicator
+                            Navigator.of(context).pop();
+
+                            if (result['success']) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Reassigned to $selectedUserName',
+                                    style: GoogleFonts.poppins(),
+                                  ),
+                                  backgroundColor: Colors.green,
+                                  duration: const Duration(seconds: 2),
+                                  behavior: SnackBarBehavior
+                                      .floating, // Optional: Makes it float above UI
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      10,
+                                    ), // Optional: rounded corners
+                                  ),
+                                ),
+                              );
+                              // Clear selection
+                              setState(() {
+                                selectedLeads.clear();
+                              });
+
+                              // Refresh the leads data
+                              await fetchTasksData();
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    result['error'] ?? 'Unknown error occurred',
+                                  ),
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            // Hide loading indicator
+                            Navigator.of(context).pop();
+
+                            print("Error reassigning leads: $e"); // Debug log
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Unexpected error: $e')),
+                            );
+                          }
                         },
                         style: TextButton.styleFrom(
                           padding: padding,
@@ -343,7 +509,7 @@ class _AllLeadsState extends State<AllLeads> {
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
                         child: Text(
-                          "Reassign",
+                          "Reassign to",
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: fontSize,
@@ -429,11 +595,11 @@ class _AllLeadsState extends State<AllLeads> {
                                     ? const Color(0xFF1380FE)
                                     : AppColors.backgroundLightGrey,
                                 borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: const Color(
-                                    0xFF1380FE,
-                                  ).withOpacity(0.3),
-                                ),
+                                // border: Border.all(
+                                //   color: const Color(
+                                //     0xFF1380FE,
+                                //   ).withOpacity(0.3),
+                                // ),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -684,7 +850,7 @@ class _AllLeadsState extends State<AllLeads> {
                 ),
                 decoration: BoxDecoration(
                   color: isSelected ? const Color(0xFF1380FE) : Colors.white,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                     color: isSelected
                         ? const Color(0xFF1380FE)
@@ -827,7 +993,7 @@ class _TaskItemState extends State<TaskItem> {
         curve: Curves.easeInOut,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
+          // borderRadius: BorderRadius.circular(10),
           color: widget.isSelected
               ? AppColors.backgroundLightGrey.withOpacity(0.8)
               : AppColors.white,

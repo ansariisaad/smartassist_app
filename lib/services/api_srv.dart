@@ -286,7 +286,52 @@ class LeadsSrv {
     }
   }
 
-  // lead model api
+  //fetch users
+  // Add this method to your LeadsSrv class
+  static Future<List<Map<String, dynamic>>> fetchUsers() async {
+    final token = await Storage.getToken();
+    try {
+      print('🔍 Fetching users from: ${baseUrl}admin/users/all');
+      print('🔑 Using token: ${token?.substring(0, 10)}...');
+
+      final response = await http.get(
+        Uri.parse('${baseUrl}admin/users/all'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      print('📊 Response status code: ${response.statusCode}');
+      print('📄 Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        // Check if the response has the expected structure
+        if (data['data'] != null && data['data']['rows'] != null) {
+          final rows = data['data']['rows'] as List;
+          print('✅ Found ${rows.length} users');
+
+          // Convert to List<Map<String, dynamic>>
+          return List<Map<String, dynamic>>.from(rows);
+        } else {
+          print('❌ Unexpected response structure: $data');
+          throw Exception('Invalid response structure - missing data.rows');
+        }
+      } else {
+        print('❌ HTTP Error: ${response.statusCode}');
+        print('❌ Error body: ${response.body}');
+        throw Exception(
+          'Failed to fetch users. Status: ${response.statusCode}, Body: ${response.body}',
+        );
+      }
+    } catch (error) {
+      print('💥 Error in fetchUsers: $error');
+      rethrow; // Re-throw so the UI can handle it
+    }
+  }
+  //end
 
   static Future<List<String>> fetchDropdownOptions() async {
     const url = '${baseUrl}admin/users/all';

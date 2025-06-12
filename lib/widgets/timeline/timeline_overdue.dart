@@ -10,6 +10,7 @@ import 'package:timeline_tile/timeline_tile.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class timelineOverdue extends StatelessWidget {
+  final carIcon = '/assets/caricon.png';
   final List<Map<String, dynamic>> tasks;
   final List<Map<String, dynamic>> overdueEvents;
   const timelineOverdue({
@@ -72,13 +73,19 @@ class timelineOverdue extends StatelessWidget {
           IconData icon;
 
           if (subject == 'Provide Quotation') {
-            icon = Icons.sms;
+            icon = Icons.receipt_long;
           } else if (subject == 'Send SMS') {
-            icon = Icons.mail_rounded;
+            icon = Icons.message_rounded;
           } else if (subject == 'Call') {
             icon = Icons.phone;
           } else if (subject == 'Send Email') {
             icon = Icons.mail;
+          } else if (subject == 'Showroom appointment') {
+            icon = Icons.person_2_outlined;
+          } else if (subject == 'Trade in evaluation') {
+            icon = Icons.handshake;
+          } else if (subject == 'Test Drive') {
+            icon = carIcon as IconData;
           } else {
             icon = Icons.phone; // default fallback icon
           }

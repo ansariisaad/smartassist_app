@@ -977,7 +977,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
         backgroundColor: AppColors.colorsBlueButton,
         // title: Text('Enquiry', style: AppFont.appbarfontWhite(context)),
         title: Align(
-           alignment: Alignment.centerLeft,
+          alignment: Alignment.centerLeft,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

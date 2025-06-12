@@ -762,6 +762,55 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
     });
   }
 
+  Future<void> _showWhatsappDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // User must tap button to close dialog
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          backgroundColor: Colors.white,
+          insetPadding: const EdgeInsets.all(10),
+          contentPadding: EdgeInsets.zero,
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Align(
+                alignment: Alignment.bottomLeft,
+                child: Text(
+                  textAlign: TextAlign.center,
+                  'Are you sure you want to qualify this lead to an opportunity?',
+                  style: AppFont.mediumText14(context),
+                ),
+              ),
+              const SizedBox(height: 10),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text(
+                'Cancel',
+                // style: TextStyle(color: AppColors.colorsBlue),
+                style: AppFont.mediumText14blue(context),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                whatsappChat(context); // Pass context to submit
+              },
+              child: Text('Submit', style: AppFont.mediumText14blue(context)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _showSkipDialog() async {
     return showDialog<void>(
       context: context,
@@ -891,6 +940,87 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
     _showSkipDialog();
     // API call for Qualify tab
     print('Qualify API call triggered');
+  }
+
+  void handleWhatsappAction() async {
+    await _showWhatsappDialog();
+
+    // API call for WhatsApp chat
+
+    print('WhatsApp chat API call triggered');
+  }
+
+  Future<void> whatsappChat(BuildContext context) async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      // SharedPreferences prefs = await SharedPreferences.getInstance();
+      // String? spId = prefs.getString('user_id');
+      final url = Uri.parse(
+        'https://api.smartassistapp.in/api/leads/convert-to-opp/${widget.leadId}',
+      );
+      final token = await Storage.getToken();
+
+      // Create the request body
+      // final requestBody = {'sp_id': spId};
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        // body: json.encode(requestBody),
+      );
+
+      // Print the response
+      print('API Response status: ${response.statusCode}');
+      print('API Response body: ${response.body}');
+
+      if (response.statusCode == 201) {
+        final errorMessage =
+            json.decode(response.body)['message'] ?? 'Unknown error';
+
+        Get.snackbar(
+          'Success',
+          errorMessage,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+        Navigator.pop(context); // Dismiss the dialog after success
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                WhatsappChat(chatId: chatId, userName: lead_owner),
+          ),
+        );
+      } else {
+        // Error handling
+        final errorMessage =
+            json.decode(response.body)['message'] ?? 'Unknown error';
+        print('Failed to submit feedback');
+        Get.snackbar(
+          'Error',
+          errorMessage, // Show the backend error message
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        Navigator.pop(context); // Dismiss the dialog on error
+      }
+    } catch (e) {
+      print('Error fetching WhatsApp chat: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to fetch WhatsApp chat',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   Widget _buildTextField({
@@ -1406,16 +1536,16 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                                             ),
                                           ),
                                           onPressed: () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    WhatsappChat(
-                                                      chatId: chatId,
-                                                      userName: lead_owner,
-                                                    ),
-                                              ),
-                                            );
+                                            // Navigator.push(
+                                            //   context,
+                                            //   MaterialPageRoute(
+                                            //     builder: (context) =>
+                                            //         WhatsappChat(
+                                            //           chatId: chatId,
+                                            //           userName: lead_owner,
+                                            //         ),
+                                            //   ),
+                                            // );
                                           },
                                           child: Text(
                                             'Whatsapp',

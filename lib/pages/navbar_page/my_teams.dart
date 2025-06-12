@@ -140,7 +140,7 @@ class _MyTeamsState extends State<MyTeams> {
       await _fetchTeamDetails();
       await _fetchAllCalllog();
       // _prepareTeamMembersForAzList();
-      // await _fetchSingleCalllog();
+      await _fetchSingleCalllog();
     } catch (error) {
       print("Error during initialization: $error");
       Get.snackbar(
@@ -269,12 +269,12 @@ class _MyTeamsState extends State<MyTeams> {
 
       // ✅ Add userId to query parameters if it's available
       if (_selectedUserId.isNotEmpty) {
-        queryParams['userId'] = _selectedUserId;
+        queryParams['user_id'] = _selectedUserId;
       }
 
       // ✅ Fixed: Use the correct base URL without concatenating userId
       final baseUri = Uri.parse(
-        'https://api.smartassistapp.in/api/users/sm/dashboard/individual/call-analytics',
+        'https://api.smartassistapp.in/api/users/ps/dashboard/call-analytics',
         // 'https://api.smartassistapp.in/api/users/sm/dashboard/call-analytics'
       );
 
@@ -1645,6 +1645,7 @@ class _MyTeamsState extends State<MyTeams> {
             });
             // await _fetchAllCalllog();
             await _fetchTeamDetails();
+            // await _fetchSingleCalllog();
           },
           child: AnimatedDefaultTextStyle(
             duration: const Duration(milliseconds: 200),
@@ -1726,6 +1727,7 @@ class _MyTeamsState extends State<MyTeams> {
               // ✅ This ensures _fetchTeamDetails runs AFTER setState completes
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 _fetchTeamDetails();
+                _fetchSingleCalllog();
               });
               // await _fetchTeamDetails();
             }

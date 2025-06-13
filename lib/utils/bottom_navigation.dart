@@ -151,18 +151,19 @@ class BottomNavigation extends StatelessWidget {
           ),
         ],
       ),
-      child: SafeArea(
+      child: SafeArea( 
         child: ConstrainedBox(
           constraints: BoxConstraints(
             minHeight: bottomNavHeight * 0.8,
             maxHeight: bottomNavHeight,
-          ),
+          ), 
 
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 0),
             child: Obx(() {
               List<Widget> navItems = [];
 
+ 
               //  List<Widget> navItems = [
               //   _buildNavItem(
               //     icon: Icons.home,
@@ -263,7 +264,7 @@ class BottomNavigation extends StatelessWidget {
               //     label: 'Calendar',
               //     index: calendarIndex,
               //   ),
-              // );
+              // ); 
 
               // Add More/Settings - index needs to be adjusted based on whether Teams is present
               int moreIndex = controller.userRole.value == "SM" ? 3 : 2;

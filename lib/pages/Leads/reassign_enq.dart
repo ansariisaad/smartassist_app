@@ -263,6 +263,76 @@ class _AllLeadsState extends State<AllLeads> {
     });
   }
 
+  Widget _buildUserAvatar(Map<String, dynamic> user, String userName) {
+    final profilePic = user['profile_pic']?.toString();
+
+    if (profilePic != null && profilePic.isNotEmpty && profilePic != 'null') {
+      return Image.network(
+        profilePic,
+        width: 48,
+        height: 48,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFF1380FE),
+                  const Color(0xFF1380FE).withOpacity(0.7),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Center(
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return _buildInitialAvatar(userName);
+        },
+      );
+    } else {
+      return _buildInitialAvatar(userName);
+    }
+  }
+
+  Widget _buildInitialAvatar(String userName) {
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFF1380FE),
+            const Color(0xFF1380FE).withOpacity(0.7),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Center(
+        child: Text(
+          userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -350,85 +420,433 @@ class _AllLeadsState extends State<AllLeads> {
                           }
 
                           // Show user selection dialog
-                          final selectedUser = await showDialog<Map<String, String>>(
+                          final selectedUser = await showDialog<Map<String, dynamic>>(
                             context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text('Select User'),
-                              content: SizedBox(
-                                width: double.maxFinite,
-                                child: FutureBuilder<List<Map<String, dynamic>>>(
-                                  future: LeadsSrv.fetchUsers(),
-                                  builder: (context, snapshot) {
-                                    if (snapshot.connectionState ==
-                                        ConnectionState.waiting) {
-                                      return const Center(
-                                        child: CircularProgressIndicator(),
-                                      );
-                                    }
-
-                                    if (snapshot.hasError) {
-                                      return Text(
-                                        'Error loading users: ${snapshot.error}',
-                                      );
-                                    }
-
-                                    final users = snapshot.data ?? [];
-
-                                    if (users.isEmpty) {
-                                      return const Text('No users available');
-                                    }
-
-                                    return ListView.builder(
-                                      shrinkWrap: true,
-                                      itemCount: users.length,
-                                      itemBuilder: (context, index) {
-                                        final user = users[index];
-
-                                        return ListTile(
-                                          title: Text(
-                                            user['name'] ?? 'Unknown User',
+                            barrierDismissible: true,
+                            builder: (context) => Dialog(
+                              backgroundColor: Colors.white,
+                              elevation: 8,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Container(
+                                width: MediaQuery.of(context).size.width * 0.85,
+                                constraints: const BoxConstraints(
+                                  maxHeight: 600,
+                                  maxWidth: 400,
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    // Header with gradient background
+                                    Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.all(20),
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            const Color(0xFF1380FE),
+                                            const Color(
+                                              0xFF1380FE,
+                                            ).withOpacity(0.8),
+                                          ],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ),
+                                        borderRadius: const BorderRadius.only(
+                                          topLeft: Radius.circular(16),
+                                          topRight: Radius.circular(16),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.all(8),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white.withOpacity(
+                                                0.2,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: const Icon(
+                                              Icons.person_search_rounded,
+                                              color: Colors.white,
+                                              size: 24,
+                                            ),
                                           ),
-                                          subtitle: Text(user['email'] ?? ''),
-                                          onTap: () {
-                                            // Extract user ID and name - we know it's stored as 'user_id' from debugging
-                                            final userId = user['user_id']
-                                                ?.toString();
-                                            final userName =
-                                                user['name']?.toString() ??
-                                                'Unknown User';
+                                          const SizedBox(width: 12),
+                                          const Expanded(
+                                            child: Text(
+                                              'Select a PS to reassign',
+                                              style: TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
 
-                                            if (userId != null &&
-                                                userId.isNotEmpty &&
-                                                userId != 'null') {
-                                              // Return both user ID and name
-                                              Navigator.of(context).pop({
-                                                'id': userId,
-                                                'name': userName,
-                                              });
-                                            } else {
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                const SnackBar(
-                                                  content: Text(
-                                                    'Unable to get user ID',
-                                                  ),
+                                    // Content area
+                                    Flexible(
+                                      child: Container(
+                                        padding: const EdgeInsets.all(20),
+                                        child: FutureBuilder<List<Map<String, dynamic>>>(
+                                          future: LeadsSrv.fetchUsers(),
+                                          builder: (context, snapshot) {
+                                            if (snapshot.connectionState ==
+                                                ConnectionState.waiting) {
+                                              return Container(
+                                                height: 200,
+                                                child: Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    Container(
+                                                      width: 50,
+                                                      height: 50,
+                                                      child: CircularProgressIndicator(
+                                                        strokeWidth: 3,
+                                                        valueColor:
+                                                            AlwaysStoppedAnimation<
+                                                              Color
+                                                            >(
+                                                              const Color(
+                                                                0xFF1380FE,
+                                                              ),
+                                                            ),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 16),
+                                                    Text(
+                                                      'Loading users...',
+                                                      style: TextStyle(
+                                                        color: Colors.grey[600],
+                                                        fontSize: 14,
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
                                               );
                                             }
+
+                                            if (snapshot.hasError) {
+                                              return Container(
+                                                height: 200,
+                                                child: Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    Container(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            16,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.red[50],
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              12,
+                                                            ),
+                                                      ),
+                                                      child: Icon(
+                                                        Icons
+                                                            .error_outline_rounded,
+                                                        color: Colors.red[400],
+                                                        size: 48,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 16),
+                                                    Text(
+                                                      'Error loading users',
+                                                      style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        color: Colors.grey[800],
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 8),
+                                                    Text(
+                                                      '${snapshot.error}',
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                        color: Colors.grey[600],
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                            }
+
+                                            final users = snapshot.data ?? [];
+
+                                            if (users.isEmpty) {
+                                              return Container(
+                                                height: 200,
+                                                child: Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    Container(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            16,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.grey[100],
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              12,
+                                                            ),
+                                                      ),
+                                                      child: Icon(
+                                                        Icons
+                                                            .people_outline_rounded,
+                                                        color: Colors.grey[400],
+                                                        size: 48,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 16),
+                                                    Text(
+                                                      'No users available',
+                                                      style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        color: Colors.grey[600],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                            }
+
+                                            return ListView.separated(
+                                              shrinkWrap: true,
+                                              itemCount: users.length,
+                                              separatorBuilder:
+                                                  (context, index) => Divider(
+                                                    height: 1,
+                                                    color: Colors.grey[200],
+                                                  ),
+                                              itemBuilder: (context, index) {
+                                                final user = users[index];
+                                                final userName =
+                                                    user['name'] ??
+                                                    'Unknown User';
+                                                final userEmail =
+                                                    user['email'] ?? '';
+
+                                                return Material(
+                                                  color: Colors.transparent,
+                                                  child: InkWell(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          8,
+                                                        ),
+                                                    onTap: () async {
+                                                      final userId =
+                                                          user['user_id']
+                                                              ?.toString();
+
+                                                      if (userId != null &&
+                                                          userId.isNotEmpty &&
+                                                          userId != 'null') {
+                                                        Navigator.of(
+                                                          context,
+                                                        ).pop({
+                                                          'id': userId,
+                                                          'name': userName,
+                                                        });
+                                                      } else {
+                                                        // Close dialog first, then show snackbar
+                                                        Navigator.of(
+                                                          context,
+                                                        ).pop();
+
+                                                        // Use a slight delay to ensure navigator is unlocked
+                                                        await Future.delayed(
+                                                          const Duration(
+                                                            milliseconds: 100,
+                                                          ),
+                                                        );
+
+                                                        if (context.mounted) {
+                                                          ScaffoldMessenger.of(
+                                                            context,
+                                                          ).showSnackBar(
+                                                            SnackBar(
+                                                              content: const Text(
+                                                                'Unable to get user ID',
+                                                              ),
+                                                              backgroundColor:
+                                                                  Colors
+                                                                      .red[400],
+                                                              behavior:
+                                                                  SnackBarBehavior
+                                                                      .floating,
+                                                              shape: RoundedRectangleBorder(
+                                                                borderRadius:
+                                                                    BorderRadius.circular(
+                                                                      8,
+                                                                    ),
+                                                              ),
+                                                            ),
+                                                          );
+                                                        }
+                                                      }
+                                                    },
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 12,
+                                                            vertical: 16,
+                                                          ),
+                                                      child: Row(
+                                                        children: [
+                                                          // Avatar
+                                                          Container(
+                                                            width: 48,
+                                                            height: 48,
+                                                            decoration: BoxDecoration(
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                    24,
+                                                                  ),
+                                                              border: Border.all(
+                                                                color:
+                                                                    const Color(
+                                                                      0xFF1380FE,
+                                                                    ).withOpacity(
+                                                                      0.2,
+                                                                    ),
+                                                                width: 2,
+                                                              ),
+                                                            ),
+                                                            child: ClipRRect(
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                    22,
+                                                                  ),
+                                                              child:
+                                                                  _buildUserAvatar(
+                                                                    user,
+                                                                    userName,
+                                                                  ),
+                                                            ),
+                                                          ),
+                                                          const SizedBox(
+                                                            width: 16,
+                                                          ),
+
+                                                          // User info
+                                                          Expanded(
+                                                            child: Column(
+                                                              crossAxisAlignment:
+                                                                  CrossAxisAlignment
+                                                                      .start,
+                                                              children: [
+                                                                Text(
+                                                                  userName,
+                                                                  style: TextStyle(
+                                                                    fontSize:
+                                                                        16,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w500,
+                                                                    color: Colors
+                                                                        .grey[800],
+                                                                  ),
+                                                                ),
+                                                                if (userEmail
+                                                                    .isNotEmpty) ...[
+                                                                  const SizedBox(
+                                                                    height: 4,
+                                                                  ),
+                                                                  Text(
+                                                                    userEmail,
+                                                                    style: TextStyle(
+                                                                      fontSize:
+                                                                          14,
+                                                                      color: Colors
+                                                                          .grey[600],
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ],
+                                                            ),
+                                                          ),
+
+                                                          // Arrow icon
+                                                          Icon(
+                                                            Icons
+                                                                .arrow_forward_ios_rounded,
+                                                            size: 16,
+                                                            color: Colors
+                                                                .grey[400],
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            );
                                           },
-                                        );
-                                      },
-                                    );
-                                  },
+                                        ),
+                                      ),
+                                    ),
+
+                                    // Footer with action buttons
+                                    Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.all(20),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[50],
+                                        borderRadius: const BorderRadius.only(
+                                          bottomLeft: Radius.circular(16),
+                                          bottomRight: Radius.circular(16),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        children: [
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.of(context).pop(),
+                                            style: TextButton.styleFrom(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 24,
+                                                    vertical: 12,
+                                                  ),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                            ),
+                                            child: Text(
+                                              'Cancel',
+                                              style: TextStyle(
+                                                color: Colors.grey[600],
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.of(context).pop(),
-                                  child: const Text('Cancel'),
-                                ),
-                              ],
                             ),
                           );
 

@@ -796,7 +796,7 @@ class _MyTeamsState extends State<MyTeams> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: const Color(0xFF1380FE),
+        backgroundColor: AppColors.colorsBlue,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -1377,7 +1377,7 @@ class _MyTeamsState extends State<MyTeams> {
             height: 40,
             margin: const EdgeInsets.symmetric(horizontal: 4),
             decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.4),
+              color: AppColors.colorsBlue.withOpacity(0.4),
               borderRadius: BorderRadius.circular(1),
             ),
           ),
@@ -1533,7 +1533,7 @@ class _MyTeamsState extends State<MyTeams> {
         AnimatedDefaultTextStyle(
           duration: const Duration(milliseconds: 200),
           style: AppFont.mediumText14(context).copyWith(
-            color: isSelected ? Colors.blue : null,
+            color: isSelected ? AppColors.colorsBlue : null,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
           ),
           child: Text(letter),
@@ -1619,10 +1619,10 @@ class _MyTeamsState extends State<MyTeams> {
                   color: _isMultiSelectMode
                       ? AppColors.sideRed
                       : (isSelected
-                            ? Colors.blue.withOpacity(0.15)
+                            ? AppColors.colorsBlue.withOpacity(0.15)
                             : AppColors.backgroundLightGrey),
                   border: isSelected
-                      ? Border.all(color: Colors.blue, width: 2.5)
+                      ? Border.all(color: AppColors.colorsBlue, width: 2.5)
                       : Border.all(
                           color: Colors.grey.withOpacity(0.3),
                           width: 1,
@@ -1642,7 +1642,7 @@ class _MyTeamsState extends State<MyTeams> {
                       ),
                       color: _isMultiSelectMode
                           ? Colors.white
-                          : (isSelected ? Colors.blue : Colors.grey),
+                          : (isSelected ? AppColors.colorsBlue : Colors.grey),
                       size: isSelected ? 34 : 32,
                     ),
                   ),
@@ -1707,7 +1707,7 @@ class _MyTeamsState extends State<MyTeams> {
             duration: const Duration(milliseconds: 200),
             style: AppFont.mediumText14(context).copyWith(
               color: isSelected
-                  ? Colors.blue
+                  ? AppColors.colorsBlue
                   : (_isMultiSelectMode ? AppColors.fontColor : null),
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
             ),
@@ -1785,56 +1785,370 @@ class _MyTeamsState extends State<MyTeams> {
                 _fetchTeamDetails();
                 _fetchSingleCalllog();
               });
-              // await _fetchTeamDetails();
             }
           },
 
           child: Container(
             margin: const EdgeInsets.fromLTRB(10, 0, 5, 0),
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: isSelectedForComparison
-                  ? AppColors.colorsBlue
-                  : AppColors.backgroundLightGrey,
-              border: isSelectedForComparison
-                  ? Border.all(color: Colors.white, width: 2)
-                  : _selectedProfileIndex == index
-                  ? Border.all(color: Colors.blue, width: 2)
-                  : null,
-            ),
-            child: ClipOval(
-              child: isSelectedForComparison
-                  ? const Icon(Icons.check, color: Colors.white)
-                  : (profileUrl != null && profileUrl.isNotEmpty)
-                  ? Image.network(
-                      profileUrl,
-                      width: 50,
-                      height: 50,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Center(
-                          child: Text(
-                            initials.toUpperCase(),
-                            style: AppFont.appbarfontblack(context),
-                          ),
-                        );
-                      },
-                    )
-                  : Center(
-                      child: Text(
-                        initials.toUpperCase(),
-                        style: AppFont.appbarfontblack(context),
+            child: Stack(
+              children: [
+                // Main avatar container
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    // Enhanced shadow for depth
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
+                    ],
+                    // Border styling based on selection state
+                    border: _getBorderStyle(isSelectedForComparison, index),
+                  ),
+                  child: ClipOval(
+                    child: _buildProfileContent(
+                      isSelectedForComparison,
+                      profileUrl,
+                      initials,
+                      firstName,
+                      context,
                     ),
+                  ),
+                ),
+
+                // Selection indicator for multi-select mode
+                // if (isSelectedForComparison)
+                //   Positioned(
+                //     right: 0,
+                //     bottom: 0,
+                //     child: Container(
+                //       width: 20,
+                //       height: 20,
+                //       decoration: BoxDecoration(
+                //         color: Colors.white,
+                //         shape: BoxShape.circle,
+                //         border: Border.all(
+                //           color: const Color(0xFF1380FE),
+                //           width: 2,
+                //         ),
+                //         boxShadow: [
+                //           BoxShadow(
+                //             color: Colors.black.withOpacity(0.2),
+                //             blurRadius: 4,
+                //             offset: const Offset(0, 1),
+                //           ),
+                //         ],
+                //       ),
+                //       // child: const Icon(
+                //       //   Icons.check,
+                //       //   color: Color(0xFF1380FE),
+                //       //   size: 12,
+                //       // ),
+                //     ),
+                //   ),
+
+                // Active selection indicator
+                // if (!isSelectedForComparison && _selectedProfileIndex == index)
+                //   Positioned(
+                //     right: 0,
+                //     bottom: 0,
+                //     child: Container(
+                //       width: 16,
+                //       height: 16,
+                //       decoration: BoxDecoration(
+                //         color: const Color(0xFF1380FE),
+                //         shape: BoxShape.circle,
+                //         border: Border.all(color: Colors.white, width: 2),
+                //         boxShadow: [
+                //           BoxShadow(
+                //             color: const Color(0xFF1380FE).withOpacity(0.3),
+                //             blurRadius: 4,
+                //             offset: const Offset(0, 1),
+                //           ),
+                //         ],
+                //       ),
+                //     ),
+                //   ),
+              ],
             ),
           ),
         ),
-        const SizedBox(height: 8),
-        Text(firstName, style: AppFont.mediumText14(context)),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
+        Container(
+          constraints: const BoxConstraints(maxWidth: 70),
+          child: Text(
+            firstName,
+            style: AppFont.mediumText14(context),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        const SizedBox(height: 4),
       ],
+    );
+    // return Column(
+    //   mainAxisSize: MainAxisSize.min,
+    //   children: [
+    //     GestureDetector(
+    //       onLongPress: () {
+    //         // Strong haptic feedback on long press
+    //         HapticFeedback.heavyImpact();
+
+    //         setState(() {
+    //           // Activate multi-select mode
+    //           _isMultiSelectMode = true;
+
+    //           // Toggle the current item's selection
+    //           if (isSelectedForComparison) {
+    //             selectedUserIds.remove(userId);
+    //           } else {
+    //             selectedUserIds.add(userId);
+    //           }
+    //         });
+    //       },
+
+    //       // Your onTap implementation (combining your existing logic with multi-select)
+    //       onTap: () async {
+    //         // Light haptic feedback on tap
+    //         HapticFeedback.lightImpact();
+
+    //         if (_isMultiSelectMode) {
+    //           // Multi-select mode: toggle selection for comparison
+    //           setState(() {
+    //             if (isSelectedForComparison) {
+    //               selectedUserIds.remove(userId);
+    //               // If no items selected, exit multi-select mode
+    //               if (selectedUserIds.isEmpty) {
+    //                 _isMultiSelectMode = false;
+    //               }
+    //             } else {
+    //               selectedUserIds.add(userId);
+    //             }
+    //           });
+    //         } else if (!_isComparing) {
+    //           // Single select mode: your existing logic
+    //           setState(() {
+    //             if (_selectedUserId == userId) {
+    //               _clearAllSelections();
+    //             } else {
+    //               _selectedProfileIndex = index;
+    //               _selectedUserId = userId;
+    //               _selectedType = 'dynamic';
+    //             }
+    //           });
+    //           // ✅ This ensures _fetchTeamDetails runs AFTER setState completes
+    //           WidgetsBinding.instance.addPostFrameCallback((_) {
+    //             _fetchTeamDetails();
+    //             _fetchSingleCalllog();
+    //           });
+    //           // await _fetchTeamDetails();
+    //         }
+    //       },
+
+    //       child: Container(
+    //         margin: const EdgeInsets.fromLTRB(10, 0, 5, 0),
+    //         width: 50,
+    //         height: 50,
+    //         decoration: BoxDecoration(
+    //           shape: BoxShape.circle,
+    //           color: isSelectedForComparison
+    //               ? AppColors.colorsBlue
+    //               : AppColors.backgroundLightGrey,
+    //           border: isSelectedForComparison
+    //               ? Border.all(color: Colors.white, width: 2)
+    //               : _selectedProfileIndex == index
+    //               ? Border.all(color: Colors.blue, width: 2)
+    //               : null,
+    //         ),
+    //         child: ClipOval(
+    //           child: isSelectedForComparison
+    //               ? const Icon(Icons.check, color: Colors.white)
+    //               : (profileUrl != null && profileUrl.isNotEmpty)
+    //               ? Image.network(
+    //                   profileUrl,
+    //                   width: 50,
+    //                   height: 50,
+    //                   fit: BoxFit.cover,
+    //                   errorBuilder: (context, error, stackTrace) {
+    //                     return Center(
+    //                       child: Text(
+    //                         initials.toUpperCase(),
+    //                         style: AppFont.appbarfontblack(context),
+    //                       ),
+    //                     );
+    //                   },
+    //                 )
+    //               : Center(
+    //                   child: Text(
+    //                     initials.toUpperCase(),
+    //                     style: AppFont.appbarfontblack(context),
+    //                   ),
+    //                 ),
+    //         ),
+    //       ),
+    //     ),
+    //     const SizedBox(height: 8),
+    //     Text(firstName, style: AppFont.mediumText14(context)),
+    //     const SizedBox(height: 8),
+    //   ],
+    // );
+  }
+
+  // Helper method to determine border style based on selection state
+  Border? _getBorderStyle(bool isSelectedForComparison, int index) {
+    if (isSelectedForComparison) {
+      return Border.all(color: const Color(0xFF1380FE), width: 3);
+    } else if (_selectedProfileIndex == index) {
+      return Border.all(color: const Color(0xFF1380FE), width: 2);
+    }
+    return Border.all(
+      color: const Color(0xFF1380FE).withOpacity(0.1),
+      width: 1,
+    );
+  }
+
+  // Helper method to build profile content with modern styling
+  Widget _buildProfileContent(
+    bool isSelectedForComparison,
+    String? profileUrl,
+    String initials,
+    String firstName,
+    BuildContext context,
+  ) {
+    if (isSelectedForComparison) {
+      // Multi-select mode: show gradient background with check icon overlay
+      return Container(
+        width: 50,
+        height: 50,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              const Color(0xFF1380FE),
+              const Color(0xFF1380FE).withOpacity(0.8),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Stack(
+          children: [
+            // Show profile image with reduced opacity
+            if (profileUrl != null && profileUrl.isNotEmpty)
+              Opacity(
+                opacity: 0.3,
+                child: Image.network(
+                  profileUrl,
+                  width: 50,
+                  height: 50,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return _buildInitialAvatar(initials, firstName, 0.3);
+                  },
+                ),
+              )
+            else
+              _buildInitialAvatar(initials, firstName, 0.3),
+
+            // Check icon overlay
+            Center(
+              child: Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 2,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.check,
+                  color: Color(0xFF1380FE),
+                  size: 16,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else {
+      // Normal mode: show profile image or initials
+      if (profileUrl != null && profileUrl.isNotEmpty) {
+        return Image.network(
+          profileUrl,
+          width: 50,
+          height: 50,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return _buildInitialAvatar(
+              initials,
+              firstName,
+              1.0,
+              showLoader: true,
+            );
+          },
+          errorBuilder: (context, error, stackTrace) {
+            return _buildInitialAvatar(initials, firstName, 1.0);
+          },
+        );
+      } else {
+        return _buildInitialAvatar(initials, firstName, 1.0);
+      }
+    }
+  }
+
+  Widget _buildInitialAvatar(
+    String initials,
+    String firstName,
+    double opacity, {
+    bool showLoader = false,
+  }) {
+    return Container(
+      width: 50,
+      height: 50,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color.fromARGB(255, 255, 255, 255).withOpacity(opacity),
+            const Color.fromARGB(255, 255, 255, 255).withOpacity(opacity * 0.8),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: showLoader
+          ? const Center(
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+            )
+          : Center(
+              child: Text(
+                initials.isNotEmpty
+                    ? initials.toUpperCase()
+                    : (firstName.isNotEmpty ? firstName[0].toUpperCase() : 'U'),
+                style: const TextStyle(
+                  color: AppColors.colorsBlue,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
     );
   }
 

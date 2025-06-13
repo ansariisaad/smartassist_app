@@ -39,6 +39,31 @@ class _AddFollowupsState extends State<AddFollowups> {
     fetchTasks();
   }
 
+  double _getScreenWidth() => MediaQuery.sizeOf(context).width;
+
+  // Responsive scaling while maintaining current design proportions
+  double _getResponsiveScale() {
+    final width = _getScreenWidth();
+    if (width <= 320) return 0.85; // Very small phones
+    if (width <= 375) return 0.95; // Small phones
+    if (width <= 414) return 1.0; // Standard phones (base size)
+    if (width <= 600) return 1.05; // Large phones
+    if (width <= 768) return 1.1; // Small tablets
+    return 1.15; // Large tablets and up
+  }
+
+  double _getSubTabFontSize() {
+    return 12.0 * _getResponsiveScale(); // Base font size: 12
+  }
+
+  double _getSubTabHeight() {
+    return 27.0 * _getResponsiveScale(); // Base height: 27
+  }
+
+  double _getSubTabWidth() {
+    return 240.0 * _getResponsiveScale(); // Base width: 150
+  }
+
   Future<void> fetchTasks() async {
     setState(() => _isLoading = true);
     try {
@@ -127,7 +152,6 @@ class _AddFollowupsState extends State<AddFollowups> {
             fontSize: 18,
             fontWeight: FontWeight.w500,
             color: Colors.white,
-
           ),
         ),
       ),
@@ -194,12 +218,12 @@ class _AddFollowupsState extends State<AddFollowups> {
                       children: [
                         const SizedBox(width: 10),
                         Container(
-                          width: 250,
-                          height: 30,
+                          width: _getSubTabWidth(),
+                          height: _getSubTabHeight(),
                           decoration: BoxDecoration(
                             border: Border.all(
-                              color: const Color(0xFF767676),
-                              width: .5,
+                              color: const Color(0xFF767676).withOpacity(0.3),
+                              width: 0.5,
                             ),
                             borderRadius: BorderRadius.circular(30),
                           ),
@@ -209,23 +233,19 @@ class _AddFollowupsState extends State<AddFollowups> {
                                 color: AppColors.colorsBlue,
                                 index: 0,
                                 text: 'All',
-                                activeColor: AppColors.colorsBlue.withOpacity(
-                                  0.2,
-                                ),
+                                activeColor: AppColors.borderblue,
                               ),
                               _buildFilterButton(
-                                color: AppColors.sideGreen,
+                                color: AppColors.containerGreen,
                                 index: 1,
                                 text: 'Upcoming',
-                                activeColor: AppColors.sideGreen.withOpacity(
-                                  0.2,
-                                ),
+                                activeColor: AppColors.borderGreen,
                               ),
                               _buildFilterButton(
-                                color: AppColors.sideRed,
+                                color: AppColors.containerRed,
                                 index: 2,
                                 text: 'Overdue ($count)',
-                                activeColor: AppColors.sideRed.withOpacity(0.2),
+                                activeColor: AppColors.borderRed,
                               ),
                             ],
                           ),
@@ -306,9 +326,13 @@ class _AddFollowupsState extends State<AddFollowups> {
         onPressed: () => setState(() => _upcommingButtonIndex = index),
         style: TextButton.styleFrom(
           backgroundColor: isActive ? activeColor.withOpacity(0.29) : null,
-          foregroundColor: isActive ? Colors.blueGrey : Colors.black,
-          padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 0),
-          side: BorderSide(
+          foregroundColor: isActive ? Colors.white : Colors.black,
+          // padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 0),
+          padding: EdgeInsets.symmetric(
+            vertical: 5.0 * _getResponsiveScale(),
+            horizontal: 8.0 * _getResponsiveScale(),
+          ),
+         side: BorderSide(
             color: isActive ? activeColor : Colors.transparent,
             width: .5,
           ),
@@ -318,8 +342,8 @@ class _AddFollowupsState extends State<AddFollowups> {
         ),
         child: Text(
           text,
-          style: TextStyle(
-            fontSize: 14,
+          style: TextStyle( 
+            fontSize: _getSubTabFontSize(),
             fontWeight: FontWeight.w400,
             color: isActive ? color : Colors.grey,
           ),

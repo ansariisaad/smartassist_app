@@ -471,7 +471,7 @@
 //   }
 // }
 
-// SAAD ANSARI CODE ABOVE....FROM BELOW MY CODE 
+// SAAD ANSARI CODE ABOVE....FROM BELOW MY CODE
 
 import 'package:animated_toggle_switch/animated_toggle_switch.dart';
 import 'dart:async';
@@ -653,15 +653,15 @@ class _ThreebtnState extends State<Threebtn> {
   // Helper methods for responsive design - maintaining current sizes as base
   double _getScreenWidth() => MediaQuery.sizeOf(context).width;
   double _getScreenHeight() => MediaQuery.sizeOf(context).height;
-  
+
   // Responsive scaling while maintaining current design proportions
   double _getResponsiveScale() {
     final width = _getScreenWidth();
     if (width <= 320) return 0.85; // Very small phones
-    if (width <= 375) return 0.95; // Small phones  
-    if (width <= 414) return 1.0;  // Standard phones (base size)
+    if (width <= 375) return 0.95; // Small phones
+    if (width <= 414) return 1.0; // Standard phones (base size)
     if (width <= 600) return 1.05; // Large phones
-    if (width <= 768) return 1.1;  // Small tablets
+    if (width <= 768) return 1.1; // Small tablets
     return 1.15; // Large tablets and up
   }
 
@@ -754,7 +754,7 @@ class _ThreebtnState extends State<Threebtn> {
               borderRadius: BorderRadius.circular(_getBorderRadius()),
             ),
             backgroundColor: isActive
-                ? const Color(0xFF1380FE)
+                ? AppColors.containerblue
                 : Colors.transparent,
             foregroundColor: isActive ? Colors.white : AppColors.fontColor,
           ),
@@ -767,7 +767,7 @@ class _ThreebtnState extends State<Threebtn> {
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.poppins(
                 fontSize: _getMainTabFontSize(),
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w400,
                 color: isActive ? Colors.white : AppColors.fontColor,
               ),
             ),
@@ -815,69 +815,63 @@ class _ThreebtnState extends State<Threebtn> {
     final overdueCount = _getOverdueCount();
 
     return Expanded(
-      child: Container(
-        height: double.infinity,
-        child: TextButton(
-          onPressed: () => _changeSubTab(index),
-          style: TextButton.styleFrom(
-            backgroundColor: isActive
-                ? (index == 0
-                      ? const Color(0xFF51DF79).withOpacity(0.29)
-                      : const Color(0xFFFFF5F4))
-                : Colors.transparent,
-            foregroundColor: isActive ? Colors.white : Colors.black,
-            padding: EdgeInsets.symmetric(
-              vertical: 5.0 * _getResponsiveScale(),
-              horizontal: 8.0 * _getResponsiveScale(),
-            ),
-            side: BorderSide(
-              color: isActive
-                  ? (index == 0
-                        ? const Color.fromARGB(255, 81, 223, 121)
-                        : const Color.fromRGBO(236, 81, 81, 1).withOpacity(0.59))
-                  : Colors.transparent,
-              width: 1,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30),
-            ),
+      child: TextButton(
+        onPressed: () => _changeSubTab(index),
+        style: TextButton.styleFrom(
+          backgroundColor: isActive
+              ? (index == 0
+                    ? const Color(0xFF51DF79).withOpacity(0.29)
+                    : const Color(0xFFFFF5F4))
+              : Colors.transparent,
+          foregroundColor: isActive ? Colors.white : Colors.black,
+          padding: EdgeInsets.symmetric(
+            vertical: 5.0 * _getResponsiveScale(),
+            horizontal: 8.0 * _getResponsiveScale(),
           ),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
+          side: BorderSide(
+            color: isActive
+                ? (index == 0 ? AppColors.borderGreen : AppColors.borderRed)
+                : Colors.transparent,
+            width: 1,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+        ),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                title,
+                style: GoogleFonts.poppins(
+                  fontSize: _getSubTabFontSize(),
+                  fontWeight: FontWeight.w400,
+                  color: isActive
+                      ? (index == 0
+                            ? AppColors.containerGreen
+                            : AppColors.containerRed)
+                      : const Color(0xff000000).withOpacity(0.56),
+                ),
+              ),
+
+              if (showCount) ...[
+                SizedBox(width: 4.0 * _getResponsiveScale()),
                 Text(
-                  title,
+                  '($overdueCount)',
                   style: GoogleFonts.poppins(
                     fontSize: _getSubTabFontSize(),
                     fontWeight: FontWeight.w400,
                     color: isActive
-                        ? (index == 0
-                            ? const Color.fromARGB(255, 78, 206, 114).withOpacity(0.9)
-                            : const Color.fromRGBO(236, 81, 81, 1))
+                        ? AppColors.containerRed
                         : const Color(0xff000000).withOpacity(0.56),
                   ),
                 ),
-
-                if (showCount) ...[
-                  SizedBox(width: 4.0 * _getResponsiveScale()),
-                  Text(
-                    '($overdueCount)',
-                    style: GoogleFonts.poppins(
-                      fontSize: _getSubTabFontSize(),
-                      fontWeight: FontWeight.w400,
-                      color: isActive
-                          ? const Color.fromRGBO(236, 81, 81, 1)
-                          : const Color(0xff000000).withOpacity(0.56),
-                    ),
-                  ),
-                ],
               ],
-            ),
+            ],
           ),
-
         ),
       ),
     );
@@ -899,7 +893,7 @@ class _ThreebtnState extends State<Threebtn> {
   Widget _buildNavigationArrow(BuildContext context) {
     final scale = _getResponsiveScale();
     final fontSize = 12.0 * scale; // Base: 12px
-    final iconSize = 36.0 * scale;  // Base: 36px
+    final iconSize = 36.0 * scale; // Base: 36px
     final containerHeight = 40.0 * scale;
     final containerWidth = 100.0 * scale;
 

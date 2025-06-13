@@ -1,17 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/services.dart';
-import 'package:smartassist/pages/navbar_page/app_setting.dart';
 import 'package:smartassist/pages/navbar_page/call_analytics.dart';
-import 'package:smartassist/pages/navbar_page/call_logs.dart';
 import 'package:smartassist/pages/navbar_page/favorite.dart';
 import 'package:smartassist/pages/navbar_page/leads_all.dart';
 import 'package:smartassist/pages/navbar_page/logout_page.dart';
-import 'package:smartassist/pages/navbar_page/my_teams.dart';
-import 'package:smartassist/widgets/profile_screen.dart';
 
 // Import with alias to avoid conflicts
 import 'package:smartassist/utils/navigation_controller.dart' as nav_utils;
@@ -31,12 +26,120 @@ class BottomNavigation extends StatelessWidget {
           Obx(() => controller.screens[controller.selectedIndex.value]),
         ],
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
+      bottomNavigationBar: _buildBottomNavigationBar(context),
     );
   }
 
+  // Calculate responsive icon size
+  double _calculateIconSize(
+    bool isExtraSmallScreen,
+    bool isSmallScreen,
+    bool isTablet,
+  ) {
+    if (isExtraSmallScreen) return 18;
+    if (isSmallScreen) return 20;
+    if (isTablet) return 28;
+    return 22;
+  }
+
+  // Calculate responsive font size
+  double _calculateFontSize(
+    bool isExtraSmallScreen,
+    bool isSmallScreen,
+    bool isTablet,
+  ) {
+    if (isExtraSmallScreen) return 9;
+    if (isSmallScreen) return 10;
+    if (isTablet) return 14;
+    return 12;
+  }
+
+  // Calculate responsive item padding
+  EdgeInsets _calculateItemPadding(
+    bool isExtraSmallScreen,
+    bool isSmallScreen,
+  ) {
+    if (isExtraSmallScreen)
+      return const EdgeInsets.symmetric(horizontal: 2, vertical: 2);
+    if (isSmallScreen)
+      return const EdgeInsets.symmetric(horizontal: 3, vertical: 3);
+    return const EdgeInsets.symmetric(horizontal: 4, vertical: 4);
+  }
+
+  // Calculate responsive spacing
+  double _calculateSpacing(bool isExtraSmallScreen) {
+    return isExtraSmallScreen ? 2 : 4;
+  }
+
+  // Calculate responsive scale multiplier
+  double _calculateScaleMultiplier(
+    bool isExtraSmallScreen,
+    bool isSmallScreen,
+  ) {
+    if (isExtraSmallScreen) return 1.1;
+    if (isSmallScreen) return 1.15;
+    return 1.2;
+  }
+
+  double _calculateBottomNavHeight(
+    double screenHeight,
+    bool isExtraSmallScreen,
+    bool isSmallScreen,
+    bool isTablet,
+  ) {
+    if (isExtraSmallScreen) return 60;
+    if (isSmallScreen) return 70;
+    if (isTablet) return 90;
+    return 80;
+  }
+
+  // Calculate responsive horizontal padding
+  double _calculateHorizontalPadding(double screenWidth, bool isTablet) {
+    if (isTablet) return screenWidth * 0.05; // 5% of screen width for tablets
+    if (screenWidth < 320) return 4;
+    if (screenWidth < 375) return 8;
+    return 12;
+  }
+
+  // Calculate responsive vertical padding
+  double _calculateVerticalPadding(
+    bool isExtraSmallScreen,
+    bool isSmallScreen,
+  ) {
+    if (isExtraSmallScreen) return 2;
+    if (isSmallScreen) return 4;
+    return 6;
+  }
+
   // Update the method to not require a parameter
-  Widget _buildBottomNavigationBar() {
+  Widget _buildBottomNavigationBar(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final screenHeight = screenSize.height;
+    final screenWidth = screenSize.width;
+
+    // Define responsive breakpoints
+    final isExtraSmallScreen = screenHeight < 550 || screenWidth < 320;
+    final isSmallScreen = screenHeight < 650 || screenWidth < 375;
+    final isTablet = screenWidth > 600;
+    final aspectRatio = screenWidth / screenHeight;
+    final isWideScreen = aspectRatio > 2.0; // For very wide screens
+
+    // Calculate responsive dimensions
+    final bottomNavHeight = _calculateBottomNavHeight(
+      screenHeight,
+      isExtraSmallScreen,
+      isSmallScreen,
+      isTablet,
+    );
+    final horizontalPadding = _calculateHorizontalPadding(
+      screenWidth,
+      isTablet,
+    );
+    final verticalPadding = _calculateVerticalPadding(
+      isExtraSmallScreen,
+      isSmallScreen,
+    );
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -68,6 +171,7 @@ class BottomNavigation extends StatelessWidget {
             if (controller.userRole.value == "SM") {
               navItems.add(
                 _buildNavItem(
+                  context: context,
                   icon: Icons.people,
                   label: 'My Team',
                   index: 0,
@@ -78,6 +182,8 @@ class BottomNavigation extends StatelessWidget {
               // Home comes second at index 1
               navItems.add(
                 _buildNavItem(
+                  context: context,
+
                   icon: Icons.auto_graph_rounded,
                   label: 'Dashboard',
                   index: 1,
@@ -91,6 +197,7 @@ class BottomNavigation extends StatelessWidget {
               // SM users: show icon-based Calendar nav item
               navItems.add(
                 _buildNavItem(
+                  context: context,
                   isImg: true,
                   isIcon: false,
                   icon: Icons.calendar_month_outlined,
@@ -103,6 +210,7 @@ class BottomNavigation extends StatelessWidget {
             } else {
               navItems.add(
                 _buildNavItem(
+                  context: context,
                   icon: Icons.auto_graph_rounded,
                   label: 'Dashboard',
                   index: 0,
@@ -114,6 +222,7 @@ class BottomNavigation extends StatelessWidget {
               // Other users: show image-based Calendar nav item
               navItems.add(
                 _buildNavItem(
+                  context: context,
                   isImg: true,
                   isIcon: false,
                   img: Image.asset('assets/calendar.png', fit: BoxFit.contain),
@@ -121,6 +230,7 @@ class BottomNavigation extends StatelessWidget {
                   index: 1,
                 ),
               );
+
             }
 
             // Add Calendar - index needs to be adjusted based on whether Teams is present
@@ -139,12 +249,13 @@ class BottomNavigation extends StatelessWidget {
             int moreIndex = controller.userRole.value == "SM" ? 3 : 2;
             navItems.add(
               _buildNavItem(
+                context: context,
                 icon: Icons.more_horiz_sharp,
                 label: 'More',
                 index: moreIndex,
                 isIcon: true,
                 isImg: false,
-                onTap: _showMoreBottomSheet,
+                onTap: () => _showMoreBottomSheet(context),
               ),
             );
 
@@ -202,6 +313,7 @@ class BottomNavigation extends StatelessWidget {
 
   // Update this method to not require a controller parameter
   Widget _buildNavItem({
+    required BuildContext context,
     Image? img,
     IconData? icon,
     required String label,
@@ -210,8 +322,36 @@ class BottomNavigation extends StatelessWidget {
     bool isIcon = false,
     VoidCallback? onTap,
   }) {
+    final screenSize = MediaQuery.of(context).size;
+    final screenHeight = screenSize.height;
+    final screenWidth = screenSize.width;
     final isSelected = controller.selectedIndex.value == index;
 
+    // Define responsive breakpoints
+    final isExtraSmallScreen = screenHeight < 550 || screenWidth < 320;
+    final isSmallScreen = screenHeight < 650 || screenWidth < 375;
+    final isTablet = screenWidth > 600;
+
+    // Calculate responsive dimensions
+    final iconSize = _calculateIconSize(
+      isExtraSmallScreen,
+      isSmallScreen,
+      isTablet,
+    );
+    final fontSize = _calculateFontSize(
+      isExtraSmallScreen,
+      isSmallScreen,
+      isTablet,
+    );
+    final itemPadding = _calculateItemPadding(
+      isExtraSmallScreen,
+      isSmallScreen,
+    );
+    final spacing = _calculateSpacing(isExtraSmallScreen);
+    final scaleMultiplier = _calculateScaleMultiplier(
+      isExtraSmallScreen,
+      isSmallScreen,
+    );
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -273,75 +413,87 @@ class BottomNavigation extends StatelessWidget {
   }
 
   // ✅ Show Bottom Sheet for More options
-  void _showMoreBottomSheet() async {
+  void _showMoreBottomSheet(BuildContext context) async {
     // String? teamRole = await SharedPreferences.getInstance()
     //     .then((prefs) => prefs.getString('USER_ROLE'));
-
-    Get.bottomSheet(
-      Container(
-        padding: const EdgeInsets.all(16),
-        // height: teamRole == "Owner" ? 320 : 300,
-        height: 310,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+    try {
+      final screenSize = MediaQuery.of(context).size;
+      final screenHeight = screenSize.height;
+      final isTablet = screenSize.width > 600;
+      Get.bottomSheet(
+        Container(
+          padding: const EdgeInsets.all(16),
+          // height: teamRole == "Owner" ? 320 : 300,
+          height: 310,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+          ),
+          child: Column(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.receipt_long_rounded, size: 28),
+                title: Text(
+                  'My Enquiries',
+                  style: GoogleFonts.poppins(fontSize: 18),
+                ),
+                onTap: () => Get.to(() => const AllLeads()),
+              ),
+              ListTile(
+                leading: const Icon(Icons.call_outlined, size: 28),
+                title: Text(
+                  'My Call Analysis',
+                  style: GoogleFonts.poppins(fontSize: 18),
+                ),
+                onTap: () => Get.to(
+                  () =>
+                      const //CallLogs()
+                      CallAnalytics(userId: '', userName: ''),
+                ),
+              ),
+              // if (teamRole == "Owner")
+              //   ListTile(
+              //     leading: const Icon(Icons.group, size: 28),
+              //     title:
+              //         Text('My Team ', style: GoogleFonts.poppins(fontSize: 18)),
+              //     onTap: () => Get.to(() => const MyTeams()),
+              //   ),
+              ListTile(
+                leading: const Icon(Icons.star_border_rounded, size: 28),
+                title: Text(
+                  'Favourites',
+                  style: GoogleFonts.poppins(fontSize: 18),
+                ),
+                onTap: () => Get.to(() => const FavoritePage(leadId: '')),
+              ),
+              // ListTile(
+              //   leading: const Icon(Icons.person_outline, size: 28),
+              //   title: Text('Profile', style: GoogleFonts.poppins(fontSize: 18)),
+              //   onTap: () => Get.to(() => const ProfileScreen()),
+              // ),
+              // ListTile(
+              //   leading: const Icon(Icons.settings_outlined, size: 28),
+              //   title: Text('App Settings',
+              //       style: GoogleFonts.poppins(fontSize: 18)),
+              //   onTap: () => Get.to(() => const AppSetting()),
+              // ),
+              ListTile(
+                leading: const Icon(Icons.logout_outlined, size: 28),
+                title: Text('Logout', style: GoogleFonts.poppins(fontSize: 18)),
+                onTap: () => Get.to(() => const LogoutPage()),
+              ),
+            ],
+          ),
         ),
-        child: Column(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.receipt_long_rounded, size: 28),
-              title: Text(
-                'My Enquiries',
-                style: GoogleFonts.poppins(fontSize: 18),
-              ),
-              onTap: () => Get.to(() => const AllLeads()),
-            ),
-            ListTile(
-              leading: const Icon(Icons.call_outlined, size: 28),
-              title: Text(
-                'My Call Analysis',
-                style: GoogleFonts.poppins(fontSize: 18),
-              ),
-              onTap: () => Get.to(
-                () =>
-                    const //CallLogs()
-                    CallAnalytics(userId: '', userName: ''),
-              ),
-            ),
-            // if (teamRole == "Owner")
-            //   ListTile(
-            //     leading: const Icon(Icons.group, size: 28),
-            //     title:
-            //         Text('My Team ', style: GoogleFonts.poppins(fontSize: 18)),
-            //     onTap: () => Get.to(() => const MyTeams()),
-            //   ),
-            ListTile(
-              leading: const Icon(Icons.star_border_rounded, size: 28),
-              title: Text(
-                'Favourites',
-                style: GoogleFonts.poppins(fontSize: 18),
-              ),
-              onTap: () => Get.to(() => const FavoritePage(leadId: '')),
-            ),
-            // ListTile(
-            //   leading: const Icon(Icons.person_outline, size: 28),
-            //   title: Text('Profile', style: GoogleFonts.poppins(fontSize: 18)),
-            //   onTap: () => Get.to(() => const ProfileScreen()),
-            // ),
-            // ListTile(
-            //   leading: const Icon(Icons.settings_outlined, size: 28),
-            //   title: Text('App Settings',
-            //       style: GoogleFonts.poppins(fontSize: 18)),
-            //   onTap: () => Get.to(() => const AppSetting()),
-            // ),
-            ListTile(
-              leading: const Icon(Icons.logout_outlined, size: 28),
-              title: Text('Logout', style: GoogleFonts.poppins(fontSize: 18)),
-              onTap: () => Get.to(() => const LogoutPage()),
-            ),
-          ],
-        ),
-      ),
-    );
+      );
+    } catch (e) {
+      debugPrint('Error showing bottom sheet: $e');
+      // Show a simple snackbar as fallback
+      Get.snackbar(
+        'Navigation',
+        'More options temporarily unavailable',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
   }
 }

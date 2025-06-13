@@ -122,7 +122,6 @@ class _AllTestdriveState extends State<AllTestdrive> {
             fontSize: 18,
             fontWeight: FontWeight.w500,
             color: Colors.white,
-
           ),
         ),
       ),

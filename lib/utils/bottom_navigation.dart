@@ -78,7 +78,6 @@ class BottomNavigation extends StatelessWidget {
               // Home comes second at index 1
               navItems.add(
                 _buildNavItem(
-
                   icon: Icons.auto_graph_rounded,
                   label: 'Dashboard',
                   index: 1,
@@ -120,16 +119,6 @@ class BottomNavigation extends StatelessWidget {
                   img: Image.asset('assets/calendar.png', fit: BoxFit.contain),
                   label: 'Calendar',
                   index: 1,
-                ),
-              );
-
-              navItems.add(
-                _buildNavItem(
-                  icon: Icons.home,
-                  label: 'Home',
-                  index: 0,
-                  isIcon: true,
-                  isImg: false,
                 ),
               );
             }
@@ -356,5 +345,3 @@ class BottomNavigation extends StatelessWidget {
     );
   }
 }
-
-

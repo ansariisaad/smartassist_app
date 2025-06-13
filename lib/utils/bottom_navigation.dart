@@ -183,6 +183,7 @@ class BottomNavigation extends StatelessWidget {
               navItems.add(
                 _buildNavItem(
                   context: context,
+
                   icon: Icons.auto_graph_rounded,
                   label: 'Dashboard',
                   index: 1,
@@ -230,15 +231,6 @@ class BottomNavigation extends StatelessWidget {
                 ),
               );
 
-              // navItems.add(
-              //   _buildNavItem(
-              //     icon: Icons.home,
-              //     label: 'Home',
-              //     index: 0,
-              //     isIcon: true,
-              //     isImg: false,
-              //   ),
-              // );
             }
 
             // Add Calendar - index needs to be adjusted based on whether Teams is present

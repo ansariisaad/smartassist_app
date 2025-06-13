@@ -152,85 +152,18 @@ class BottomNavigation extends StatelessWidget {
         ],
       ),
       child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 0),
-          child: Obx(() {
-            List<Widget> navItems = [];
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight: bottomNavHeight * 0.8,
+            maxHeight: bottomNavHeight,
+          ),
 
-            //  List<Widget> navItems = [
-            //   _buildNavItem(
-            //     icon: Icons.home,
-            //     label: 'Home',
-            //     index: 0,
-            //     isIcon: true,
-            //     isImg: false,
-            //   ),
-            // ];
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 0),
+            child: Obx(() {
+              List<Widget> navItems = [];
 
-            // Insert Teams navigation only for SM role
-            if (controller.userRole.value == "SM") {
-              navItems.add(
-                _buildNavItem(
-                  context: context,
-                  icon: Icons.people,
-                  label: 'My Team',
-                  index: 0,
-                  isIcon: true,
-                  isImg: false,
-                ),
-              );
-              // Home comes second at index 1
-              navItems.add(
-                _buildNavItem(
-                  context: context,
-                  icon: Icons.auto_graph_rounded,
-                  label: 'Dashboard',
-                  index: 1,
-                  isIcon: true,
-                  isImg: false,
-                ),
-              );
-            }
-
-            if (controller.userRole.value == "SM") {
-              // SM users: show icon-based Calendar nav item
-              navItems.add(
-                _buildNavItem(
-                  context: context,
-                  isImg: true,
-                  isIcon: false,
-                  icon: Icons.calendar_month_outlined,
-                  label: 'Calendar',
-                  index: 2,
-                  // isIcon: true,
-                  img: Image.asset('assets/calendar.png', fit: BoxFit.contain),
-                ),
-              );
-            } else {
-              navItems.add(
-                _buildNavItem(
-                  context: context,
-                  icon: Icons.auto_graph_rounded,
-                  label: 'Dashboard',
-                  index: 0,
-                  isIcon: true,
-                  isImg: false,
-                ),
-              );
-
-              // Other users: show image-based Calendar nav item
-              navItems.add(
-                _buildNavItem(
-                  context: context,
-                  isImg: true,
-                  isIcon: false,
-                  img: Image.asset('assets/calendar.png', fit: BoxFit.contain),
-                  label: 'Calendar',
-                  index: 1,
-                ),
-              );
-
-              // navItems.add(
+              //  List<Widget> navItems = [
               //   _buildNavItem(
               //     icon: Icons.home,
               //     label: 'Home',
@@ -238,40 +171,120 @@ class BottomNavigation extends StatelessWidget {
               //     isIcon: true,
               //     isImg: false,
               //   ),
+              // ];
+
+              // Insert Teams navigation only for SM role
+              if (controller.userRole.value == "SM") {
+                navItems.add(
+                  _buildNavItem(
+                    context: context,
+                    icon: Icons.people,
+                    label: 'My Team',
+                    index: 0,
+                    isIcon: true,
+                    isImg: false,
+                  ),
+                );
+                // Home comes second at index 1
+                navItems.add(
+                  _buildNavItem(
+                    context: context,
+                    icon: Icons.auto_graph_rounded,
+                    label: 'Dashboard',
+                    index: 1,
+                    isIcon: true,
+                    isImg: false,
+                  ),
+                );
+              }
+
+              if (controller.userRole.value == "SM") {
+                // SM users: show icon-based Calendar nav item
+                navItems.add(
+                  _buildNavItem(
+                    context: context,
+                    isImg: true,
+                    isIcon: false,
+                    icon: Icons.calendar_month_outlined,
+                    label: 'Calendar',
+                    index: 2,
+                    // isIcon: true,
+                    img: Image.asset(
+                      'assets/calendar.png',
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                );
+              } else {
+                navItems.add(
+                  _buildNavItem(
+                    context: context,
+                    icon: Icons.auto_graph_rounded,
+                    label: 'Dashboard',
+                    index: 0,
+                    isIcon: true,
+                    isImg: false,
+                  ),
+                );
+
+                // Other users: show image-based Calendar nav item
+                navItems.add(
+                  _buildNavItem(
+                    context: context,
+                    isImg: true,
+                    isIcon: false,
+                    img: Image.asset(
+                      'assets/calendar.png',
+                      fit: BoxFit.contain,
+                    ),
+                    label: 'Calendar',
+                    index: 1,
+                  ),
+                );
+
+                // navItems.add(
+                //   _buildNavItem(
+                //     icon: Icons.home,
+                //     label: 'Home',
+                //     index: 0,
+                //     isIcon: true,
+                //     isImg: false,
+                //   ),
+                // );
+              }
+
+              // Add Calendar - index needs to be adjusted based on whether Teams is present
+              // int calendarIndex = controller.userRole.value == "SM" ? 2 : 1;
+              // navItems.add(
+              //   _buildNavItem(
+              //     isImg: true,
+              //     isIcon: false,
+              //     img: Image.asset('assets/calendar.png', fit: BoxFit.contain),
+              //     label: 'Calendar',
+              //     index: calendarIndex,
+              //   ),
               // );
-            }
 
-            // Add Calendar - index needs to be adjusted based on whether Teams is present
-            // int calendarIndex = controller.userRole.value == "SM" ? 2 : 1;
-            // navItems.add(
-            //   _buildNavItem(
-            //     isImg: true,
-            //     isIcon: false,
-            //     img: Image.asset('assets/calendar.png', fit: BoxFit.contain),
-            //     label: 'Calendar',
-            //     index: calendarIndex,
-            //   ),
-            // );
+              // Add More/Settings - index needs to be adjusted based on whether Teams is present
+              int moreIndex = controller.userRole.value == "SM" ? 3 : 2;
+              navItems.add(
+                _buildNavItem(
+                  context: context,
+                  icon: Icons.more_horiz_sharp,
+                  label: 'More',
+                  index: moreIndex,
+                  isIcon: true,
+                  isImg: false,
+                  onTap: () => _showMoreBottomSheet(context),
+                ),
+              );
 
-            // Add More/Settings - index needs to be adjusted based on whether Teams is present
-            int moreIndex = controller.userRole.value == "SM" ? 3 : 2;
-            navItems.add(
-              _buildNavItem(
-                context: context,
-                icon: Icons.more_horiz_sharp,
-                label: 'More',
-                index: moreIndex,
-                isIcon: true,
-                isImg: false,
-                onTap: () => _showMoreBottomSheet(context),
-              ),
-            );
-
-            return Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: navItems,
-            );
-          }),
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: navItems,
+              );
+            }),
+          ),
         ),
       ),
     );
@@ -372,67 +385,94 @@ class BottomNavigation extends StatelessWidget {
             controller.selectedIndex.value = index;
           }
         },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AnimatedScale(
-                duration: const Duration(milliseconds: 200),
-                scale: isSelected ? 1.2 : 1.0,
-                child: isImg && img != null
-                    ? SizedBox(
-                        height: 24,
-                        width: 24,
-                        child: ColorFiltered(
-                          colorFilter: ColorFilter.mode(
-                            isSelected
-                                ? AppColors.colorsBlue
-                                : AppColors.iconGrey,
-                            BlendMode.srcIn,
+        child: Container(
+          constraints: BoxConstraints(
+            minWidth: isTablet ? 80 : 60,
+            maxWidth: isTablet ? 120 : 90,
+          ),
+
+          child: Padding(
+            // padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+            padding: EdgeInsets.symmetric(
+              horizontal: itemPadding.horizontal,
+              vertical: itemPadding.vertical,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AnimatedScale(
+                  duration: const Duration(milliseconds: 200),
+                  scale: isSelected ? 1.2 : 1.0,
+                  child: isImg && img != null
+                      ? SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: ColorFiltered(
+                            colorFilter: ColorFilter.mode(
+                              isSelected
+                                  ? AppColors.colorsBlue
+                                  : AppColors.iconGrey,
+                              BlendMode.srcIn,
+                            ),
+                            child: img,
                           ),
-                          child: img,
-                        ),
-                      )
-                    : isIcon && icon != null
-                    ? Icon(
-                        icon,
-                        color: isSelected
-                            ? AppColors.colorsBlue
-                            : AppColors.iconGrey,
-                        size: 22,
-                      )
-                    : const SizedBox.shrink(),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
-                  color: isSelected ? AppColors.colorsBlue : Colors.black54,
+                        )
+                      : isIcon && icon != null
+                      ? Icon(
+                          icon,
+                          color: isSelected
+                              ? AppColors.colorsBlue
+                              : AppColors.iconGrey,
+                          size: 22,
+                        )
+                      : const SizedBox.shrink(),
                 ),
-              ),
-            ],
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
+                    color: isSelected ? AppColors.colorsBlue : Colors.black54,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
+  double _calculateBottomSheetHeight(double screenHeight, bool isTablet) {
+    final calculatedHeight = screenHeight * 0.4;
+    final minHeight = isTablet ? 320.0 : 280.0;
+    final maxHeight = isTablet ? 450.0 : 350.0;
+
+    return calculatedHeight.clamp(minHeight, maxHeight);
+  }
+
   // ✅ Show Bottom Sheet for More options
   void _showMoreBottomSheet(BuildContext context) async {
     // String? teamRole = await SharedPreferences.getInstance()
     //     .then((prefs) => prefs.getString('USER_ROLE'));
+
     try {
       final screenSize = MediaQuery.of(context).size;
       final screenHeight = screenSize.height;
       final isTablet = screenSize.width > 600;
+      // Calculate responsive height
+      final bottomSheetHeight = _calculateBottomSheetHeight(
+        screenHeight,
+        isTablet,
+      );
       Get.bottomSheet(
         Container(
-          padding: const EdgeInsets.all(16),
+          // padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(isTablet ? 24 : 16),
           // height: teamRole == "Owner" ? 320 : 300,
-          height: 310,
+          // height: 310,
+          height: bottomSheetHeight,
           decoration: const BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.vertical(top: Radius.circular(30)),

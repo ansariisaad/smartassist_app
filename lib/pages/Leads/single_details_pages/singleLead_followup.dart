@@ -1033,7 +1033,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
           MaterialPageRoute(
             builder: (context) => WhatsappChat(
               chatId: chatId,
-              userName: lead_owner,
+              userName: lead_name,
               email: email,
               sessionId: spId.toString(),
             ),

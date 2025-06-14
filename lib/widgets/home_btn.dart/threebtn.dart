@@ -819,9 +819,7 @@ class _ThreebtnState extends State<Threebtn> {
         onPressed: () => _changeSubTab(index),
         style: TextButton.styleFrom(
           backgroundColor: isActive
-              ? (index == 0
-                    ? const Color(0xFF51DF79).withOpacity(0.29)
-                    : const Color(0xFFFFF5F4))
+              ? (index == 0 ? AppColors.borderGreen : const Color(0xFFFFF5F4))
               : Colors.transparent,
           foregroundColor: isActive ? Colors.white : Colors.black,
           padding: EdgeInsets.symmetric(

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
+import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/config/getX/fab.controller.dart';
 import 'package:smartassist/pages/Leads/single_details_pages/singleLead_followup.dart';
 import 'package:smartassist/utils/storage.dart';
@@ -1032,8 +1033,9 @@ class _CalendarSmState extends State<CalendarSm> {
             _buildEventItem(
               item,
               basePosition: itemPosition,
-              width: MediaQuery.of(context).size.width - 67,
-              height: 60.0,
+              // width: MediaQuery.of(context).size.width - 67,
+              width: MediaQuery.of(context).size.width * 0.75,
+              height: 50.0,
               widthFactor: 1.0,
               leftOffset: 0.0,
             ),
@@ -1043,8 +1045,9 @@ class _CalendarSmState extends State<CalendarSm> {
             _buildTaskItem(
               item,
               basePosition: itemPosition,
-              width: MediaQuery.of(context).size.width - 67,
-              height: 60.0,
+              // width: MediaQuery.of(context).size.width - 67,
+              width: MediaQuery.of(context).size.width * 0.75,
+              height: 50.0,
               widthFactor: 1.0,
               leftOffset: 0.0,
             ),
@@ -1056,40 +1059,153 @@ class _CalendarSmState extends State<CalendarSm> {
     return allWidgets;
   }
 
+  // Widget _buildEventItem(
+  //   dynamic item, {
+  //   double basePosition = 0.0,
+  //   double width = 200.0,
+  //   double height = 60.0,
+  //   double widthFactor = 1.0,
+  //   double leftOffset = 0.0,
+  // }) {
+  //   // Determine color and title for event
+  //   // Color cardColor = _getTaskColor(item);
+  //   Color cardColor = Colors.blue.withOpacity(0.20);
+
+  //   // Get the lead_id from the item
+  //   String leadId = item['lead_id']?.toString() ?? '';
+
+  //   // Format the time in 12-hour format with AM/PM
+  //   String formattedStartTime = _formatTimeFor12Hour(
+  //     item['start_time'] ?? '00:00',
+  //   );
+
+  //   String title =
+  //       '${item['category']?.toString().toUpperCase() ?? 'EVENT'}: ${item['name'] ?? 'No Name'}';
+  //   String time = formattedStartTime;
+  //   String pmi = item['PMI'] ?? '';
+
+  //   return Positioned(
+  //     top: basePosition,
+  //     left: 8 + (width * leftOffset),
+  //     width: (width * widthFactor) - 8, // Account for right margin
+  //     height: height,
+  //     child: Card(
+  //       margin: EdgeInsets.only(bottom: 4, right: 4),
+  //       color: cardColor,
+  //       elevation: 2,
+  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+  //       child: InkWell(
+  //         onTap: () {
+  //           print('Navigating with leadId: $leadId');
+  //           Navigator.push(
+  //             context,
+  //             MaterialPageRoute(
+  //               builder: (context) =>
+  //                   FollowupsDetails(leadId: leadId, isFromFreshlead: false),
+  //             ),
+  //           );
+  //         },
+  //         child: Padding(
+  //           padding: const EdgeInsets.all(8.0),
+  //           child: Column(
+  //             crossAxisAlignment: CrossAxisAlignment.start,
+  //             children: [
+  //               Row(
+  //                 children: [
+  //                   const Icon(Icons.event, size: 14, color: Colors.white),
+  //                   const SizedBox(width: 4),
+  //                   Expanded(
+  //                     child: Text(
+  //                       title,
+  //                       style: const TextStyle(
+  //                         fontWeight: FontWeight.bold,
+  //                         color: Colors.white,
+  //                         fontSize: 13,
+  //                       ),
+  //                       maxLines: 1,
+  //                       overflow: TextOverflow.ellipsis,
+  //                     ),
+  //                   ),
+  //                 ],
+  //               ),
+  //               const SizedBox(height: 2),
+  //               if (height >= 55)
+  //                 Row(
+  //                   children: [
+  //                     const Icon(
+  //                       Icons.access_time,
+  //                       size: 12,
+  //                       color: Colors.white70,
+  //                     ),
+  //                     const SizedBox(width: 4),
+  //                     Text(
+  //                       time,
+  //                       style: TextStyle(fontSize: 12, color: Colors.white70),
+  //                     ),
+  //                     if (pmi.isNotEmpty) ...[
+  //                       const SizedBox(width: 8),
+  //                       const Icon(
+  //                         Icons.directions_car,
+  //                         size: 12,
+  //                         color: Colors.white70,
+  //                       ),
+  //                       const SizedBox(width: 4),
+  //                       Expanded(
+  //                         child: Text(
+  //                           pmi,
+  //                           style: TextStyle(
+  //                             fontSize: 12,
+  //                             color: Colors.white70,
+  //                           ),
+  //                           overflow: TextOverflow.ellipsis,
+  //                         ),
+  //                       ),
+  //                     ],
+  //                   ],
+  //                 ),
+  //             ],
+  //           ),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
+
   Widget _buildEventItem(
     dynamic item, {
     double basePosition = 0.0,
     double width = 200.0,
-    double height = 60.0,
+    double height = 50.0,
     double widthFactor = 1.0,
     double leftOffset = 0.0,
   }) {
-    // Determine color and title for event
-    Color cardColor = _getTaskColor(item);
-
-    // Get the lead_id from the item
     String leadId = item['lead_id']?.toString() ?? '';
-
-    // Format the time in 12-hour format with AM/PM
     String formattedStartTime = _formatTimeFor12Hour(
       item['start_time'] ?? '00:00',
     );
+    String formattedEndTime = _formatTimeFor12Hour(item['end_time'] ?? '00:00');
 
-    String title =
-        '${item['category']?.toString().toUpperCase() ?? 'EVENT'}: ${item['name'] ?? 'No Name'}';
-    String time = formattedStartTime;
-    String pmi = item['PMI'] ?? '';
+    String name = item['name'] ?? 'No Name';
+    String category = item['category'] ?? 'Appointment';
+    String timeRange = '$formattedStartTime - $formattedEndTime';
+    // String location = item['location'] ?? item['PMI'] ?? '';
 
     return Positioned(
       top: basePosition,
       left: 8 + (width * leftOffset),
-      width: (width * widthFactor) - 8, // Account for right margin
-      height: height,
-      child: Card(
-        margin: EdgeInsets.only(bottom: 4, right: 4),
-        color: cardColor,
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 4, right: 4),
+        decoration: BoxDecoration(
+          color: AppColors.colorsBlue.withOpacity(.09),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 6,
+              offset: const Offset(0, 1),
+            ),
+          ],
+          borderRadius: BorderRadius.circular(10),
+        ),
         child: InkWell(
           onTap: () {
             print('Navigating with leadId: $leadId');
@@ -1101,65 +1217,165 @@ class _CalendarSmState extends State<CalendarSm> {
               ),
             );
           },
+          borderRadius: BorderRadius.circular(10),
           child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.event, size: 14, color: Colors.white),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          fontSize: 13,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
+            padding: const EdgeInsets.all(12.0),
+            child: Container(
+              width: (width * widthFactor) - 8,
+              height: height,
+              decoration: BoxDecoration(
+                border: Border(
+                  left: BorderSide(color: AppColors.colorsBlue, width: 3),
                 ),
-                const SizedBox(height: 2),
-                if (height >= 55)
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.access_time,
-                        size: 12,
-                        color: Colors.white70,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        time,
-                        style: TextStyle(fontSize: 12, color: Colors.white70),
-                      ),
-                      if (pmi.isNotEmpty) ...[
-                        const SizedBox(width: 8),
-                        const Icon(
-                          Icons.directions_car,
-                          size: 12,
-                          color: Colors.white70,
+                borderRadius: BorderRadius.vertical(
+                  bottom: Radius.circular(2),
+                  top: Radius.circular(2),
+                ),
+              ),
+              child: Container(
+                margin: EdgeInsets.only(left: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Name
+                    Text(
+                      name,
+                      style: AppFont.dropDowmLabel(context),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+
+                    // Category, Time, and Location in one row
+                    Row(
+                      children: [
+                        Text(
+                          category,
+                          style: AppFont.dashboardCarName(context),
                         ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            pmi,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.white70,
-                            ),
-                            overflow: TextOverflow.ellipsis,
+                        const SizedBox(width: 6),
+                        const Icon(Icons.circle, size: 3, color: Colors.grey),
+                        const SizedBox(width: 6),
+                        Text(
+                          timeRange,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey.shade600,
                           ),
                         ),
                       ],
-                    ],
-                  ),
-              ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTaskItem(
+    dynamic item, {
+    double basePosition = 0.0,
+    double width = 200.0,
+    double height = 50.0,
+    double widthFactor = 1.0,
+    double leftOffset = 0.0,
+  }) {
+    // Get the lead_id from the item
+    String leadId = item['lead_id']?.toString() ?? '';
+
+    // Format the time in 12-hour format with AM/PM
+    String formattedDueTime = _formatTimeFor12Hour(item['due_date'] ?? '00:00');
+
+    // Determine color and title for task
+    Color cardColor = _getTaskColor(item);
+    String title = 'Task: ${item['subject'] ?? 'No Subject'}';
+    String status = item['status'] ?? 'Unknown';
+    String category = item['category'] ?? 'Normal';
+
+    // Add due time to status display if available
+    String timeInfo = formattedDueTime.isNotEmpty ? ' • $formattedDueTime' : '';
+
+    return Positioned(
+      top: basePosition,
+      left: 8 + (width * leftOffset),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 4, right: 4),
+        decoration: BoxDecoration(
+          color: Colors.purple.withOpacity(.09),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 6,
+              offset: const Offset(0, 1),
+            ),
+          ],
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: InkWell(
+          onTap: () {
+            print('Navigating with leadId: $leadId');
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    FollowupsDetails(leadId: leadId, isFromFreshlead: false),
+              ),
+            );
+          },
+          borderRadius: BorderRadius.circular(10),
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Container(
+              width: (width * widthFactor) - 8,
+              height: height,
+              decoration: BoxDecoration(
+                border: Border(
+                  left: BorderSide(color: Colors.purple, width: 3),
+                ),
+                borderRadius: BorderRadius.vertical(
+                  bottom: Radius.circular(2),
+                  top: Radius.circular(2),
+                ),
+              ),
+              child: Container(
+                margin: EdgeInsets.only(left: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Name
+                    Text(
+                      title,
+                      style: AppFont.dropDowmLabel(context),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+
+                    // Category, Time, and Location in one row
+                    Row(
+                      children: [
+                        Text(
+                          category,
+                          style: AppFont.dashboardCarName(context),
+                        ),
+                        const SizedBox(width: 6),
+                        const Icon(Icons.circle, size: 3, color: Colors.grey),
+                        const SizedBox(width: 6),
+                        Text(
+                          '$status$timeInfo',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
@@ -1247,108 +1463,109 @@ class _CalendarSmState extends State<CalendarSm> {
   //                   ),
   //                   if (
 
-  Widget _buildTaskItem(
-    dynamic item, {
-    double basePosition = 0.0,
-    double width = 200.0,
-    double height = 60.0,
-    double widthFactor = 1.0,
-    double leftOffset = 0.0,
-  }) {
-    // Get the lead_id from the item
-    String leadId = item['lead_id']?.toString() ?? '';
+  // Widget _buildTaskItem(
+  //   dynamic item, {
+  //   double basePosition = 0.0,
+  //   double width = 200.0,
+  //   double height = 70.0,
+  //   double widthFactor = 1.0,
+  //   double leftOffset = 0.0,
+  // }) {
+  //   // Get the lead_id from the item
+  //   String leadId = item['lead_id']?.toString() ?? '';
 
-    // Format the time in 12-hour format with AM/PM
-    String formattedDueTime = _formatTimeFor12Hour(item['due_date'] ?? '00:00');
+  //   // Format the time in 12-hour format with AM/PM
+  //   String formattedDueTime = _formatTimeFor12Hour(item['due_date'] ?? '00:00');
 
-    // Determine color and title for task
-    Color cardColor = _getTaskColor(item);
-    String title = 'Task: ${item['subject'] ?? 'No Subject'}';
-    String status = item['status'] ?? 'Unknown';
-    String priority = item['priority'] ?? 'Normal';
+  //   // Determine color and title for task
+  //   Color cardColor = _getTaskColor(item);
+  //   String title = 'Task: ${item['subject'] ?? 'No Subject'}';
+  //   String status = item['status'] ?? 'Unknown';
+  //   String priority = item['priority'] ?? 'Normal';
 
-    // Add due time to status display if available
-    String timeInfo = formattedDueTime.isNotEmpty ? ' • $formattedDueTime' : '';
+  //   // Add due time to status display if available
+  //   String timeInfo = formattedDueTime.isNotEmpty ? ' • $formattedDueTime' : '';
 
-    return Positioned(
-      top: basePosition,
-      left: 8 + (width * leftOffset),
-      width: (width * widthFactor) - 8, // Account for right margin
-      height: height,
-      child: Card(
-        margin: const EdgeInsets.only(bottom: 4, right: 4),
-        color: cardColor,
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        child: InkWell(
-          onTap: () {
-            print('Navigating with task leadId: $leadId');
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    FollowupsDetails(leadId: leadId, isFromFreshlead: false),
-              ),
-            );
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.task, size: 14, color: Colors.white),
-                    SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          fontSize: 13,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Row(
-                  children: [
-                    const Icon(Icons.flag, size: 12, color: Colors.white70),
-                    const SizedBox(width: 4),
-                    Text(
-                      priority,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.white70,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Icon(
-                      Icons.info_outline,
-                      size: 12,
-                      color: Colors.white70,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '$status$timeInfo',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.white70,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  //   return Positioned(
+  //     top: basePosition,
+  //     left: 8 + (width * leftOffset),
+  //     width: (width * widthFactor) - 8, // Account for right margin
+  //     height: height,
+  //     child: Card(
+  //       margin: const EdgeInsets.only(bottom: 4, right: 4),
+
+  //       color: cardColor,
+  //       elevation: 2,
+  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+  //       child: InkWell(
+  //         onTap: () {
+  //           print('Navigating with task leadId: $leadId');
+  //           Navigator.push(
+  //             context,
+  //             MaterialPageRoute(
+  //               builder: (context) =>
+  //                   FollowupsDetails(leadId: leadId, isFromFreshlead: false),
+  //             ),
+  //           );
+  //         },
+  //         child: Padding(
+  //           padding: const EdgeInsets.all(8.0),
+  //           child: Column(
+  //             crossAxisAlignment: CrossAxisAlignment.start,
+  //             children: [
+  //               Row(
+  //                 children: [
+  //                   Icon(Icons.task, size: 14, color: Colors.white),
+  //                   SizedBox(width: 4),
+  //                   Expanded(
+  //                     child: Text(
+  //                       title,
+  //                       style: TextStyle(
+  //                         fontWeight: FontWeight.bold,
+  //                         color: Colors.white,
+  //                         fontSize: 13,
+  //                       ),
+  //                       maxLines: 1,
+  //                       overflow: TextOverflow.ellipsis,
+  //                     ),
+  //                   ),
+  //                 ],
+  //               ),
+  //               const SizedBox(height: 2),
+  //               Row(
+  //                 children: [
+  //                   const Icon(Icons.flag, size: 12, color: Colors.white70),
+  //                   const SizedBox(width: 4),
+  //                   Text(
+  //                     priority,
+  //                     style: const TextStyle(
+  //                       fontSize: 12,
+  //                       color: Colors.white70,
+  //                     ),
+  //                   ),
+  //                   const SizedBox(width: 8),
+  //                   const Icon(
+  //                     Icons.info_outline,
+  //                     size: 12,
+  //                     color: Colors.white70,
+  //                   ),
+  //                   const SizedBox(width: 4),
+  //                   Text(
+  //                     '$status$timeInfo',
+  //                     style: const TextStyle(
+  //                       fontSize: 12,
+  //                       color: Colors.white70,
+  //                     ),
+  //                   ),
+  //                 ],
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   DateTime _parseTimeString(String timeStr) {
     // If timeStr is null or empty, return a default time

@@ -374,14 +374,14 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
           borderRadius: BorderRadius.circular(15),
           border: Border.all(
             color: isActive ? color : Colors.transparent,
-            width: 1,
+            width: .5,
           ),
         ),
         child: Text(
           text,
           style: GoogleFonts.poppins(
             fontSize: isActive ? 12 : 12,
-            fontWeight: isActive ? FontWeight.w500 : FontWeight.w400,
+            fontWeight: isActive ? FontWeight.w400 : FontWeight.w400,
             color: isActive ? color : Colors.grey,
           ),
         ),
@@ -394,18 +394,14 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _buildToggleOption(0, 'Upcoming', AppColors.colorsBlue),
+        _buildToggleOption(0, 'Upcoming', AppColors.containerGreen),
         const SizedBox(width: 10),
-        _buildToggleOption(
-          1,
-          'Completed',
-          const Color.fromRGBO(81, 223, 121, 1),
-        ),
+        _buildToggleOption(1, 'Completed', AppColors.colorsBlue),
         const SizedBox(width: 10),
         _buildToggleOption(
           2,
           'Overdue ($overdueCount)',
-          const Color.fromRGBO(236, 81, 81, 1),
+          AppColors.containerRed,
         ),
       ],
     );
@@ -1537,7 +1533,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                                 children: [
                                   // _buildToggleSwitch(),
                                   Container(
-                                    height: 30,
+                                    height: 28,
                                     decoration: BoxDecoration(
                                       color: AppColors.backgroundLightGrey,
                                       border: Border.all(
@@ -1561,14 +1557,14 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                                             border: Border.all(
                                               color: AppColors
                                                   .colorsBlue, // Border color
-                                              width: 1,
+                                              width: .5,
                                             ),
                                           ),
                                           child: Text(
                                             'Call logs',
                                             style: GoogleFonts.poppins(
                                               fontSize: 12,
-                                              fontWeight: FontWeight.w500,
+                                              fontWeight: FontWeight.w400,
                                               color: AppColors.colorsBlue,
                                             ),
                                           ),
@@ -1580,23 +1576,13 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                                             ),
                                           ),
                                           onPressed: () {
-                                            // Navigator.push(
-                                            //   context,
-                                            //   MaterialPageRoute(
-                                            //     builder: (context) =>
-                                            //         WhatsappChat(
-                                            //           chatId: chatId,
-                                            //           userName: lead_owner,
-                                            //         ),
-                                            //   ),
-                                            // );
                                             handleWhatsappAction();
                                           },
                                           child: Text(
                                             'Whatsapp',
                                             style: GoogleFonts.poppins(
                                               fontSize: 12,
-                                              fontWeight: FontWeight.w500,
+                                              fontWeight: FontWeight.w400,
                                               color: Colors.grey,
                                             ),
                                           ),

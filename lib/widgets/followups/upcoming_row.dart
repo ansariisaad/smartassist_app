@@ -219,20 +219,26 @@ class UpcomingFollowupItem extends StatefulWidget {
 }
 
 class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   bool _wasCallingPhone = false;
+
+  // void Function()? _openSlidable;
+  late SlidableController _slidableController;
+  //  final GlobalKey<SlidableState> _slidableKey = GlobalKey<SlidableState>();
 
   @override
   void initState() {
     super.initState();
     // Register this class as an observer to track app lifecycle changes
     WidgetsBinding.instance.addObserver(this);
+    _slidableController = SlidableController(this);
   }
 
   @override
   void dispose() {
     // Remove observer when widget is disposed
     WidgetsBinding.instance.removeObserver(this);
+    _slidableController.dispose();
     super.dispose();
   }
 
@@ -255,7 +261,24 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 5, 10, 0),
-      child: _buildOverdueCard(context),
+      child: InkWell(
+        onTap: () {
+          if (widget.leadId.isNotEmpty) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => FollowupsDetails(
+                  leadId: widget.leadId,
+                  isFromFreshlead: false,
+                ),
+              ),
+            );
+          } else {
+            print("Invalid leadId");
+          }
+        },
+        child: _buildOverdueCard(context),
+      ),
     );
   }
 
@@ -265,6 +288,7 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
 
     return Slidable(
       key: ValueKey(widget.leadId), // Always good to set keys
+      controller: _slidableController,
       startActionPane: ActionPane(
         extentRatio: 0.2,
         motion: const ScrollMotion(),
@@ -503,26 +527,6 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
     }
   }
 
-  Widget _buildVerticalDivider(double height) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 10),
-      height: height,
-      width: 0.1,
-      decoration: const BoxDecoration(
-        border: Border(right: BorderSide(color: AppColors.fontColor)),
-      ),
-    );
-  }
-
-  // Widget _buildCarModel(BuildContext context) {
-  //   return Text(
-  //     widget.vehicle,
-  //     style: AppFont.dashboardCarName(context),
-  //     overflow: TextOverflow.visible,
-  //     softWrap: true,
-  //   );
-  // }
-
   Widget _buildCarModel(BuildContext context) {
     return Text(
       widget.vehicle,
@@ -537,19 +541,16 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
   Widget _buildNavigationButton(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        if (widget.leadId.isNotEmpty) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => FollowupsDetails(
-                leadId: widget.leadId,
-                isFromFreshlead: false,
-              ),
-            ),
-          );
-        } else {
-          print("Invalid leadId");
-        }
+        print("Button tapped - toggling slidable");
+        // Simple toggle: close first, then open if it was closed
+        _slidableController.close();
+
+        // Use a small delay to ensure close completes, then open
+        Future.delayed(Duration(milliseconds: 100), () {
+          if (_slidableController.actionPaneType != ActionPaneType.end) {
+            _slidableController.openEndActionPane();
+          }
+        });
       },
       child: Container(
         padding: const EdgeInsets.all(3),
@@ -558,7 +559,7 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
           borderRadius: BorderRadius.circular(30),
         ),
         child: const Icon(
-          Icons.arrow_forward_ios_rounded,
+          Icons.arrow_back_ios_rounded,
           size: 25,
           color: Colors.white,
         ),

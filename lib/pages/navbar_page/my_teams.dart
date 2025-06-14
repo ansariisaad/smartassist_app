@@ -54,7 +54,7 @@ class _MyTeamsState extends State<MyTeams> {
   int _selectedProfileIndex = 0; // Default to 'All' profile
   String _selectedUserId = '';
   bool _isComparing = false;
-  int count = 0;
+  int overdueCount = 0;
   // String userId = '';
   // bool isLoading = false;
   // String _selectedCheckboxIds = '';
@@ -143,12 +143,6 @@ class _MyTeamsState extends State<MyTeams> {
       // await _fetchSingleCalllog();
     } catch (error) {
       print("Error during initialization: $error");
-      Get.snackbar(
-        'Error',
-        'Failed to load team data',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
     } finally {
       if (mounted) {
         setState(() {
@@ -762,6 +756,11 @@ class _MyTeamsState extends State<MyTeams> {
               _upcomingTestDrives = List<Map<String, dynamic>>.from(
                 overdue['overdueTestDrives'] ?? [],
               );
+
+              overdueCount =
+                  _upcomingFollowups.length +
+                  _upcomingAppointments.length +
+                  _upcomingTestDrives.length;
             }
           }
           // ... (rest of your existing state updates)
@@ -3670,7 +3669,7 @@ class _MyTeamsState extends State<MyTeams> {
                 // const SizedBox(height: 10),
                 Container(
                   margin: const EdgeInsets.only(bottom: 10, top: 5),
-                  width: 150,
+                  width: 200,
                   height: 30,
                   decoration: BoxDecoration(
                     border: Border.all(
@@ -3684,12 +3683,12 @@ class _MyTeamsState extends State<MyTeams> {
                       _buildFilterButton(
                         index: 0,
                         text: 'Upcoming',
-                        activeColor: const Color.fromARGB(255, 81, 223, 121),
+                        activeColor: AppColors.borderGreen,
                       ),
                       _buildFilterButton(
                         index: 1,
-                        text: 'Overdue ($count)',
-                        activeColor: const Color.fromRGBO(238, 59, 59, 1),
+                        text: 'Overdue ($overdueCount)',
+                        activeColor: AppColors.borderRed,
                       ),
                     ],
                   ),
@@ -3749,7 +3748,11 @@ class _MyTeamsState extends State<MyTeams> {
                 overdue['overdueTestDrives'] ?? [],
               );
 
-              count = overdue['count']?.length ?? 0;
+              // overdueCount = overdue['count']?.length ?? 0;
+              overdueCount =
+                  _upcomingFollowups.length +
+                  _upcomingAppointments.length +
+                  _upcomingTestDrives.length;
             }
           });
         },
@@ -3758,9 +3761,9 @@ class _MyTeamsState extends State<MyTeams> {
               ? activeColor.withOpacity(0.29)
               : null,
           foregroundColor: _upcommingButtonIndex == index
-              ? Colors.blueGrey
+              ? activeColor
               : Colors.black,
-          padding: const EdgeInsets.symmetric(vertical: 5),
+          padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 5),
           side: BorderSide(
             color: _upcommingButtonIndex == index
                 ? activeColor
@@ -3771,7 +3774,15 @@ class _MyTeamsState extends State<MyTeams> {
             borderRadius: BorderRadius.circular(30),
           ),
         ),
-        child: Text(text, style: AppFont.smallText(context)),
+        child: Text(
+          text,
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w400,
+            color: _upcommingButtonIndex == index
+                ? activeColor.withOpacity(0.89)
+                : AppColors.iconGrey,
+          ),
+        ),
       ),
     );
   }

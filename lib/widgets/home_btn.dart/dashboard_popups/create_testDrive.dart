@@ -40,6 +40,7 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
   // final PageController _pageController = PageController();
   List<Map<String, String>> dropdownItems = [];
   bool isLoading = false;
+  Map<String, String> _errors = {};
 
   bool _isLoadingSearch = false;
   bool _isLoadingSearch1 = false;
@@ -546,6 +547,15 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               LeadTextfield(
+                onChanged: (value) {
+                  if (_errors.containsKey('select lead name')) {
+                    setState(() {
+                      _errors.remove('select lead name');
+                    });
+                  }
+                  print("select lead name : $value");
+                },
+                errorText: _errors['select lead name'],
                 onLeadSelected: (leadId, leadName) {
                   setState(() {
                     _leadId = leadId;

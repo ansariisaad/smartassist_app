@@ -6,12 +6,17 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
-import 'package:smartassist/utils/storage.dart';
-import 'package:http/http.dart' as http;
 
 class LeadTextfield extends StatefulWidget {
+  final String? errorText;
+  final ValueChanged<String> onChanged;
   final Function(String leadId, String leadName)? onLeadSelected;
-  const LeadTextfield({super.key, this.onLeadSelected});
+  const LeadTextfield({
+    super.key,
+    this.onLeadSelected,
+    required this.errorText,
+    required this.onChanged,
+  });
 
   @override
   State<LeadTextfield> createState() => _LeadTextfieldState();
@@ -24,6 +29,8 @@ class _LeadTextfieldState extends State<LeadTextfield> {
   List<dynamic> _searchResults = [];
   String _query = '';
   final TextEditingController _searchController = TextEditingController();
+
+  // bool isValid = false;
 
   @override
   void initState() {
@@ -43,45 +50,6 @@ class _LeadTextfieldState extends State<LeadTextfield> {
       }
     });
   }
-
-  /// Fetch search results from API
-  // Future<void> _fetchSearchResults(String query) async {
-  //   if (query.isEmpty) {
-  //     setState(() {
-  //       _searchResults.clear();
-  //     });
-  //     return;
-  //   }
-
-  //   setState(() {
-  //     _isLoadingSearch = true;
-  //   });
-
-  //   final token = await Storage.getToken();
-
-  //   try {
-  //     final response = await http.get(
-  //       Uri.parse(
-  //           'https://api.smartassistapp.in/api/search/global?query=$query'),
-  //       headers: {
-  //         'Authorization': 'Bearer $token',
-  //         'Content-Type': 'application/json',
-  //       },
-  //     );
-  //     if (response.statusCode == 200) {
-  //       final Map<String, dynamic> data = json.decode(response.body);
-  //       setState(() {
-  //         _searchResults = data['data']['suggestions'] ?? [];
-  //       });
-  //     }
-  //   } catch (e) {
-  //     showErrorMessage(context, message: 'Something went wrong..!');
-  //   } finally {
-  //     setState(() {
-  //       _isLoadingSearch = false;
-  //     });
-  //   }
-  // }
 
   Future<void> _fetchSearchResults(String query) async {
     if (query.isEmpty) {
@@ -128,6 +96,9 @@ class _LeadTextfieldState extends State<LeadTextfield> {
           height: MediaQuery.of(context).size.height * 0.055,
           width: double.infinity,
           decoration: BoxDecoration(
+            border: widget.errorText != null
+                ? Border.all(color: Colors.red, width: 1.0)
+                : null,
             borderRadius: BorderRadius.circular(5),
             color: AppColors.containerBg,
           ),
@@ -210,6 +181,7 @@ class _LeadTextfieldState extends State<LeadTextfield> {
                       FocusScope.of(context).unfocus();
                       selectedLeads = result['lead_id'];
                       selectedLeadsName = result['lead_name'];
+                      widget.onChanged(result['lead_name']);
                       _searchController.clear();
                       _searchResults.clear();
                     });

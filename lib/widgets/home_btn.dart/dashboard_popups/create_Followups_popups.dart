@@ -173,6 +173,47 @@ class _CreateFollowupsPopupsState extends State<CreateFollowupsPopups> {
   //   });
   // }
 
+  void _submit() async {
+    if (isSubmitting) return;
+
+    bool isValid = true;
+
+    setState(() {
+      isSubmitting = true;
+      _errors = {};
+
+      if (_leadId == null || _leadId!.isEmpty) {
+        _errors['select lead name'] = 'Please select a lead name';
+        isValid = false;
+      }
+
+      if (_selectedSubject == null || _selectedSubject!.isEmpty) {
+        _errors['subject'] = 'Please select an action';
+        isValid = false;
+      }
+    });
+
+    // 💡 Check validity before calling the API
+    if (!isValid) {
+      setState(() => isSubmitting = false);
+      return;
+    }
+
+    try {
+      await submitForm(); // ✅ Only call if valid
+      // Show snackbar or do post-submit work here
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Submission failed: ${e.toString()}',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      setState(() => isSubmitting = false);
+    }
+  }
+
   /// Open date picker
   Future<void> _pickDate() async {
     DateTime? pickedDate = await showDatePicker(
@@ -211,45 +252,30 @@ class _CreateFollowupsPopupsState extends State<CreateFollowupsPopups> {
   //   // }
   // }
 
-  Future<void> _submitForms() async {
-    if (isSubmitting) return;
+  // Future<void> _submitForms() async {
+  //   if (isSubmitting) return;
 
-    setState(() => isSubmitting = true);
+  //   setState(() => isSubmitting = true);
 
-    try {
-      await submitForm(); // Your actual API call
-      // Optionally show a success snackbar or navigate
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Submission failed: ${e.toString()}',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-    } finally {
-      setState(() => isSubmitting = false);
-    }
-  }
+  //   try {
+  //     await submitForm(); // Your actual API call
+  //     // Optionally show a success snackbar or navigate
+  //   } catch (e) {
+  //     Get.snackbar(
+  //       'Error',
+  //       'Submission failed: ${e.toString()}',
+  //       backgroundColor: Colors.red,
+  //       colorText: Colors.white,
+  //     );
+  //   } finally {
+  //     setState(() => isSubmitting = false);
+  //   }
+  // }
 
   /// Submit form
   Future<void> submitForm() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? spId = prefs.getString('user_id');
-
-    // Validate required fields
-    if (_leadId == null || _leadId!.isEmpty) {
-      showErrorMessage(context, message: 'Please select a lead');
-      return;
-    }
-
-    if (spId == null) {
-      showErrorMessage(
-        context,
-        message: 'User ID not found. Please log in again.',
-      );
-      return;
-    }
-
     // Parse and format the selected dates/times.
     final rawStartDate = DateFormat(
       'dd MMM yyyy',
@@ -575,6 +601,15 @@ class _CreateFollowupsPopupsState extends State<CreateFollowupsPopups> {
             const SizedBox(height: 10),
             // _buildSearchField(),
             LeadTextfield(
+              onChanged: (value) {
+                if (_errors.containsKey('select lead name')) {
+                  setState(() {
+                    _errors.remove('select lead name');
+                  });
+                }
+                print("select lead name : $value");
+              },
+              errorText: _errors['select lead name'],
               onLeadSelected: (leadId, leadName) {
                 setState(() {
                   _leadId = leadId;
@@ -612,8 +647,12 @@ class _CreateFollowupsPopupsState extends State<CreateFollowupsPopups> {
               onChanged: (value) {
                 setState(() {
                   _selectedSubject = value;
+                  if (_errors.containsKey('subject')) {
+                    _errors.remove('subject');
+                  }
                 });
               },
+              errorText: _errors['subject'],
             ),
             const SizedBox(height: 15),
             Row(
@@ -681,7 +720,7 @@ class _CreateFollowupsPopupsState extends State<CreateFollowupsPopups> {
                         borderRadius: BorderRadius.circular(5),
                       ),
                     ),
-                    onPressed: _submitForms,
+                    onPressed: _submit,
                     child: Text("Create", style: AppFont.buttons(context)),
                   ),
                 ),
@@ -1170,6 +1209,7 @@ class _CreateFollowupsPopupsState extends State<CreateFollowupsPopups> {
     required String groupValue,
     required String label,
     required ValueChanged<String> onChanged,
+    String? errorText,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1184,45 +1224,53 @@ class _CreateFollowupsPopupsState extends State<CreateFollowupsPopups> {
         const SizedBox(height: 5),
 
         // ✅ Wrap ensures buttons move to next line when needed
-        Wrap(
-          spacing: 10, // Space between buttons
-          runSpacing: 10, // Space between lines
-          children: options.keys.map((shortText) {
-            bool isSelected =
-                groupValue == options[shortText]; // ✅ Compare actual value
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            border: errorText != null
+                ? Border.all(color: Colors.red, width: 1.0)
+                : null,
+          ),
+          child: Wrap(
+            spacing: 10, // Space between buttons
+            runSpacing: 10, // Space between lines
+            children: options.keys.map((shortText) {
+              bool isSelected =
+                  groupValue == options[shortText]; // ✅ Compare actual value
 
-            return GestureDetector(
-              onTap: () {
-                onChanged(
-                  options[shortText]!,
-                ); // ✅ Pass actual value on selection
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 3,
-                ),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: isSelected ? Colors.blue : Colors.black,
-                    width: .5,
+              return GestureDetector(
+                onTap: () {
+                  onChanged(
+                    options[shortText]!,
+                  ); // ✅ Pass actual value on selection
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 3,
                   ),
-                  borderRadius: BorderRadius.circular(15),
-                  color: isSelected
-                      ? Colors.blue.withOpacity(0.2)
-                      : AppColors.innerContainerBg,
-                ),
-                child: Text(
-                  shortText, // ✅ Only show short text
-                  style: TextStyle(
-                    color: isSelected ? Colors.blue : AppColors.fontColor,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: isSelected ? Colors.blue : Colors.black,
+                      width: .5,
+                    ),
+                    borderRadius: BorderRadius.circular(15),
+                    color: isSelected
+                        ? Colors.blue.withOpacity(0.2)
+                        : AppColors.innerContainerBg,
+                  ),
+                  child: Text(
+                    shortText, // ✅ Only show short text
+                    style: TextStyle(
+                      color: isSelected ? Colors.blue : AppColors.fontColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
                 ),
-              ),
-            );
-          }).toList(),
+              );
+            }).toList(),
+          ),
         ),
 
         const SizedBox(height: 5),

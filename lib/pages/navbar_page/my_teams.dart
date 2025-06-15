@@ -14,8 +14,8 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/config/controller/tab_controller.dart';
 import 'package:smartassist/config/getX/fab.controller.dart';
-import 'package:smartassist/pages/Leads/single_details_pages/singleLead_followup.dart';
-import 'package:smartassist/pages/Leads/single_details_pages/teams_enquiryIds.dart';
+import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
+import 'package:smartassist/pages/Home/single_details_pages/teams_enquiryIds.dart';
 import 'package:smartassist/pages/navbar_page/call_analytics.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/home_btn.dart/teams_popups.dart/appointment_teams.dart';
@@ -24,7 +24,7 @@ import 'package:smartassist/widgets/home_btn.dart/teams_popups.dart/followups_te
 import 'package:smartassist/widgets/home_btn.dart/teams_popups.dart/lead_teams.dart';
 import 'package:smartassist/widgets/home_btn.dart/teams_popups.dart/testdrive_teams.dart';
 import 'package:smartassist/widgets/team_calllog_userid.dart';
-import 'package:smartassist/pages/Leads/reassign_enq.dart';
+import 'package:smartassist/pages/Home/reassign_enq.dart';
 import 'package:azlistview/azlistview.dart';
 
 class MyTeams extends StatefulWidget {

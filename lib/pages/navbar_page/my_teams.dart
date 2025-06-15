@@ -1005,23 +1005,6 @@ class _MyTeamsState extends State<MyTeams> {
       //         },
       //       )
       //     : null,
-      floatingActionButton: AnimatedSlide(
-        offset: _isFabVisible ? Offset(0, 0) : Offset(0, 2),
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        child: AnimatedOpacity(
-          opacity: _isFabVisible ? 1.0 : 0.0,
-          duration: const Duration(milliseconds: 300),
-          child: CustomFloatingButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => AllLeads()),
-              );
-            },
-          ),
-        ),
-      ),
     );
   }
 
@@ -4035,6 +4018,7 @@ class _MyTeamsState extends State<MyTeams> {
                     builder: (context) => FollowupsDetails(
                       leadId: leadId,
                       isFromFreshlead: false,
+                      isFromManager: true,
                     ),
                   ),
                 );

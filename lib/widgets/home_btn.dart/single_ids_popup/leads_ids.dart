@@ -6,7 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
-import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart'; 
+import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/services/api_srv.dart';
@@ -1453,8 +1453,11 @@ class _LeadsIdsState extends State<LeadsIds> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) =>
-                    FollowupsDetails(leadId: leadId, isFromFreshlead: false),
+                builder: (context) => FollowupsDetails(
+                  leadId: leadId,
+                  isFromFreshlead: false,
+                  isFromManager: false,
+                ),
               ),
             );
           }

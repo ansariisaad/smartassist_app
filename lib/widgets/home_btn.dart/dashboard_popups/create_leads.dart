@@ -2680,8 +2680,11 @@ class _CreateLeadsState extends State<CreateLeads> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) =>
-                    FollowupsDetails(leadId: leadId, isFromFreshlead: true),
+                builder: (context) => FollowupsDetails(
+                  leadId: leadId,
+                  isFromFreshlead: true,
+                  isFromManager: false,
+                ),
               ),
             );
           }

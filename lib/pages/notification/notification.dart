@@ -3,7 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
-import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart'; 
+import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:smartassist/services/api_srv.dart';
@@ -441,6 +441,7 @@ class _NotificationPageState extends State<NotificationPage> {
                               builder: (context) => FollowupsDetails(
                                 leadId: notification['recordId'] ?? '',
                                 isFromFreshlead: false,
+                                isFromManager: false,
                               ),
                             ),
                           );

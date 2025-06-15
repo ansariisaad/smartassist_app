@@ -547,14 +547,14 @@ class _AllEnqState extends State<AllEnq> {
                             barrierDismissible: true,
                             builder: (context) => Dialog(
                               backgroundColor: Colors.white,
-                              elevation: 8,
+                              elevation: 5,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: Container(
                                 width: MediaQuery.of(context).size.width * 0.85,
                                 constraints: const BoxConstraints(
-                                  maxHeight: 600,
+                                  maxHeight: 700,
                                   maxWidth: 400,
                                 ),
                                 child: Column(
@@ -563,7 +563,7 @@ class _AllEnqState extends State<AllEnq> {
                                     // Header with gradient background
                                     Container(
                                       width: double.infinity,
-                                      padding: const EdgeInsets.all(20),
+                                      padding: const EdgeInsets.all(15),
                                       decoration: BoxDecoration(
                                         gradient: LinearGradient(
                                           colors: [
@@ -762,8 +762,6 @@ class _AllEnqState extends State<AllEnq> {
                                                 final userName =
                                                     user['name'] ??
                                                     'Unknown User';
-                                                final userEmail =
-                                                    user['email'] ?? '';
 
                                                 return Material(
                                                   color: Colors.transparent,
@@ -886,21 +884,6 @@ class _AllEnqState extends State<AllEnq> {
                                                                         .grey[800],
                                                                   ),
                                                                 ),
-                                                                if (userEmail
-                                                                    .isNotEmpty) ...[
-                                                                  const SizedBox(
-                                                                    height: 4,
-                                                                  ),
-                                                                  Text(
-                                                                    userEmail,
-                                                                    style: TextStyle(
-                                                                      fontSize:
-                                                                          14,
-                                                                      color: Colors
-                                                                          .grey[600],
-                                                                    ),
-                                                                  ),
-                                                                ],
                                                               ],
                                                             ),
                                                           ),
@@ -928,7 +911,7 @@ class _AllEnqState extends State<AllEnq> {
                                     // Footer with action buttons
                                     Container(
                                       width: double.infinity,
-                                      padding: const EdgeInsets.all(20),
+                                      padding: const EdgeInsets.all(2),
                                       decoration: BoxDecoration(
                                         color: Colors.grey[50],
                                         borderRadius: const BorderRadius.only(

@@ -24,6 +24,7 @@ class AppColors {
   static final Color containerGreen = Color.fromARGB(255, 81, 223, 121);
   static final Color containerRed = Color.fromRGBO(236, 81, 81, 1);
   static final Color containerblue = AppColors.colorsBlue;
+  static final Color cancelButton = Color.fromRGBO(217, 217, 217, 1);
 
   static const Color arrowContainerColor = Color(0xffD9D9D9);
   static const Color starBorderColor = Color.fromRGBO(239, 206, 29, 1);

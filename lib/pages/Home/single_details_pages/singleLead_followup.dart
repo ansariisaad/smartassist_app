@@ -1569,21 +1569,25 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                                             ),
                                           ),
                                         ),
-                                        TextButton(
-                                          style: TextButton.styleFrom(
-                                            padding: EdgeInsets.symmetric(
-                                              horizontal: 10,
+                                        Tooltip(
+                                          // decoration: BoxDecoration(),
+                                          message: 'Send message WhatsApp',
+                                          child: TextButton(
+                                            style: TextButton.styleFrom(
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: 10,
+                                              ),
                                             ),
-                                          ),
-                                          onPressed: () {
-                                            handleWhatsappAction();
-                                          },
-                                          child: Text(
-                                            'Whatsapp',
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w400,
-                                              color: Colors.grey,
+                                            onPressed: () {
+                                              handleWhatsappAction();
+                                            },
+                                            child: Text(
+                                              'Whatsapp',
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w400,
+                                                color: Colors.grey,
+                                              ),
                                             ),
                                           ),
                                         ),
@@ -1632,107 +1636,109 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
         ],
       ),
       // floatingActionButton: _buildFloatingActionButton(context),
-      bottomNavigationBar: Stack(
-        alignment: Alignment.bottomCenter,
-        children: [
-          Container(
-            height: 80,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(20),
-                topRight: Radius.circular(20),
+      bottomNavigationBar: SafeArea(
+        child: Stack(
+          alignment: Alignment.bottomCenter,
+          children: [
+            Container(
+              height: 80,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: Offset(0, -2),
+                  ),
+                ],
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: Offset(0, -2),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                // Lost Button
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      if (widget.isFromFreshlead) {
-                        _showFollowupPopup(context, widget.leadId);
-                      } else {
-                        if (areButtonsEnabled()) {
-                          handleLostAction();
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  // Lost Button
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        if (widget.isFromFreshlead) {
+                          _showFollowupPopup(context, widget.leadId);
                         } else {
-                          showLostRequiredDialog(context);
+                          if (areButtonsEnabled()) {
+                            handleLostAction();
+                          } else {
+                            showLostRequiredDialog(context);
+                          }
                         }
-                      }
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(
-                          color: widget.isFromFreshlead
-                              ? Colors.blue
-                              : Colors.red,
-                          width: 1,
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(
+                            color: widget.isFromFreshlead
+                                ? Colors.blue
+                                : Colors.red,
+                            width: 1,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        widget.isFromFreshlead ? 'Follow up?' : 'Lost',
-                        style: widget.isFromFreshlead
-                            ? AppFont.mediumText14bluee(context)
-                            : AppFont.mediumText14red(context),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-
-                // Qualify Button
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      if (areButtonsEnabled()) {
-                        handleQualifyAction();
-                      } else {
-                        showTaskRequiredDialog(context);
-                      }
-                    },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF35CB64),
-                        // Green color from image
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        'Qualify',
-                        style: AppFont.mediumText14white(context),
-                        textAlign: TextAlign.center,
+                        child: Text(
+                          widget.isFromFreshlead ? 'Follow up?' : 'Lost',
+                          style: widget.isFromFreshlead
+                              ? AppFont.mediumText14bluee(context)
+                              : AppFont.mediumText14red(context),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                SizedBox(
-                  width: 60,
-                  height: 45,
-                  child: _buildFloatingActionButton(context),
-                ),
+                  const SizedBox(width: 10),
 
-                // Popup Menu (Conditionally Rendered)
-                // Obx(() => fabController.isFabExpanded.value
-                //     ? _buildPopupMenu(context)
-                //     : SizedBox.shrink()),
-              ],
+                  // Qualify Button
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        if (areButtonsEnabled()) {
+                          handleQualifyAction();
+                        } else {
+                          showTaskRequiredDialog(context);
+                        }
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF35CB64),
+                          // Green color from image
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          'Qualify',
+                          style: AppFont.mediumText14white(context),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  SizedBox(
+                    width: 60,
+                    height: 45,
+                    child: _buildFloatingActionButton(context),
+                  ),
+
+                  // Popup Menu (Conditionally Rendered)
+                  // Obx(() => fabController.isFabExpanded.value
+                  //     ? _buildPopupMenu(context)
+                  //     : SizedBox.shrink()),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

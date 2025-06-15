@@ -5,22 +5,21 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/utils/bottom_navigation.dart';
 import 'package:smartassist/utils/storage.dart';
-import 'package:smartassist/widgets/followups/all_followups.dart';
-// import 'package:smartassist/widgets/followups/all_followup.dart'; // Import the new widget
-import 'package:smartassist/widgets/followups/overdue_followup.dart';
-import 'package:smartassist/widgets/followups/upcoming_row.dart';
-import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/create_Followups_popups.dart';
 import 'package:smartassist/widgets/buttons/add_btn.dart';
+import 'package:smartassist/widgets/followups/all_followups.dart';
+import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/appointment_popup.dart';
+import 'package:smartassist/widgets/oppointment/overdue.dart';
+import 'package:smartassist/widgets/oppointment/upcoming.dart';
 
-class AddFollowups extends StatefulWidget {
-  const AddFollowups({super.key});
+class AllAppointment extends StatefulWidget {
+  const AllAppointment({super.key});
 
   @override
-  State<AddFollowups> createState() => _AddFollowupsState();
+  State<AllAppointment> createState() => _AllAppointmentState();
 }
 
-class _AddFollowupsState extends State<AddFollowups> {
-  final Widget _createFollowups = CreateFollowupsPopups(onFormSubmit: () {});
+class _AllAppointmentState extends State<AllAppointment> {
+  final Widget _createAppoinment = AppointmentPopup(onFormSubmit: () {});
   List<dynamic> _originalAllTasks = [];
   List<dynamic> _originalUpcomingTasks = [];
   List<dynamic> _originalOverdueTasks = [];
@@ -28,10 +27,9 @@ class _AddFollowupsState extends State<AddFollowups> {
   List<dynamic> _filteredUpcomingTasks = [];
   List<dynamic> _filteredOverdueTasks = [];
   int _upcommingButtonIndex = 0;
-  int count = 0;
-
   TextEditingController searchController = TextEditingController();
   bool _isLoading = true;
+  int count = 0;
 
   @override
   void initState() {
@@ -39,36 +37,12 @@ class _AddFollowupsState extends State<AddFollowups> {
     fetchTasks();
   }
 
-  double _getScreenWidth() => MediaQuery.sizeOf(context).width;
-
-  // Responsive scaling while maintaining current design proportions
-  double _getResponsiveScale() {
-    final width = _getScreenWidth();
-    if (width <= 320) return 0.85; // Very small phones
-    if (width <= 375) return 0.95; // Small phones
-    if (width <= 414) return 1.0; // Standard phones (base size)
-    if (width <= 600) return 1.05; // Large phones
-    if (width <= 768) return 1.1; // Small tablets
-    return 1.15; // Large tablets and up
-  }
-
-  double _getSubTabFontSize() {
-    return 12.0 * _getResponsiveScale(); // Base font size: 12
-  }
-
-  double _getSubTabHeight() {
-    return 27.0 * _getResponsiveScale(); // Base height: 27
-  }
-
-  double _getSubTabWidth() {
-    return 240.0 * _getResponsiveScale(); // Base width: 150
-  }
-
   Future<void> fetchTasks() async {
     setState(() => _isLoading = true);
     try {
       final token = await Storage.getToken();
-      const String apiUrl = "https://api.smartassistapp.in/api/tasks/all-tasks";
+      const String apiUrl =
+          "https://api.smartassistapp.in/api/tasks/all-appointments";
 
       final response = await http.get(
         Uri.parse(apiUrl),
@@ -77,17 +51,16 @@ class _AddFollowupsState extends State<AddFollowups> {
           'Content-Type': 'application/json',
         },
       );
+      print('thisi si sht eurl ');
+      print(apiUrl);
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
         setState(() {
-          count = data['data']['overdueWeekTasks']?['count'] ?? 0;
+          count = data['data']['overdueTasks']?['overdueEvents'] ?? 0;
           _originalAllTasks = data['data']['allTasks']?['rows'] ?? [];
-          _originalUpcomingTasks =
-              data['data']['upcomingWeekTasks']?['rows'] ?? [];
-          _originalOverdueTasks =
-              data['data']['overdueWeekTasks']?['rows'] ?? [];
-
+          _originalUpcomingTasks = data['data']['upcomingTasks']?['rows'] ?? [];
+          _originalOverdueTasks = data['data']['overdueTasks']?['rows'] ?? [];
           _filteredAllTasks = List.from(_originalAllTasks);
           _filteredUpcomingTasks = List.from(_originalUpcomingTasks);
           _filteredOverdueTasks = List.from(_originalOverdueTasks);
@@ -97,9 +70,7 @@ class _AddFollowupsState extends State<AddFollowups> {
         setState(() => _isLoading = false);
       }
     } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      setState(() => _isLoading = false);
     }
   }
 
@@ -133,6 +104,31 @@ class _AddFollowupsState extends State<AddFollowups> {
     });
   }
 
+  double _getScreenWidth() => MediaQuery.sizeOf(context).width;
+
+  // Responsive scaling while maintaining current design proportions
+  double _getResponsiveScale() {
+    final width = _getScreenWidth();
+    if (width <= 320) return 0.85; // Very small phones
+    if (width <= 375) return 0.95; // Small phones
+    if (width <= 414) return 1.0; // Standard phones (base size)
+    if (width <= 600) return 1.05; // Large phones
+    if (width <= 768) return 1.1; // Small tablets
+    return 1.15; // Large tablets and up
+  }
+
+  double _getSubTabFontSize() {
+    return 12.0 * _getResponsiveScale(); // Base font size: 12
+  }
+
+  double _getSubTabHeight() {
+    return 27.0 * _getResponsiveScale(); // Base height: 27
+  }
+
+  double _getSubTabWidth() {
+    return 240.0 * _getResponsiveScale(); // Base width: 150
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -147,7 +143,7 @@ class _AddFollowupsState extends State<AddFollowups> {
 
         backgroundColor: const Color(0xFF1380FE),
         title: const Text(
-          'Your Follow ups',
+          'Your Appointments',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w500,
@@ -166,7 +162,7 @@ class _AddFollowupsState extends State<AddFollowups> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: _createFollowups, // Your follow-up widget
+                child: _createAppoinment, // Your follow-up widget
               );
             },
           );
@@ -196,10 +192,10 @@ class _AddFollowupsState extends State<AddFollowups> {
                           borderSide: BorderSide.none,
                         ),
                         filled: true,
-                        fillColor: const Color(0xFFE1EFFF),
+                        fillColor: AppColors.containerBg,
                         contentPadding: const EdgeInsets.fromLTRB(1, 4, 0, 4),
                         border: InputBorder.none,
-                        hintText: 'Search',
+                        hintText: 'Search by name, email or phone',
                         hintStyle: const TextStyle(
                           color: Colors.grey,
                           fontWeight: FontWeight.w400,
@@ -208,7 +204,7 @@ class _AddFollowupsState extends State<AddFollowups> {
                           Icons.search,
                           color: Colors.grey,
                         ),
-                        suffixIcon: const Icon(Icons.mic, color: Colors.grey),
+                        // suffixIcon: const Icon(Icons.mic, color: Colors.grey),
                       ),
                     ),
                   ),
@@ -218,12 +214,12 @@ class _AddFollowupsState extends State<AddFollowups> {
                       children: [
                         const SizedBox(width: 10),
                         Container(
-                          width: _getSubTabWidth(),
-                          height: _getSubTabHeight(),
+                          width: 250,
+                          height: 30,
                           decoration: BoxDecoration(
                             border: Border.all(
-                              color: const Color(0xFF767676).withOpacity(0.3),
-                              width: 0.5,
+                              color: const Color(0xFF767676),
+                              width: .5,
                             ),
                             borderRadius: BorderRadius.circular(30),
                           ),
@@ -277,37 +273,40 @@ class _AddFollowupsState extends State<AddFollowups> {
     switch (_upcommingButtonIndex) {
       case 0: // All Followups
         return _filteredAllTasks.isEmpty
-            ? const Center(
+            ? Center(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Text("No followups available"),
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: Text(
+                    "No Appointment available",
+                    style: AppFont.smallText12(context),
+                  ),
                 ),
               )
             : AllFollowup(allFollowups: _filteredAllTasks, isNested: true);
       case 1: // Upcoming
         return _filteredUpcomingTasks.isEmpty
-            ? const Center(
+            ? Center(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Text("No upcoming followups available"),
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: Text(
+                    "No upcoming Appointment available",
+                    style: AppFont.smallText12(context),
+                  ),
                 ),
               )
-            : FollowupsUpcoming(
-                upcomingFollowups: _filteredUpcomingTasks,
-                isNested: true,
-              );
+            : OppUpcoming(upcomingOpp: _filteredUpcomingTasks, isNested: true);
       case 2: // Overdue
         return _filteredOverdueTasks.isEmpty
-            ? const Center(
+            ? Center(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Text("No overdue followups available"),
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: Text(
+                    "No overdue Appointment available",
+                    style: AppFont.smallText12(context),
+                  ),
                 ),
               )
-            : OverdueFollowup(
-                overdueeFollowups: _filteredOverdueTasks,
-                isNested: true,
-              );
+            : OppOverdue(overdueeOpp: _filteredOverdueTasks, isNested: true);
       default:
         return const SizedBox();
     }
@@ -332,7 +331,7 @@ class _AddFollowupsState extends State<AddFollowups> {
             vertical: 5.0 * _getResponsiveScale(),
             horizontal: 8.0 * _getResponsiveScale(),
           ),
-         side: BorderSide(
+          side: BorderSide(
             color: isActive ? activeColor : Colors.transparent,
             width: .5,
           ),
@@ -342,7 +341,7 @@ class _AddFollowupsState extends State<AddFollowups> {
         ),
         child: Text(
           text,
-          style: TextStyle( 
+          style: TextStyle(
             fontSize: _getSubTabFontSize(),
             fontWeight: FontWeight.w400,
             color: isActive ? color : Colors.grey,
@@ -351,4 +350,39 @@ class _AddFollowupsState extends State<AddFollowups> {
       ),
     );
   }
+
+  // Widget _buildFilterButton({
+  //   required int index,
+  //   required String text,
+  //   required Color activeColor,
+  //   required Color color,
+  // }) {
+  //   final bool isActive = _upcommingButtonIndex == index;
+
+  //   return Expanded(
+  //     child: TextButton(
+  //       onPressed: () => setState(() => _upcommingButtonIndex = index),
+  //       style: TextButton.styleFrom(
+  //         backgroundColor: isActive ? activeColor.withOpacity(0.29) : null,
+  //         foregroundColor: isActive ? Colors.blueGrey : Colors.black,
+  //         padding: const EdgeInsets.symmetric(vertical: 5),
+  //         side: BorderSide(
+  //           color: isActive ? activeColor : Colors.transparent,
+  //           width: .5,
+  //         ),
+  //         shape: RoundedRectangleBorder(
+  //           borderRadius: BorderRadius.circular(30),
+  //         ),
+  //       ),
+  //       child: Text(
+  //         text,
+  //         style: TextStyle(
+  //           fontSize: 14,
+  //           fontWeight: FontWeight.w400,
+  //           color: isActive ? color : Colors.grey,
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 }

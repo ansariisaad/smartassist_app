@@ -9,7 +9,6 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
@@ -49,13 +48,15 @@ class _FollowupsEditState extends State<FollowupsEdit> {
   late stt.SpeechToText _speech;
   bool _isListening = false;
 
+  bool isButtonEnabled = false;
+
   @override
   void initState() {
     super.initState();
     _fetchDataId();
-    _searchController.addListener(
-      _onSearchChanged,
-    ); // Initialize speech recognition
+    // _searchController.addListener(
+    //   _onSearchChanged,
+    // ); // Initialize speech recognition
     _speech = stt.SpeechToText();
     _initSpeech();
   }
@@ -122,44 +123,44 @@ class _FollowupsEditState extends State<FollowupsEdit> {
   }
 
   /// Fetch search results from API
-  Future<void> _fetchSearchResults(String query) async {
-    if (query.isEmpty) {
-      setState(() {
-        _searchResults.clear();
-      });
-      return;
-    }
+  // Future<void> _fetchSearchResults(String query) async {
+  //   if (query.isEmpty) {
+  //     setState(() {
+  //       _searchResults.clear();
+  //     });
+  //     return;
+  //   }
 
-    setState(() {
-      _isLoadingSearch = true;
-    });
+  //   setState(() {
+  //     _isLoadingSearch = true;
+  //   });
 
-    final token = await Storage.getToken();
+  //   final token = await Storage.getToken();
 
-    try {
-      final response = await http.get(
-        Uri.parse(
-          'https://api.smartassistapp.in/api/search/global?query=$query',
-        ),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
-        setState(() {
-          _searchResults = data['data']['suggestions'] ?? [];
-        });
-      }
-    } catch (e) {
-      showErrorMessage(context, message: 'Something went wrong..!');
-    } finally {
-      setState(() {
-        _isLoadingSearch = false;
-      });
-    }
-  }
+  //   try {
+  //     final response = await http.get(
+  //       Uri.parse(
+  //         'https://api.smartassistapp.in/api/search/global?query=$query',
+  //       ),
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+  //     if (response.statusCode == 200) {
+  //       final Map<String, dynamic> data = json.decode(response.body);
+  //       setState(() {
+  //         _searchResults = data['data']['suggestions'] ?? [];
+  //       });
+  //     }
+  //   } catch (e) {
+  //     showErrorMessage(context, message: 'Something went wrong..!');
+  //   } finally {
+  //     setState(() {
+  //       _isLoadingSearch = false;
+  //     });
+  //   }
+  // }
 
   Future<void> _fetchDataId() async {
     setState(() {
@@ -197,17 +198,17 @@ class _FollowupsEditState extends State<FollowupsEdit> {
   }
 
   /// Handle search input change
-  void _onSearchChanged() {
-    final newQuery = _searchController.text.trim();
-    if (newQuery == _query) return;
+  // void _onSearchChanged() {
+  //   final newQuery = _searchController.text.trim();
+  //   if (newQuery == _query) return;
 
-    _query = newQuery;
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (_query == _searchController.text.trim()) {
-        _fetchSearchResults(_query);
-      }
-    });
-  }
+  //   _query = newQuery;
+  //   Future.delayed(const Duration(milliseconds: 500), () {
+  //     if (_query == _searchController.text.trim()) {
+  //       _fetchSearchResults(_query);
+  //     }
+  //   });
+  // }
 
   /// Open date picker
   Future<void> _pickDate() async {
@@ -240,6 +241,11 @@ class _FollowupsEditState extends State<FollowupsEdit> {
 
   //   return isValid;
   // }
+
+  void _checkIfFormIsComplete() {
+    isButtonEnabled =
+        (selectedValue != null && descriptionController.text.trim().isNotEmpty);
+  }
 
   void _submit() {
     // if (_validation()) {
@@ -352,6 +358,11 @@ class _FollowupsEditState extends State<FollowupsEdit> {
               // Expanded TextField that adjusts height
               Expanded(
                 child: TextField(
+                  onChanged: (value) {
+                    setState(() {
+                      _checkIfFormIsComplete();
+                    });
+                  },
                   controller: controller,
                   maxLines:
                       null, // This allows the TextField to expand vertically based on content
@@ -590,6 +601,7 @@ class _FollowupsEditState extends State<FollowupsEdit> {
                         onChanged: (String? value) {
                           setState(() {
                             selectedValue = value;
+                            _checkIfFormIsComplete();
                           });
                         },
                         buttonStyleData: const ButtonStyleData(
@@ -640,6 +652,7 @@ class _FollowupsEditState extends State<FollowupsEdit> {
                   child: _buildTextField(
                     // label: 'Remark :',
                     controller: descriptionController,
+
                     hint: 'Type or speak...',
                   ),
                 ),
@@ -652,7 +665,7 @@ class _FollowupsEditState extends State<FollowupsEdit> {
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.zero,
-                      backgroundColor: const Color.fromRGBO(217, 217, 217, 1),
+                      backgroundColor: AppColors.cancelButton,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(5),
@@ -671,12 +684,14 @@ class _FollowupsEditState extends State<FollowupsEdit> {
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.zero,
-                      backgroundColor: AppColors.colorsBlue,
+                      backgroundColor: isButtonEnabled
+                          ? AppColors.colorsBlue
+                          : AppColors.cancelButton,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(5),
                       ),
                     ),
-                    onPressed: _submit,
+                    onPressed: isButtonEnabled ? _submit : null,
                     child: Text("Update", style: AppFont.buttons(context)),
                   ),
                 ),

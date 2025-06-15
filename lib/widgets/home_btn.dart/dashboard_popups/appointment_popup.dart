@@ -36,7 +36,7 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
   int _currentStep = 0;
   late stt.SpeechToText _speech;
   bool _isListening = false;
-
+  Map<String, String> _errors = {};
   bool isSubmitting = false;
 
   bool _isLoadingSearch = false;
@@ -203,6 +203,47 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
           }
         });
       }
+    }
+  }
+
+  void _submit() async {
+    if (isSubmitting) return;
+
+    bool isValid = true;
+
+    setState(() {
+      isSubmitting = true;
+      _errors = {};
+
+      if (_leadId == null || _leadId!.isEmpty) {
+        _errors['select lead name'] = 'Please select a lead name';
+        isValid = false;
+      }
+
+      if (_selectedSubject == null || _selectedSubject!.isEmpty) {
+        _errors['subject'] = 'Please select an action';
+        isValid = false;
+      }
+    });
+
+    // 💡 Check validity before calling the API
+    if (!isValid) {
+      setState(() => isSubmitting = false);
+      return;
+    }
+
+    try {
+      await submitForm(); // ✅ Only call if valid
+      // Show snackbar or do post-submit work here
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Submission failed: ${e.toString()}',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      setState(() => isSubmitting = false);
     }
   }
 
@@ -402,6 +443,15 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
             children: [
               // _buildSearchField(),
               LeadTextfield(
+                onChanged: (value) {
+                  if (_errors.containsKey('select lead name')) {
+                    setState(() {
+                      _errors.remove('select lead name');
+                    });
+                  }
+                  print("select lead name : $value");
+                },
+                errorText: _errors['select lead name'],
                 onLeadSelected: (leadId, leadName) {
                   setState(() {
                     _leadId = leadId;
@@ -477,8 +527,12 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
                 onChanged: (value) {
                   setState(() {
                     _selectedSubject = value;
+                    if (_errors.containsKey('subject')) {
+                      _errors.remove('subject');
+                    }
                   });
                 },
+                errorText: _errors['subject'],
               ),
 
               const SizedBox(height: 10),
@@ -515,7 +569,7 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
                       borderRadius: BorderRadius.circular(5),
                     ),
                   ),
-                  onPressed: _submitForms,
+                  onPressed: _submit,
                   child: Text("Create", style: AppFont.buttons(context)),
                 ),
               ),
@@ -749,6 +803,7 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
     required String groupValue,
     required String label,
     required ValueChanged<String> onChanged,
+    String? errorText,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -763,45 +818,54 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
         const SizedBox(height: 5),
 
         // ✅ Wrap ensures buttons move to next line when needed
-        Wrap(
-          spacing: 10, // Space between buttons
-          runSpacing: 10, // Space between lines
-          children: options.keys.map((shortText) {
-            bool isSelected =
-                groupValue == options[shortText]; // ✅ Compare actual value
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(5),
+            border: errorText != null
+                ? Border.all(color: Colors.red, width: 1.0)
+                : null,
+          ),
+          child: Wrap(
+            spacing: 10, // Space between buttons
+            runSpacing: 10, // Space between lines
+            children: options.keys.map((shortText) {
+              bool isSelected =
+                  groupValue == options[shortText]; // ✅ Compare actual value
 
-            return GestureDetector(
-              onTap: () {
-                onChanged(
-                  options[shortText]!,
-                ); // ✅ Pass actual value on selection
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 3,
-                ),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: isSelected ? Colors.blue : Colors.black,
-                    width: .5,
+              return GestureDetector(
+                onTap: () {
+                  onChanged(
+                    options[shortText]!,
+                  ); // ✅ Pass actual value on selection
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 3,
                   ),
-                  borderRadius: BorderRadius.circular(15),
-                  color: isSelected
-                      ? Colors.blue.withOpacity(0.2)
-                      : AppColors.innerContainerBg,
-                ),
-                child: Text(
-                  shortText, // ✅ Only show short text
-                  style: TextStyle(
-                    color: isSelected ? Colors.blue : Colors.black,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: isSelected ? Colors.blue : Colors.black,
+                      width: .5,
+                    ),
+                    borderRadius: BorderRadius.circular(15),
+                    color: isSelected
+                        ? Colors.blue.withOpacity(0.2)
+                        : AppColors.innerContainerBg,
+                  ),
+                  child: Text(
+                    shortText, // ✅ Only show short text
+                    style: TextStyle(
+                      color: isSelected ? Colors.blue : Colors.black,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
                 ),
-              ),
-            );
-          }).toList(),
+              );
+            }).toList(),
+          ),
         ),
 
         const SizedBox(height: 5),
@@ -975,26 +1039,6 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
     );
   }
 
-  Future<void> _submitForms() async {
-    if (isSubmitting) return;
-
-    setState(() => isSubmitting = true);
-
-    try {
-      await submitForm(); // Your actual API call
-      // Optionally show a success snackbar or navigate
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Submission failed: ${e.toString()}',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-    } finally {
-      setState(() => isSubmitting = false);
-    }
-  }
-
   Future<void> submitForm() async {
     final prefs = await SharedPreferences.getInstance();
     final spId = prefs.getString('user_id');
@@ -1060,10 +1104,10 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
         widget.onFormSubmit?.call(); // Refresh dashboard data
         widget.onTabChange?.call(1);
       } else {
-        showErrorMessage(context, message: 'Failed to submit appointment.');
+        // showErrorMessage(context, message: 'Failed to submit appointment.');
       }
     } catch (e) {
-      showErrorMessage(context, message: 'Invalid date or time format.');
+      print(e.toString());
     }
   }
 }

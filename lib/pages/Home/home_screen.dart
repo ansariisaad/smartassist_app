@@ -11,7 +11,7 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/config/controller/tab_controller.dart';
 import 'package:smartassist/config/getX/fab.controller.dart';
-import 'package:smartassist/pages/Leads/gloabal_search_page/global_search.dart'; 
+import 'package:smartassist/pages/Home/gloabal_search_page/global_search.dart'; 
 import 'package:smartassist/pages/notification/notification.dart';
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/storage.dart';

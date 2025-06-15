@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:smartassist/pages/Leads/home_screen.dart';
+import 'package:smartassist/pages/Home/home_screen.dart';
 import 'package:smartassist/pages/navbar_page/my_teams.dart';
 import 'package:smartassist/pages/Calendar/calender.dart';
 import 'package:smartassist/utils/token_manager.dart';

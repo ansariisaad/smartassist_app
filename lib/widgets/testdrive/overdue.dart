@@ -693,6 +693,7 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem> {
               builder: (context) => FollowupsDetails(
                 leadId: widget.leadId,
                 isFromFreshlead: false,
+                isFromManager: false,
               ),
             ),
           );

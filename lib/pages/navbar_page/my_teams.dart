@@ -1006,55 +1006,55 @@ class _MyTeamsState extends State<MyTeams> {
       //         },
       //       )
       //     : null,
-      floatingActionButton: AnimatedSlide(
-        offset: _isFabVisible ? Offset(0, 0) : Offset(0, 2),
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        child: AnimatedOpacity(
-          opacity: _isFabVisible ? 1.0 : 0.0,
-          duration: const Duration(milliseconds: 300),
-          child: CustomFloatingButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => AllLeads()),
-              );
-            },
-          ),
-        ),
-      ),
+      // floatingActionButton: AnimatedSlide(
+      //   offset: _isFabVisible ? Offset(0, 0) : Offset(0, 2),
+      //   duration: const Duration(milliseconds: 300),
+      //   curve: Curves.easeInOut,
+      //   child: AnimatedOpacity(
+      //     opacity: _isFabVisible ? 1.0 : 0.0,
+      //     duration: const Duration(milliseconds: 300),
+      //     child: CustomFloatingButton(
+      //       onPressed: () {
+      //         Navigator.push(
+      //           context,
+      //           MaterialPageRoute(builder: (context) => AllEnq()),
+      //         );
+      //       },
+      //     ),
+      //   ),
+      // ),
     );
   }
 
-  Widget _buildFloatingActionButton(BuildContext context) {
-    return Obx(
-      () => GestureDetector(
-        onTap: fabController.toggleFab,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          width: MediaQuery.of(context).size.width * .15,
-          height: MediaQuery.of(context).size.height * .08,
-          decoration: BoxDecoration(
-            color: fabController.isFabExpanded.value
-                ? Colors.red
-                : AppColors.colorsBlue,
-            shape: BoxShape.circle,
-          ),
-          child: Center(
-            child: AnimatedRotation(
-              turns: fabController.isFabExpanded.value ? 0.25 : 0.0,
-              duration: const Duration(milliseconds: 300),
-              child: Icon(
-                fabController.isFabExpanded.value ? Icons.close : Icons.add,
-                color: Colors.white,
-                size: 30,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  // Widget _buildFloatingActionButton(BuildContext context) {
+  //   return Obx(
+  //     () => GestureDetector(
+  //       onTap: fabController.toggleFab,
+  //       child: AnimatedContainer(
+  //         duration: const Duration(milliseconds: 300),
+  //         width: MediaQuery.of(context).size.width * .15,
+  //         height: MediaQuery.of(context).size.height * .08,
+  //         decoration: BoxDecoration(
+  //           color: fabController.isFabExpanded.value
+  //               ? Colors.red
+  //               : AppColors.colorsBlue,
+  //           shape: BoxShape.circle,
+  //         ),
+  //         child: Center(
+  //           child: AnimatedRotation(
+  //             turns: fabController.isFabExpanded.value ? 0.25 : 0.0,
+  //             duration: const Duration(milliseconds: 300),
+  //             child: Icon(
+  //               fabController.isFabExpanded.value ? Icons.close : Icons.add,
+  //               color: Colors.white,
+  //               size: 30,
+  //             ),
+  //           ),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   // Popup Item Builder
   Widget _buildPopupItem(
@@ -1295,11 +1295,11 @@ class _MyTeamsState extends State<MyTeams> {
           ),
 
           // ✅ FAB positioned above the overlay
-          Positioned(
-            bottom: 20,
-            right: 15,
-            child: _buildFloatingActionButton(context),
-          ),
+          // Positioned(
+          //   bottom: 20,
+          //   right: 15,
+          //   child: _buildFloatingActionButton(context),
+          // ),
         ],
       ),
     );
@@ -4024,6 +4024,7 @@ class _MyTeamsState extends State<MyTeams> {
                     builder: (context) => FollowupsDetails(
                       leadId: leadId,
                       isFromFreshlead: false,
+                      isFromManager: true,
                     ),
                   ),
                 );

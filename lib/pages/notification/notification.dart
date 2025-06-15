@@ -442,6 +442,7 @@ class _NotificationPageState extends State<NotificationPage> {
                               builder: (context) => FollowupsDetails(
                                 leadId: notification['recordId'] ?? '',
                                 isFromFreshlead: false,
+                                isFromManager: false,
                               ),
                             ),
                           );

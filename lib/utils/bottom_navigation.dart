@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/services.dart';
@@ -7,6 +8,7 @@ import 'package:smartassist/pages/navbar_page/call_analytics.dart';
 import 'package:smartassist/pages/navbar_page/favorite.dart';
 import 'package:smartassist/pages/navbar_page/leads_all.dart';
 import 'package:smartassist/pages/navbar_page/logout_page.dart';
+import 'package:smartassist/pages/Leads/reassign_enq.dart';
 
 // Import with alias to avoid conflicts
 import 'package:smartassist/utils/navigation_controller.dart' as nav_utils;
@@ -151,19 +153,18 @@ class BottomNavigation extends StatelessWidget {
           ),
         ],
       ),
-      child: SafeArea( 
+      child: SafeArea(
         child: ConstrainedBox(
           constraints: BoxConstraints(
             minHeight: bottomNavHeight * 0.8,
             maxHeight: bottomNavHeight,
-          ), 
+          ),
 
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 0),
             child: Obx(() {
               List<Widget> navItems = [];
 
- 
               //  List<Widget> navItems = [
               //   _buildNavItem(
               //     icon: Icons.home,
@@ -264,7 +265,7 @@ class BottomNavigation extends StatelessWidget {
               //     label: 'Calendar',
               //     index: calendarIndex,
               //   ),
-              // ); 
+              // );
 
               // Add More/Settings - index needs to be adjusted based on whether Teams is present
               int moreIndex = controller.userRole.value == "SM" ? 3 : 2;
@@ -455,8 +456,9 @@ class BottomNavigation extends StatelessWidget {
 
   // ✅ Show Bottom Sheet for More options
   void _showMoreBottomSheet(BuildContext context) async {
-    // String? teamRole = await SharedPreferences.getInstance()
-    //     .then((prefs) => prefs.getString('USER_ROLE'));
+    String? teamRole = await SharedPreferences.getInstance().then(
+      (prefs) => prefs.getString('user_role'),
+    );
 
     try {
       final screenSize = MediaQuery.of(context).size;
@@ -500,13 +502,15 @@ class BottomNavigation extends StatelessWidget {
                       CallAnalytics(userId: '', userName: ''),
                 ),
               ),
-              // if (teamRole == "Owner")
-              //   ListTile(
-              //     leading: const Icon(Icons.group, size: 28),
-              //     title:
-              //         Text('My Team ', style: GoogleFonts.poppins(fontSize: 18)),
-              //     onTap: () => Get.to(() => const MyTeams()),
-              //   ),
+              if (teamRole == "SM")
+                ListTile(
+                  leading: const Icon(Icons.group, size: 28),
+                  title: Text(
+                    'Reassign Enquiries ',
+                    style: GoogleFonts.poppins(fontSize: 18),
+                  ),
+                  onTap: () => Get.to(() => const AllEnq()),
+                ),
               ListTile(
                 leading: const Icon(Icons.star_border_rounded, size: 28),
                 title: Text(

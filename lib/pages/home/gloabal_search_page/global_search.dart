@@ -435,6 +435,7 @@ class _GlobalSearchState extends State<GlobalSearch> {
                       () => FollowupsDetails(
                         leadId: result['lead_id'],
                         isFromFreshlead: false,
+                        isFromManager: false,
                       ),
                     );
                   },

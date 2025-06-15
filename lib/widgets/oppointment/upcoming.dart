@@ -618,6 +618,7 @@ class _OppUpcomingItemState extends State<OppUpcomingItem>
               builder: (context) => FollowupsDetails(
                 leadId: widget.leadId,
                 isFromFreshlead: false,
+                isFromManager: false,
               ),
             ),
           );

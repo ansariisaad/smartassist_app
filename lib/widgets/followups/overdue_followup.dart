@@ -458,7 +458,7 @@ class _overdueeFollowupsItemState extends State<overdueeFollowupsItem>
 
   Widget _buildSubjectDetails(BuildContext context) {
     IconData icon;
-   if (widget.subject == 'Call') {
+    if (widget.subject == 'Call') {
       icon = Icons.phone_in_talk;
     } else if (widget.subject == 'Send SMS') {
       icon = Icons.mail_rounded;
@@ -563,6 +563,7 @@ class _overdueeFollowupsItemState extends State<overdueeFollowupsItem>
               builder: (context) => FollowupsDetails(
                 leadId: widget.leadId,
                 isFromFreshlead: false,
+                isFromManager: false,
               ),
             ),
           );
@@ -585,7 +586,7 @@ class _overdueeFollowupsItemState extends State<overdueeFollowupsItem>
     );
   }
 
-   void _phoneAction() {
+  void _phoneAction() {
     print("Call action triggered for ${widget.mobile}");
 
     if (widget.mobile.isNotEmpty) {
@@ -617,7 +618,6 @@ class _overdueeFollowupsItemState extends State<overdueeFollowupsItem>
       }
     }
   }
-  
 
   // void _phoneAction() {
   //   print("Call action triggered for ${widget.mobile}");

@@ -666,8 +666,10 @@ class _MyteamState extends State<Myteam> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => FollowupsDetails(leadId: leadId,
+                    builder: (context) => FollowupsDetails(
+                      leadId: leadId,
                       isFromFreshlead: false,
+                      isFromManager: true,
                     ),
                   ),
                 );
@@ -1000,8 +1002,9 @@ class _MyteamState extends State<Myteam> {
         automaticallyImplyLeading: false,
         backgroundColor: Colors.blue,
         title: Align(
-           alignment: Alignment.centerLeft,
-          child: Text('My team', style: AppFont.appbarfontWhite(context))),
+          alignment: Alignment.centerLeft,
+          child: Text('My team', style: AppFont.appbarfontWhite(context)),
+        ),
       ),
       body: Stack(
         children: [

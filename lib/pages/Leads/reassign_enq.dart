@@ -1,55 +1,65 @@
+//Old format of cards (with swipes)
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
-import 'package:smartassist/pages/Leads/single_details_pages/singleLead_followup.dart';
 import 'package:smartassist/utils/bottom_navigation.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:smartassist/utils/snackbar_helper.dart';
+import 'package:smartassist/pages/Leads/single_details_pages/singleLead_followup.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/services/reassign_enq_srv.dart';
 import 'package:smartassist/services/api_srv.dart';
-import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/lead_update.dart';
 
-class AllLeads extends StatefulWidget {
-  const AllLeads({super.key});
+class AllEnq extends StatefulWidget {
+  const AllEnq({super.key});
 
   @override
-  State<AllLeads> createState() => _AllLeadsState();
+  State<AllEnq> createState() => _AllEnqState();
 }
 
-class _AllLeadsState extends State<AllLeads> {
+class _AllEnqState extends State<AllEnq> {
+  int _selectedButtonIndex = 0;
   bool isLoading = true;
-  List<dynamic> upcomingTasks = [];
-  List<dynamic> _searchResults = [];
-  List<dynamic> _filteredTasks = [];
   bool _isLoadingSearch = false;
-  String _query = '';
-  final TextEditingController _searchController = TextEditingController();
-  Set<String> selectedLeads = {};
   bool isSelectionMode = false;
   final ScrollController _scrollController = ScrollController();
+  final Map<String, double> _swipeOffsets = {};
+  final TextEditingController _searchController = TextEditingController();
+  Set<String> selectedLeads = {};
+  List<dynamic> upcomingTasks = [];
+  List<dynamic> _searchResults = [];
+  List<dynamic> _filteredTasks = []; // Local filtered results
+  String _query = '';
 
   // Filter variables
-  String selectedBrandFilter = 'All';
-  String selectedAssigneeFilter = 'All';
-  String selectedDateFilter = 'All';
-  bool showFilters = false;
-
-  // Filter options (will be populated from data)
-  List<String> brandOptions = ['All'];
-  List<String> assigneeOptions = ['All'];
-  List<String> dateOptions = [
+  String _selectedBrand = 'All';
+  String _selectedAssignee = 'All';
+  String _selectedTimeFrame = 'All';
+  List<String> _availableBrands = ['All'];
+  List<String> _availableAssignees = ['All'];
+  final List<String> _timeFrameOptions = [
     'All',
     'Today',
-    'Yesterday',
     'This Week',
     'This Month',
   ];
+
+  void _onHorizontalDragUpdate(DragUpdateDetails details, String leadId) {
+    setState(() {
+      _swipeOffsets[leadId] =
+          (_swipeOffsets[leadId] ?? 0) + (details.primaryDelta ?? 0);
+    });
+  }
+
+  void _handleCall(dynamic item) {
+    print("Call action triggered for ${item['name']}");
+    // Implement actual call functionality here
+  }
 
   @override
   void initState() {
@@ -60,8 +70,9 @@ class _AllLeadsState extends State<AllLeads> {
 
   @override
   void dispose() {
-    _scrollController.dispose();
     _searchController.dispose();
+    _scrollController.dispose();
+
     super.dispose();
   }
 
@@ -79,12 +90,19 @@ class _AllLeadsState extends State<AllLeads> {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         print('this is the leadall $data');
+
         setState(() {
           upcomingTasks = data['data']['rows'] ?? [];
-          _filteredTasks = List.from(upcomingTasks);
+          _filteredTasks = List.from(upcomingTasks); // Initialize filtered list
           isLoading = false;
-          _populateFilterOptions();
         });
+
+        // Extract filter options after setting the data
+        _extractFilterOptions();
+
+        // Debug: Print the extracted filter options
+        print('Available Brands: $_availableBrands');
+        print('Available Assignees: $_availableAssignees');
       } else {
         print("Failed to load data: ${response.statusCode}");
         setState(() => isLoading = false);
@@ -95,91 +113,143 @@ class _AllLeadsState extends State<AllLeads> {
     }
   }
 
-  void _populateFilterOptions() {
-    // Extract unique brands
-    Set<String> brands = {'All'};
-    Set<String> assignees = {'All'};
+  // Enhanced method to extract unique brands and assignees from the data
+  void _extractFilterOptions() {
+    Set<String> brands = {};
+    Set<String> assignees = {};
+
+    print('Extracting filter options from ${upcomingTasks.length} tasks');
 
     for (var task in upcomingTasks) {
-      if (task['brand'] != null && task['brand'].toString().isNotEmpty) {
-        brands.add(task['brand'].toString());
+      // Debug: Print each task to see the structure
+      print('Task data: ${task.toString()}');
+
+      // Extract brand information
+      var brandValue = task['brand'];
+      if (brandValue != null) {
+        String brandString = brandValue.toString().trim();
+        if (brandString.isNotEmpty && brandString.toLowerCase() != 'null') {
+          brands.add(brandString);
+          print('Added brand: $brandString');
+        }
       }
-      if (task['lead_owner'] != null &&
-          task['lead_owner'].toString().isNotEmpty) {
-        assignees.add(task['lead_owner'].toString());
+
+      // Extract assignee information (lead_owner)
+      var assigneeValue = task['lead_owner'];
+      if (assigneeValue != null) {
+        String assigneeString = assigneeValue.toString().trim();
+        if (assigneeString.isNotEmpty &&
+            assigneeString.toLowerCase() != 'null') {
+          assignees.add(assigneeString);
+          print('Added assignee: $assigneeString');
+        }
       }
     }
 
     setState(() {
-      brandOptions = brands.toList()..sort();
-      assigneeOptions = assignees.toList()..sort();
+      // Create lists with 'All' as the first option, then sorted unique values
+      _availableBrands = ['All', ...brands.toList()..sort()];
+      _availableAssignees = ['All', ...assignees.toList()..sort()];
     });
+
+    print('Final Available Brands: $_availableBrands');
+    print('Final Available Assignees: $_availableAssignees');
   }
 
-  void _applyFilters() {
+  // Check if a date falls within the selected time frame
+  bool _isDateInTimeFrame(String dateString, String timeFrame) {
+    if (timeFrame == 'All') return true;
+
+    try {
+      DateTime date = DateTime.parse(dateString);
+      DateTime now = DateTime.now();
+      DateTime today = DateTime(now.year, now.month, now.day);
+
+      switch (timeFrame) {
+        case 'Today':
+          DateTime itemDate = DateTime(date.year, date.month, date.day);
+          return itemDate.isAtSameMomentAs(today);
+        case 'This Week':
+          DateTime startOfWeek = today.subtract(
+            Duration(days: today.weekday - 1),
+          );
+          DateTime endOfWeek = startOfWeek.add(Duration(days: 6));
+          return date.isAfter(startOfWeek.subtract(Duration(days: 1))) &&
+              date.isBefore(endOfWeek.add(Duration(days: 1)));
+        case 'This Month':
+          return date.year == now.year && date.month == now.month;
+        default:
+          return true;
+      }
+    } catch (e) {
+      print('Error parsing date: $dateString');
+      return true; // Include items with invalid dates
+    }
+  }
+
+  // Apply all filters (search + brand + assignee + time frame)
+  void _applyAllFilters() {
     List<dynamic> filtered = List.from(upcomingTasks);
 
+    // Apply search filter
+    if (_query.isNotEmpty) {
+      filtered = filtered.where((item) {
+        String name = (item['lead_name'] ?? '').toString().toLowerCase();
+        String email = (item['email'] ?? '').toString().toLowerCase();
+        String phone = (item['mobile'] ?? '').toString().toLowerCase();
+        String searchQuery = _query.toLowerCase();
+
+        return name.contains(searchQuery) ||
+            email.contains(searchQuery) ||
+            phone.contains(searchQuery);
+      }).toList();
+    }
+
     // Apply brand filter
-    if (selectedBrandFilter != 'All') {
-      filtered = filtered
-          .where((task) => task['brand']?.toString() == selectedBrandFilter)
-          .toList();
+    if (_selectedBrand != 'All') {
+      filtered = filtered.where((item) {
+        String itemBrand = (item['brand'] ?? '').toString().trim();
+        bool match = itemBrand == _selectedBrand;
+        print('Checking brand: $itemBrand == $_selectedBrand ? $match');
+        return match;
+      }).toList();
     }
 
     // Apply assignee filter
-    if (selectedAssigneeFilter != 'All') {
-      filtered = filtered
-          .where(
-            (task) => task['lead_owner']?.toString() == selectedAssigneeFilter,
-          )
-          .toList();
-    }
-
-    // Apply date filter
-    if (selectedDateFilter != 'All') {
-      DateTime now = DateTime.now();
-      filtered = filtered.where((task) {
-        if (task['created_at'] == null) return false;
-
-        DateTime taskDate = DateTime.parse(task['created_at']);
-
-        switch (selectedDateFilter) {
-          case 'Today':
-            return DateUtils.isSameDay(taskDate, now);
-          case 'Yesterday':
-            DateTime yesterday = now.subtract(const Duration(days: 1));
-            return DateUtils.isSameDay(taskDate, yesterday);
-          case 'This Week':
-            DateTime weekAgo = now.subtract(const Duration(days: 7));
-            return taskDate.isAfter(weekAgo);
-          case 'This Month':
-            return taskDate.month == now.month && taskDate.year == now.year;
-          default:
-            return true;
-        }
+    if (_selectedAssignee != 'All') {
+      filtered = filtered.where((item) {
+        String itemAssignee = (item['lead_owner'] ?? '').toString().trim();
+        bool match = itemAssignee == _selectedAssignee;
+        print(
+          'Checking assignee: $itemAssignee == $_selectedAssignee ? $match',
+        );
+        return match;
       }).toList();
     }
+
+    // Apply time frame filter
+    if (_selectedTimeFrame != 'All') {
+      filtered = filtered.where((item) {
+        String dateString = item['created_at'] ?? '';
+        return _isDateInTimeFrame(dateString, _selectedTimeFrame);
+      }).toList();
+    }
+
+    print('Filtered results count: ${filtered.length}');
 
     setState(() {
       _filteredTasks = filtered;
     });
   }
 
-  void _resetFilters() {
-    setState(() {
-      selectedBrandFilter = 'All';
-      selectedAssigneeFilter = 'All';
-      selectedDateFilter = 'All';
-      _filteredTasks = List.from(upcomingTasks);
-    });
+  // Local search function for name, email, phone
+  void _performLocalSearch(String query) {
+    _query = query;
+    _applyAllFilters();
   }
 
-  int _getActiveFilterCount() {
-    int count = 0;
-    if (selectedBrandFilter != 'All') count++;
-    if (selectedAssigneeFilter != 'All') count++;
-    if (selectedDateFilter != 'All') count++;
-    return count;
+  void _updateFilteredResults() {
+    _applyAllFilters();
   }
 
   Future<void> _fetchSearchResults(String query) async {
@@ -193,48 +263,24 @@ class _AllLeadsState extends State<AllLeads> {
     setState(() {
       _isLoadingSearch = true;
     });
-
-    try {
-      final token = await Storage.getToken();
-      final response = await http.get(
-        Uri.parse(
-          'https://api.smartassistapp.in/api/search/global?query=$query',
-        ),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
-
-      final Map<String, dynamic> data = json.decode(response.body);
-      if (response.statusCode == 200) {
-        setState(() {
-          _searchResults = data['data']['suggestions'] ?? [];
-        });
-      } else {
-        showErrorMessage(context, message: data['message']);
-      }
-    } catch (e) {
-      showErrorMessage(context, message: 'Something went wrong..!');
-    } finally {
-      setState(() {
-        _isLoadingSearch = false;
-      });
-    }
   }
 
   void _onSearchChanged() {
     final newQuery = _searchController.text.trim();
     if (newQuery == _query) return;
 
-    _query = newQuery;
+    // Perform local search immediately for better UX
+    _performLocalSearch(newQuery);
+
+    // Also perform API search with debounce
     Future.delayed(const Duration(milliseconds: 500), () {
-      if (_query == _searchController.text.trim()) {
-        _fetchSearchResults(_query);
+      if (newQuery == _searchController.text.trim()) {
+        _fetchSearchResults(newQuery);
       }
     });
   }
 
+  //select leads
   void _toggleSelection(String leadId) {
     HapticFeedback.selectionClick();
 
@@ -263,6 +309,78 @@ class _AllLeadsState extends State<AllLeads> {
     });
   }
 
+  // Reset all filters
+  void _resetFilters() {
+    setState(() {
+      _selectedBrand = 'All';
+      _selectedAssignee = 'All';
+      _selectedTimeFrame = 'All';
+      _searchController.clear();
+      _query = '';
+    });
+    _applyAllFilters();
+  }
+
+  // Get active filter count
+  int _getActiveFilterCount() {
+    int count = 0;
+    if (_selectedBrand != 'All') count++;
+    if (_selectedAssignee != 'All') count++;
+    if (_selectedTimeFrame != 'All') count++;
+    if (_query.isNotEmpty) count++;
+    return count;
+  }
+
+  // Responsive helper methods
+  double _getResponsiveFontSize(BuildContext context, bool isTablet) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth < 360) return 12; // Very small screens
+    if (screenWidth < 400) return 13; // Small screens
+    if (isTablet) return 16;
+    return 14; // Default
+  }
+
+  double _getResponsiveHintFontSize(BuildContext context, bool isTablet) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth < 360) return 10;
+    if (screenWidth < 400) return 11;
+    if (isTablet) return 14;
+    return 12;
+  }
+
+  double _getResponsiveIconSize(BuildContext context, bool isTablet) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth < 360) return 14;
+    if (screenWidth < 400) return 15;
+    if (isTablet) return 18;
+    return 16;
+  }
+
+  double _getResponsiveHorizontalPadding(BuildContext context, bool isTablet) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth < 360) return 12;
+    if (screenWidth < 400) return 14;
+    if (isTablet) return 20;
+    return 16;
+  }
+
+  double _getResponsiveVerticalPadding(BuildContext context, bool isTablet) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth < 360) return 10;
+    if (screenWidth < 400) return 12;
+    if (isTablet) return 16;
+    return 14;
+  }
+
+  double _getResponsiveIconContainerWidth(BuildContext context, bool isTablet) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth < 360) return 40;
+    if (screenWidth < 400) return 45;
+    if (isTablet) return 55;
+    return 50;
+  }
+
+  //build users profile pics
   Widget _buildUserAvatar(Map<String, dynamic> user, String userName) {
     final profilePic = user['profile_pic']?.toString();
 
@@ -335,6 +453,9 @@ class _AllLeadsState extends State<AllLeads> {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isTablet = screenSize.width > 600;
+
     return Scaffold(
       appBar: AppBar(
         leading: AnimatedSwitcher(
@@ -945,44 +1066,79 @@ class _AllLeadsState extends State<AllLeads> {
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                // Search field container
+                // Responsive Search field container
                 Container(
-                  margin: const EdgeInsets.all(10),
-                  child: SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.9,
-                    height: MediaQuery.of(context).size.height * .04,
+                  margin: EdgeInsets.all(isTablet ? 15 : 10),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: 38, // Minimum height for accessibility
+                      maxHeight: 38, // Maximum height to prevent oversizing
+                    ),
                     child: TextField(
                       autofocus: false,
                       controller: _searchController,
                       onChanged: (value) => _onSearchChanged(),
                       textAlignVertical: TextAlignVertical.center,
+                      style: GoogleFonts.poppins(
+                        fontSize: _getResponsiveFontSize(context, isTablet),
+                      ),
                       decoration: InputDecoration(
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(30),
                           borderSide: BorderSide.none,
                         ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 15,
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: _getResponsiveHorizontalPadding(
+                            context,
+                            isTablet,
+                          ),
+                          vertical: _getResponsiveVerticalPadding(
+                            context,
+                            isTablet,
+                          ),
                         ),
                         filled: true,
                         fillColor: AppColors.backgroundLightGrey,
                         hintText: 'Search by name, email or phone',
                         hintStyle: GoogleFonts.poppins(
-                          fontSize: 12,
+                          fontSize: _getResponsiveHintFontSize(
+                            context,
+                            isTablet,
+                          ),
                           fontWeight: FontWeight.w300,
                         ),
-                        prefixIcon: const Padding(
-                          padding: EdgeInsets.only(right: 0),
-                          child: Icon(
-                            FontAwesomeIcons.magnifyingGlass,
-                            color: AppColors.fontColor,
-                            size: 15,
+                        prefixIcon: Container(
+                          width: _getResponsiveIconContainerWidth(
+                            context,
+                            isTablet,
+                          ),
+                          child: Center(
+                            child: Icon(
+                              FontAwesomeIcons.magnifyingGlass,
+                              color: AppColors.fontColor,
+                              size: _getResponsiveIconSize(context, isTablet),
+                            ),
+                          ),
+                        ),
+                        prefixIconConstraints: BoxConstraints(
+                          minWidth: _getResponsiveIconContainerWidth(
+                            context,
+                            isTablet,
+                          ),
+                          maxWidth: _getResponsiveIconContainerWidth(
+                            context,
+                            isTablet,
                           ),
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(30),
                           borderSide: BorderSide.none,
                         ),
+                        isDense: true,
                       ),
                     ),
                   ),
@@ -990,225 +1146,123 @@ class _AllLeadsState extends State<AllLeads> {
 
                 // Filter Section
                 Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 10),
+                  margin: EdgeInsets.symmetric(
+                    horizontal: isTablet ? 15 : 10,
+                    vertical: isTablet ? 8 : 5,
+                  ),
                   child: Column(
                     children: [
-                      // Filter toggle button
+                      // Filter Buttons Row
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                showFilters = !showFilters;
-                              });
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: showFilters
-                                    ? const Color(0xFF1380FE)
-                                    : AppColors.backgroundLightGrey,
-                                borderRadius: BorderRadius.circular(20),
-                                // border: Border.all(
-                                //   color: const Color(
-                                //     0xFF1380FE,
-                                //   ).withOpacity(0.3),
-                                // ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    FontAwesomeIcons.filter,
-                                    size: 14,
-                                    color: showFilters
-                                        ? Colors.white
-                                        : const Color(0xFF1380FE),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    'Filters',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w500,
-                                      color: showFilters
-                                          ? Colors.white
-                                          : const Color(0xFF1380FE),
-                                    ),
-                                  ),
-                                  if (_getActiveFilterCount() > 0) ...[
-                                    const SizedBox(width: 4),
-                                    Container(
-                                      padding: const EdgeInsets.all(4),
-                                      decoration: BoxDecoration(
-                                        color: showFilters
-                                            ? Colors.white
-                                            : const Color(0xFF1380FE),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Text(
-                                        '${_getActiveFilterCount()}',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                          color: showFilters
-                                              ? const Color(0xFF1380FE)
-                                              : Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
+                          // Brand Filter
+                          Expanded(
+                            child: _buildFilterDropdown(
+                              'Brand',
+                              _selectedBrand,
+                              _availableBrands,
+                              (value) {
+                                setState(() {
+                                  _selectedBrand = value!;
+                                });
+                                _applyAllFilters();
+                              },
+                              isTablet,
                             ),
                           ),
-                          if (_getActiveFilterCount() > 0)
-                            GestureDetector(
-                              onTap: _resetFilters,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.red.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: Colors.red.withOpacity(0.3),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(
-                                      FontAwesomeIcons.xmark,
-                                      size: 12,
-                                      color: Colors.red,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      'Clear',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.red,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                          SizedBox(width: isTablet ? 10 : 8),
+
+                          // Assignee Filter
+                          Expanded(
+                            child: _buildFilterDropdown(
+                              'Owner',
+                              _selectedAssignee,
+                              _availableAssignees,
+                              (value) {
+                                setState(() {
+                                  _selectedAssignee = value!;
+                                });
+                                _applyAllFilters();
+                              },
+                              isTablet,
                             ),
+                          ),
+                          SizedBox(width: isTablet ? 10 : 8),
+
+                          // Time Frame Filter
+                          Expanded(
+                            child: _buildFilterDropdown(
+                              'Time',
+                              _selectedTimeFrame,
+                              _timeFrameOptions,
+                              (value) {
+                                setState(() {
+                                  _selectedTimeFrame = value!;
+                                });
+                                _applyAllFilters();
+                              },
+                              isTablet,
+                            ),
+                          ),
                         ],
                       ),
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 300),
-                        transitionBuilder: (child, animation) {
-                          final slideAnimation = Tween<Offset>(
-                            begin: const Offset(0, -0.1),
-                            end: Offset.zero,
-                          ).animate(animation);
 
-                          return FadeTransition(
-                            opacity: animation,
-                            child: SlideTransition(
-                              position: slideAnimation,
-                              child: SizeTransition(
-                                sizeFactor: animation,
-                                axisAlignment: -1.0,
-                                child: child,
-                              ),
-                            ),
-                          );
-                        },
-                        child: showFilters
-                            ? Container(
-                                key: const ValueKey('filters_shown'),
-                                margin: const EdgeInsets.only(top: 10),
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: AppColors.backgroundLightGrey
-                                      .withOpacity(0.5),
-                                  borderRadius: BorderRadius.circular(12),
+                      // Clear Filters Button (only show if filters are active)
+                      if (_getActiveFilterCount() > 0)
+                        Padding(
+                          padding: EdgeInsets.only(top: isTablet ? 8 : 5),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                '${_getActiveFilterCount()} filter(s) active',
+                                style: GoogleFonts.poppins(
+                                  fontSize: isTablet ? 12 : 10,
+                                  color: Colors.grey[600],
+                                  fontStyle: FontStyle.italic,
                                 ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    _buildFilterRow(
-                                      'Brand',
-                                      selectedBrandFilter,
-                                      brandOptions,
-                                      (value) {
-                                        setState(() {
-                                          selectedBrandFilter = value;
-                                        });
-                                        _applyFilters();
-                                      },
-                                    ),
-                                    const SizedBox(height: 12),
-                                    _buildFilterRow(
-                                      'Assignee',
-                                      selectedAssigneeFilter,
-                                      assigneeOptions,
-                                      (value) {
-                                        setState(() {
-                                          selectedAssigneeFilter = value;
-                                        });
-                                        _applyFilters();
-                                      },
-                                    ),
-                                    const SizedBox(height: 12),
-                                    _buildFilterRow(
-                                      'Date',
-                                      selectedDateFilter,
-                                      dateOptions,
-                                      (value) {
-                                        setState(() {
-                                          selectedDateFilter = value;
-                                        });
-                                        _applyFilters();
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              )
-                            : const SizedBox.shrink(
-                                key: ValueKey('filters_hidden'),
                               ),
-                      ),
+                              TextButton(
+                                onPressed: _resetFilters,
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: isTablet ? 12 : 8,
+                                    vertical: isTablet ? 4 : 2,
+                                  ),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: Text(
+                                  'Clear All',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: isTablet ? 14 : 12,
+                                    color: AppColors.colorsBlue,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                     ],
                   ),
                 ),
 
-                if (_query.isNotEmpty)
+                // Search query indicator
+                if (_query.isNotEmpty || _getActiveFilterCount() > 0)
                   Padding(
-                    padding: const EdgeInsets.only(left: 10, top: 10),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        textAlign: TextAlign.left,
-                        'Showing results for: $_query',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
+                    padding: EdgeInsets.only(
+                      left: isTablet ? 15 : 10,
+                      bottom: isTablet ? 8 : 5,
+                      right: isTablet ? 15 : 10,
                     ),
-                  ),
-
-                // Results count
-                if (_query.isEmpty && _getActiveFilterCount() > 0)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 10, top: 10),
                     child: Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        'Showing ${_filteredTasks.length} of ${upcomingTasks.length} leads',
+                        _buildFilterSummary(),
                         style: GoogleFonts.poppins(
-                          fontSize: 12,
+                          fontSize: isTablet ? 14 : 12,
                           fontStyle: FontStyle.italic,
                           color: Colors.grey[600],
                         ),
@@ -1216,7 +1270,7 @@ class _AllLeadsState extends State<AllLeads> {
                     ),
                   ),
 
-                // Expanded widget containing the appropriate list with Scrollbar
+                // Results list - using filtered local results
                 Expanded(
                   child: Scrollbar(
                     controller: _scrollController,
@@ -1225,75 +1279,261 @@ class _AllLeadsState extends State<AllLeads> {
                     thickness: 8.0,
                     radius: const Radius.circular(4.0),
                     interactive: true,
-                    child: _query.isNotEmpty
-                        ? _buildTasksList(_searchResults)
-                        : _buildTasksList(_filteredTasks),
+                    child:
+                        //  _query.isNotEmpty
+                        // ? _buildTasksList(_searchResults)
+                        _buildTasksList(_filteredTasks),
                   ),
                 ),
+
+                //  _buildTasksList(_filteredTasks)
               ],
             ),
     );
   }
 
-  Widget _buildFilterRow(
+  Widget _buildFilterDropdown(
     String label,
     String selectedValue,
     List<String> options,
-    Function(String) onChanged,
+    ValueChanged<String?> onChanged,
+    bool isTablet,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.poppins(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: Colors.grey[700],
-          ),
+    // Debug: Print dropdown options
+    print('Building dropdown for $label with options: $options');
+
+    return Container(
+      height: isTablet ? 40 : 36,
+      decoration: BoxDecoration(
+        color: selectedValue != 'All'
+            ? AppColors.colorsBlue.withOpacity(0.08)
+            : Colors.white,
+        borderRadius: BorderRadius.circular(25),
+        border: Border.all(
+          color: selectedValue != 'All'
+              ? AppColors.colorsBlue.withOpacity(0.4)
+              : Colors.grey.withOpacity(0.2),
+          width: 1.5,
         ),
-        const SizedBox(height: 6),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: options.map((option) {
-            bool isSelected = option == selectedValue;
-            return GestureDetector(
-              onTap: () => onChanged(option),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
+        boxShadow: [
+          BoxShadow(
+            color: selectedValue != 'All'
+                ? AppColors.colorsBlue.withOpacity(0.1)
+                : Colors.grey.withOpacity(0.05),
+            spreadRadius: 1,
+            blurRadius: 3,
+            offset: Offset(0, 1),
+          ),
+        ],
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: selectedValue,
+          isExpanded: true,
+          icon: Container(
+            margin: EdgeInsets.only(right: isTablet ? 8 : 6),
+            child: Icon(
+              Icons.keyboard_arrow_down_rounded,
+              size: isTablet ? 22 : 20,
+              color: selectedValue != 'All'
+                  ? AppColors.colorsBlue
+                  : Colors.grey[500],
+            ),
+          ),
+          style: GoogleFonts.poppins(
+            fontSize: isTablet ? 13 : 11,
+            color: selectedValue != 'All'
+                ? AppColors.colorsBlue
+                : Colors.grey[700],
+            fontWeight: selectedValue != 'All'
+                ? FontWeight.w600
+                : FontWeight.w400,
+          ),
+          dropdownColor: Colors.white,
+          borderRadius: BorderRadius.circular(15),
+          elevation: 8,
+          menuMaxHeight: 250,
+          items: options.map<DropdownMenuItem<String>>((String value) {
+            bool isSelected = value == selectedValue;
+            bool isAllOption = value == 'All';
+
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Container(
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(
+                  horizontal: isTablet ? 12 : 10,
+                  vertical: isTablet ? 8 : 6,
                 ),
                 decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFF1380FE) : Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: isSelected
-                        ? const Color(0xFF1380FE)
-                        : Colors.grey[300]!,
-                  ),
+                  color: isSelected
+                      ? AppColors.colorsBlue.withOpacity(0.1)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text(
-                  option,
-                  style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: isSelected ? Colors.white : Colors.grey[700],
-                  ),
+                child: Row(
+                  children: [
+                    if (isSelected && !isAllOption)
+                      Container(
+                        margin: EdgeInsets.only(right: 8),
+                        child: Icon(
+                          Icons.check_circle,
+                          size: isTablet ? 16 : 14,
+                          color: AppColors.colorsBlue,
+                        ),
+                      ),
+                    Expanded(
+                      child: Text(
+                        isAllOption ? label : value,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                          fontSize: isTablet ? 13 : 11,
+                          fontWeight: isSelected
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                          color: isSelected
+                              ? AppColors.colorsBlue
+                              : (isAllOption
+                                    ? Colors.grey[600]
+                                    : Colors.grey[800]),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             );
           }).toList(),
+          selectedItemBuilder: (BuildContext context) {
+            return options.map<Widget>((String value) {
+              return Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isTablet ? 12 : 10,
+                  vertical: 0,
+                ),
+                alignment: Alignment.centerLeft,
+                child: Row(
+                  children: [
+                    if (selectedValue != 'All')
+                      Container(
+                        margin: EdgeInsets.only(right: 6),
+                        width: isTablet ? 6 : 5,
+                        height: isTablet ? 6 : 5,
+                        decoration: BoxDecoration(
+                          color: AppColors.colorsBlue,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    Expanded(
+                      child: Text(
+                        value == 'All' ? label : value,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                          fontSize: isTablet ? 13 : 11,
+                          fontWeight: selectedValue != 'All'
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                          color: selectedValue != 'All'
+                              ? AppColors.colorsBlue
+                              : Colors.grey[700],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList();
+          },
+          onChanged: onChanged,
         ),
-      ],
+      ),
     );
+  }
+
+  String _buildFilterSummary() {
+    List<String> activeSummary = [];
+
+    if (_query.isNotEmpty) {
+      activeSummary.add('Search: "$_query"');
+    }
+    if (_selectedBrand != 'All') {
+      activeSummary.add('Brand: $_selectedBrand');
+    }
+    if (_selectedAssignee != 'All') {
+      activeSummary.add('Assignee: $_selectedAssignee');
+    }
+    if (_selectedTimeFrame != 'All') {
+      activeSummary.add('Time: $_selectedTimeFrame');
+    }
+
+    String summary = activeSummary.join(' | ');
+    return 'Filtered by: $summary (${_filteredTasks.length} results)';
   }
 
   Widget _buildTasksList(List<dynamic> tasks) {
     if (tasks.isEmpty) {
-      return const Center(child: Text('No Data available'));
+      final screenSize = MediaQuery.of(context).size;
+      final isTablet = screenSize.width > 600;
+
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              _getActiveFilterCount() > 0
+                  ? FontAwesomeIcons.filter
+                  : FontAwesomeIcons.magnifyingGlass,
+              size: isTablet ? 60 : 40,
+              color: Colors.grey[400],
+            ),
+            SizedBox(height: isTablet ? 20 : 15),
+            Text(
+              _getActiveFilterCount() > 0
+                  ? 'No results found with current filters'
+                  : (_query.isEmpty
+                        ? 'No Enquiries available'
+                        : 'No results found for "$_query"'),
+              style: GoogleFonts.poppins(
+                fontSize: isTablet ? 18 : 16,
+                color: Colors.grey[600],
+              ),
+              textAlign: TextAlign.center,
+            ),
+            if (_getActiveFilterCount() > 0) ...[
+              SizedBox(height: isTablet ? 10 : 8),
+              Text(
+                'Try adjusting your filters or search terms',
+                style: GoogleFonts.poppins(
+                  fontSize: isTablet ? 14 : 12,
+                  color: Colors.grey[500],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: isTablet ? 15 : 10),
+              TextButton(
+                onPressed: _resetFilters,
+                child: Text(
+                  'Clear All Filters',
+                  style: GoogleFonts.poppins(
+                    fontSize: isTablet ? 14 : 12,
+                    color: AppColors.colorsBlue,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ] else if (_query.isNotEmpty) ...[
+              SizedBox(height: isTablet ? 10 : 8),
+              Text(
+                'Try searching with different keywords',
+                style: GoogleFonts.poppins(
+                  fontSize: isTablet ? 14 : 12,
+                  color: Colors.grey[500],
+                ),
+              ),
+            ],
+          ],
+        ),
+      );
     }
 
     return ListView.builder(
@@ -1308,42 +1548,58 @@ class _AllLeadsState extends State<AllLeads> {
         }
 
         String leadId = item['lead_id'] ?? '';
+        double swipeOffset = _swipeOffsets[leadId] ?? 0;
         bool isSelected = selectedLeads.contains(leadId);
 
-        return TaskItem(
-          name: item['lead_name'] ?? 'NA',
-          date: item['created_at'] ?? 'NA',
-          subject: item['email'] ?? 'NA',
-          vehicle: item['PMI'] ?? 'NA',
-          leadId: leadId,
-          brand: item['brand'] ?? 'NA',
-          number: item['mobile'] ?? 'NA',
-          assignee: item['lead_owner'] ?? 'NA',
-          isSelected: isSelected,
-          isSelectionMode: isSelectionMode,
-          fetchDashboardData: () {},
-          onLongPress: () => _toggleSelection(leadId),
-          onTap: selectedLeads.isNotEmpty
-              ? () => _toggleSelection(leadId)
-              : null,
+        return GestureDetector(
+          onHorizontalDragUpdate: (details) =>
+              _onHorizontalDragUpdate(details, leadId),
+          child: TaskItem(
+            name: item['lead_name'] ?? '',
+            date: item['created_at'] ?? '',
+            subject: item['email'] ?? 'No subject',
+            vehicle: item['PMI'] ?? 'Discovery Sport',
+            leadId: leadId,
+            taskId: leadId,
+            brand: item['brand'] ?? '',
+            assignee: item['lead_owner'] ?? '',
+            number: item['mobile'] ?? '',
+            isFavorite: item['favourite'] ?? false,
+            swipeOffset: swipeOffset,
+            isSelected: isSelected,
+            isSelectionMode: isSelectionMode,
+            fetchDashboardData: () {},
+            onLongPress: () => _toggleSelection(leadId),
+            onTap: selectedLeads.isNotEmpty
+                ? () => _toggleSelection(leadId)
+                : null,
+          ),
         );
       },
     );
   }
 }
 
+// Rest of the classes remain the same...
 class TaskItem extends StatefulWidget {
   final String name, subject, number;
   final String date;
   final String vehicle;
   final String leadId;
+  final String taskId;
   final String brand;
   final String assignee;
+  final double swipeOffset;
+  final bool isFavorite;
   final bool isSelected;
   final bool isSelectionMode;
   final VoidCallback fetchDashboardData;
   final VoidCallback onLongPress;
   final VoidCallback? onTap;
+
+  // final VoidCallback onFavoriteToggled;
+  // final Function(bool) onFavoriteChanged;
+  // final VoidCallback onToggleFavorite;
 
   const TaskItem({
     super.key,
@@ -1351,38 +1607,72 @@ class TaskItem extends StatefulWidget {
     required this.date,
     required this.vehicle,
     required this.leadId,
+    required this.taskId,
+    required this.isFavorite,
     required this.isSelected,
     required this.isSelectionMode,
     required this.brand,
     required this.assignee,
     required this.subject,
+    required this.swipeOffset,
     required this.fetchDashboardData,
-    required this.onLongPress,
     required this.number,
+    required this.onLongPress,
     this.onTap,
+    // required this.onFavoriteToggled,
+    // required this.onFavoriteChanged,
+    // required this.onToggleFavorite,
   });
 
   @override
   State<TaskItem> createState() => _TaskItemState();
 }
 
-class _TaskItemState extends State<TaskItem> {
+class _TaskItemState extends State<TaskItem>
+    with SingleTickerProviderStateMixin {
   late bool isFav;
+  late SlidableController _slidableController;
+
+  void updateFavoriteStatus(bool newStatus) {
+    setState(() {
+      isFav = newStatus;
+    });
+  }
 
   @override
   void initState() {
     super.initState();
+    isFav = widget.isFavorite;
+    _slidableController = SlidableController(this);
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isTablet = screenSize.width > 600;
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 5, 10, 0),
+      padding: EdgeInsets.fromLTRB(
+        isTablet ? 15 : 10,
+        isTablet ? 8 : 5,
+        isTablet ? 15 : 10,
+        0,
+      ),
       child: _buildFollowupCard(context),
     );
   }
 
+  @override
+  void dispose() {
+    _slidableController.dispose();
+    super.dispose();
+  }
+
   Widget _buildFollowupCard(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isTablet = screenSize.width > 600;
+    bool isCallSwipe = widget.swipeOffset < -50;
+
     return GestureDetector(
       onLongPress: () {
         HapticFeedback.heavyImpact();
@@ -1399,6 +1689,7 @@ class _TaskItemState extends State<TaskItem> {
                   builder: (context) => FollowupsDetails(
                     leadId: widget.leadId,
                     isFromFreshlead: false,
+                    isFromManager: true,
                   ),
                 ),
               );
@@ -1406,104 +1697,138 @@ class _TaskItemState extends State<TaskItem> {
               print("Invalid leadId");
             }
           },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-        decoration: BoxDecoration(
-          // borderRadius: BorderRadius.circular(10),
-          color: widget.isSelected
-              ? AppColors.backgroundLightGrey.withOpacity(0.8)
-              : AppColors.white,
-          border: Border(
-            bottom: BorderSide(
-              width: 1,
-              color: widget.isSelected
-                  ? AppColors.sideGreen.withOpacity(0.8)
-                  : AppColors.backgroundLightGrey.withOpacity(0.8),
-            ),
-          ),
-          boxShadow: widget.isSelected
-              ? [
-                  BoxShadow(
-                    color: const Color.fromARGB(0, 255, 255, 255),
-                    blurRadius: 8,
-                    offset: const Offset(1, 1),
-                  ),
-                ]
-              : null,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
+      child: Slidable(
+        key: ValueKey(widget.leadId),
+        controller: _slidableController, // Add the controller here
+        endActionPane: ActionPane(
+          motion: const StretchMotion(),
+          extentRatio: isTablet ? 0.15 : 0.2,
           children: [
+            ReusableSlidableAction(
+              onPressed: () {
+                HapticFeedback.heavyImpact();
+                widget.onLongPress(); // Handle slide action
+              },
+              backgroundColor: const Color.fromARGB(255, 231, 225, 225),
+              icon: Icons.check_circle_outline_rounded,
+              foregroundColor: Colors.white,
+              iconSize: isTablet ? 45 : 40,
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            // Main Container with AnimatedContainer styling
             AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
+              duration: const Duration(milliseconds: 30),
               curve: Curves.easeInOut,
-              width: widget.isSelected ? 36 : 0,
-              margin: EdgeInsets.only(right: widget.isSelected ? 12 : 0),
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 200),
-                opacity: widget.isSelected ? 1.0 : 0.0,
-                child: AnimatedScale(
-                  duration: const Duration(milliseconds: 300),
-                  scale: widget.isSelected ? 1.0 : 0.8,
-                  child: const Icon(
-                    Icons.check_circle,
-                    color: Colors.green,
-                    size: 30,
+              padding: EdgeInsets.symmetric(
+                horizontal: isTablet ? 15 : 10,
+                vertical: isTablet ? 20 : 15,
+              ),
+              decoration: BoxDecoration(
+                color: widget.isSelected
+                    ? AppColors.backgroundLightGrey.withOpacity(0.8)
+                    : AppColors.backgroundLightGrey,
+                borderRadius: BorderRadius.circular(7),
+                border: Border(
+                  left: BorderSide(
+                    width: isTablet ? 10.0 : 8.0,
+                    color: widget.isSelected
+                        ? AppColors.sideGreen.withOpacity(0.8)
+                        : AppColors.colorsBlue.withOpacity(0.6),
                   ),
+                  bottom: widget.isSelected
+                      ? BorderSide(
+                          width: 1,
+                          color: AppColors.sideGreen.withOpacity(0.8),
+                        )
+                      : BorderSide.none,
                 ),
               ),
-            ),
-
-            Expanded(
-              child: Row(
-                children: [
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Flexible(child: _buildUserDetails(context)),
-                            _buildVerticalDivider(15),
-                            Flexible(child: _buildSubjectDetails(context)),
-                          ],
+              child: Opacity(
+                opacity: (isCallSwipe) ? 0 : 1.0,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Animated check icon (appears when selected)
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      width: widget.isSelected ? 36 : 0,
+                      margin: EdgeInsets.only(
+                        right: widget.isSelected ? 12 : 0,
+                      ),
+                      child: AnimatedOpacity(
+                        duration: const Duration(milliseconds: 200),
+                        opacity: widget.isSelected ? 1.0 : 0.0,
+                        child: AnimatedScale(
+                          duration: const Duration(milliseconds: 300),
+                          scale: widget.isSelected ? 1.0 : 0.8,
+                          child: const Icon(
+                            Icons.check_circle_rounded,
+                            color: Colors.green,
+                            size: 30,
+                          ),
                         ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Flexible(child: _buildCarModel(context)),
-                            _buildVerticalDivider(15),
-                            Text(
-                              "By- ",
-                              style: AppFont.dashboardCarName(context),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            Flexible(child: _buildAssignee(context)),
-                          ],
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
 
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              width: widget.isSelected ? 0 : 36,
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 200),
-                opacity: widget.isSelected ? 0.0 : 1.0,
-                child: AnimatedScale(
-                  duration: const Duration(milliseconds: 300),
-                  scale: widget.isSelected ? 0.8 : 1.0,
-                  child: _buildNavigationButton(context),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          SizedBox(width: isTablet ? 12 : 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Flexible(child: _buildUserDetails(context)),
+                                    _buildVerticalDivider(isTablet ? 18 : 15),
+                                    Flexible(
+                                      child: _buildSubjectDetails(context),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: isTablet ? 6 : 4),
+                                Row(
+                                  children: [
+                                    Flexible(child: _buildCarModel(context)),
+                                    _buildVerticalDivider(15),
+                                    Text(
+                                      "By- ",
+                                      style: AppFont.dashboardCarName(context),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    Flexible(child: _buildAssignee(context)),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Animated navigation button (hides when selected)
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      width: widget.isSelected ? 0 : 36,
+                      child: AnimatedOpacity(
+                        duration: const Duration(milliseconds: 200),
+                        opacity: widget.isSelected ? 0.0 : 1.0,
+                        child: AnimatedScale(
+                          duration: const Duration(milliseconds: 300),
+                          scale: widget.isSelected ? 0.8 : 1.0,
+                          child: _buildNavigationButton(context),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -1513,81 +1838,109 @@ class _TaskItemState extends State<TaskItem> {
     );
   }
 
-  Widget _buildNavigationButton(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        if (widget.leadId.isNotEmpty) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => FollowupsDetails(
-                leadId: widget.leadId,
-                isFromFreshlead: false,
-              ),
-            ),
-          );
-        } else {
-          print("Invalid leadId");
-        }
-      },
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          double screenWidth = MediaQuery.of(context).size.width;
-          double padding = screenWidth < 360 ? 4 : (screenWidth < 600 ? 6 : 8);
-          double borderRadius = screenWidth < 360
-              ? 20
-              : (screenWidth < 600 ? 30 : 35);
-          double iconSize = screenWidth < 360
-              ? 16
-              : (screenWidth < 600 ? 20 : 24);
-
-          return Container(
-            padding: EdgeInsets.all(padding),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1380FE),
-              borderRadius: BorderRadius.circular(borderRadius),
-            ),
-            child: Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: iconSize,
-              color: Colors.white,
-            ),
-          );
-        },
-      ),
-    );
-  }
-
   Widget _buildUserDetails(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isTablet = screenSize.width > 600;
+
     return Text(
       widget.name,
       textAlign: TextAlign.start,
-      style: AppFont.dashboardName(context),
+      style:
+          AppFont.dashboardName(
+            context,
+          )?.copyWith(fontSize: isTablet ? 18 : null) ??
+          GoogleFonts.poppins(
+            fontSize: isTablet ? 18 : 16,
+            fontWeight: FontWeight.w500,
+          ),
       overflow: TextOverflow.ellipsis,
     );
   }
 
   Widget _buildSubjectDetails(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isTablet = screenSize.width > 600;
     String mobile = widget.number;
     String hiddenMobile = _hideMobileNumber(mobile);
+
     return Text(
       hiddenMobile,
-      style: AppFont.smallText(context),
+      style:
+          AppFont.smallText(
+            context,
+          )?.copyWith(fontSize: isTablet ? 14 : null) ??
+          GoogleFonts.poppins(
+            fontSize: isTablet ? 14 : 12,
+            color: Colors.grey[600],
+          ),
       overflow: TextOverflow.ellipsis,
     );
   }
 
   String _hideMobileNumber(String mobile) {
     if (mobile.length >= 10) {
-      return '${mobile.substring(0, 3)}*****${mobile.substring(8)}';
+      return mobile.substring(0, 3) + '*****' + mobile.substring(8);
     } else {
       return mobile;
     }
   }
 
+  //navigation button to show action slider
+  Widget _buildNavigationButton(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isTablet = screenSize.width > 600;
+
+    bool isActionPaneOpen = false;
+
+    return GestureDetector(
+      onTap: () {
+        print("state of action pane : ");
+        print(isActionPaneOpen);
+        HapticFeedback.heavyImpact();
+
+        if (isActionPaneOpen) {
+          print("inside if");
+          print(isActionPaneOpen);
+          _slidableController.openEndActionPane();
+          setState(() {
+            isActionPaneOpen = true;
+          });
+        } else {
+          print("inside else");
+          print(isActionPaneOpen);
+          _slidableController.close();
+          setState(() {
+            isActionPaneOpen = false;
+          });
+        }
+        print("after else");
+        print(isActionPaneOpen);
+      },
+      child: Container(
+        padding: EdgeInsets.all(isTablet ? 6 : 3),
+        decoration: BoxDecoration(
+          color: AppColors.arrowContainerColor,
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: Icon(
+          Icons.arrow_back_ios_new_rounded,
+          size: isTablet ? 30 : 25,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
   Widget _buildVerticalDivider(double height) {
+    final screenSize = MediaQuery.of(context).size;
+    final isTablet = screenSize.width > 600;
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 3, left: 10, right: 10),
+      margin: EdgeInsets.only(
+        bottom: 3,
+        left: isTablet ? 15 : 10,
+        right: isTablet ? 15 : 10,
+      ),
       height: height,
       width: 0.1,
       decoration: const BoxDecoration(
@@ -1597,10 +1950,21 @@ class _TaskItemState extends State<TaskItem> {
   }
 
   Widget _buildCarModel(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isTablet = screenSize.width > 600;
+
     return Text(
       widget.vehicle,
       textAlign: TextAlign.start,
-      style: AppFont.dashboardCarName(context),
+      style:
+          AppFont.dashboardCarName(
+            context,
+          )?.copyWith(fontSize: isTablet ? 16 : null) ??
+          GoogleFonts.poppins(
+            fontSize: isTablet ? 16 : 14,
+            fontWeight: FontWeight.w400,
+          ),
+      softWrap: true,
       overflow: TextOverflow.ellipsis,
     );
   }
@@ -1609,8 +1973,79 @@ class _TaskItemState extends State<TaskItem> {
     return Text(
       widget.assignee,
       textAlign: TextAlign.start,
-      style: AppFont.dashboardCarName(context),
+      style: AppFont.assigneeName(context),
+
       overflow: TextOverflow.ellipsis,
+    );
+  }
+}
+
+// Keep the existing FlexibleButton and ReusableSlidableAction classes
+class FlexibleButton extends StatelessWidget {
+  final String title;
+  final VoidCallback onPressed;
+  final BoxDecoration decoration;
+  final TextStyle textStyle;
+
+  const FlexibleButton({
+    super.key,
+    required this.title,
+    required this.onPressed,
+    required this.decoration,
+    required this.textStyle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+      height: 30,
+      decoration: decoration,
+      child: TextButton(
+        style: TextButton.styleFrom(
+          backgroundColor: const Color(0xffF3F9FF),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          minimumSize: const Size(0, 0),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        onPressed: onPressed,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(title, style: textStyle, textAlign: TextAlign.center),
+            const SizedBox(width: 4),
+            const Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ReusableSlidableAction extends StatelessWidget {
+  final VoidCallback onPressed;
+  final Color backgroundColor;
+  final IconData icon;
+  final Color? foregroundColor;
+  final double iconSize;
+
+  const ReusableSlidableAction({
+    Key? key,
+    required this.onPressed,
+    required this.backgroundColor,
+    required this.icon,
+    this.foregroundColor,
+    this.iconSize = 40.0,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomSlidableAction(
+      borderRadius: BorderRadius.circular(10),
+      onPressed: (context) => onPressed(),
+      backgroundColor: backgroundColor,
+      padding: EdgeInsets.zero,
+      child: Icon(icon, size: iconSize, color: foregroundColor ?? Colors.white),
     );
   }
 }

@@ -568,8 +568,10 @@ class _TaskItemState extends State<TaskItem> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => FollowupsDetails(leadId: widget.leadId,
+              builder: (context) => FollowupsDetails(
+                leadId: widget.leadId,
                 isFromFreshlead: false,
+                isFromManager: false,
               ),
             ),
           );

@@ -553,8 +553,11 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) =>
-                    FollowupsDetails(leadId: leadId, isFromFreshlead: false),
+                builder: (context) => FollowupsDetails(
+                  leadId: leadId,
+                  isFromFreshlead: false,
+                  isFromManager: false,
+                ),
               ),
             );
           },
@@ -644,8 +647,11 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) =>
-                    FollowupsDetails(leadId: leadId, isFromFreshlead: false),
+                builder: (context) => FollowupsDetails(
+                  leadId: leadId,
+                  isFromFreshlead: false,
+                  isFromManager: false,
+                ),
               ),
             );
           },

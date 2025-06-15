@@ -3,7 +3,8 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/getX/fab.controller.dart';
-import 'package:smartassist/pages/Leads/single_details_pages/singleLead_followup.dart';
+import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
+//
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/widgets/calender/calender.dart';
 import 'package:table_calendar/table_calendar.dart';

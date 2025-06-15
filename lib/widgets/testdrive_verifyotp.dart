@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
-import 'package:smartassist/pages/Leads/home_screen.dart';
+import 'package:smartassist/pages/Home/home_screen.dart';
 import 'package:smartassist/utils/bottom_navigation.dart';
 import 'package:smartassist/utils/button.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';

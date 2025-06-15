@@ -8,7 +8,7 @@ import 'package:smartassist/pages/navbar_page/call_analytics.dart';
 import 'package:smartassist/pages/navbar_page/favorite.dart';
 import 'package:smartassist/pages/navbar_page/leads_all.dart';
 import 'package:smartassist/pages/navbar_page/logout_page.dart';
-import 'package:smartassist/pages/Leads/reassign_enq.dart';
+import 'package:smartassist/pages/Home/reassign_enq.dart';
 
 // Import with alias to avoid conflicts
 import 'package:smartassist/utils/navigation_controller.dart' as nav_utils;

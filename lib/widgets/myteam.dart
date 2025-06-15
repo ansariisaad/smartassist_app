@@ -9,7 +9,8 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/config/getX/fab.controller.dart';
 import 'package:http/http.dart' as http;
-import 'package:smartassist/pages/Leads/single_details_pages/singleLead_followup.dart';
+import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
+//
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/call_history.dart';
 

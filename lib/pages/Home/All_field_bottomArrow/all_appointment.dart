@@ -142,12 +142,15 @@ class _AllAppointmentState extends State<AllAppointment> {
         ),
 
         backgroundColor: const Color(0xFF1380FE),
-        title: const Text(
-          'Your Appointments',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w500,
-            color: Colors.white,
+        title: Align(
+          alignment: Alignment.centerLeft,
+          child: const Text(
+            'Your Appointments',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
           ),
         ),
       ),

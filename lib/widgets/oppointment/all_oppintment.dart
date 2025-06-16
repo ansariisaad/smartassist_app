@@ -365,6 +365,8 @@ class _AllFollowupsItemState extends State<allOppointment>
                 leadId: widget.leadId,
                 isFromFreshlead: false,
                 isFromManager: false,
+                refreshDashboard: () async {},
+                isFromTestdriveOverview: false,
               ),
             ),
           );

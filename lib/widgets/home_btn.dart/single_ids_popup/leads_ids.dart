@@ -1457,6 +1457,8 @@ class _LeadsIdsState extends State<LeadsIds> {
                   leadId: leadId,
                   isFromFreshlead: false,
                   isFromManager: false,
+                  refreshDashboard: () async {},
+                  isFromTestdriveOverview: false,
                 ),
               ),
             );

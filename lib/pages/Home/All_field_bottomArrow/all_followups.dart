@@ -13,7 +13,8 @@ import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/create_Follow
 import 'package:smartassist/widgets/buttons/add_btn.dart';
 
 class AddFollowups extends StatefulWidget {
-  const AddFollowups({super.key});
+  final Future<void> Function() refreshDashboard;
+  const AddFollowups({super.key, required this.refreshDashboard});
 
   @override
   State<AddFollowups> createState() => _AddFollowupsState();
@@ -138,10 +139,14 @@ class _AddFollowupsState extends State<AddFollowups> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          onPressed: () => Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => BottomNavigation()),
-          ),
+          onPressed: () {
+            Navigator.pop(context);
+            widget.refreshDashboard();
+          },
+          // onPressed: () => Navigator.pushReplacement(
+          //   context,
+          //   MaterialPageRoute(builder: (context) => BottomNavigation()),
+          // ),
           icon: const Icon(Icons.arrow_back_ios_outlined, color: Colors.white),
         ),
 
@@ -296,6 +301,7 @@ class _AddFollowupsState extends State<AddFollowups> {
                 ),
               )
             : FollowupsUpcoming(
+                refreshDashboard: widget.refreshDashboard,
                 upcomingFollowups: _filteredUpcomingTasks,
                 isNested: true,
               );
@@ -308,6 +314,7 @@ class _AddFollowupsState extends State<AddFollowups> {
                 ),
               )
             : OverdueFollowup(
+                refreshDashboard: widget.refreshDashboard,
                 overdueeFollowups: _filteredOverdueTasks,
                 isNested: true,
               );

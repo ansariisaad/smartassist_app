@@ -81,6 +81,7 @@ dependencies:
   cached_network_image: ^3.4.1
   azlistview: ^2.0.0
   timeago: ^3.5.0
+  share_plus: ^11.0.0
 
 dev_dependencies:
   flutter_test:

@@ -10,6 +10,7 @@ import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/testd
 import 'package:smartassist/widgets/testdrive_verifyotp.dart';
 
 class TestOverdue extends StatefulWidget {
+  final Future<void> Function() refreshDashboard;
   final List<dynamic> overdueTestDrive;
   final bool isNested;
   final Function(String, bool)? onFavoriteToggle;
@@ -18,6 +19,7 @@ class TestOverdue extends StatefulWidget {
     required this.overdueTestDrive,
     required this.isNested,
     this.onFavoriteToggle,
+    required this.refreshDashboard,
   });
 
   @override
@@ -264,7 +266,7 @@ class _TestOverdueState extends State<TestOverdue> {
             eventId: item['event_id'],
             isFavorite: item['favourite'] ?? false,
             swipeOffset: swipeOffset,
-
+            refreshDashboard: widget.refreshDashboard,
             onToggleFavorite: () {
               _toggleFavorite(eventId, index);
             },
@@ -286,6 +288,7 @@ class upcomingTestDrivesItem extends StatefulWidget {
   final String name, date, vehicle, taskId, leadId, eventId, subject, startTime;
   final bool isFavorite;
   final double swipeOffset;
+  final Future<void> Function() refreshDashboard;
   final VoidCallback fetchDashboardData;
   final VoidCallback onToggleFavorite;
   final VoidCallback handleTestDrive;
@@ -308,6 +311,7 @@ class upcomingTestDrivesItem extends StatefulWidget {
     this.item,
     required this.handleTestDrive,
     required this.otpTrigger,
+    required this.refreshDashboard,
   });
 
   @override
@@ -694,6 +698,8 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem> {
                 leadId: widget.leadId,
                 isFromFreshlead: false,
                 isFromManager: false,
+                isFromTestdriveOverview: false,
+                refreshDashboard: widget.refreshDashboard,
               ),
             ),
           );

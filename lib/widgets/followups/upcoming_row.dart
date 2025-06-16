@@ -10,6 +10,7 @@ import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/follo
 import 'package:url_launcher/url_launcher.dart';
 
 class FollowupsUpcoming extends StatefulWidget {
+  final Future<void> Function() refreshDashboard;
   final List<dynamic> upcomingFollowups;
   final bool isNested;
   final Function(String, bool)? onFavoriteToggle;
@@ -18,7 +19,7 @@ class FollowupsUpcoming extends StatefulWidget {
     super.key,
     required this.upcomingFollowups,
     required this.isNested,
-    this.onFavoriteToggle,
+    this.onFavoriteToggle, required this.refreshDashboard,
   });
 
   @override
@@ -177,6 +178,7 @@ class _FollowupsUpcomingState extends State<FollowupsUpcoming> {
             taskId: taskId,
             isFavorite: item['favourite'] ?? false,
             swipeOffset: swipeOffset,
+            refreshDashboard: widget.refreshDashboard,
             onToggleFavorite: () {
               _toggleFavorite(taskId, index);
             },
@@ -199,6 +201,7 @@ class UpcomingFollowupItem extends StatefulWidget {
   final double swipeOffset;
   final bool isFavorite;
   final VoidCallback onToggleFavorite;
+  final Future<void> Function() refreshDashboard;
 
   const UpcomingFollowupItem({
     super.key,
@@ -211,7 +214,7 @@ class UpcomingFollowupItem extends StatefulWidget {
     this.isFavorite = false,
     required this.onToggleFavorite,
     required this.mobile,
-    required this.taskId,
+    required this.taskId, required this.refreshDashboard,
   });
 
   @override
@@ -271,6 +274,8 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
                   leadId: widget.leadId,
                   isFromFreshlead: false,
                   isFromManager: false,
+                  isFromTestdriveOverview: false,
+                  refreshDashboard: widget.refreshDashboard,
                 ),
               ),
             );

@@ -2684,6 +2684,8 @@ class _CreateLeadsState extends State<CreateLeads> {
                   leadId: leadId,
                   isFromFreshlead: true,
                   isFromManager: false,
+                  refreshDashboard: () async {},
+                  isFromTestdriveOverview: false,
                 ),
               ),
             );

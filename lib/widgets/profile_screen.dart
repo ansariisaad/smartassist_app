@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:percent_indicator/percent_indicator.dart'; // For progress bars
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:http/http.dart' as http;
@@ -13,7 +14,8 @@ import 'package:path/path.dart' as path;
 import 'package:smartassist/utils/storage.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  final Future<void> Function() refreshDashboard;
+  const ProfileScreen({super.key, required this.refreshDashboard});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -142,6 +144,69 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  void _removeImage() {
+    setState(() {
+      deleteImg(context);
+      _profileImage = null;
+      // If you want to also clear the network image URL
+      profilePic = null; // or profilePic = '';
+    });
+
+    // Optional: Show confirmation snackbar
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Profile image removed'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  Future<void> deleteImg(BuildContext context) async {
+    try {
+      final url = Uri.parse(
+        'https://api.smartassistapp.in/api/users/profile/remove-pic',
+      );
+      final token = await Storage.getToken();
+
+      final response = await http.put(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        // body: json.encode(requestBody),
+      );
+
+      // Print the response
+      print('API Response status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final errorMessage =
+            json.decode(response.body)['message'] ?? 'Unknown error';
+        // Success handling
+        print('Feedback submitted successfully');
+        Get.snackbar(
+          'Success',
+          errorMessage,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+        widget.refreshDashboard();
+      } else {
+        // Error handling
+        final errorMessage =
+            json.decode(response.body)['message'] ?? 'Unknown error';
+      }
+    } catch (e) {
+      // Exception handling
+      print('Exception occurred: ${e.toString()}');
+    } finally {
+      setState(() {
+        // _isUploading = false; // Reset loading state
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -160,7 +225,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
             size: 40,
           ),
         ),
-        title: Text('Your Profile', style: AppFont.appbarfontWhite(context)),
+        title: Align(
+          alignment: Alignment.centerLeft,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Your Profile', style: AppFont.appbarfontWhite(context)),
+              InkWell(
+                onTap: () {
+                  print('share profile is clicked');
+                },
+                child: Text('Share', style: AppFont.mediumText14white(context)),
+              ),
+            ],
+          ),
+        ),
         backgroundColor: const Color(0xFF1380FE),
 
         automaticallyImplyLeading: false,
@@ -173,11 +252,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Column(
                   children: [
                     GestureDetector(
-                      // onTap: _pickImage,
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
-                          // Fixed CircleAvatar - this was causing the grey screen
+                          // Avatar (from file, network, or default)
                           _profileImage != null
                               ? CircleAvatar(
                                   radius: 60,
@@ -205,25 +283,90 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         ),
                                       )),
 
+                          // Optional uploading indicator
                           if (_isUploading) const CircularProgressIndicator(),
-                          Positioned(
-                            bottom: -8,
-                            left: 80,
-                            child: IconButton(
-                              // onPressed: () => authController.pickImage(),
-                              onPressed: () {
-                                _pickImage();
-                              },
-                              icon: const Icon(
-                                Icons.add_a_photo,
-                                color: AppColors.fontColor,
+
+                          // Show either add or delete icon based on image existence
+                          if (_profileImage != null ||
+                              (profilePic != null && profilePic!.isNotEmpty))
+                            Positioned(
+                              bottom: -8,
+                              left: 80,
+                              child: IconButton(
+                                onPressed: _removeImage,
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Colors.red,
+                                ),
+                              ),
+                            )
+                          else if (!_isUploading)
+                            Positioned(
+                              bottom: -8,
+                              left: 80,
+                              child: IconButton(
+                                onPressed: _pickImage,
+                                icon: const Icon(
+                                  Icons.add_a_photo,
+                                  color: AppColors.fontColor,
+                                ),
                               ),
                             ),
-                          ),
                         ],
                       ),
                     ),
 
+                    // GestureDetector(
+                    //   // onTap: _pickImage,
+                    //   child: Stack(
+                    //     alignment: Alignment.center,
+                    //     children: [
+                    //       // Fixed CircleAvatar - this was causing the grey screen
+                    //       _profileImage != null
+                    //           ? CircleAvatar(
+                    //               radius: 60,
+                    //               backgroundImage: FileImage(_profileImage!),
+                    //             )
+                    //           : (profilePic != null && profilePic!.isNotEmpty
+                    //                 ? CircleAvatar(
+                    //                     radius: 60,
+                    //                     backgroundImage: NetworkImage(
+                    //                       profilePic!,
+                    //                     ),
+                    //                   )
+                    //                 : CircleAvatar(
+                    //                     radius: 60,
+                    //                     backgroundColor: AppColors.containerBg,
+                    //                     child: Text(
+                    //                       (name?.isNotEmpty ?? false)
+                    //                           ? name![0].toUpperCase()
+                    //                           : '?',
+                    //                       style: TextStyle(
+                    //                         fontSize: 70,
+                    //                         color: Colors.grey[700],
+                    //                         fontWeight: FontWeight.normal,
+                    //                       ),
+                    //                     ),
+                    //                   )),
+
+                    //       if (_isUploading) const CircularProgressIndicator(),
+                    //       Positioned(
+                    //         bottom: -8,
+                    //         left: 80,
+                    //         child: IconButton(
+                    //           // onPressed: () => authController.pickImage(),
+                    //           onPressed: () {
+                    //             _pickImage();
+                    //           },
+                    //           icon: const Icon(
+                    //             Icons.add_a_photo,
+                    //             color: AppColors.fontColor,
+                    //           ),
+                    //         ),
+                    //       ),
+                    //     ],
+                    //   ),
+                    // ),
                     const SizedBox(height: 10),
                     Text(name ?? '', style: AppFont.popupTitleBlack(context)),
                     Text(

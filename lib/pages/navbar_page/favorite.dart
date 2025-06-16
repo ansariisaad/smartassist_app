@@ -58,23 +58,54 @@ class _FavoritePageState extends State<FavoritePage> {
     }
   }
 
+  // Helper methods to get responsive dimensions - moved to methods to avoid context issues
+  bool _isTablet(BuildContext context) =>
+      MediaQuery.of(context).size.width > 768;
+  bool _isSmallScreen(BuildContext context) =>
+      MediaQuery.of(context).size.width < 400;
+  double _screenWidth(BuildContext context) =>
+      MediaQuery.of(context).size.width;
+
+  // Responsive padding
+  EdgeInsets _responsivePadding(BuildContext context) => EdgeInsets.symmetric(
+    horizontal: _isTablet(context) ? 20 : (_isSmallScreen(context) ? 8 : 10),
+    vertical: _isTablet(context) ? 12 : 8,
+  );
+
+  // Responsive font sizes
+  double _titleFontSize(BuildContext context) =>
+      _isTablet(context) ? 20 : (_isSmallScreen(context) ? 16 : 18);
+  double _bodyFontSize(BuildContext context) =>
+      _isTablet(context) ? 16 : (_isSmallScreen(context) ? 12 : 14);
+  double _smallFontSize(BuildContext context) =>
+      _isTablet(context) ? 14 : (_isSmallScreen(context) ? 10 : 12);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => BottomNavigation()),
-            );
+            Navigator.pop(context);
           },
-          icon: const Icon(FontAwesomeIcons.angleLeft, color: Colors.white),
+          icon: Icon(
+            FontAwesomeIcons.angleLeft,
+            color: Colors.white,
+            size: _isSmallScreen(context) ? 18 : 20,
+          ),
         ),
         title: Align(
           alignment: Alignment.centerLeft,
-          child: Text('Favourite', style: AppFont.appbarfontWhite(context))),
-        backgroundColor: Colors.blue,
+          child: Text(
+            'Favourites',
+            style: GoogleFonts.poppins(
+              fontSize: _titleFontSize(context),
+              fontWeight: FontWeight.w400,
+              color: Colors.white,
+            ),
+          ),
+        ),
+        backgroundColor: const Color(0xFF1380FE),
         automaticallyImplyLeading: false,
       ),
       body: SingleChildScrollView(

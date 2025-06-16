@@ -77,6 +77,28 @@ class _AllEnqState extends State<AllEnq> {
     super.dispose();
   }
 
+  // Helper methods to get responsive dimensions - moved to methods to avoid context issues
+  bool _isTablet(BuildContext context) =>
+      MediaQuery.of(context).size.width > 768;
+  bool _isSmallScreen(BuildContext context) =>
+      MediaQuery.of(context).size.width < 400;
+  double _screenWidth(BuildContext context) =>
+      MediaQuery.of(context).size.width;
+
+  // Responsive padding
+  EdgeInsets _responsivePadding(BuildContext context) => EdgeInsets.symmetric(
+    horizontal: _isTablet(context) ? 20 : (_isSmallScreen(context) ? 8 : 10),
+    vertical: _isTablet(context) ? 12 : 8,
+  );
+
+  // Responsive font sizes
+  double _titleFontSize(BuildContext context) =>
+      _isTablet(context) ? 20 : (_isSmallScreen(context) ? 16 : 18);
+  double _bodyFontSize(BuildContext context) =>
+      _isTablet(context) ? 16 : (_isSmallScreen(context) ? 12 : 14);
+  double _smallFontSize(BuildContext context) =>
+      _isTablet(context) ? 14 : (_isSmallScreen(context) ? 10 : 12);
+
   Future<void> fetchTasksData() async {
     final token = await Storage.getToken();
     try {
@@ -468,18 +490,13 @@ class _AllEnqState extends State<AllEnq> {
                   icon: const Icon(FontAwesomeIcons.xmark, color: Colors.white),
                 )
               : IconButton(
-                  key: const ValueKey('back'),
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => BottomNavigation(),
-                      ),
-                    );
+                    Navigator.pop(context);
                   },
-                  icon: const Icon(
+                  icon: Icon(
                     FontAwesomeIcons.angleLeft,
                     color: Colors.white,
+                    size: _isSmallScreen(context) ? 18 : 20,
                   ),
                 ),
         ),
@@ -1870,45 +1887,37 @@ class _TaskItemState extends State<TaskItem>
   }
 
   //navigation button to show action slider
+  bool _isActionPaneOpen = false; // Declare this in your StatefulWidget
+
   Widget _buildNavigationButton(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-    final isTablet = screenSize.width > 600;
-
-    bool isActionPaneOpen = false;
-
     return GestureDetector(
       onTap: () {
-        print("state of action pane : ");
-        print(isActionPaneOpen);
-        HapticFeedback.heavyImpact();
-
-        if (isActionPaneOpen) {
-          print("inside if");
-          print(isActionPaneOpen);
-          _slidableController.openEndActionPane();
-          setState(() {
-            isActionPaneOpen = true;
-          });
-        } else {
-          print("inside else");
-          print(isActionPaneOpen);
+        if (_isActionPaneOpen) {
           _slidableController.close();
           setState(() {
-            isActionPaneOpen = false;
+            _isActionPaneOpen = false;
+          });
+        } else {
+          _slidableController.close();
+          Future.delayed(Duration(milliseconds: 100), () {
+            _slidableController.openEndActionPane();
+            setState(() {
+              _isActionPaneOpen = true;
+            });
           });
         }
-        print("after else");
-        print(isActionPaneOpen);
       },
       child: Container(
-        padding: EdgeInsets.all(isTablet ? 6 : 3),
+        padding: const EdgeInsets.all(3),
         decoration: BoxDecoration(
           color: AppColors.arrowContainerColor,
           borderRadius: BorderRadius.circular(30),
         ),
         child: Icon(
-          Icons.arrow_back_ios_new_rounded,
-          size: isTablet ? 30 : 25,
+          _isActionPaneOpen
+              ? Icons.arrow_forward_ios_rounded
+              : Icons.arrow_back_ios_rounded,
+          size: 25,
           color: Colors.white,
         ),
       ),

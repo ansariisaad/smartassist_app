@@ -9,6 +9,7 @@ import 'package:smartassist/pages/navbar_page/favorite.dart';
 import 'package:smartassist/pages/navbar_page/leads_all.dart';
 import 'package:smartassist/pages/navbar_page/logout_page.dart';
 import 'package:smartassist/pages/Home/reassign_enq.dart';
+import 'package:smartassist/pages/Navigation/feedback_nav.dart';
 
 // Import with alias to avoid conflicts
 import 'package:smartassist/utils/navigation_controller.dart' as nav_utils;
@@ -290,48 +291,6 @@ class BottomNavigation extends StatelessWidget {
         ),
       ),
     );
-    //   child: SafeArea(
-    //     child: Padding(
-    //       padding: const EdgeInsets.symmetric(vertical: 0),
-    //       child: Obx(
-    //         () => Row(
-    //           mainAxisAlignment: MainAxisAlignment.spaceAround,
-    //           children: [
-    //             _buildNavItem(
-    //                 icon: Icons.home,
-    //                 label: 'Home',
-    //                 index: 0,
-    //                 isIcon: true,
-    //                 isImg: false),
-    //             _buildNavItem(
-    //                 icon: Icons.people_alt_outlined,
-    //                 label: 'My Teams',
-    //                 index: 1,
-    //                 isIcon: true,
-    //                 isImg: false),
-    //             _buildNavItem(
-    //                 isImg: true,
-    //                 isIcon: false,
-    //                 img: Image.asset(
-    //                   'assets/calendar.png',
-    //                   fit: BoxFit.contain,
-    //                 ),
-    //                 label: 'Calendar',
-    //                 index: 2),
-    //             _buildNavItem(
-    //                 icon: Icons.settings,
-    //                 label: 'More',
-    //                 index: 3,
-    //                 isIcon: true,
-    //                 isImg: false,
-
-    //                 onTap: _showMoreBottomSheet),
-    //           ],
-    //         ),
-    //       ),
-    //     ),
-    //   ),
-    // );
   }
 
   // Update this method to not require a controller parameter
@@ -448,8 +407,8 @@ class BottomNavigation extends StatelessWidget {
 
   double _calculateBottomSheetHeight(double screenHeight, bool isTablet) {
     final calculatedHeight = screenHeight * 0.4;
-    final minHeight = isTablet ? 320.0 : 280.0;
-    final maxHeight = isTablet ? 450.0 : 350.0;
+    final minHeight = isTablet ? 500.0 : 400.0;
+    final maxHeight = isTablet ? 650.0 : 500.0;
 
     return calculatedHeight.clamp(minHeight, maxHeight);
   }
@@ -502,6 +461,7 @@ class BottomNavigation extends StatelessWidget {
                       CallAnalytics(userId: '', userName: ''),
                 ),
               ),
+
               if (teamRole == "SM")
                 ListTile(
                   leading: const Icon(Icons.group, size: 28),
@@ -519,17 +479,15 @@ class BottomNavigation extends StatelessWidget {
                 ),
                 onTap: () => Get.to(() => const FavoritePage(leadId: '')),
               ),
-              // ListTile(
-              //   leading: const Icon(Icons.person_outline, size: 28),
-              //   title: Text('Profile', style: GoogleFonts.poppins(fontSize: 18)),
-              //   onTap: () => Get.to(() => const ProfileScreen()),
-              // ),
-              // ListTile(
-              //   leading: const Icon(Icons.settings_outlined, size: 28),
-              //   title: Text('App Settings',
-              //       style: GoogleFonts.poppins(fontSize: 18)),
-              //   onTap: () => Get.to(() => const AppSetting()),
-              // ),
+              ListTile(
+                leading: const Icon(Icons.warning_amber_rounded, size: 28),
+                title: Text(
+                  'Report an issue',
+                  style: GoogleFonts.poppins(fontSize: 18),
+                ),
+                onTap: () =>
+                    Get.to(() => FeedbackForm(userId: '', userName: '')),
+              ),
               ListTile(
                 leading: const Icon(Icons.logout_outlined, size: 28),
                 title: Text('Logout', style: GoogleFonts.poppins(fontSize: 18)),

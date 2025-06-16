@@ -26,6 +26,7 @@ class TestdriveOverview extends StatefulWidget {
 
 class _TestdriveOverviewState extends State<TestdriveOverview> {
   // Define variables to hold the data
+  bool isFromTestdriveOverview = false;
   bool _isHidden = false;
   String startTime = '';
   String distanceCovered = '';
@@ -142,7 +143,8 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
                 builder: (context) => FollowupsDetails(
                   leadId: widget.leadId,
                   isFromFreshlead: false,
-                  isFromManager: false,
+                  isFromManager: false, 
+                  refreshDashboard: () async {}, isFromTestdriveOverview: true,
                 ),
               ),
             );

@@ -12,7 +12,8 @@ import 'package:smartassist/widgets/oppointment/overdue.dart';
 import 'package:smartassist/widgets/oppointment/upcoming.dart';
 
 class AllAppointment extends StatefulWidget {
-  const AllAppointment({super.key});
+  final Future<void> Function() refreshDashboard;
+  const AllAppointment({super.key, required this.refreshDashboard});
 
   @override
   State<AllAppointment> createState() => _AllAppointmentState();
@@ -134,10 +135,14 @@ class _AllAppointmentState extends State<AllAppointment> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          onPressed: () => Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => BottomNavigation()),
-          ),
+          // onPressed: () => Navigator.pushReplacement(
+          //   context,
+          //   MaterialPageRoute(builder: (context) => BottomNavigation()),
+          // ),
+          onPressed: () {
+            Navigator.pop(context);
+            widget.refreshDashboard();
+          },
           icon: const Icon(Icons.arrow_back_ios_outlined, color: Colors.white),
         ),
 
@@ -297,7 +302,9 @@ class _AllAppointmentState extends State<AllAppointment> {
                   ),
                 ),
               )
-            : OppUpcoming(upcomingOpp: _filteredUpcomingTasks, isNested: true);
+            : OppUpcoming(
+                refreshDashboard: widget.refreshDashboard,
+                upcomingOpp: _filteredUpcomingTasks, isNested: true);
       case 2: // Overdue
         return _filteredOverdueTasks.isEmpty
             ? Center(
@@ -309,7 +316,9 @@ class _AllAppointmentState extends State<AllAppointment> {
                   ),
                 ),
               )
-            : OppOverdue(overdueeOpp: _filteredOverdueTasks, isNested: true);
+            : OppOverdue(
+                refreshDashboard: widget.refreshDashboard,
+                overdueeOpp: _filteredOverdueTasks, isNested: true);
       default:
         return const SizedBox();
     }

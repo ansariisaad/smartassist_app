@@ -557,6 +557,8 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
                   leadId: leadId,
                   isFromFreshlead: false,
                   isFromManager: false,
+                  refreshDashboard: () async {},
+                  isFromTestdriveOverview: false,
                 ),
               ),
             );
@@ -651,6 +653,8 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
                   leadId: leadId,
                   isFromFreshlead: false,
                   isFromManager: false,
+                  refreshDashboard: () async {},
+                  isFromTestdriveOverview: false,
                 ),
               ),
             );

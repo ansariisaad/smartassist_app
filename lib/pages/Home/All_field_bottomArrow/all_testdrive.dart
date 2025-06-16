@@ -3,19 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
-import 'package:smartassist/utils/bottom_navigation.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/buttons/add_btn.dart';
-import 'package:smartassist/widgets/followups/all_followups.dart';
 import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/create_testDrive.dart';
-import 'package:smartassist/widgets/oppointment/overdue.dart';
-import 'package:smartassist/widgets/oppointment/upcoming.dart';
 import 'package:smartassist/widgets/testdrive/all_testDrive.dart';
 import 'package:smartassist/widgets/testdrive/overdue.dart';
 import 'package:smartassist/widgets/testdrive/upcoming.dart';
 
 class AllTestdrive extends StatefulWidget {
-  const AllTestdrive({super.key});
+  final Future<void> Function() refreshDashboard;
+  const AllTestdrive({super.key, required this.refreshDashboard});
 
   @override
   State<AllTestdrive> createState() => _AllTestdriveState();
@@ -136,10 +133,10 @@ class _AllTestdriveState extends State<AllTestdrive> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          onPressed: () => Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => BottomNavigation()),
-          ),
+          onPressed: () {
+            Navigator.pop(context);
+            widget.refreshDashboard();
+          },
           icon: const Icon(Icons.arrow_back_ios_outlined, color: Colors.white),
         ),
         backgroundColor: const Color(0xFF1380FE),
@@ -291,6 +288,7 @@ class _AllTestdriveState extends State<AllTestdrive> {
                 ),
               )
             : TestUpcoming(
+                refreshDashboard: widget.refreshDashboard,
                 upcomingTestDrive: _filteredUpcomingTasks,
                 isNested: true,
               );
@@ -306,6 +304,7 @@ class _AllTestdriveState extends State<AllTestdrive> {
                 ),
               )
             : TestOverdue(
+                refreshDashboard: widget.refreshDashboard,
                 overdueTestDrive: _filteredOverdueTasks,
                 isNested: true,
               );

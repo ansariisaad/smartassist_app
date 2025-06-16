@@ -242,8 +242,9 @@ class _EventRow extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          AllAppointment(), // Replace with your screen
+                      builder: (context) => AllAppointment(
+                        refreshDashboard: () async {},
+                      ), // Replace with your screen
                     ),
                   );
                 },

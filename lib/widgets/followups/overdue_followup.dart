@@ -14,6 +14,7 @@ import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/follo
 import 'package:url_launcher/url_launcher.dart';
 
 class OverdueFollowup extends StatefulWidget {
+  final Future<void> Function() refreshDashboard;
   final bool isNested;
   final List<dynamic> overdueeFollowups;
   final Function(String, bool)? onFavoriteToggle;
@@ -21,7 +22,7 @@ class OverdueFollowup extends StatefulWidget {
     super.key,
     required this.overdueeFollowups,
     required this.isNested,
-    this.onFavoriteToggle,
+    this.onFavoriteToggle, required this.refreshDashboard,
   });
 
   @override
@@ -194,6 +195,7 @@ class _OverdueFollowupState extends State<OverdueFollowup> {
             taskId: item['task_id'],
             vehicle: item['PMI'] ?? 'Range Rover Velar',
             leadId: item['lead_id'],
+            refreshDashboard: widget.refreshDashboard,
             // taskId: taskId,
             onToggleFavorite: () {
               _toggleFavorite(taskId, index);
@@ -215,6 +217,7 @@ class overdueeFollowupsItem extends StatefulWidget {
   final String date;
   final String vehicle;
   final String leadId;
+  final Future<void> Function() refreshDashboard;
   final double swipeOffset;
   final bool isFavorite;
   final VoidCallback onToggleFavorite;
@@ -230,7 +233,7 @@ class overdueeFollowupsItem extends StatefulWidget {
     this.isFavorite = false,
     required this.onToggleFavorite,
     required this.mobile,
-    required this.taskId,
+    required this.taskId, required this.refreshDashboard,
   });
 
   @override
@@ -563,6 +566,8 @@ class _overdueeFollowupsItemState extends State<overdueeFollowupsItem>
                 leadId: widget.leadId,
                 isFromFreshlead: false,
                 isFromManager: false,
+                isFromTestdriveOverview: false,
+                refreshDashboard: widget.refreshDashboard,
               ),
             ),
           );

@@ -2701,6 +2701,8 @@ class _LeadTeamsState extends State<LeadTeams> {
                   leadId: leadId,
                   isFromFreshlead: false,
                   isFromManager: true,
+                  refreshDashboard: () async {},
+                  isFromTestdriveOverview: false,
                 ),
               ),
             );

@@ -442,6 +442,8 @@ class _NotificationPageState extends State<NotificationPage> {
                                 leadId: notification['recordId'] ?? '',
                                 isFromFreshlead: false,
                                 isFromManager: false,
+                                isFromTestdriveOverview: false,
+                                refreshDashboard: () async {},
                               ),
                             ),
                           );

@@ -8,7 +8,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart'; 
+import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/config/controller/tab_controller.dart';
@@ -22,7 +22,7 @@ import 'package:smartassist/widgets/home_btn.dart/teams_popups.dart/createTeam.d
 import 'package:smartassist/widgets/home_btn.dart/teams_popups.dart/followups_teams.dart';
 import 'package:smartassist/widgets/home_btn.dart/teams_popups.dart/lead_teams.dart';
 import 'package:smartassist/widgets/home_btn.dart/teams_popups.dart/testdrive_teams.dart';
-import 'package:smartassist/widgets/team_calllog_userid.dart'; 
+import 'package:smartassist/widgets/team_calllog_userid.dart';
 
 class MyTeams extends StatefulWidget {
   const MyTeams({Key? key}) : super(key: key);
@@ -2438,6 +2438,7 @@ class _MyTeamsState extends State<MyTeams> {
                     metrics[j]['label'] as String,
                     const Color(0xFF1380FE),
                     isSelected: _metricIndex == j,
+                    isUserSelected: _selectedType != 'All',
                   ),
                 ),
               ),
@@ -3536,6 +3537,7 @@ class _MyTeamsState extends State<MyTeams> {
     bool isSelected = false,
     Color backgroundColor = Colors.white,
     Color textColor = Colors.black,
+    bool isUserSelected = false,
   }) {
     return Container(
       padding: const EdgeInsets.all(10),
@@ -3543,9 +3545,16 @@ class _MyTeamsState extends State<MyTeams> {
         color: backgroundColor,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: isSelected ? Colors.blue : Colors.transparent,
+          color: (isSelected && !isUserSelected)
+              ? Colors.blue
+              : Colors.transparent,
           width: 2,
         ),
+
+        // border: Border.all(
+        //   color: isSelected ? Colors.blue : Colors.transparent,
+        //   width: 2,
+        // ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -4016,7 +4025,8 @@ class _MyTeamsState extends State<MyTeams> {
                       leadId: leadId,
                       isFromFreshlead: false,
                       isFromManager: true,
-                      refreshDashboard: () async {}, isFromTestdriveOverview: false,
+                      refreshDashboard: () async {},
+                      isFromTestdriveOverview: false,
                     ),
                   ),
                 );

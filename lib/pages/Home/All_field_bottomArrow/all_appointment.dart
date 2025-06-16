@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
@@ -141,7 +142,9 @@ class _AllAppointmentState extends State<AllAppointment> {
           // ),
           onPressed: () {
             Navigator.pop(context);
+
             widget.refreshDashboard();
+
           },
           icon: const Icon(Icons.arrow_back_ios_outlined, color: Colors.white),
         ),

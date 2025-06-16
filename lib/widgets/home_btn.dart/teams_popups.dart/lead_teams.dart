@@ -2697,8 +2697,11 @@ class _LeadTeamsState extends State<LeadTeams> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) =>
-                    FollowupsDetails(leadId: leadId, isFromFreshlead: false),
+                builder: (context) => FollowupsDetails(
+                  leadId: leadId,
+                  isFromFreshlead: false,
+                  isFromManager: true,
+                ),
               ),
             );
           }

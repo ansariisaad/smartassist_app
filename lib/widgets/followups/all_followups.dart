@@ -362,6 +362,7 @@ class _AllFollowupsItemState extends State<AllFollowupItem>
               builder: (context) => FollowupsDetails(
                 leadId: widget.leadId,
                 isFromFreshlead: false,
+                isFromManager: false,
               ),
             ),
           );

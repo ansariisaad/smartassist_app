@@ -124,7 +124,7 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
       appBar: AppBar(
         backgroundColor: Colors.blue,
         title: Align(
-           alignment: Alignment.centerLeft,
+          alignment: Alignment.centerLeft,
           child: Text(
             'Test Drive summary',
             style: AppFont.popupTitleWhite(context),
@@ -139,8 +139,10 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => FollowupsDetails(leadId: widget.leadId,
+                builder: (context) => FollowupsDetails(
+                  leadId: widget.leadId,
                   isFromFreshlead: false,
+                  isFromManager: false,
                 ),
               ),
             );

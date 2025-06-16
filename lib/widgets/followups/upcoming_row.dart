@@ -270,6 +270,7 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
                 builder: (context) => FollowupsDetails(
                   leadId: widget.leadId,
                   isFromFreshlead: false,
+                  isFromManager: false,
                 ),
               ),
             );

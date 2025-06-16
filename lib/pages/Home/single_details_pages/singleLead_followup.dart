@@ -28,11 +28,14 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class FollowupsDetails extends StatefulWidget {
   final bool isFromFreshlead;
+  final bool isFromManager;
+
   final String leadId;
   const FollowupsDetails({
     super.key,
     required this.leadId,
     required this.isFromFreshlead,
+    required this.isFromManager,
   });
 
   @override
@@ -1636,110 +1639,115 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
         ],
       ),
       // floatingActionButton: _buildFloatingActionButton(context),
-      bottomNavigationBar: SafeArea(
-        child: Stack(
-          alignment: Alignment.bottomCenter,
-          children: [
-            Container(
-              height: 80,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  topRight: Radius.circular(20),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: Offset(0, -2),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      bottomNavigationBar: widget.isFromManager
+          ? null
+          : SafeArea(
+              child: Stack(
+                alignment: Alignment.bottomCenter,
                 children: [
-                  // Lost Button
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        if (widget.isFromFreshlead) {
-                          _showFollowupPopup(context, widget.leadId);
-                        } else {
-                          if (areButtonsEnabled()) {
-                            handleLostAction();
-                          } else {
-                            showLostRequiredDialog(context);
-                          }
-                        }
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(
-                            color: widget.isFromFreshlead
-                                ? Colors.blue
-                                : Colors.red,
-                            width: 1,
+                  Container(
+                    height: 80,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(20),
+                        topRight: Radius.circular(20),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: Offset(0, -2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        // Lost Button
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              if (widget.isFromFreshlead) {
+                                _showFollowupPopup(context, widget.leadId);
+                              } else {
+                                if (areButtonsEnabled()) {
+                                  handleLostAction();
+                                } else {
+                                  showLostRequiredDialog(context);
+                                }
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                border: Border.all(
+                                  color: widget.isFromFreshlead
+                                      ? Colors.blue
+                                      : Colors.red,
+                                  width: 1,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                widget.isFromFreshlead ? 'Follow up?' : 'Lost',
+                                style: widget.isFromFreshlead
+                                    ? AppFont.mediumText14bluee(context)
+                                    : AppFont.mediumText14red(context),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
                           ),
-                          borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Text(
-                          widget.isFromFreshlead ? 'Follow up?' : 'Lost',
-                          style: widget.isFromFreshlead
-                              ? AppFont.mediumText14bluee(context)
-                              : AppFont.mediumText14red(context),
-                          textAlign: TextAlign.center,
+                        const SizedBox(width: 10),
+
+                        // Qualify Button
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              if (areButtonsEnabled()) {
+                                handleQualifyAction();
+                              } else {
+                                showTaskRequiredDialog(context);
+                              }
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF35CB64),
+                                // Green color from image
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                'Qualify',
+                                style: AppFont.mediumText14white(context),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 10),
+                        SizedBox(
+                          width: 60,
+                          height: 45,
+                          child: _buildFloatingActionButton(context),
+                        ),
+
+                        // Popup Menu (Conditionally Rendered)
+                        // Obx(() => fabController.isFabExpanded.value
+                        //     ? _buildPopupMenu(context)
+                        //     : SizedBox.shrink()),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 10),
-
-                  // Qualify Button
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        if (areButtonsEnabled()) {
-                          handleQualifyAction();
-                        } else {
-                          showTaskRequiredDialog(context);
-                        }
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF35CB64),
-                          // Green color from image
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          'Qualify',
-                          style: AppFont.mediumText14white(context),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  SizedBox(
-                    width: 60,
-                    height: 45,
-                    child: _buildFloatingActionButton(context),
-                  ),
-
-                  // Popup Menu (Conditionally Rendered)
-                  // Obx(() => fabController.isFabExpanded.value
-                  //     ? _buildPopupMenu(context)
-                  //     : SizedBox.shrink()),
                 ],
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 

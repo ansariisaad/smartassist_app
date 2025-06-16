@@ -550,7 +550,7 @@ class _overdueeOppItemState extends State<overdueeOppItem>
     );
   }
 
-   void _phoneAction() {
+  void _phoneAction() {
     print("Call action triggered for ${widget.mobile}");
 
     if (widget.mobile.isNotEmpty) {
@@ -582,7 +582,6 @@ class _overdueeOppItemState extends State<overdueeOppItem>
       }
     }
   }
-  
 
   // void _phoneAction() {
   //   print("Call action triggered for ${widget.mobile}");
@@ -668,7 +667,7 @@ class _overdueeOppItemState extends State<overdueeOppItem>
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-          Icon(icon, color: Colors.blue, size: 18),
+        Icon(icon, color: Colors.blue, size: 18),
         const SizedBox(width: 5),
         Text('${widget.subject},', style: AppFont.smallText(context)),
       ],
@@ -785,6 +784,7 @@ class _overdueeOppItemState extends State<overdueeOppItem>
               builder: (context) => FollowupsDetails(
                 leadId: widget.leadId,
                 isFromFreshlead: false,
+                isFromManager: false,
               ),
             ),
           );

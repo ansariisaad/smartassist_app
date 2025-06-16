@@ -847,157 +847,6 @@
 //   }
 // }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -1005,7 +854,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
-import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart'; 
+import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
 import 'package:smartassist/utils/bottom_navigation.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -1157,8 +1006,8 @@ class _AllLeadsState extends State<AllLeads> {
         String searchQuery = query.toLowerCase();
 
         return name.contains(searchQuery) ||
-               email.contains(searchQuery) ||
-               phone.contains(searchQuery);
+            email.contains(searchQuery) ||
+            phone.contains(searchQuery);
       }).toList();
     });
   }
@@ -1217,10 +1066,10 @@ class _AllLeadsState extends State<AllLeads> {
     if (newQuery == _query) return;
 
     _query = newQuery;
-    
+
     // Perform local search immediately for better UX
     _performLocalSearch(_query);
-    
+
     // Also perform API search with debounce
     Future.delayed(const Duration(milliseconds: 500), () {
       if (_query == _searchController.text.trim()) {
@@ -1282,7 +1131,7 @@ class _AllLeadsState extends State<AllLeads> {
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final isTablet = screenSize.width > 600;
-    
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -1302,7 +1151,6 @@ class _AllLeadsState extends State<AllLeads> {
               fontSize: isTablet ? 22 : 18,
               fontWeight: FontWeight.w400,
               color: Colors.white,
-          
             ),
           ),
         ),
@@ -1339,18 +1187,30 @@ class _AllLeadsState extends State<AllLeads> {
                           borderSide: BorderSide.none,
                         ),
                         contentPadding: EdgeInsets.symmetric(
-                          horizontal: _getResponsiveHorizontalPadding(context, isTablet),
-                          vertical: _getResponsiveVerticalPadding(context, isTablet),
+                          horizontal: _getResponsiveHorizontalPadding(
+                            context,
+                            isTablet,
+                          ),
+                          vertical: _getResponsiveVerticalPadding(
+                            context,
+                            isTablet,
+                          ),
                         ),
                         filled: true,
                         fillColor: AppColors.searchBar,
                         hintText: 'Search by name, email or phone',
                         hintStyle: GoogleFonts.poppins(
-                          fontSize: _getResponsiveHintFontSize(context, isTablet),
+                          fontSize: _getResponsiveHintFontSize(
+                            context,
+                            isTablet,
+                          ),
                           fontWeight: FontWeight.w300,
                         ),
                         prefixIcon: Container(
-                          width: _getResponsiveIconContainerWidth(context, isTablet),
+                          width: _getResponsiveIconContainerWidth(
+                            context,
+                            isTablet,
+                          ),
                           child: Center(
                             child: Icon(
                               FontAwesomeIcons.magnifyingGlass,
@@ -1360,8 +1220,14 @@ class _AllLeadsState extends State<AllLeads> {
                           ),
                         ),
                         prefixIconConstraints: BoxConstraints(
-                          minWidth: _getResponsiveIconContainerWidth(context, isTablet),
-                          maxWidth: _getResponsiveIconContainerWidth(context, isTablet),
+                          minWidth: _getResponsiveIconContainerWidth(
+                            context,
+                            isTablet,
+                          ),
+                          maxWidth: _getResponsiveIconContainerWidth(
+                            context,
+                            isTablet,
+                          ),
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(30),
@@ -1372,7 +1238,7 @@ class _AllLeadsState extends State<AllLeads> {
                     ),
                   ),
                 ),
-                
+
                 // Search query indicator
                 if (_query.isNotEmpty)
                   Padding(
@@ -1394,9 +1260,7 @@ class _AllLeadsState extends State<AllLeads> {
                   ),
 
                 // Results list - using filtered local results
-                Expanded(
-                  child: _buildTasksList(_filteredTasks),
-                ),
+                Expanded(child: _buildTasksList(_filteredTasks)),
               ],
             ),
     );
@@ -1406,7 +1270,7 @@ class _AllLeadsState extends State<AllLeads> {
     if (tasks.isEmpty) {
       final screenSize = MediaQuery.of(context).size;
       final isTablet = screenSize.width > 600;
-      
+
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -1418,7 +1282,9 @@ class _AllLeadsState extends State<AllLeads> {
             ),
             SizedBox(height: isTablet ? 20 : 15),
             Text(
-              _query.isEmpty ? 'No Leads available' : 'No results found for "$_query"',
+              _query.isEmpty
+                  ? 'No Leads available'
+                  : 'No results found for "$_query"',
               style: GoogleFonts.poppins(
                 fontSize: isTablet ? 18 : 16,
                 color: Colors.grey[600],
@@ -1477,7 +1343,7 @@ class _AllLeadsState extends State<AllLeads> {
               setState(() {
                 // Find the item in the original list and update it
                 int originalIndex = upcomingTasks.indexWhere(
-                  (task) => task['lead_id'] == leadId
+                  (task) => task['lead_id'] == leadId,
                 );
                 if (originalIndex != -1) {
                   upcomingTasks[originalIndex]['favourite'] = newStatus;
@@ -1488,7 +1354,7 @@ class _AllLeadsState extends State<AllLeads> {
             onToggleFavorite: () {
               // Find the correct index in the original list
               int originalIndex = upcomingTasks.indexWhere(
-                (task) => task['lead_id'] == leadId
+                (task) => task['lead_id'] == leadId,
               );
               if (originalIndex != -1) {
                 _toggleFavorite(leadId, originalIndex);
@@ -1557,7 +1423,7 @@ class _TaskItemState extends State<TaskItem> {
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final isTablet = screenSize.width > 600;
-    
+
     return Padding(
       padding: EdgeInsets.fromLTRB(
         isTablet ? 15 : 10,
@@ -1732,7 +1598,9 @@ class _TaskItemState extends State<TaskItem> {
                                 children: [
                                   Flexible(child: _buildUserDetails(context)),
                                   _buildVerticalDivider(isTablet ? 18 : 15),
-                                  Flexible(child: _buildSubjectDetails(context)),
+                                  Flexible(
+                                    child: _buildSubjectDetails(context),
+                                  ),
                                 ],
                               ),
                               SizedBox(height: isTablet ? 6 : 4),
@@ -1782,7 +1650,7 @@ class _TaskItemState extends State<TaskItem> {
   Widget _buildNavigationButton(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final isTablet = screenSize.width > 600;
-    
+
     return GestureDetector(
       onTap: () {
         if (widget.leadId.isNotEmpty) {
@@ -1792,6 +1660,7 @@ class _TaskItemState extends State<TaskItem> {
               builder: (context) => FollowupsDetails(
                 leadId: widget.leadId,
                 isFromFreshlead: false,
+                isFromManager: false,
               ),
             ),
           );
@@ -1817,16 +1686,18 @@ class _TaskItemState extends State<TaskItem> {
   Widget _buildUserDetails(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final isTablet = screenSize.width > 600;
-    
+
     return Text(
       widget.name,
       textAlign: TextAlign.start,
-      style: AppFont.dashboardName(context)?.copyWith(
-        fontSize: isTablet ? 18 : null,
-      ) ?? GoogleFonts.poppins(
-        fontSize: isTablet ? 18 : 16,
-        fontWeight: FontWeight.w500,
-      ),
+      style:
+          AppFont.dashboardName(
+            context,
+          )?.copyWith(fontSize: isTablet ? 18 : null) ??
+          GoogleFonts.poppins(
+            fontSize: isTablet ? 18 : 16,
+            fontWeight: FontWeight.w500,
+          ),
       overflow: TextOverflow.ellipsis,
     );
   }
@@ -1836,15 +1707,17 @@ class _TaskItemState extends State<TaskItem> {
     final isTablet = screenSize.width > 600;
     String mobile = widget.number;
     String hiddenMobile = _hideMobileNumber(mobile);
-    
+
     return Text(
       hiddenMobile,
-      style: AppFont.smallText(context)?.copyWith(
-        fontSize: isTablet ? 14 : null,
-      ) ?? GoogleFonts.poppins(
-        fontSize: isTablet ? 14 : 12,
-        color: Colors.grey[600],
-      ),
+      style:
+          AppFont.smallText(
+            context,
+          )?.copyWith(fontSize: isTablet ? 14 : null) ??
+          GoogleFonts.poppins(
+            fontSize: isTablet ? 14 : 12,
+            color: Colors.grey[600],
+          ),
       overflow: TextOverflow.ellipsis,
     );
   }
@@ -1860,7 +1733,7 @@ class _TaskItemState extends State<TaskItem> {
   Widget _buildVerticalDivider(double height) {
     final screenSize = MediaQuery.of(context).size;
     final isTablet = screenSize.width > 600;
-    
+
     return Container(
       margin: EdgeInsets.only(
         bottom: 3,
@@ -1878,16 +1751,18 @@ class _TaskItemState extends State<TaskItem> {
   Widget _buildCarModel(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final isTablet = screenSize.width > 600;
-    
+
     return Text(
       widget.vehicle,
       textAlign: TextAlign.start,
-      style: AppFont.dashboardCarName(context)?.copyWith(
-        fontSize: isTablet ? 16 : null,
-      ) ?? GoogleFonts.poppins(
-        fontSize: isTablet ? 16 : 14,
-        fontWeight: FontWeight.w400,
-      ),
+      style:
+          AppFont.dashboardCarName(
+            context,
+          )?.copyWith(fontSize: isTablet ? 16 : null) ??
+          GoogleFonts.poppins(
+            fontSize: isTablet ? 16 : 14,
+            fontWeight: FontWeight.w400,
+          ),
       softWrap: true,
       overflow: TextOverflow.ellipsis,
     );
@@ -1928,10 +1803,7 @@ class FlexibleButton extends StatelessWidget {
           children: [
             Text(title, style: textStyle, textAlign: TextAlign.center),
             const SizedBox(width: 4),
-            const Icon(
-              Icons.keyboard_arrow_down_rounded,
-              size: 20,
-            ),
+            const Icon(Icons.keyboard_arrow_down_rounded, size: 20),
           ],
         ),
       ),

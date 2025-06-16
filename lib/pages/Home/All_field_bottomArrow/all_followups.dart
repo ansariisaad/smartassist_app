@@ -13,7 +13,8 @@ import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/create_Follow
 import 'package:smartassist/widgets/buttons/add_btn.dart';
 
 class AddFollowups extends StatefulWidget {
-  const AddFollowups({super.key});
+  final Future<void> Function() refreshDashboard;
+  const AddFollowups({super.key, required this.refreshDashboard});
 
   @override
   State<AddFollowups> createState() => _AddFollowupsState();
@@ -138,20 +139,27 @@ class _AddFollowupsState extends State<AddFollowups> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          onPressed: () => Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => BottomNavigation()),
-          ),
+          onPressed: () {
+            Navigator.pop(context);
+            widget.refreshDashboard();
+          },
+          // onPressed: () => Navigator.pushReplacement(
+          //   context,
+          //   MaterialPageRoute(builder: (context) => BottomNavigation()),
+          // ),
           icon: const Icon(Icons.arrow_back_ios_outlined, color: Colors.white),
         ),
 
         backgroundColor: const Color(0xFF1380FE),
-        title: const Text(
-          'Your Follow ups',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w500,
-            color: Colors.white,
+        title: Align(
+          alignment: Alignment.centerLeft,
+          child: const Text(
+            'Your Follow ups',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
           ),
         ),
       ),
@@ -293,6 +301,7 @@ class _AddFollowupsState extends State<AddFollowups> {
                 ),
               )
             : FollowupsUpcoming(
+                refreshDashboard: widget.refreshDashboard,
                 upcomingFollowups: _filteredUpcomingTasks,
                 isNested: true,
               );
@@ -305,6 +314,7 @@ class _AddFollowupsState extends State<AddFollowups> {
                 ),
               )
             : OverdueFollowup(
+                refreshDashboard: widget.refreshDashboard,
                 overdueeFollowups: _filteredOverdueTasks,
                 isNested: true,
               );
@@ -332,7 +342,7 @@ class _AddFollowupsState extends State<AddFollowups> {
             vertical: 5.0 * _getResponsiveScale(),
             horizontal: 8.0 * _getResponsiveScale(),
           ),
-         side: BorderSide(
+          side: BorderSide(
             color: isActive ? activeColor : Colors.transparent,
             width: .5,
           ),
@@ -342,7 +352,7 @@ class _AddFollowupsState extends State<AddFollowups> {
         ),
         child: Text(
           text,
-          style: TextStyle( 
+          style: TextStyle(
             fontSize: _getSubTabFontSize(),
             fontWeight: FontWeight.w400,
             color: isActive ? color : Colors.grey,

@@ -218,6 +218,9 @@ class _GlobalSearchState extends State<GlobalSearch> {
                         leadId: result['lead_id'],
                         isFromFreshlead: false,
                         isFromManager: false,
+
+                        isFromTestdriveOverview: false,
+                        refreshDashboard: ()async{},
                       ),
                     );
                   },

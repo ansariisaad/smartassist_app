@@ -835,6 +835,9 @@ class _TaskItemState extends State<TaskItem> {
                 leadId: widget.leadId,
                 isFromFreshlead: false,
                 isFromManager: false,
+
+                isFromTestdriveOverview: false,
+                refreshDashboard: () async {},
               ),
             ),
           );

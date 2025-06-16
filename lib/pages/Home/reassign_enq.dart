@@ -1,4 +1,3 @@
-//Old format of cards (with swipes)
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -1691,6 +1690,9 @@ class _TaskItemState extends State<TaskItem>
                     leadId: widget.leadId,
                     isFromFreshlead: false,
                     isFromManager: true,
+
+                    isFromTestdriveOverview: false,
+            refreshDashboard: ()async{},
                   ),
                 ),
               );
@@ -1887,6 +1889,7 @@ class _TaskItemState extends State<TaskItem>
   }
 
   //navigation button to show action slider
+
   bool _isActionPaneOpen = false; // Declare this in your StatefulWidget
 
   Widget _buildNavigationButton(BuildContext context) {
@@ -1907,16 +1910,19 @@ class _TaskItemState extends State<TaskItem>
           });
         }
       },
+
       child: Container(
         padding: const EdgeInsets.all(3),
         decoration: BoxDecoration(
           color: AppColors.arrowContainerColor,
           borderRadius: BorderRadius.circular(30),
         ),
+
         child: Icon(
           _isActionPaneOpen
               ? Icons.arrow_forward_ios_rounded
               : Icons.arrow_back_ios_rounded,
+
           size: 25,
           color: Colors.white,
         ),

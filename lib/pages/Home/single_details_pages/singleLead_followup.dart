@@ -27,8 +27,10 @@ import 'package:smartassist/widgets/whatsapp_chat.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class FollowupsDetails extends StatefulWidget {
+  final Future<void> Function() refreshDashboard;
   final bool isFromFreshlead;
   final bool isFromManager;
+  final bool isFromTestdriveOverview;
 
   final String leadId;
   const FollowupsDetails({
@@ -36,6 +38,8 @@ class FollowupsDetails extends StatefulWidget {
     required this.leadId,
     required this.isFromFreshlead,
     required this.isFromManager,
+    required this.refreshDashboard,
+    required this.isFromTestdriveOverview,
   });
 
   @override
@@ -44,6 +48,7 @@ class FollowupsDetails extends StatefulWidget {
 
 class _FollowupsDetailsState extends State<FollowupsDetails> {
   // Placeholder data
+
   String mobile = 'Loading...';
   String chatId = 'Loading...';
   String email = 'Loading...';
@@ -1181,10 +1186,19 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
           ),
           onPressed: () {
             // Navigator.pop(context, true);
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => BottomNavigation()),
-            );
+            if (widget.isFromTestdriveOverview == true) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => BottomNavigation()),
+              );
+            } else {
+              Navigator.pop(context);
+              widget.refreshDashboard();
+            }
+            // Navigator.push(
+            //   context,
+            //   MaterialPageRoute(builder: (context) => BottomNavigation()),
+            // );
           },
         ),
         elevation: 0,

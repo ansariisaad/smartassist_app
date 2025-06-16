@@ -14,6 +14,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 // ---------------- appointment UPCOMING LIST ----------------
 class OppUpcoming extends StatefulWidget {
+  final Future<void> Function() refreshDashboard;
   final List<dynamic> upcomingOpp;
   final bool isNested;
   final Function(String, bool)? onFavoriteToggle;
@@ -21,7 +22,7 @@ class OppUpcoming extends StatefulWidget {
     super.key,
     required this.upcomingOpp,
     required this.isNested,
-    this.onFavoriteToggle,
+    this.onFavoriteToggle, required this.refreshDashboard,
   });
 
   @override
@@ -193,6 +194,7 @@ class _OppUpcomingState extends State<OppUpcoming> {
             mobile: item['mobile'] ?? '',
             time: item['time'] ?? '',
             eventId: eventId,
+            refreshDashboard: widget.refreshDashboard,
             isFavorite: item['favourite'] ?? false,
             swipeOffset: swipeOffset,
             fetchDashboardData: () {},
@@ -211,6 +213,7 @@ class OppUpcomingItem extends StatefulWidget {
   final String name, date, vehicle, mobile, leadId, eventId, time, subject;
   final bool isFavorite;
   final double swipeOffset;
+  final Future<void> Function() refreshDashboard;
   final VoidCallback fetchDashboardData;
   //  final bool isFavorite;
   final VoidCallback onToggleFavorite;
@@ -228,7 +231,7 @@ class OppUpcomingItem extends StatefulWidget {
     required this.subject,
     required this.swipeOffset,
     required this.onToggleFavorite,
-    required this.mobile,
+    required this.mobile, required this.refreshDashboard,
   });
 
   @override
@@ -609,6 +612,9 @@ class _OppUpcomingItemState extends State<OppUpcomingItem>
                 leadId: widget.leadId,
                 isFromFreshlead: false,
                 isFromManager: false,
+
+                isFromTestdriveOverview: false,
+                refreshDashboard: widget.refreshDashboard,
               ),
             ),
           );

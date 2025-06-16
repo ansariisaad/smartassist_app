@@ -14,6 +14,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 // ---------------- appointment UPCOMING LIST ----------------
 class OppOverdue extends StatefulWidget {
+  final Future<void> Function() refreshDashboard;
   final List<dynamic> overdueeOpp;
   final bool isNested;
 
@@ -22,7 +23,7 @@ class OppOverdue extends StatefulWidget {
     super.key,
     required this.overdueeOpp,
     required this.isNested,
-    this.onFavoriteToggle,
+    this.onFavoriteToggle, required this.refreshDashboard,
   });
 
   @override
@@ -273,6 +274,7 @@ class _OppOverdueState extends State<OppOverdue> {
             mobile: item['mobile'] ?? '',
             time: item['time'] ?? '',
             eventId: eventId,
+            refreshDashboard: widget.refreshDashboard,
             isFavorite: item['favourite'] ?? false,
             swipeOffset: swipeOffset,
             fetchDashboardData: () {},
@@ -293,6 +295,7 @@ class overdueeOppItem extends StatefulWidget {
   final bool isFavorite;
   final VoidCallback fetchDashboardData;
   final VoidCallback onToggleFavorite;
+  final Future<void> Function() refreshDashboard;
 
   const overdueeOppItem({
     super.key,
@@ -307,7 +310,7 @@ class overdueeOppItem extends StatefulWidget {
     required this.swipeOffset,
     required this.subject,
     required this.onToggleFavorite,
-    required this.mobile,
+    required this.mobile, required this.refreshDashboard,
   });
 
   @override
@@ -785,6 +788,8 @@ class _overdueeOppItemState extends State<overdueeOppItem>
                 leadId: widget.leadId,
                 isFromFreshlead: false,
                 isFromManager: false,
+                isFromTestdriveOverview: false,
+                refreshDashboard: widget.refreshDashboard,
               ),
             ),
           );

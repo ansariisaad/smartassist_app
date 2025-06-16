@@ -670,6 +670,8 @@ class _MyteamState extends State<Myteam> {
                       leadId: leadId,
                       isFromFreshlead: false,
                       isFromManager: true,
+                      refreshDashboard: () async {},
+                      isFromTestdriveOverview: false,
                     ),
                   ),
                 );

@@ -1,4 +1,3 @@
-//Old format of cards (with swipes)
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -1797,67 +1796,27 @@ class _TaskItemState extends State<TaskItem>
                       ),
                     ),
 
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              width: widget.isSelected ? 0 : 36,
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 200),
-                opacity: widget.isSelected ? 0.0 : 1.0,
-                child: AnimatedScale(
-                  duration: const Duration(milliseconds: 300),
-                  scale: widget.isSelected ? 0.8 : 1.0,
-                  child: _buildNavigationButton(context),
+                    // Animated navigation button (hides when selected)
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      width: widget.isSelected ? 0 : 36,
+                      child: AnimatedOpacity(
+                        duration: const Duration(milliseconds: 200),
+                        opacity: widget.isSelected ? 0.0 : 1.0,
+                        child: AnimatedScale(
+                          duration: const Duration(milliseconds: 300),
+                          scale: widget.isSelected ? 0.8 : 1.0,
+                          child: _buildNavigationButton(context),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildNavigationButton(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        if (widget.leadId.isNotEmpty) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => FollowupsDetails(
-                leadId: widget.leadId,
-                isFromFreshlead: false,
-              ),
-            ),
-          );
-        } else { // rpujari@modimotorsjlr.com 
-          print("Invalid leadId");
-        }
-      },
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          double screenWidth = MediaQuery.of(context).size.width;
-          double padding = screenWidth < 360 ? 4 : (screenWidth < 600 ? 6 : 8);
-          double borderRadius = screenWidth < 360
-              ? 20
-              : (screenWidth < 600 ? 30 : 35);
-          double iconSize = screenWidth < 360
-              ? 16
-              : (screenWidth < 600 ? 20 : 24);
-
-          return Container(
-            padding: EdgeInsets.all(padding),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1380FE),
-              borderRadius: BorderRadius.circular(borderRadius),
-            ),
-            child: Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: iconSize,
-              color: Colors.white,
-            ),
-          );
-        },
       ),
     );
   }
@@ -1911,44 +1870,29 @@ class _TaskItemState extends State<TaskItem>
 
   //navigation button to show action slider
   Widget _buildNavigationButton(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-    final isTablet = screenSize.width > 600;
-
-    bool isActionPaneOpen = false;
-
     return GestureDetector(
       onTap: () {
-        print("state of action pane : ");
-        print(isActionPaneOpen);
-        HapticFeedback.heavyImpact();
+        // Simple toggle: close first, then open if it was closed
+        _slidableController.close();
 
-        if (isActionPaneOpen) {
-          print("inside if");
-          print(isActionPaneOpen);
-          _slidableController.openEndActionPane();
-          setState(() {
-            isActionPaneOpen = true;
-          });
-        } else {
-          print("inside else");
-          print(isActionPaneOpen);
-          _slidableController.close();
-          setState(() {
-            isActionPaneOpen = false;
-          });
-        }
-        print("after else");
-        print(isActionPaneOpen);
+        // Use a small delay to ensure close completes, then open
+        Future.delayed(Duration(milliseconds: 100), () {
+          if (_slidableController.actionPaneType != ActionPaneType.end) {
+            _slidableController.openEndActionPane();
+          }
+        });
       },
+
       child: Container(
-        padding: EdgeInsets.all(isTablet ? 6 : 3),
+        padding: const EdgeInsets.all(3),
         decoration: BoxDecoration(
           color: AppColors.arrowContainerColor,
           borderRadius: BorderRadius.circular(30),
         ),
-        child: Icon(
-          Icons.arrow_back_ios_new_rounded,
-          size: isTablet ? 30 : 25,
+
+        child: const Icon(
+          Icons.arrow_back_ios_rounded,
+          size: 25,
           color: Colors.white,
         ),
       ),

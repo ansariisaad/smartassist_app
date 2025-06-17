@@ -996,10 +996,12 @@ class _TestdriveIdsState extends State<TestdriveIds> {
       'dd/MM/yyyy',
     ).format(rawEndDate); // Automatically set
 
-    final formattedStartTime = DateFormat('HH:mm:ss').format(rawStartTime);
-    final formattedEndTime = DateFormat(
-      'HH:mm:ss',
-    ).format(rawEndTime); // Automatically set
+    // final formattedStartTime = DateFormat('HH:mm:ss').format(rawStartTime);
+    final formattedStartTime = DateFormat('hh:mm a').format(rawStartTime);
+    // final formattedEndTime = DateFormat(
+    //   'HH:mm:ss',
+    final formattedEndTime = DateFormat('hh:mm a').format(rawStartTime);
+    // ).format(rawEndTime); // Automatically set
 
     if (spId == null || leadId.isEmpty) {
       showErrorMessage(

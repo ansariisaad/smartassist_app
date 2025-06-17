@@ -293,10 +293,17 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     } catch (e) {
       if (!mounted) return;
+
+      bool isNetworkError =
+          e.toString().contains('SocketException') ||
+          e.toString().contains('Failed host lookup') ||
+          e.toString().contains('Network is unreachable');
+
       setState(() {
-        hasInternet = false;
+        hasInternet = !isNetworkError;
       });
-      print(e.toString());
+
+      print('Dashboard fetch error: $e');
       // showErrorMessage(context, message: e.toString());
     } finally {
       if (!mounted) return;
@@ -454,13 +461,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // if (!hasInternet && dashboardData.isEmpty) {
-    //   return InternetException(
-    //     onRetry: () {
-    //       fetchDashboardData();
-    //     },
-    //   );
-    // }
+    if (!hasInternet && dashboardData.isEmpty) {
+      return InternetException(
+        onRetry: () {
+          fetchDashboardData();
+        },
+      );
+    }
     final screenWidth = MediaQuery.of(context).size.width;
     final responsiveFontSize = screenWidth * 0.035;
     return WillPopScope(

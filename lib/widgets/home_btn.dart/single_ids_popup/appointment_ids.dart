@@ -1025,7 +1025,9 @@ class _AppointmentIdsState extends State<AppointmentIds> {
       'dd/MM/yyyy',
     ).format(rawEndDate); // Automatically set
 
-    final formattedStartTime = DateFormat('HH:mm:ss').format(rawStartTime);
+    // final formattedStartTime = DateFormat('HH:mm:ss').format(rawStartTime);
+        final formattedStartTime = DateFormat('hh:mm a').format(rawStartTime);
+
     final formattedEndTime = DateFormat(
       'HH:mm:ss',
     ).format(rawEndTime); // Automatically set

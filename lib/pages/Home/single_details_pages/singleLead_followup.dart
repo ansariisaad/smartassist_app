@@ -1004,13 +1004,13 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? spId = prefs.getString('user_id');
-        String? userEmail = await TokenManager.getUserEmail();
+      String? userEmail = await TokenManager.getUserEmail();
       // String? user_email = prefs.getString('user_email');
       final url = Uri.parse('https://dev.smartassistapp.in/api/init-wa');
       final token = await Storage.getToken();
 
       // Create the request body
-      final requestBody = {'sessionId': spId,};
+      final requestBody = {'sessionId': spId};
       final response = await http.post(
         url,
         headers: {
@@ -1041,8 +1041,8 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
             builder: (context) => WhatsappChat(
               chatId: chatId,
               userName: lead_name,
-              email: userEmail.toString(),
-              sessionId: spId.toString(),
+              // email: userEmail.toString(),
+              // sessionId: spId.toString(),
             ),
           ),
         );
@@ -1598,8 +1598,13 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                                                 horizontal: 10,
                                               ),
                                             ),
-                                            onPressed: () {
-                                              handleWhatsappAction();
+                                            onPressed: () async {
+                                              Get.to(
+                                                WhatsappChat(
+                                                  chatId: chatId,
+                                                  userName: lead_name,
+                                                ),
+                                              );
                                             },
                                             child: Text(
                                               'Whatsapp',

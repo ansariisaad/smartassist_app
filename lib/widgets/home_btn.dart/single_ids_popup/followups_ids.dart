@@ -438,7 +438,9 @@ class _FollowupsIdsState extends State<FollowupsIds> {
 
     final formattedStartDate = DateFormat('dd-MM-yyyy').format(rawStartDate);
 
-    final formattedStartTime = DateFormat('HH:mm:ss').format(rawStartTime);
+    // final formattedStartTime = DateFormat('HH:mm:ss').format(rawStartTime);
+
+        final formattedStartTime = DateFormat('hh:mm a').format(rawStartTime);
 
     final newTaskForLead = {
       'subject': _selectedSubject,

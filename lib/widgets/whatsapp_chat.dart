@@ -165,10 +165,6 @@ class _WhatsappChatState extends State<WhatsappChat> {
   }
 
   void initSocket() {
-    // Check if socket is already connected
-    // if (socket != null && socket.connected) {
-    //   socket.disconnect();
-    // }
     socket = IO.io('wss://dev.smartassistapp.in', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': true,
@@ -186,12 +182,10 @@ class _WhatsappChatState extends State<WhatsappChat> {
       }
 
       // Request initial messages for the specific chat
-      // socket.emit('init_wa', (widget.email, widget.sessionId));
-      socket.emit('init_wa', {
-        'email': widget.email,
+      socket.emit('get_messages', {
         'sessionId': widget.sessionId,
+        'chatId': widget.chatId,
       });
-      socket.emit('on', widget.chatId);
       print('Requesting messages for chat ID: ${widget.chatId}');
     });
 
@@ -206,7 +200,6 @@ class _WhatsappChatState extends State<WhatsappChat> {
 
     socket.onConnectError((error) {
       print('Connection error: $error');
-      // Try to reconnect after a delay
       Future.delayed(Duration(seconds: 3), () {
         if (!isConnected && mounted) {
           socket.connect();
@@ -214,44 +207,46 @@ class _WhatsappChatState extends State<WhatsappChat> {
       });
     });
 
-    // Listen for new messages
-    // socket.on('new_message', (data) {
-    //   print('New message received: $data');
-    //   if (data != null && mounted) {
-    //     try {
-    //       final newMessage = Message.fromJson(data);
-    //       setState(() {
-    //         messages.add(newMessage);
-    //       });
+    // Listen for initial messages
+    socket.on('chat_messages', (data) {
+      print('Received initial messages: $data');
+      if (data != null && mounted) {
+        try {
+          final List<Message> initialMessages = (data['messages'] as List)
+              .map((msg) => Message.fromJson(msg))
+              .toList();
 
-    //       // Scroll to the bottom when new message arrives
-    //       WidgetsBinding.instance.addPostFrameCallback((_) {
-    //         _scrollToBottom();
-    //       });
-    //     } catch (e) {
-    //       print('Error parsing new message: $e');
-    //     }
-    //   }
-    // });
+          setState(() {
+            messages = initialMessages;
+          });
 
-    // Listen for new messages
+          // Scroll to the bottom after initial messages are loaded
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _scrollToBottom();
+          });
+        } catch (e) {
+          print('Error parsing chat messages: $e');
+        }
+      }
+    });
 
+    // Listen for new messages (single listener with duplicate check)
     socket.on('new_message', (data) {
       print('New message received: $data');
       if (data != null && mounted) {
         try {
-          // Extract the message object from the payload
           final messageData = data['message'];
           if (messageData != null) {
             final newMessage = Message.fromJson(messageData);
 
-            // Check if this message belongs to the current chat
-            if (data['chatId'] == widget.chatId) {
+            // Check if this message belongs to the current chat and isn't a duplicate
+            if (data['chatId'] == widget.chatId &&
+                !messages.any((m) => m.id == newMessage.id)) {
               setState(() {
                 messages.add(newMessage);
               });
 
-              // Scroll to the bottom when new message arrives
+              // Scroll to bottom
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 _scrollToBottom();
               });
@@ -263,80 +258,20 @@ class _WhatsappChatState extends State<WhatsappChat> {
       }
     });
 
-    socket.on('new_message', (data) {
-      print('New message received: $data');
-      if (data != null && mounted) {
-        try {
-          final messageData = data['message'];
-          if (messageData != null) {
-            final newMessage = Message.fromJson(messageData);
-
-            // Check if this message belongs to the current chat
-            if (data['chatId'] == widget.chatId) {
-              // Check if message is already in the list to avoid duplicates
-              if (!messages.any((m) => m.id == newMessage.id)) {
-                setState(() {
-                  messages.add(newMessage);
-                });
-
-                // Scroll to bottom
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  _scrollToBottom();
-                });
-              }
-            }
-          }
-        } catch (e) {
-          print('Error parsing new message: $e');
-        }
-      }
-    });
-
     // Listen for message sent confirmation
-
     socket.on('message_sent', (data) {
       print('Message sent confirmation: $data');
-      // Update message status if needed
-    });
-
-    // Listen for initial messages from the backend
-    // socket.on('chat_messages', (data) {
-    //   print('Received initial messages: $data');
-    //   if (data != null && mounted) {
-    //     try {
-    //       final List<Message> initialMessages = (data['messages'] as List)
-    //           .map((msg) => Message.fromJson(msg))
-    //           .toList();
-
-    //       setState(() {
-    //         messages = initialMessages;
-    //       });
-
-    //       // Scroll to the bottom after initial messages are loaded
-    //       WidgetsBinding.instance.addPostFrameCallback((_) {
-    //         _scrollToBottom();
-    //       });
-    //     } catch (e) {
-    //       print('Error parsing chat messages: $e');
-    //     }
-    //   }
-    // });
-
-    socket.onDisconnect((_) {
-      print('Socket disconnected');
-      if (mounted) {
-        setState(() {
-          isConnected = false;
-        });
-      }
+      // Update message status if needed (e.g., update read receipt)
     });
 
     // Listen for errors
     socket.on('wa_error', (data) {
       print('WebSocket error: $data');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${data['message'] ?? 'Unknown error'}')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${data['error'] ?? 'Unknown error'}')),
+        );
+      }
     });
   }
 
@@ -391,6 +326,7 @@ class _WhatsappChatState extends State<WhatsappChat> {
     final message = {
       'chatId': widget.chatId,
       'message': _messageController.text,
+      'sessionId': widget.sessionId,
     };
 
     print('Sending message: ${jsonEncode(message)}');

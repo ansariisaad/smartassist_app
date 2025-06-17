@@ -454,13 +454,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (!hasInternet && dashboardData.isEmpty) {
-      return InternetException(
-        onRetry: () {
-          fetchDashboardData();
-        },
-      );
-    }
+    // if (!hasInternet && dashboardData.isEmpty) {
+    //   return InternetException(
+    //     onRetry: () {
+    //       fetchDashboardData();
+    //     },
+    //   );
+    // }
     final screenWidth = MediaQuery.of(context).size.width;
     final responsiveFontSize = screenWidth * 0.035;
     return WillPopScope(

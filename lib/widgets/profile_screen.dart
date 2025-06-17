@@ -72,6 +72,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ? evaluation['productKnowledge'] / 10
               : 0.0;
         }
+        widget.refreshDashboard();
 
         isLoading = false;
       });
@@ -217,7 +218,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          onPressed: () => Get.back(),
+          onPressed: () {
+            Get.back();
+            widget.refreshDashboard();
+          },
+
           icon: const Icon(
             Icons.keyboard_arrow_left_rounded,
             color: Colors.white,

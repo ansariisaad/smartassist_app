@@ -1033,7 +1033,7 @@ class _CalendarSmState extends State<CalendarSm> {
 
         // Calculate the top position for this item (stack vertically with proper spacing)
         final itemTopPosition =
-            basePosition + (i * 65.0); // 55px item + 10px spacing
+            basePosition + (i * 70.0); // 55px item + 10px spacing
 
         // Add widget based on type
         if (itemType == 'event') {

@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/widgets/popups_widget/vehicleSearch_textfield.dart';
+import 'package:smartassist/widgets/reusable/date_button.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class TestdriveIds extends StatefulWidget {
@@ -44,6 +45,9 @@ class _TestdriveIdsState extends State<TestdriveIds> {
   bool _isLoadingSearch1 = false;
   late stt.SpeechToText _speech;
   bool _isListening = false;
+  bool isSubmitting = false;
+
+  Map<String, String> _errors = {};
 
   String _query1 = '';
   List<dynamic> _searchResults = [];
@@ -92,7 +96,7 @@ class _TestdriveIdsState extends State<TestdriveIds> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://api.smartassistapp.in/api/search/global?query=$query',
+          'https://dev.smartassistapp.in/api/search/global?query=$query',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -145,7 +149,7 @@ class _TestdriveIdsState extends State<TestdriveIds> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://api.smartassistapp.in/api/search/vehicles?vehicle=${Uri.encodeComponent(query)}',
+          'https://dev.smartassistapp.in/api/search/vehicles?vehicle=${Uri.encodeComponent(query)}',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -348,6 +352,47 @@ class _TestdriveIdsState extends State<TestdriveIds> {
     }
   }
 
+  void _submit() async {
+    if (isSubmitting) return;
+
+    bool isValid = true;
+
+    setState(() {
+      isSubmitting = true;
+      _errors = {};
+
+      // if (_leadId == null || _leadId!.isEmpty) {
+      //   _errors['select lead name'] = 'Please select a lead name';
+      //   isValid = false;
+      // }
+
+      // if (_selectedSubject == null || _selectedSubject!.isEmpty) {
+      //   _errors['subject'] = 'Please select an action';
+      //   isValid = false;
+      // }
+
+      if (startDateController == null || startDateController.text!.isEmpty) {
+        _errors['date'] = 'Please select an action';
+        isValid = false;
+      }
+    });
+
+    // 💡 Check validity before calling the API
+    if (!isValid) {
+      setState(() => isSubmitting = false);
+      return;
+    }
+
+    try {
+      await submitForm(); // ✅ Only call if valid
+      // Show snackbar or do post-submit work here
+    } catch (e) {
+      print(e.toString());
+    } finally {
+      setState(() => isSubmitting = false);
+    }
+  }
+
   Widget _buildTextField({
     required String label,
     required TextEditingController controller,
@@ -461,24 +506,34 @@ class _TestdriveIdsState extends State<TestdriveIds> {
                 },
               ),
               const SizedBox(height: 15),
-              Row(
-                children: [
-                  Text('Start', style: AppFont.dropDowmLabel(context)),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _buildDatePicker(
-                      controller: startDateController,
-                      onTap: _pickStartDate,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _buildDatePicker1(
-                      controller: startTimeController,
-                      onTap: _pickStartTime,
-                    ),
-                  ),
-                ],
+              // Row(
+              //   children: [
+              //     Text('Start', style: AppFont.dropDowmLabel(context)),
+              //     const SizedBox(width: 10),
+              //     Expanded(
+              //       child: _buildDatePicker(
+              //         controller: startDateController,
+              //         onTap: _pickStartDate,
+              //       ),
+              //     ),
+              //     const SizedBox(width: 10),
+              //     Expanded(
+              //       child: _buildDatePicker1(
+              //         controller: startTimeController,
+              //         onTap: _pickStartTime,
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              DateButton(
+                errorText: _errors['date'],
+                isRequired: true,
+                label: 'Start',
+                dateController: startDateController,
+                timeController: startTimeController,
+                onDateTap: _pickStartDate,
+                onTimeTap: _pickStartTime,
+                onChanged: (String value) {},
               ),
               const SizedBox(height: 10),
               _buildTextField(
@@ -513,7 +568,7 @@ class _TestdriveIdsState extends State<TestdriveIds> {
                       borderRadius: BorderRadius.circular(5),
                     ),
                   ),
-                  onPressed: submitForm,
+                  onPressed: _submit,
                   child: Text("Create", style: AppFont.buttons(context)),
                 ),
               ),
@@ -941,10 +996,12 @@ class _TestdriveIdsState extends State<TestdriveIds> {
       'dd/MM/yyyy',
     ).format(rawEndDate); // Automatically set
 
-    final formattedStartTime = DateFormat('HH:mm:ss').format(rawStartTime);
-    final formattedEndTime = DateFormat(
-      'HH:mm:ss',
-    ).format(rawEndTime); // Automatically set
+    // final formattedStartTime = DateFormat('HH:mm:ss').format(rawStartTime);
+    final formattedStartTime = DateFormat('hh:mm a').format(rawStartTime);
+    // final formattedEndTime = DateFormat(
+    //   'HH:mm:ss',
+    final formattedEndTime = DateFormat('hh:mm a').format(rawStartTime);
+    // ).format(rawEndTime); // Automatically set
 
     if (spId == null || leadId.isEmpty) {
       showErrorMessage(

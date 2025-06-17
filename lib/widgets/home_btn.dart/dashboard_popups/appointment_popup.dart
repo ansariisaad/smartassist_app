@@ -12,6 +12,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/widgets/popups_widget/leadSearch_textfield.dart';
+import 'package:smartassist/widgets/reusable/action_button.dart';
+import 'package:smartassist/widgets/reusable/date_button.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class AppointmentPopup extends StatefulWidget {
@@ -138,7 +140,7 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://api.smartassistapp.in/api/search/global?query=$query',
+          'https://dev.smartassistapp.in/api/search/global?query=$query',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -224,6 +226,11 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
         _errors['subject'] = 'Please select an action';
         isValid = false;
       }
+
+      if (startDateController == null || startDateController.text!.isEmpty) {
+        _errors['date'] = 'Please select an action';
+        isValid = false;
+      }
     });
 
     // 💡 Check validity before calling the API
@@ -236,12 +243,13 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
       await submitForm(); // ✅ Only call if valid
       // Show snackbar or do post-submit work here
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Submission failed: ${e.toString()}',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      print(e.toString());
+      // Get.snackbar(
+      //   'Error',
+      //   'Submission failed: ${e.toString()}',
+      //   backgroundColor: Colors.red,
+      //   colorText: Colors.white,
+      // );
     } finally {
       setState(() => isSubmitting = false);
     }
@@ -443,6 +451,7 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
             children: [
               // _buildSearchField(),
               LeadTextfield(
+                isRequired: true,
                 onChanged: (value) {
                   if (_errors.containsKey('select lead name')) {
                     setState(() {
@@ -460,25 +469,35 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
                 },
               ),
               const SizedBox(height: 15),
-              Row(
-                children: [
-                  Text('When ?', style: AppFont.dropDowmLabel(context)),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _buildDatePicker(
-                      controller: startDateController,
-                      onTap: _pickStartDate,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _buildDatePicker1(
-                      controller: startTimeController,
-                      onTap: _pickStartTime,
-                    ),
-                  ),
-                ],
+              DateButton(
+                errorText: _errors['date'],
+                isRequired: true,
+                label: 'When?',
+                dateController: startDateController,
+                timeController: startTimeController,
+                onDateTap: _pickStartDate,
+                onTimeTap: _pickStartTime,
+                onChanged: (String value) {},
               ),
+              // Row(
+              //   children: [
+              //     Text('When ?', style: AppFont.dropDowmLabel(context)),
+              //     const SizedBox(width: 10),
+              //     Expanded(
+              //       child: _buildDatePicker(
+              //         controller: startDateController,
+              //         onTap: _pickStartDate,
+              //       ),
+              //     ),
+              //     const SizedBox(width: 10),
+              //     Expanded(
+              //       child: _buildDatePicker1(
+              //         controller: startTimeController,
+              //         onTap: _pickStartTime,
+              //       ),
+              //     ),
+              //   ],
+              // ),
               // const SizedBox(height: 15),
               // Row(
               //   children: [
@@ -515,7 +534,29 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
               //     controller: endDateController,
               //     onTap: () => _pickDate(isStartDate: false)),
               const SizedBox(height: 10),
-              _buildButtons(
+
+              // _buildButtons(
+              //   options: {
+              //     "Meeting": "Meeting",
+              //     "Vehicle selection": "Vehicle Selection",
+              //     "Showroom appointment": "Showroom appointment",
+              //     "Trade in evaluation": "Trade in evaluation",
+              //   },
+              //   groupValue: _selectedSubject,
+              //   label: 'Action:',
+              //   onChanged: (value) {
+              //     setState(() {
+              //       _selectedSubject = value;
+              //       if (_errors.containsKey('subject')) {
+              //         _errors.remove('subject');
+              //       }
+              //     });
+              //   },
+              //   errorText: _errors['subject'],
+              // ),
+              ActionButton(
+                label: "Action:",
+                isRequired: true,
                 options: {
                   "Meeting": "Meeting",
                   "Vehicle selection": "Vehicle Selection",
@@ -523,7 +564,6 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
                   "Trade in evaluation": "Trade in evaluation",
                 },
                 groupValue: _selectedSubject,
-                label: 'Action:',
                 onChanged: (value) {
                   setState(() {
                     _selectedSubject = value;
@@ -1072,7 +1112,10 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
         'dd/MM/yyyy',
       ).format(rawEndDate); // Automatically set
 
-      final formattedStartTime = DateFormat('HH:mm:ss').format(rawStartTime);
+      // final formattedStartTime = DateFormat('HH:mm:ss').format(rawStartTime);
+
+      // final formattedStartTime = DateFormat('hh:mm a').format(rawStartTime);
+      final formattedStartTime = DateFormat('hh:mm a').format(rawStartTime);
       final formattedEndTime = DateFormat(
         'HH:mm:ss',
       ).format(rawEndTime); // Automatically set

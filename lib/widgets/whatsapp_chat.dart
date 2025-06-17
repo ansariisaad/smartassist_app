@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/config/component/color/colors.dart';
+import 'package:smartassist/utils/storage.dart';
+import 'package:smartassist/utils/token_manager.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -38,21 +42,21 @@ class Message {
 class WhatsappChat extends StatefulWidget {
   final String chatId;
   final String userName;
-  final String email;
-  final String sessionId;
+  // final String email;
+  // final String sessionId;
   const WhatsappChat({
     super.key,
     required this.chatId,
     required this.userName,
-    required this.email,
-    required this.sessionId,
+    // required this.email,
+    // required this.sessionId,
   });
 
   @override
   State<WhatsappChat> createState() => _WhatsappChatState();
 }
 
-class MessageBubble extends StatelessWidget {
+class MessageBubble extends StatefulWidget {
   final Message message;
   final String timeString;
 
@@ -63,16 +67,23 @@ class MessageBubble extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<MessageBubble> createState() => _MessageBubbleState();
+}
+
+class _MessageBubbleState extends State<MessageBubble> {
+  @override
   Widget build(BuildContext context) {
     return Align(
-      alignment: message.fromMe ? Alignment.centerRight : Alignment.centerLeft,
+      alignment: widget.message.fromMe
+          ? Alignment.centerRight
+          : Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 3),
         constraints: BoxConstraints(
           maxWidth: MediaQuery.of(context).size.width * 0.75,
         ),
         decoration: BoxDecoration(
-          color: message.fromMe
+          color: widget.message.fromMe
               ? const Color.fromARGB(255, 198, 210, 248)
               : Colors.white,
           borderRadius: BorderRadius.circular(8),
@@ -88,11 +99,12 @@ class MessageBubble extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            if (message.type == 'image' && message.mediaUrl != null)
+            if (widget.message.type == 'image' &&
+                widget.message.mediaUrl != null)
               ClipRRect(
                 borderRadius: BorderRadius.circular(6),
                 child: Image.network(
-                  message.mediaUrl!,
+                  widget.message.mediaUrl!,
                   width: double.infinity,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) => Container(
@@ -103,18 +115,18 @@ class MessageBubble extends StatelessWidget {
                   ),
                 ),
               ),
-            if (message.body.isNotEmpty)
-              Text(message.body, style: const TextStyle(fontSize: 16)),
+            if (widget.message.body.isNotEmpty)
+              Text(widget.message.body, style: const TextStyle(fontSize: 16)),
             const SizedBox(height: 2),
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  timeString,
+                  widget.timeString,
                   style: TextStyle(fontSize: 11, color: Colors.grey[600]),
                 ),
-                if (message.fromMe) const SizedBox(width: 3),
-                if (message.fromMe)
+                if (widget.message.fromMe) const SizedBox(width: 3),
+                if (widget.message.fromMe)
                   const Icon(
                     Icons.done_all,
                     size: 14,
@@ -131,6 +143,75 @@ class MessageBubble extends StatelessWidget {
 
 class _WhatsappChatState extends State<WhatsappChat> {
   List<Message> messages = [];
+  bool isLoading = false;
+  String spId = '';
+  String email = '';
+
+  Future<void> initwhatsappChat(BuildContext context) async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      spId = prefs.getString('user_id') ?? '';
+      email = await TokenManager.getUserEmail() ?? '';
+      // String? user_email = prefs.getString('user_email');
+      final url = Uri.parse('https://dev.smartassistapp.in/api/init-wa');
+      final token = await Storage.getToken();
+
+      // Create the request body
+      final requestBody = {'sessionId': spId};
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode(requestBody),
+      );
+
+      // Print the response
+      print('API Response status: ${response.statusCode}');
+      print('API Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final errorMessage =
+            json.decode(response.body)['message'] ?? 'Unknown error';
+
+        Get.snackbar(
+          'Success',
+          errorMessage,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+        Navigator.pop(context); // Dismiss the dialog after success
+      } else {
+        // Error handling
+        final errorMessage =
+            json.decode(response.body)['message'] ?? 'Unknown error';
+        print('Failed to submit feedback');
+        Get.snackbar(
+          'Error',
+          errorMessage, // Show the backend error message
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        Navigator.pop(context); // Dismiss the dialog on error
+      }
+    } catch (e) {
+      print('Error fetching WhatsApp chat: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to fetch WhatsApp chat',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   final TextEditingController _messageController = TextEditingController();
   late IO.Socket socket;
@@ -140,7 +221,7 @@ class _WhatsappChatState extends State<WhatsappChat> {
   @override
   void initState() {
     super.initState();
-    print(widget.email);
+    // print(email);
     initSocket();
   }
 
@@ -165,11 +246,7 @@ class _WhatsappChatState extends State<WhatsappChat> {
   }
 
   void initSocket() {
-    // Check if socket is already connected
-    // if (socket != null && socket.connected) {
-    //   socket.disconnect();
-    // }
-    socket = IO.io('wss://api.smartassistapp.in', <String, dynamic>{
+    socket = IO.io('wss://dev.smartassistapp.in', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': true,
       'reconnection': true,
@@ -186,12 +263,10 @@ class _WhatsappChatState extends State<WhatsappChat> {
       }
 
       // Request initial messages for the specific chat
-      // socket.emit('init_wa', (widget.email, widget.sessionId));
-      socket.emit('init_wa', {
-        'email': widget.email,
-        'sessionId': widget.sessionId,
+      socket.emit('get_messages', {
+        'sessionId': spId,
+        'chatId': widget.chatId,
       });
-      socket.emit('on', widget.chatId);
       print('Requesting messages for chat ID: ${widget.chatId}');
     });
 
@@ -206,7 +281,6 @@ class _WhatsappChatState extends State<WhatsappChat> {
 
     socket.onConnectError((error) {
       print('Connection error: $error');
-      // Try to reconnect after a delay
       Future.delayed(Duration(seconds: 3), () {
         if (!isConnected && mounted) {
           socket.connect();
@@ -214,44 +288,46 @@ class _WhatsappChatState extends State<WhatsappChat> {
       });
     });
 
-    // Listen for new messages
-    // socket.on('new_message', (data) {
-    //   print('New message received: $data');
-    //   if (data != null && mounted) {
-    //     try {
-    //       final newMessage = Message.fromJson(data);
-    //       setState(() {
-    //         messages.add(newMessage);
-    //       });
+    // Listen for initial messages
+    socket.on('chat_messages', (data) {
+      print('Received initial messages: $data');
+      if (data != null && mounted) {
+        try {
+          final List<Message> initialMessages = (data['messages'] as List)
+              .map((msg) => Message.fromJson(msg))
+              .toList();
 
-    //       // Scroll to the bottom when new message arrives
-    //       WidgetsBinding.instance.addPostFrameCallback((_) {
-    //         _scrollToBottom();
-    //       });
-    //     } catch (e) {
-    //       print('Error parsing new message: $e');
-    //     }
-    //   }
-    // });
+          setState(() {
+            messages = initialMessages;
+          });
 
-    // Listen for new messages
+          // Scroll to the bottom after initial messages are loaded
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _scrollToBottom();
+          });
+        } catch (e) {
+          print('Error parsing chat messages: $e');
+        }
+      }
+    });
 
+    // Listen for new messages (single listener with duplicate check)
     socket.on('new_message', (data) {
       print('New message received: $data');
       if (data != null && mounted) {
         try {
-          // Extract the message object from the payload
           final messageData = data['message'];
           if (messageData != null) {
             final newMessage = Message.fromJson(messageData);
 
-            // Check if this message belongs to the current chat
-            if (data['chatId'] == widget.chatId) {
+            // Check if this message belongs to the current chat and isn't a duplicate
+            if (data['chatId'] == widget.chatId &&
+                !messages.any((m) => m.id == newMessage.id)) {
               setState(() {
                 messages.add(newMessage);
               });
 
-              // Scroll to the bottom when new message arrives
+              // Scroll to bottom
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 _scrollToBottom();
               });
@@ -263,80 +339,20 @@ class _WhatsappChatState extends State<WhatsappChat> {
       }
     });
 
-    socket.on('new_message', (data) {
-      print('New message received: $data');
-      if (data != null && mounted) {
-        try {
-          final messageData = data['message'];
-          if (messageData != null) {
-            final newMessage = Message.fromJson(messageData);
-
-            // Check if this message belongs to the current chat
-            if (data['chatId'] == widget.chatId) {
-              // Check if message is already in the list to avoid duplicates
-              if (!messages.any((m) => m.id == newMessage.id)) {
-                setState(() {
-                  messages.add(newMessage);
-                });
-
-                // Scroll to bottom
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  _scrollToBottom();
-                });
-              }
-            }
-          }
-        } catch (e) {
-          print('Error parsing new message: $e');
-        }
-      }
-    });
-
     // Listen for message sent confirmation
-
     socket.on('message_sent', (data) {
       print('Message sent confirmation: $data');
-      // Update message status if needed
-    });
-
-    // Listen for initial messages from the backend
-    // socket.on('chat_messages', (data) {
-    //   print('Received initial messages: $data');
-    //   if (data != null && mounted) {
-    //     try {
-    //       final List<Message> initialMessages = (data['messages'] as List)
-    //           .map((msg) => Message.fromJson(msg))
-    //           .toList();
-
-    //       setState(() {
-    //         messages = initialMessages;
-    //       });
-
-    //       // Scroll to the bottom after initial messages are loaded
-    //       WidgetsBinding.instance.addPostFrameCallback((_) {
-    //         _scrollToBottom();
-    //       });
-    //     } catch (e) {
-    //       print('Error parsing chat messages: $e');
-    //     }
-    //   }
-    // });
-
-    socket.onDisconnect((_) {
-      print('Socket disconnected');
-      if (mounted) {
-        setState(() {
-          isConnected = false;
-        });
-      }
+      // Update message status if needed (e.g., update read receipt)
     });
 
     // Listen for errors
     socket.on('wa_error', (data) {
       print('WebSocket error: $data');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${data['message'] ?? 'Unknown error'}')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${data['error'] ?? 'Unknown error'}')),
+        );
+      }
     });
   }
 
@@ -391,6 +407,7 @@ class _WhatsappChatState extends State<WhatsappChat> {
     final message = {
       'chatId': widget.chatId,
       'message': _messageController.text,
+      'sessionId': spId,
     };
 
     print('Sending message: ${jsonEncode(message)}');
@@ -503,6 +520,9 @@ class _WhatsappChatState extends State<WhatsappChat> {
                       ],
                     ),
                   )
+
+
+
                 : ListView.builder(
                     controller: _scrollController,
                     padding: const EdgeInsets.symmetric(
@@ -726,7 +746,7 @@ class _WhatsappChatState extends State<WhatsappChat> {
 
 //   // Fix the socket initialization to better handle connection and events
 //   void initSocket() {
-//     socket = IO.io('wss://api.smartassistapp.in', <String, dynamic>{
+//     socket = IO.io('wss://dev.smartassistapp.in', <String, dynamic>{
 //       'transports': ['websocket'],
 //       'autoConnect': true,
 //     });
@@ -801,7 +821,7 @@ class _WhatsappChatState extends State<WhatsappChat> {
 //   }
 
 //   // void initSocket() {
-//   //   socket = IO.io('wss://api.smartassistapp.in', <String, dynamic>{
+//   //   socket = IO.io('wss://dev.smartassistapp.in', <String, dynamic>{
 //   //     'transports': ['websocket'],
 //   //     'autoConnect': true,
 //   //   });
@@ -853,7 +873,7 @@ class _WhatsappChatState extends State<WhatsappChat> {
 //   // }
 
 //   // void initSocket() {
-//   //   socket = IO.io('wss://api.smartassistapp.in', <String, dynamic>{
+//   //   socket = IO.io('wss://dev.smartassistapp.in', <String, dynamic>{
 //   //     'transports': ['websocket'],
 //   //     'autoConnect': true,
 //   //   });

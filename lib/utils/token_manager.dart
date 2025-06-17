@@ -5,8 +5,8 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 class TokenManager {
   static const String TOKEN_KEY = 'auth_token';
   static const String USER_ID_KEY = 'user_id';
-  static const String USER_ROLE =
-      'user_role'; // Fixed key name to be consistent
+  static const String USER_ROLE = 'user_role';
+  static const String USER_EMAIL = 'email'; // Fixed key name to be consistent
 
   // Add this debugging method to check what's stored
   static Future<void> debugStoredValues() async {
@@ -14,6 +14,7 @@ class TokenManager {
     String? token = prefs.getString(TOKEN_KEY);
     String? userId = prefs.getString(USER_ID_KEY);
     String? role = prefs.getString(USER_ROLE);
+    String? email = prefs.getString(USER_EMAIL);
 
     print("DEBUG - Stored Values:");
     print("Token exists: ${token != null}");
@@ -48,11 +49,13 @@ class TokenManager {
     String token,
     String userId,
     String userRole,
+    String userEmail,
   ) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString(TOKEN_KEY, token);
     await prefs.setString(USER_ID_KEY, userId);
     await prefs.setString(USER_ROLE, userRole); // Fixed key usage
+    await prefs.setString(USER_EMAIL, userEmail);
 
     // Verify it was saved
     print("Saved role: ${prefs.getString(USER_ROLE)}");
@@ -81,6 +84,12 @@ class TokenManager {
   static Future<String?> getUserRole() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString(USER_ROLE);
+  }
+
+  // Get user email
+  static Future<String?> getUserEmail() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString(USER_EMAIL);
   }
 }
 

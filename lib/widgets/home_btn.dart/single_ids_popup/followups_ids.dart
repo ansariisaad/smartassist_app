@@ -13,6 +13,8 @@ import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/style_text.dart';
 import 'package:smartassist/widgets/remarks_field.dart';
+import 'package:smartassist/widgets/reusable/action_button.dart';
+import 'package:smartassist/widgets/reusable/date_button.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class FollowupsIds extends StatefulWidget {
@@ -34,11 +36,16 @@ class FollowupsIds extends StatefulWidget {
 
 class _FollowupsIdsState extends State<FollowupsIds> {
   Map<String, String> _errors = {};
-
+  bool isSubmitting = false;
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController dateController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   TextEditingController modelInterestController = TextEditingController();
+
+  TextEditingController startTimeController = TextEditingController();
+  TextEditingController startDateController = TextEditingController();
+  TextEditingController endTimeController = TextEditingController();
+  TextEditingController endDateController = TextEditingController();
   // final TextEditingController descriptionController = TextEditingController();
 
   List<dynamic> _searchResults = [];
@@ -142,7 +149,7 @@ class _FollowupsIdsState extends State<FollowupsIds> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://api.smartassistapp.in/api/search/global?query=$query',
+          'https://dev.smartassistapp.in/api/search/global?query=$query',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -194,24 +201,145 @@ class _FollowupsIdsState extends State<FollowupsIds> {
     }
   }
 
-  bool _validation() {
+  Future<void> _pickStartDate() async {
+    FocusScope.of(context).unfocus();
+
+    // Get current start date or use today
+    DateTime initialDate;
+    try {
+      if (startDateController.text.isNotEmpty) {
+        initialDate = DateFormat('dd MMM yyyy').parse(startDateController.text);
+      } else {
+        initialDate = DateTime.now();
+      }
+    } catch (e) {
+      initialDate = DateTime.now();
+    }
+
+    DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+
+    if (pickedDate != null) {
+      String formattedDate = DateFormat('dd MMM yyyy').format(pickedDate);
+
+      setState(() {
+        // Set start date
+        startDateController.text = formattedDate;
+
+        // Set end date to the same as start date but not visible in the UI
+        // (Only passed to API)
+        endDateController.text = formattedDate;
+      });
+    }
+  }
+
+  Future<void> _pickStartTime() async {
+    FocusScope.of(context).unfocus();
+
+    // Get current time from startTimeController or use current time
+    TimeOfDay initialTime;
+    try {
+      if (startTimeController.text.isNotEmpty) {
+        final parsedTime = DateFormat(
+          'hh:mm a',
+        ).parse(startTimeController.text);
+        initialTime = TimeOfDay(
+          hour: parsedTime.hour,
+          minute: parsedTime.minute,
+        );
+      } else {
+        initialTime = TimeOfDay.now();
+      }
+    } catch (e) {
+      initialTime = TimeOfDay.now();
+    }
+
+    TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+    );
+
+    if (pickedTime != null) {
+      // Create a temporary DateTime to format the time
+      final now = DateTime.now();
+      final time = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        pickedTime.hour,
+        pickedTime.minute,
+      );
+      String formattedTime = DateFormat('hh:mm a').format(time);
+
+      // Calculate end time (1 hour later)
+      final endHour = (pickedTime.hour + 1) % 24;
+      final endTime = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        endHour,
+        pickedTime.minute,
+      );
+      String formattedEndTime = DateFormat('hh:mm a').format(endTime);
+
+      setState(() {
+        // Set start time
+        startTimeController.text = formattedTime;
+
+        // Set end time to 1 hour later but not visible in the UI
+        // (Only passed to API)
+        endTimeController.text = formattedEndTime;
+      });
+    }
+  }
+
+  void _submit() async {
+    if (isSubmitting) return;
+
     bool isValid = true;
 
     setState(() {
+      isSubmitting = true;
       _errors = {};
 
-      if (dateController.text.trim().isEmpty) {
-        _errors['date'] = 'Date is required';
+      // if (_leadId == null || _leadId!.isEmpty) {
+      //   _errors['select lead name'] = 'Please select a lead name';
+      //   isValid = false;
+      // }
+
+      if (_selectedSubject == null || _selectedSubject!.isEmpty) {
+        _errors['subject'] = 'Please select an action';
+        isValid = false;
+      }
+
+      if (startDateController == null || startDateController.text!.isEmpty) {
+        _errors['date'] = 'Please select an action';
         isValid = false;
       }
     });
 
-    return isValid;
-  }
+    // 💡 Check validity before calling the API
+    if (!isValid) {
+      setState(() => isSubmitting = false);
+      return;
+    }
 
-  void _submit() {
-    if (_validation()) {
-      submitForm();
+    try {
+      await submitForm(); // ✅ Only call if valid
+      // Show snackbar or do post-submit work here
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Submission failed: ${e.toString()}',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      setState(() => isSubmitting = false);
     }
   }
 
@@ -303,12 +431,23 @@ class _FollowupsIdsState extends State<FollowupsIds> {
       );
       return;
     }
+    final rawStartDate = DateFormat(
+      'dd MMM yyyy',
+    ).parse(startDateController.text);
+    final rawStartTime = DateFormat('hh:mm a').parse(startTimeController.text);
+
+    final formattedStartDate = DateFormat('dd-MM-yyyy').format(rawStartDate);
+
+    // final formattedStartTime = DateFormat('HH:mm:ss').format(rawStartTime);
+
+        final formattedStartTime = DateFormat('hh:mm a').format(rawStartTime);
 
     final newTaskForLead = {
       'subject': _selectedSubject,
       'status': 'Not Started',
       'priority': 'High',
-      'due_date': dateController.text,
+      'time': formattedStartTime,
+      'due_date': formattedStartDate,
       'remarks': descriptionController.text,
       'sp_id': spId,
       'lead_id': widget.leadId,
@@ -368,15 +507,26 @@ class _FollowupsIdsState extends State<FollowupsIds> {
               ],
             ),
             const SizedBox(height: 10),
+            DateButton(
+              errorText: _errors['date'],
+              isRequired: true,
+              label: 'When?',
+              dateController: startDateController,
+              timeController: startTimeController,
+              onDateTap: _pickStartDate,
+              onTimeTap: _pickStartTime,
+              onChanged: (String value) {},
+            ),
             // _buildSearchField(),
             // const SizedBox(height: 10),
-            _buildDatePicker(
-              label: 'Select date:',
-              controller: dateController,
-              errorText: _errors['date'],
-              onTap: _pickDate,
-            ),
+            // _buildDatePicker(
+            //   label: 'Select date:',
+            //   controller: dateController,
+            //   errorText: _errors['date'],
+            //   onTap: _pickDate,
+            // ),
             const SizedBox(height: 10),
+
             // Row(
             //   mainAxisAlignment: MainAxisAlignment.start,
             //   children: [
@@ -386,9 +536,9 @@ class _FollowupsIdsState extends State<FollowupsIds> {
             //     ),
             //   ],
             // ),
-            _buildButtons(
-              label: 'Action:',
-              // options: ['Call', 'Provide Quotation', 'Send Email'],
+            ActionButton(
+              label: "Action:",
+              isRequired: true,
               options: {
                 "Call": "Call",
                 'Provide quotation': "Provide Quotation",
@@ -399,9 +549,29 @@ class _FollowupsIdsState extends State<FollowupsIds> {
               onChanged: (value) {
                 setState(() {
                   _selectedSubject = value;
+                  if (_errors.containsKey('subject')) {
+                    _errors.remove('subject');
+                  }
                 });
               },
+              errorText: _errors['subject'],
             ),
+            // _buildButtons(
+            //   label: 'Action:',
+            //   // options: ['Call', 'Provide Quotation', 'Send Email'],
+            //   options: {
+            //     "Call": "Call",
+            //     'Provide quotation': "Provide Quotation",
+            //     "Send Email": "Send Email",
+            //     "Send SMS": "Send SMS",
+            //   },
+            //   groupValue: _selectedSubject,
+            //   onChanged: (value) {
+            //     setState(() {
+            //       _selectedSubject = value;
+            //     });
+            //   },
+            // ),
 
             // _buildTextField(
             //   label: 'Comments:',

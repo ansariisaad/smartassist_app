@@ -49,7 +49,7 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
       await Future.delayed(Duration(seconds: 1));
       final token = await Storage.getToken();
       final response = await http.get(
-        Uri.parse('https://api.smartassistapp.in/api/events/${widget.eventId}'),
+        Uri.parse('https://dev.smartassistapp.in/api/events/${widget.eventId}'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -143,8 +143,9 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
                 builder: (context) => FollowupsDetails(
                   leadId: widget.leadId,
                   isFromFreshlead: false,
-                  isFromManager: false, 
-                  refreshDashboard: () async {}, isFromTestdriveOverview: true,
+                  isFromManager: false,
+                  refreshDashboard: () async {},
+                  isFromTestdriveOverview: true,
                 ),
               ),
             );

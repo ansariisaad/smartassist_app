@@ -11,7 +11,7 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/config/controller/tab_controller.dart';
 import 'package:smartassist/config/getX/fab.controller.dart';
-import 'package:smartassist/pages/Home/gloabal_search_page/global_search.dart'; 
+import 'package:smartassist/pages/Home/gloabal_search_page/global_search.dart';
 import 'package:smartassist/pages/notification/notification.dart';
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/storage.dart';
@@ -23,6 +23,7 @@ import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/create_testDr
 import 'package:smartassist/widgets/home_btn.dart/dashboard_analytics_one.dart';
 import 'package:smartassist/widgets/home_btn.dart/threebtn.dart';
 import 'package:http/http.dart' as http;
+import 'package:smartassist/widgets/internet_exception.dart';
 import 'package:smartassist/widgets/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -36,6 +37,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  bool hasInternet = true;
+  bool isRefreshing = false;
   int _currentTabIndex = 0; // Track which tab is active
   late TabControllerNew _tabController;
   String? leadId;
@@ -53,8 +56,9 @@ class _HomeScreenState extends State<HomeScreen> {
   List<dynamic> overdueAppointments = [];
   List<dynamic> upcomingTestDrives = [];
   List<dynamic> overdueTestDrives = [];
-  bool isDashboardLoading = false;
+  bool isDashboardLoading = true;
   String? teamRole;
+  Map<String, dynamic> dashboardData = {};
   Map<String, dynamic> MtdData = {};
   Map<String, dynamic> QtdData = {};
   Map<String, dynamic> YtdData = {};
@@ -178,7 +182,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Send to API
     final token = await Storage.getToken(); // Replace with your token logic
-    const apiUrl = 'https://api.smartassistapp.in/api/leads/create-call-logs';
+    const apiUrl = 'https://dev.smartassistapp.in/api/leads/create-call-logs';
 
     try {
       final response = await http.post(
@@ -217,14 +221,21 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> fetchDashboardData() async {
-    setState(() {
-      isDashboardLoading = true;
-    });
+  Future<void> fetchDashboardData({bool isRefresh = false}) async {
+    if (!isRefresh) {
+      setState(() {
+        isDashboardLoading = true;
+      });
+    } else {
+      setState(() {
+        isRefreshing = true;
+      });
+    }
     try {
       final data = await LeadsSrv.fetchDashboardData();
       if (mounted) {
         setState(() {
+          hasInternet = true;
           upcomingFollowups = data['upcomingFollowups'];
           overdueFollowups = data['overdueFollowups'];
           upcomingAppointments = data['upcomingAppointments'];
@@ -281,19 +292,30 @@ class _HomeScreenState extends State<HomeScreen> {
         });
       }
     } catch (e) {
-      print(e);
+      if (!mounted) return;
+
+      bool isNetworkError =
+          e.toString().contains('SocketException') ||
+          e.toString().contains('Failed host lookup') ||
+          e.toString().contains('Network is unreachable');
+
+      setState(() {
+        hasInternet = !isNetworkError;
+      });
+
+      print('Dashboard fetch error: $e');
       // showErrorMessage(context, message: e.toString());
     } finally {
-      if (mounted) {
-        setState(() {
-          isDashboardLoading = false;
-        });
-      }
+      if (!mounted) return;
+      setState(() {
+        isDashboardLoading = false;
+        isRefreshing = false;
+      });
     }
   }
 
   Future<void> onrefreshToggle() async {
-    await fetchDashboardData();
+    await fetchDashboardData(isRefresh: true);
     await uploadCallLogsAfterLogin();
   }
 
@@ -314,7 +336,7 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://api.smartassistapp.in/api/search/global?query=$query',
+          'https://dev.smartassistapp.in/api/search/global?query=$query',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -439,6 +461,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (!hasInternet && dashboardData.isEmpty) {
+      return InternetException(
+        onRetry: () {
+          fetchDashboardData();
+        },
+      );
+    }
     final screenWidth = MediaQuery.of(context).size.width;
     final responsiveFontSize = screenWidth * 0.035;
     return WillPopScope(
@@ -589,8 +618,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                         context,
                                                         MaterialPageRoute(
                                                           builder: (context) =>
-                                                                ProfileScreen(
-                                                              refreshDashboard:
+                                                              ProfileScreen(
+                                                                refreshDashboard:
                                                                     fetchDashboardData,
                                                               ),
                                                         ),
@@ -1324,7 +1353,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
 //       // Send to API
 //       final token = await Storage.getToken();
-//       const apiUrl = 'https://api.smartassistapp.in/api/leads/create-call-logs';
+//       const apiUrl = 'https://dev.smartassistapp.in/api/leads/create-call-logs';
 
 //       final response = await http.post(
 //         Uri.parse(apiUrl),
@@ -1456,7 +1485,7 @@ class _HomeScreenState extends State<HomeScreen> {
 //     try {
 //       final response = await http.get(
 //         Uri.parse(
-//           'https://api.smartassistapp.in/api/search/global?query=$query',
+//           'https://dev.smartassistapp.in/api/search/global?query=$query',
 //         ),
 //         headers: {
 //           'Authorization': 'Bearer $token',

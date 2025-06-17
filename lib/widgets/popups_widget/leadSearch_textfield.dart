@@ -9,13 +9,15 @@ import 'package:smartassist/utils/snackbar_helper.dart';
 
 class LeadTextfield extends StatefulWidget {
   final String? errorText;
+  bool isRequired = false;
   final ValueChanged<String> onChanged;
   final Function(String leadId, String leadName)? onLeadSelected;
-  const LeadTextfield({
+  LeadTextfield({
     super.key,
     this.onLeadSelected,
     required this.errorText,
     required this.onChanged,
+    required this.isRequired,
   });
 
   @override
@@ -90,7 +92,27 @@ class _LeadTextfieldState extends State<LeadTextfield> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Select Lead', style: AppFont.dropDowmLabel(context)),
+        // Text('Select Lead', style: AppFont.dropDowmLabel(context)),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 5),
+          child: RichText(
+            text: TextSpan(
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: AppColors.fontBlack,
+              ),
+              children: [
+                TextSpan(text: 'Select Lead'),
+                if (widget.isRequired)
+                  const TextSpan(
+                    text: " *",
+                    style: TextStyle(color: Colors.red),
+                  ),
+              ],
+            ),
+          ),
+        ),
         const SizedBox(height: 5),
         Container(
           height: MediaQuery.of(context).size.height * 0.055,

@@ -265,8 +265,8 @@ class _MyTeamsState extends State<MyTeams> {
 
       // ✅ Fixed: Use the correct base URL without concatenating userId
       final baseUri = Uri.parse(
-        'https://api.smartassistapp.in/api/users/ps/dashboard/call-analytics',
-        // 'https://api.smartassistapp.in/api/users/sm/dashboard/call-analytics'
+        'https://dev.smartassistapp.in/api/users/ps/dashboard/call-analytics',
+        // 'https://dev.smartassistapp.in/api/users/sm/dashboard/call-analytics'
       );
 
       final uri = baseUri.replace(queryParameters: queryParams);
@@ -357,7 +357,7 @@ class _MyTeamsState extends State<MyTeams> {
       }
 
       final baseUri = Uri.parse(
-        'https://api.smartassistapp.in/api/users/sm/dashboard/call-analytics',
+        'https://dev.smartassistapp.in/api/users/sm/dashboard/call-analytics',
       );
 
       final uri = baseUri.replace(queryParameters: queryParams);
@@ -482,7 +482,7 @@ class _MyTeamsState extends State<MyTeams> {
   //     // ✅ If "All" is selected (_selectedProfileIndex == 0), no user parameters are added
 
   //     final baseUri = Uri.parse(
-  //       'https://api.smartassistapp.in/api/users/sm/dashboard/team-dashboard',
+  //       'https://dev.smartassistapp.in/api/users/sm/dashboard/team-dashboard',
   //     );
 
   //     final uri = baseUri.replace(queryParameters: queryParams);
@@ -665,7 +665,7 @@ class _MyTeamsState extends State<MyTeams> {
       // ✅ If "All" is selected (_selectedProfileIndex == 0), no user parameters are added
 
       final baseUri = Uri.parse(
-        'https://api.smartassistapp.in/api/users/sm/dashboard/team-dashboard',
+        'https://dev.smartassistapp.in/api/users/sm/dashboard/team-dashboard',
       );
 
       final uri = baseUri.replace(queryParameters: queryParams);

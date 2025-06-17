@@ -44,7 +44,7 @@ class _AllAppointmentState extends State<AllAppointment> {
     try {
       final token = await Storage.getToken();
       const String apiUrl =
-          "https://api.smartassistapp.in/api/tasks/all-appointments";
+          "https://dev.smartassistapp.in/api/tasks/all-appointments";
 
       final response = await http.get(
         Uri.parse(apiUrl),
@@ -144,7 +144,6 @@ class _AllAppointmentState extends State<AllAppointment> {
             Navigator.pop(context);
 
             widget.refreshDashboard();
-
           },
           icon: const Icon(Icons.arrow_back_ios_outlined, color: Colors.white),
         ),
@@ -307,7 +306,9 @@ class _AllAppointmentState extends State<AllAppointment> {
               )
             : OppUpcoming(
                 refreshDashboard: widget.refreshDashboard,
-                upcomingOpp: _filteredUpcomingTasks, isNested: true);
+                upcomingOpp: _filteredUpcomingTasks,
+                isNested: true,
+              );
       case 2: // Overdue
         return _filteredOverdueTasks.isEmpty
             ? Center(
@@ -321,7 +322,9 @@ class _AllAppointmentState extends State<AllAppointment> {
               )
             : OppOverdue(
                 refreshDashboard: widget.refreshDashboard,
-                overdueeOpp: _filteredOverdueTasks, isNested: true);
+                overdueeOpp: _filteredOverdueTasks,
+                isNested: true,
+              );
       default:
         return const SizedBox();
     }

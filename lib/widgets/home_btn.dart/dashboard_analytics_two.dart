@@ -62,7 +62,7 @@ class _BottomBtnThirdState extends State<BottomBtnThird> {
       }
 
       final uri = Uri.parse(
-        'https://api.smartassistapp.in/api/users/dashboard/analytics$periodParam',
+        'https://dev.smartassistapp.in/api/users/dashboard/analytics$periodParam',
       );
 
       final response = await http.get(
@@ -245,9 +245,11 @@ class _BottomBtnThirdState extends State<BottomBtnThird> {
           children: [
             const SizedBox(height: 10),
             _buildHeaderRow(screenWidth),
+
             _isLoading ? _buildSkeletonLoader() : const SizedBox(height: 5),
-            // _buildPeriodToggle(),
+            // _isLoading ? _buildAnalyticsTable() : _buildSkeletonLoader(),
             _buildAnalyticsTable(),
+            // _buildPeriodToggle(),
           ],
         ),
       ),
@@ -340,7 +342,6 @@ class _BottomBtnThirdState extends State<BottomBtnThird> {
   Widget _buildHeaderRow(double screenWidth) {
     return Row(
       children: [
-        // Toggle buttons for MTD, QTD, YTD
         Container(
           width: screenWidth * 0.30,
           height: screenWidth * 0.06,
@@ -357,7 +358,7 @@ class _BottomBtnThirdState extends State<BottomBtnThird> {
             ],
           ),
         ),
-        const SizedBox(width: 10),
+        // const SizedBox(width: 10),
 
         // Headers section: Performance / Rank + Sub-columns
         Expanded(
@@ -382,14 +383,14 @@ class _BottomBtnThirdState extends State<BottomBtnThird> {
                   Container(
                     width: 1,
                     height:
-                        40, // Match height of both header rows for consistent divider
+                        30, // Match height of both header rows for consistent divider
                     color: Colors.grey.withOpacity(0.6),
                     margin: const EdgeInsets.symmetric(horizontal: 4),
                   ),
                   Expanded(
                     flex: 2,
                     child: Container(
-                      alignment: Alignment.centerLeft,
+                      alignment: Alignment.center,
                       child: Text(
                         'Rank',
                         style: AppFont.mediumText14(
@@ -428,7 +429,7 @@ class _BottomBtnThirdState extends State<BottomBtnThird> {
   Widget _buildHeaderCell(String text) {
     return Container(
       alignment: Alignment.center,
-      padding: const EdgeInsets.symmetric(horizontal: 4),
+      // padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Text(
         text,
         style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 7),
@@ -446,19 +447,19 @@ class _BottomBtnThirdState extends State<BottomBtnThird> {
         String value = entry.value;
 
         return Container(
-          // decoration:
-          //     index ==
-          //         2 // Divider after 2nd column (My, All India Best)
-          //     ? BoxDecoration(
-          //         border: Border(
-          //           right: BorderSide(
-          //             color: Colors.grey.withOpacity(0.6),
-          //             width: 1,
-          //           ),
-          //         ),
-          //       )
-          //     : null,
-          padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 5.0),
+          decoration:
+              index ==
+                  2 // Divider after 2nd column (My, All India Best)
+              ? BoxDecoration(
+                  border: Border(
+                    right: BorderSide(
+                      color: Colors.grey.withOpacity(0.6),
+                      width: 1,
+                    ),
+                  ),
+                )
+              : null,
+          padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 0.0),
           child: Text(
             value,
             style: AppFont.smallText(context),
@@ -526,25 +527,7 @@ class _BottomBtnThirdState extends State<BottomBtnThird> {
                 Container(
                   width: screenWidth * 0.55,
                   height: 16.0,
-                  color: Colors.white,
-                ),
-                const SizedBox(width: 10),
-                Container(
-                  width: screenWidth * 0.55,
-                  height: 16.0,
-                  color: Colors.white,
-                ),
-                const SizedBox(width: 10),
-                Container(
-                  width: screenWidth * 0.15,
-                  height: 16.0,
-                  color: Colors.white,
-                ),
-                const SizedBox(width: 10),
-                Container(
-                  width: screenWidth * 0.15,
-                  height: 16.0,
-                  color: Colors.white,
+                  color: Colors.black,
                 ),
               ],
             ),

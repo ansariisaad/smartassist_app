@@ -95,11 +95,11 @@ class _CallAnalyticsState extends State<CallAnalytics>
 
       if (widget.isFromSM) {
         uri = Uri.parse(
-          'https://api.smartassistapp.in/api/users/sm/dashboard/individual/call-analytics?userId=${widget.userId}',
+          'https://dev.smartassistapp.in/api/users/sm/dashboard/individual/call-analytics?userId=${widget.userId}',
         );
       } else {
         uri = Uri.parse(
-          'https://api.smartassistapp.in/api/users/ps/dashboard/call-analytics$periodParam',
+          'https://dev.smartassistapp.in/api/users/ps/dashboard/call-analytics$periodParam',
         );
       }
 

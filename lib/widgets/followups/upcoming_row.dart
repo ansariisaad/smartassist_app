@@ -19,7 +19,8 @@ class FollowupsUpcoming extends StatefulWidget {
     super.key,
     required this.upcomingFollowups,
     required this.isNested,
-    this.onFavoriteToggle, required this.refreshDashboard,
+    this.onFavoriteToggle,
+    required this.refreshDashboard,
   });
 
   @override
@@ -214,7 +215,8 @@ class UpcomingFollowupItem extends StatefulWidget {
     this.isFavorite = false,
     required this.onToggleFavorite,
     required this.mobile,
-    required this.taskId, required this.refreshDashboard,
+    required this.taskId,
+    required this.refreshDashboard,
   });
 
   @override
@@ -289,6 +291,8 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
   }
 
   Widget _buildOverdueCard(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isTablet = screenSize.width > 600;
     bool isFavoriteSwipe = widget.swipeOffset > 50;
     bool isCallSwipe = widget.swipeOffset < -50;
 
@@ -544,34 +548,71 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
     );
   }
 
+  bool _isActionPaneOpen = false; // Declare this in your StatefulWidget
+
   Widget _buildNavigationButton(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        print("Button tapped - toggling slidable");
-        // Simple toggle: close first, then open if it was closed
-        _slidableController.close();
-
-        // Use a small delay to ensure close completes, then open
-        Future.delayed(Duration(milliseconds: 100), () {
-          if (_slidableController.actionPaneType != ActionPaneType.end) {
+        if (_isActionPaneOpen) {
+          _slidableController.close();
+          setState(() {
+            _isActionPaneOpen = false;
+          });
+        } else {
+          _slidableController.close();
+          Future.delayed(Duration(milliseconds: 100), () {
             _slidableController.openEndActionPane();
-          }
-        });
+            setState(() {
+              _isActionPaneOpen = true;
+            });
+          });
+        }
       },
+
       child: Container(
         padding: const EdgeInsets.all(3),
         decoration: BoxDecoration(
           color: AppColors.arrowContainerColor,
           borderRadius: BorderRadius.circular(30),
         ),
-        child: const Icon(
-          Icons.arrow_back_ios_rounded,
+
+        child: Icon(
+          _isActionPaneOpen
+              ? Icons.arrow_forward_ios_rounded
+              : Icons.arrow_back_ios_rounded,
+
           size: 25,
           color: Colors.white,
         ),
       ),
     );
   }
+  // Widget _buildNavigationButton(BuildContext context) {
+  //   return GestureDetector(
+  //     onTap: () {
+  //       // Simple toggle: close first, then open if it was closed
+  //       _slidableController.close();
+  //       // Use a small delay to ensure close completes, then open
+  //       Future.delayed(Duration(milliseconds: 100), () {
+  //         if (_slidableController.actionPaneType != ActionPaneType.end) {
+  //           _slidableController.openEndActionPane();
+  //         }
+  //       });
+  //     },
+  //     child: Container(
+  //       padding: const EdgeInsets.all(3),
+  //       decoration: BoxDecoration(
+  //         color: AppColors.arrowContainerColor,
+  //         borderRadius: BorderRadius.circular(30),
+  //       ),
+  //       child: const Icon(
+  //         Icons.arrow_back_ios_rounded,
+  //         size: 25,
+  //         color: Colors.white,
+  //       ),
+  //     ),
+  //   );
+  // }
 
   void _phoneAction() {
     print("Call action triggered for ${widget.mobile}");

@@ -553,8 +553,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ScrollViewKeyboardDismissBehavior.onDrag,
                               child: Column(
                                 children: [
-                                  // const SizedBox(height: 5),
-
                                   /// ✅ Row with Menu, Search Bar, and Microphone
                                   Row(
                                     children: [
@@ -626,8 +624,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       );
                                                     },
                                                     child: Container(
-                                                      width: 40,
-                                                      height: 40,
+                                                      width: 28,
+                                                      height: 28,
                                                       decoration: BoxDecoration(
                                                         color: AppColors
                                                             .backgroundLightGrey,
@@ -643,8 +641,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                           ? ClipOval(
                                                               child: Image.network(
                                                                 profilePicUrl,
-                                                                width: 40,
-                                                                height: 40,
+                                                                width: 28,
+                                                                height: 28,
                                                                 fit: BoxFit
                                                                     .cover,
                                                                 errorBuilder:
@@ -653,13 +651,35 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                       error,
                                                                       stackTrace,
                                                                     ) {
-                                                                      // Fallback to initials if image fails to load
-                                                                      return Text(
-                                                                        name.isNotEmpty
-                                                                            ? name.toUpperCase()
-                                                                            : 'N/A',
-                                                                        style: AppFont.mediumText14bluebold(
-                                                                          context,
+                                                                      return Container(
+                                                                        width:
+                                                                            28,
+                                                                        height:
+                                                                            28,
+                                                                        decoration: BoxDecoration(
+                                                                          shape:
+                                                                              BoxShape.circle,
+                                                                          color: Theme.of(
+                                                                            context,
+                                                                          ).colorScheme.primary.withOpacity(0.1),
+                                                                        ),
+                                                                        child: Center(
+                                                                          child: Text(
+                                                                            name.isNotEmpty
+                                                                                ? name
+                                                                                      .substring(
+                                                                                        0,
+                                                                                        1,
+                                                                                      )
+                                                                                      .toUpperCase()
+                                                                                : 'N/A',
+                                                                            style:
+                                                                                AppFont.mediumText14bluebold(
+                                                                                  context,
+                                                                                ).copyWith(
+                                                                                  fontSize: 10,
+                                                                                ),
+                                                                          ),
                                                                         ),
                                                                       );
                                                                     },
@@ -667,32 +687,22 @@ class _HomeScreenState extends State<HomeScreen> {
                                                             )
                                                           : Text(
                                                               name.isNotEmpty
-                                                                  ? name.toUpperCase()
+                                                                  ? name
+                                                                        .substring(
+                                                                          0,
+                                                                          1,
+                                                                        )
+                                                                        .toUpperCase()
                                                                   : 'N/A',
                                                               style:
                                                                   AppFont.mediumText14bluebold(
                                                                     context,
+                                                                  ).copyWith(
+                                                                    fontSize:
+                                                                        14,
                                                                   ),
                                                             ),
                                                     ),
-                                                    // child: Container(
-                                                    //   width: 40,
-                                                    //   height: 40,
-                                                    //   decoration: BoxDecoration(
-                                                    //     color: AppColors
-                                                    //         .backgroundLightGrey,
-                                                    //     shape: BoxShape.circle,
-                                                    //   ),
-                                                    //   alignment: Alignment.center,
-                                                    //   child: Text(
-                                                    //     name.isNotEmpty
-                                                    //         ? name.toUpperCase()
-                                                    //         : 'N/A',
-                                                    //     style: AppFont
-                                                    //         .mediumText14bluebold(
-                                                    //             context),
-                                                    //   ),
-                                                    // ),
                                                   ),
                                                 ),
                                               ),

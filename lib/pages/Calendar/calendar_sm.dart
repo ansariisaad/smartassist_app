@@ -377,16 +377,25 @@ class _CalendarSmState extends State<CalendarSm> {
                 _isMonthView = !_isMonthView;
               });
             },
-            icon: Icon(
-              _isMonthView ? Icons.calendar_view_week : Icons.calendar_month,
-              color: Colors.white,
-            ),
+            icon: _isMonthView
+                ? Image.asset(
+                    'assets/week.png',
+                    width: 24,
+                    height: 24,
+                    color: Colors.white,
+                  )
+                : Image.asset(
+                    'assets/calendar.png',
+                    width: 24,
+                    height: 24,
+                    color: Colors.white,
+                  ),
           ),
         ],
       ),
       body:
           // _isLoading
-          //     ? const Center(child: CircularProgressIndicator(color: Colors.blue))
+          //     ? const Center(child: CircularProgressIndicator(color: AppColors.colorsBlue))
           //     :
           SingleChildScrollView(
             child: Column(
@@ -435,12 +444,15 @@ class _CalendarSmState extends State<CalendarSm> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Container(
-          height: 30,
+          height: 35,
           margin: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: AppColors.arrowContainerColor,
-            border: Border.all(color: Colors.grey, width: 1),
-            borderRadius: BorderRadius.circular(30),
+            color: const Color.fromRGBO(239, 239, 239, 1),
+            border: Border.all(
+              color: const Color.fromRGBO(239, 239, 239, 1),
+              width: 2,
+            ),
+            borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
             children: [
@@ -450,11 +462,15 @@ class _CalendarSmState extends State<CalendarSm> {
                 decoration: BoxDecoration(
                   color: _selectedType == 'team'
                       ? Colors.white
-                      : AppColors.backgroundLightGrey,
-                  borderRadius: BorderRadius.circular(30),
+                      : const Color.fromRGBO(239, 239, 239, 1),
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: TextButton(
-                  style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    splashFactory: NoSplash.splashFactory,
+                    overlayColor: Colors.transparent,
+                  ),
                   onPressed: () => _handleTeamYourSelection('team'),
                   child: Text(
                     "Team's",
@@ -473,11 +489,15 @@ class _CalendarSmState extends State<CalendarSm> {
                 decoration: BoxDecoration(
                   color: _selectedType == 'your'
                       ? Colors.white
-                      : AppColors.backgroundLightGrey,
-                  borderRadius: BorderRadius.circular(30),
+                      : const Color.fromRGBO(239, 239, 239, 1),
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: TextButton(
-                  style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    splashFactory: NoSplash.splashFactory,
+                    overlayColor: Colors.transparent,
+                  ),
                   onPressed: () => _handleTeamYourSelection('your'),
                   child: Text(
                     'Your',
@@ -568,7 +588,7 @@ class _CalendarSmState extends State<CalendarSm> {
             height: 40,
             margin: const EdgeInsets.symmetric(horizontal: 4),
             decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.4),
+              color: AppColors.colorsBlue.withOpacity(0.4),
               borderRadius: BorderRadius.circular(1),
             ),
           ),
@@ -602,7 +622,7 @@ class _CalendarSmState extends State<CalendarSm> {
             height: 40,
             margin: const EdgeInsets.symmetric(horizontal: 4),
             decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.4),
+              color: AppColors.colorsBlue.withOpacity(0.4),
               borderRadius: BorderRadius.circular(1),
             ),
           ),
@@ -641,10 +661,10 @@ class _CalendarSmState extends State<CalendarSm> {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: isSelected
-                  ? Colors.blue.withOpacity(0.15)
+                  ? AppColors.colorsBlue.withOpacity(0.15)
                   : Colors.grey.withOpacity(0.1),
               border: isSelected
-                  ? Border.all(color: Colors.blue, width: 2.5)
+                  ? Border.all(color: AppColors.colorsBlue, width: 2.5)
                   : Border.all(color: Colors.grey.withOpacity(0.3), width: 1),
             ),
             child: Center(
@@ -653,7 +673,9 @@ class _CalendarSmState extends State<CalendarSm> {
                 style: TextStyle(
                   fontSize: isSelected ? 22 : 20,
                   fontWeight: FontWeight.bold,
-                  color: isSelected ? Colors.blue : Colors.grey.shade600,
+                  color: isSelected
+                      ? AppColors.colorsBlue
+                      : Colors.grey.shade600,
                 ),
               ),
             ),
@@ -665,7 +687,7 @@ class _CalendarSmState extends State<CalendarSm> {
           style: TextStyle(
             fontSize: 14,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-            color: isSelected ? Colors.blue : Colors.black,
+            color: isSelected ? AppColors.colorsBlue : Colors.black,
           ),
         ),
       ],
@@ -695,7 +717,7 @@ class _CalendarSmState extends State<CalendarSm> {
                 0.1,
               ), // Updated to match AppColors.backgroundLightGrey
               border: _selectedProfileIndex == index
-                  ? Border.all(color: Colors.blue, width: 2)
+                  ? Border.all(color: AppColors.colorsBlue, width: 2)
                   : null,
             ),
             child: ClipOval(
@@ -812,7 +834,7 @@ class _CalendarSmState extends State<CalendarSm> {
   //             shape: BoxShape.circle,
   //             color: AppColors.backgroundLightGrey,
   //             border: _selectedProfileIndex == index
-  //                 ? Border.all(color: Colors.blue, width: 2)
+  //                 ? Border.all(color: AppColors.colorsBlue, width: 2)
   //                 : null,
   //           ),
   //           child: ClipOval(
@@ -861,20 +883,43 @@ class _CalendarSmState extends State<CalendarSm> {
 
   Widget _buildImprovedTimelineView() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: Colors.blue));
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.colorsBlue),
+      );
     }
 
     // Show message if team is selected but no user is chosen
     if (_selectedType == 'team' && _selectedUserId.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.event_busy, size: 48, color: Colors.grey),
-            SizedBox(height: 16),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                double imageSize =
+                    MediaQuery.of(context).size.width *
+                    0.12; // 12% of screen width
+                return Image.asset(
+                  'assets/calendar.png', // Replace with your image path
+                  width: imageSize,
+                  height: imageSize,
+                  color: Colors
+                      .grey, // Optional: applies color filter to the image
+                );
+              },
+            ),
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.02,
+            ), // 2% of screen height
             Text(
-              'Please Select the user',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
+              'Select a PS to view their schedule',
+              style: TextStyle(
+                fontSize:
+                    MediaQuery.of(context).size.width *
+                    0.04, // 4% of screen width
+                color: Colors.grey,
+              ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -883,15 +928,23 @@ class _CalendarSmState extends State<CalendarSm> {
 
     final combinedItems = [...tasks, ...events];
     if (combinedItems.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.event_busy, size: 48, color: Colors.grey),
-            SizedBox(height: 16),
+            Image.asset(
+              "assets/calendar.png",
+              width: 48.0 * MediaQuery.of(context).textScaleFactor,
+              height: 48.0 * MediaQuery.of(context).textScaleFactor,
+              color: Colors.grey,
+            ),
+            SizedBox(height: 16.0 * MediaQuery.of(context).textScaleFactor),
             Text(
               'No activities scheduled for this day',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
+              style: TextStyle(
+                fontSize: 16.0 * MediaQuery.of(context).textScaleFactor,
+                color: Colors.grey,
+              ),
             ),
           ],
         ),
@@ -1735,7 +1788,7 @@ class _CalendarSmState extends State<CalendarSm> {
 //       ),
 //       body:
 //           // _isLoading
-//           //     ? const Center(child: CircularProgressIndicator(color: Colors.blue))
+//           //     ? const Center(child: CircularProgressIndicator(color: AppColors.colorsBlue))
 //           //     :
 //           SingleChildScrollView(
 //             child: Column(
@@ -1917,7 +1970,7 @@ class _CalendarSmState extends State<CalendarSm> {
 //             height: 40,
 //             margin: const EdgeInsets.symmetric(horizontal: 4),
 //             decoration: BoxDecoration(
-//               color: Colors.blue.withOpacity(0.4),
+//               color: AppColors.colorsBlue.withOpacity(0.4),
 //               borderRadius: BorderRadius.circular(1),
 //             ),
 //           ),
@@ -1951,7 +2004,7 @@ class _CalendarSmState extends State<CalendarSm> {
 //             height: 40,
 //             margin: const EdgeInsets.symmetric(horizontal: 4),
 //             decoration: BoxDecoration(
-//               color: Colors.blue.withOpacity(0.4),
+//               color: AppColors.colorsBlue.withOpacity(0.4),
 //               borderRadius: BorderRadius.circular(1),
 //             ),
 //           ),
@@ -1990,10 +2043,10 @@ class _CalendarSmState extends State<CalendarSm> {
 //             decoration: BoxDecoration(
 //               shape: BoxShape.circle,
 //               color: isSelected
-//                   ? Colors.blue.withOpacity(0.15)
+//                   ? AppColors.colorsBlue.withOpacity(0.15)
 //                   : Colors.grey.withOpacity(0.1),
 //               border: isSelected
-//                   ? Border.all(color: Colors.blue, width: 2.5)
+//                   ? Border.all(color: AppColors.colorsBlue, width: 2.5)
 //                   : Border.all(color: Colors.grey.withOpacity(0.3), width: 1),
 //             ),
 //             child: Center(
@@ -2002,7 +2055,7 @@ class _CalendarSmState extends State<CalendarSm> {
 //                 style: TextStyle(
 //                   fontSize: isSelected ? 22 : 20,
 //                   fontWeight: FontWeight.bold,
-//                   color: isSelected ? Colors.blue : Colors.grey.shade600,
+//                   color: isSelected ? AppColors.colorsBlue : Colors.grey.shade600,
 //                 ),
 //               ),
 //             ),
@@ -2014,7 +2067,7 @@ class _CalendarSmState extends State<CalendarSm> {
 //           style: TextStyle(
 //             fontSize: 14,
 //             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-//             color: isSelected ? Colors.blue : Colors.black,
+//             color: isSelected ? AppColors.colorsBlue : Colors.black,
 //           ),
 //         ),
 //       ],
@@ -2044,7 +2097,7 @@ class _CalendarSmState extends State<CalendarSm> {
 //                 0.1,
 //               ), // Updated to match AppColors.backgroundLightGrey
 //               border: _selectedProfileIndex == index
-//                   ? Border.all(color: Colors.blue, width: 2)
+//                   ? Border.all(color: AppColors.colorsBlue, width: 2)
 //                   : null,
 //             ),
 //             child: ClipOval(
@@ -2161,7 +2214,7 @@ class _CalendarSmState extends State<CalendarSm> {
 //   //             shape: BoxShape.circle,
 //   //             color: AppColors.backgroundLightGrey,
 //   //             border: _selectedProfileIndex == index
-//   //                 ? Border.all(color: Colors.blue, width: 2)
+//   //                 ? Border.all(color: AppColors.colorsBlue, width: 2)
 //   //                 : null,
 //   //           ),
 //   //           child: ClipOval(
@@ -2210,7 +2263,7 @@ class _CalendarSmState extends State<CalendarSm> {
 
 //   Widget _buildImprovedTimelineView() {
 //     if (_isLoading) {
-//       return const Center(child: CircularProgressIndicator(color: Colors.blue));
+//       return const Center(child: CircularProgressIndicator(color: AppColors.colorsBlue));
 //     }
 
 //     final combinedItems = [...tasks, ...events];

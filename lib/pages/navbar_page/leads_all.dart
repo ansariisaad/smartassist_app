@@ -578,7 +578,9 @@ class TaskItem extends StatefulWidget {
   State<TaskItem> createState() => _TaskItemState();
 }
 
-class _TaskItemState extends State<TaskItem> {
+class _TaskItemState extends State<TaskItem>
+    with SingleTickerProviderStateMixin {
+  late SlidableController _slidableController;
   late bool isFav;
 
   void updateFavoriteStatus(bool newStatus) {
@@ -590,7 +592,15 @@ class _TaskItemState extends State<TaskItem> {
   @override
   void initState() {
     super.initState();
+    _slidableController = SlidableController(this);
+
     isFav = widget.isFavorite;
+  }
+
+  @override
+  void dispose() {
+    _slidableController.dispose();
+    super.dispose();
   }
 
   @override
@@ -821,39 +831,39 @@ class _TaskItemState extends State<TaskItem> {
     );
   }
 
+  bool _isActionPaneOpen = false;
   Widget _buildNavigationButton(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-    final isTablet = screenSize.width > 600;
-
     return GestureDetector(
       onTap: () {
-        if (widget.leadId.isNotEmpty) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => FollowupsDetails(
-                leadId: widget.leadId,
-                isFromFreshlead: false,
-                isFromManager: false,
-
-                isFromTestdriveOverview: false,
-                refreshDashboard: () async {},
-              ),
-            ),
-          );
+        if (_isActionPaneOpen) {
+          _slidableController.close();
+          setState(() {
+            _isActionPaneOpen = false;
+          });
         } else {
-          print("Invalid leadId");
+          _slidableController.close();
+          Future.delayed(Duration(milliseconds: 100), () {
+            _slidableController.openEndActionPane();
+            setState(() {
+              _isActionPaneOpen = true;
+            });
+          });
         }
       },
+
       child: Container(
-        padding: EdgeInsets.all(isTablet ? 6 : 3),
+        padding: const EdgeInsets.all(3),
         decoration: BoxDecoration(
           color: AppColors.arrowContainerColor,
           borderRadius: BorderRadius.circular(30),
         ),
+
         child: Icon(
-          Icons.arrow_forward_ios_rounded,
-          size: isTablet ? 30 : 25,
+          _isActionPaneOpen
+              ? Icons.arrow_forward_ios_rounded
+              : Icons.arrow_back_ios_rounded,
+
+          size: 25,
           color: Colors.white,
         ),
       ),

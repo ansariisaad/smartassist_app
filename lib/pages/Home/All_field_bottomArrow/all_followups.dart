@@ -11,6 +11,16 @@ import 'package:smartassist/widgets/followups/overdue_followup.dart';
 import 'package:smartassist/widgets/followups/upcoming_row.dart';
 import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/create_Followups_popups.dart';
 import 'package:smartassist/widgets/buttons/add_btn.dart';
+import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:smartassist/config/component/color/colors.dart';
+import 'package:smartassist/config/component/font/font.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:smartassist/pages/navbar_page/call_logs.dart';
+import 'package:smartassist/utils/storage.dart';
 
 class AddFollowups extends StatefulWidget {
   final Future<void> Function() refreshDashboard;
@@ -39,6 +49,23 @@ class _AddFollowupsState extends State<AddFollowups> {
     super.initState();
     fetchTasks();
   }
+
+  // Helper method to get responsive dimensions
+  bool get _isTablet => MediaQuery.of(context).size.width > 768;
+  bool get _isSmallScreen => MediaQuery.of(context).size.width < 400;
+  double get _screenWidth => MediaQuery.of(context).size.width;
+  double get _screenHeight => MediaQuery.of(context).size.height;
+
+  // Responsive padding
+  EdgeInsets get _responsivePadding => EdgeInsets.symmetric(
+    horizontal: _isTablet ? 20 : (_isSmallScreen ? 8 : 10),
+    vertical: _isTablet ? 12 : 8,
+  );
+
+  // Responsive font sizes
+  double get _titleFontSize => _isTablet ? 20 : (_isSmallScreen ? 16 : 18);
+  double get _bodyFontSize => _isTablet ? 16 : (_isSmallScreen ? 12 : 14);
+  double get _smallFontSize => _isTablet ? 14 : (_isSmallScreen ? 10 : 12);
 
   double _getScreenWidth() => MediaQuery.sizeOf(context).width;
 
@@ -143,25 +170,25 @@ class _AddFollowupsState extends State<AddFollowups> {
             Navigator.pop(context);
             widget.refreshDashboard();
           },
-          // onPressed: () => Navigator.pushReplacement(
-          //   context,
-          //   MaterialPageRoute(builder: (context) => BottomNavigation()),
-          // ),
-          icon: const Icon(Icons.arrow_back_ios_outlined, color: Colors.white),
+          icon: Icon(
+            FontAwesomeIcons.angleLeft,
+            color: Colors.white,
+            size: _isSmallScreen ? 18 : 20,
+          ),
         ),
-
-        backgroundColor: const Color(0xFF1380FE),
         title: Align(
           alignment: Alignment.centerLeft,
-          child: const Text(
+          child: Text(
             'Your Follow ups',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
+            style: GoogleFonts.poppins(
+              fontSize: _titleFontSize,
+              fontWeight: FontWeight.w400,
               color: Colors.white,
             ),
           ),
         ),
+        backgroundColor: const Color(0xFF1380FE),
+        automaticallyImplyLeading: false,
       ),
       floatingActionButton: CustomFloatingButton(
         onPressed: () {

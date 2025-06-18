@@ -1004,7 +1004,6 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? spId = prefs.getString('user_id');
-      String? userEmail = await TokenManager.getUserEmail();
       // String? user_email = prefs.getString('user_email');
       final url = Uri.parse('https://dev.smartassistapp.in/api/init-wa');
       final token = await Storage.getToken();

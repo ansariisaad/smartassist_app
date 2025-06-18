@@ -11,7 +11,7 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/config/controller/tab_controller.dart';
 import 'package:smartassist/config/getX/fab.controller.dart';
-import 'package:smartassist/pages/Home/gloabal_search_page/global_search.dart'; 
+import 'package:smartassist/pages/Home/gloabal_search_page/global_search.dart';
 import 'package:smartassist/pages/notification/notification.dart';
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/storage.dart';
@@ -178,7 +178,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Send to API
     final token = await Storage.getToken(); // Replace with your token logic
-    const apiUrl = 'https://api.smartassistapp.in/api/leads/create-call-logs';
+    const apiUrl = 'https://dev.smartassistapp.in/api/leads/create-call-logs';
 
     try {
       final response = await http.post(
@@ -314,7 +314,7 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://api.smartassistapp.in/api/search/global?query=$query',
+          'https://dev.smartassistapp.in/api/search/global?query=$query',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -524,8 +524,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ScrollViewKeyboardDismissBehavior.onDrag,
                               child: Column(
                                 children: [
-                                  // const SizedBox(height: 5),
-
                                   /// ✅ Row with Menu, Search Bar, and Microphone
                                   Row(
                                     children: [
@@ -589,16 +587,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                                         context,
                                                         MaterialPageRoute(
                                                           builder: (context) =>
-                                                                ProfileScreen(
-                                                              refreshDashboard:
+                                                              ProfileScreen(
+                                                                refreshDashboard:
                                                                     fetchDashboardData,
                                                               ),
                                                         ),
                                                       );
                                                     },
                                                     child: Container(
-                                                      width: 40,
-                                                      height: 40,
+                                                      width: 28,
+                                                      height: 28,
                                                       decoration: BoxDecoration(
                                                         color: AppColors
                                                             .backgroundLightGrey,
@@ -614,8 +612,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                           ? ClipOval(
                                                               child: Image.network(
                                                                 profilePicUrl,
-                                                                width: 40,
-                                                                height: 40,
+                                                                width: 28,
+                                                                height: 28,
                                                                 fit: BoxFit
                                                                     .cover,
                                                                 errorBuilder:
@@ -624,13 +622,35 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                       error,
                                                                       stackTrace,
                                                                     ) {
-                                                                      // Fallback to initials if image fails to load
-                                                                      return Text(
-                                                                        name.isNotEmpty
-                                                                            ? name.toUpperCase()
-                                                                            : 'N/A',
-                                                                        style: AppFont.mediumText14bluebold(
-                                                                          context,
+                                                                      return Container(
+                                                                        width:
+                                                                            28,
+                                                                        height:
+                                                                            28,
+                                                                        decoration: BoxDecoration(
+                                                                          shape:
+                                                                              BoxShape.circle,
+                                                                          color: Theme.of(
+                                                                            context,
+                                                                          ).colorScheme.primary.withOpacity(0.1),
+                                                                        ),
+                                                                        child: Center(
+                                                                          child: Text(
+                                                                            name.isNotEmpty
+                                                                                ? name
+                                                                                      .substring(
+                                                                                        0,
+                                                                                        1,
+                                                                                      )
+                                                                                      .toUpperCase()
+                                                                                : 'N/A',
+                                                                            style:
+                                                                                AppFont.mediumText14bluebold(
+                                                                                  context,
+                                                                                ).copyWith(
+                                                                                  fontSize: 10,
+                                                                                ),
+                                                                          ),
                                                                         ),
                                                                       );
                                                                     },
@@ -638,32 +658,22 @@ class _HomeScreenState extends State<HomeScreen> {
                                                             )
                                                           : Text(
                                                               name.isNotEmpty
-                                                                  ? name.toUpperCase()
+                                                                  ? name
+                                                                        .substring(
+                                                                          0,
+                                                                          1,
+                                                                        )
+                                                                        .toUpperCase()
                                                                   : 'N/A',
                                                               style:
                                                                   AppFont.mediumText14bluebold(
                                                                     context,
+                                                                  ).copyWith(
+                                                                    fontSize:
+                                                                        14,
                                                                   ),
                                                             ),
                                                     ),
-                                                    // child: Container(
-                                                    //   width: 40,
-                                                    //   height: 40,
-                                                    //   decoration: BoxDecoration(
-                                                    //     color: AppColors
-                                                    //         .backgroundLightGrey,
-                                                    //     shape: BoxShape.circle,
-                                                    //   ),
-                                                    //   alignment: Alignment.center,
-                                                    //   child: Text(
-                                                    //     name.isNotEmpty
-                                                    //         ? name.toUpperCase()
-                                                    //         : 'N/A',
-                                                    //     style: AppFont
-                                                    //         .mediumText14bluebold(
-                                                    //             context),
-                                                    //   ),
-                                                    // ),
                                                   ),
                                                 ),
                                               ),
@@ -1324,7 +1334,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
 //       // Send to API
 //       final token = await Storage.getToken();
-//       const apiUrl = 'https://api.smartassistapp.in/api/leads/create-call-logs';
+//       const apiUrl = 'https://dev.smartassistapp.in/api/leads/create-call-logs';
 
 //       final response = await http.post(
 //         Uri.parse(apiUrl),
@@ -1456,7 +1466,7 @@ class _HomeScreenState extends State<HomeScreen> {
 //     try {
 //       final response = await http.get(
 //         Uri.parse(
-//           'https://api.smartassistapp.in/api/search/global?query=$query',
+//           'https://dev.smartassistapp.in/api/search/global?query=$query',
 //         ),
 //         headers: {
 //           'Authorization': 'Bearer $token',

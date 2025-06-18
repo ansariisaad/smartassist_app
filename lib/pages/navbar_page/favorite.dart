@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/navbar_page/favorites/favoritesbtns/f_appointment.dart';
 import 'package:smartassist/pages/navbar_page/favorites/favoritesbtns/f_leads.dart';
@@ -31,7 +32,7 @@ class _FavoritePageState extends State<FavoritePage> {
     super.initState();
     // Load initial data for followups
     // fetchFollowupData();
-    FUpcoming(leadId: widget.leadId);
+    FLeads();
   }
 
   Widget _buildContent() {
@@ -41,18 +42,17 @@ class _FavoritePageState extends State<FavoritePage> {
 
     switch (_selectedButtonIndex) {
       case 0:
-        return FUpcoming(leadId: widget.leadId); // Load follow-ups
-      case 1:
-        // return _buildDataList(appointmentData);
-        return const FAppointment();
-      case 2:
-        // return _buildDataList(testDriveData);
-        return const FTestdrive();
-      case 3:
         // return _buildDataList(opportunityData);
         return FLeads();
-      // case 4:
-      //   return FOpportunity();
+      case 1:
+        return FUpcoming(leadId: widget.leadId); // Load follow-ups
+      case 2:
+        // return _buildDataList(appointmentData);
+        return const FAppointment();
+      case 3:
+        // return _buildDataList(testDriveData);
+        return const FTestdrive();
+
       default:
         return const SizedBox();
     }
@@ -117,7 +117,7 @@ class _FavoritePageState extends State<FavoritePage> {
                 spacing: 1, // Space between buttons
                 children: [
                   FlexibleButton(
-                    title: 'Followups',
+                    title: 'Leads',
                     onPressed: () {
                       setState(() {
                         _selectedButtonIndex = 0;
@@ -125,13 +125,34 @@ class _FavoritePageState extends State<FavoritePage> {
                     },
                     decoration: BoxDecoration(
                       border: _selectedButtonIndex == 0
-                          ? Border.all(color: Colors.blue)
+                          ? Border.all(color: AppColors.colorsBlue)
                           : Border.all(color: Colors.transparent),
                       borderRadius: BorderRadius.circular(13),
                     ),
                     textStyle: GoogleFonts.poppins(
                       color: _selectedButtonIndex == 0
-                          ? Colors.blue
+                          ? AppColors.colorsBlue
+                          : Colors.black,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  FlexibleButton(
+                    title: 'Follow ups',
+                    onPressed: () {
+                      setState(() {
+                        _selectedButtonIndex = 1;
+                      });
+                    },
+                    decoration: BoxDecoration(
+                      border: _selectedButtonIndex == 1
+                          ? Border.all(color: AppColors.colorsBlue)
+                          : Border.all(color: Colors.transparent),
+                      borderRadius: BorderRadius.circular(13),
+                    ),
+                    textStyle: GoogleFonts.poppins(
+                      color: _selectedButtonIndex == 1
+                          ? AppColors.colorsBlue
                           : Colors.black,
                       fontSize: 14,
                       fontWeight: FontWeight.w400,
@@ -141,18 +162,18 @@ class _FavoritePageState extends State<FavoritePage> {
                     title: 'Appointments',
                     onPressed: () {
                       setState(() {
-                        _selectedButtonIndex = 1;
+                        _selectedButtonIndex = 2;
                       });
                     },
                     decoration: BoxDecoration(
-                      border: _selectedButtonIndex == 1
-                          ? Border.all(color: Colors.blue)
+                      border: _selectedButtonIndex == 2
+                          ? Border.all(color: AppColors.colorsBlue)
                           : Border.all(color: Colors.transparent),
                       borderRadius: BorderRadius.circular(13),
                     ),
                     textStyle: GoogleFonts.poppins(
-                      color: _selectedButtonIndex == 1
-                          ? Colors.blue
+                      color: _selectedButtonIndex == 2
+                          ? AppColors.colorsBlue
                           : Colors.black,
                       fontSize: 14,
                       fontWeight: FontWeight.w400,
@@ -162,39 +183,18 @@ class _FavoritePageState extends State<FavoritePage> {
                     title: 'Test Drives',
                     onPressed: () {
                       setState(() {
-                        _selectedButtonIndex = 2;
-                      });
-                    },
-                    decoration: BoxDecoration(
-                      border: _selectedButtonIndex == 2
-                          ? Border.all(color: Colors.blue)
-                          : Border.all(color: Colors.transparent),
-                      borderRadius: BorderRadius.circular(13),
-                    ),
-                    textStyle: GoogleFonts.poppins(
-                      color: _selectedButtonIndex == 2
-                          ? Colors.blue
-                          : Colors.black,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                  FlexibleButton(
-                    title: 'Leads',
-                    onPressed: () {
-                      setState(() {
                         _selectedButtonIndex = 3;
                       });
                     },
                     decoration: BoxDecoration(
                       border: _selectedButtonIndex == 3
-                          ? Border.all(color: Colors.blue)
+                          ? Border.all(color: AppColors.colorsBlue)
                           : Border.all(color: Colors.transparent),
                       borderRadius: BorderRadius.circular(13),
                     ),
                     textStyle: GoogleFonts.poppins(
                       color: _selectedButtonIndex == 3
-                          ? Colors.blue
+                          ? AppColors.colorsBlue
                           : Colors.black,
                       fontSize: 14,
                       fontWeight: FontWeight.w400,

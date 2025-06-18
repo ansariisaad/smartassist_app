@@ -171,7 +171,7 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://api.smartassistapp.in/api/search/vehicles?vehicle=${Uri.encodeComponent(query)}',
+          'https://dev.smartassistapp.in/api/search/vehicles?vehicle=${Uri.encodeComponent(query)}',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -216,7 +216,7 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
     final encodedName = Uri.encodeComponent(vehicleName);
 
     final url =
-        'https://api.smartassistapp.in/api/users/vehicles/all?vehicle_name=$encodedName';
+        'https://dev.smartassistapp.in/api/users/vehicles/all?vehicle_name=$encodedName';
 
     try {
       final response = await http.get(
@@ -273,7 +273,7 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://api.smartassistapp.in/api/search/global?query=$query',
+          'https://dev.smartassistapp.in/api/search/global?query=$query',
         ),
         headers: {
           'Authorization': 'Bearer $token',

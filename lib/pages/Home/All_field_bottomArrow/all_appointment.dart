@@ -11,6 +11,16 @@ import 'package:smartassist/widgets/followups/all_followups.dart';
 import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/appointment_popup.dart';
 import 'package:smartassist/widgets/oppointment/overdue.dart';
 import 'package:smartassist/widgets/oppointment/upcoming.dart';
+import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:smartassist/config/component/color/colors.dart';
+import 'package:smartassist/config/component/font/font.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:smartassist/pages/navbar_page/call_logs.dart';
+import 'package:smartassist/utils/storage.dart';
 
 class AllAppointment extends StatefulWidget {
   final Future<void> Function() refreshDashboard;
@@ -44,7 +54,7 @@ class _AllAppointmentState extends State<AllAppointment> {
     try {
       final token = await Storage.getToken();
       const String apiUrl =
-          "https://api.smartassistapp.in/api/tasks/all-appointments";
+          "https://dev.smartassistapp.in/api/tasks/all-appointments";
 
       final response = await http.get(
         Uri.parse(apiUrl),
@@ -131,36 +141,51 @@ class _AllAppointmentState extends State<AllAppointment> {
     return 240.0 * _getResponsiveScale(); // Base width: 150
   }
 
+  // Helper method to get responsive dimensions
+  bool get _isTablet => MediaQuery.of(context).size.width > 768;
+  bool get _isSmallScreen => MediaQuery.of(context).size.width < 400;
+  double get _screenWidth => MediaQuery.of(context).size.width;
+  double get _screenHeight => MediaQuery.of(context).size.height;
+
+  // Responsive padding
+  EdgeInsets get _responsivePadding => EdgeInsets.symmetric(
+    horizontal: _isTablet ? 20 : (_isSmallScreen ? 8 : 10),
+    vertical: _isTablet ? 12 : 8,
+  );
+
+  // Responsive font sizes
+  double get _titleFontSize => _isTablet ? 20 : (_isSmallScreen ? 16 : 18);
+  double get _bodyFontSize => _isTablet ? 16 : (_isSmallScreen ? 12 : 14);
+  double get _smallFontSize => _isTablet ? 14 : (_isSmallScreen ? 10 : 12);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          // onPressed: () => Navigator.pushReplacement(
-          //   context,
-          //   MaterialPageRoute(builder: (context) => BottomNavigation()),
-          // ),
           onPressed: () {
             Navigator.pop(context);
-
             widget.refreshDashboard();
-
           },
-          icon: const Icon(Icons.arrow_back_ios_outlined, color: Colors.white),
+          icon: Icon(
+            FontAwesomeIcons.angleLeft,
+            color: Colors.white,
+            size: _isSmallScreen ? 18 : 20,
+          ),
         ),
-
-        backgroundColor: const Color(0xFF1380FE),
         title: Align(
           alignment: Alignment.centerLeft,
-          child: const Text(
+          child: Text(
             'Your Appointments',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
+            style: GoogleFonts.poppins(
+              fontSize: _titleFontSize,
+              fontWeight: FontWeight.w400,
               color: Colors.white,
             ),
           ),
         ),
+        backgroundColor: const Color(0xFF1380FE),
+        automaticallyImplyLeading: false,
       ),
       floatingActionButton: CustomFloatingButton(
         onPressed: () {
@@ -307,7 +332,9 @@ class _AllAppointmentState extends State<AllAppointment> {
               )
             : OppUpcoming(
                 refreshDashboard: widget.refreshDashboard,
-                upcomingOpp: _filteredUpcomingTasks, isNested: true);
+                upcomingOpp: _filteredUpcomingTasks,
+                isNested: true,
+              );
       case 2: // Overdue
         return _filteredOverdueTasks.isEmpty
             ? Center(
@@ -321,7 +348,9 @@ class _AllAppointmentState extends State<AllAppointment> {
               )
             : OppOverdue(
                 refreshDashboard: widget.refreshDashboard,
-                overdueeOpp: _filteredOverdueTasks, isNested: true);
+                overdueeOpp: _filteredOverdueTasks,
+                isNested: true,
+              );
       default:
         return const SizedBox();
     }

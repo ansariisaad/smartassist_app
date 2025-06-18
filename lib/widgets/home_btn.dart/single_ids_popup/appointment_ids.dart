@@ -10,6 +10,7 @@ import 'package:smartassist/utils/storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
+import 'package:smartassist/widgets/remarks_field.dart';
 import 'package:smartassist/widgets/reusable/action_button.dart';
 import 'package:smartassist/widgets/reusable/date_button.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
@@ -80,7 +81,7 @@ class _AppointmentIdsState extends State<AppointmentIds> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://dev.smartassistapp.in/api/search/global?query=$query',
+          'https://api.smartassistapp.in/api/search/global?query=$query',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -497,10 +498,19 @@ class _AppointmentIdsState extends State<AppointmentIds> {
                 errorText: _errors['subject'],
               ),
               const SizedBox(height: 10),
-              _buildTextField(
-                label: 'Comments:',
+              // _buildTextField(
+              //   label: 'Comments:',
+              //   controller: descriptionController,
+              //   hint: 'Type or speak...',
+              // ),
+              EnhancedSpeechTextField(
+                // contentPadding: EdgeInsets.zero,
+                label: 'Remarks:',
                 controller: descriptionController,
-                hint: 'Type or speak...',
+                hint: 'Type or speak... ',
+                onChanged: (text) {
+                  print('Text changed: $text');
+                },
               ),
               const SizedBox(height: 10),
             ],
@@ -1026,7 +1036,7 @@ class _AppointmentIdsState extends State<AppointmentIds> {
     ).format(rawEndDate); // Automatically set
 
     // final formattedStartTime = DateFormat('HH:mm:ss').format(rawStartTime);
-        final formattedStartTime = DateFormat('hh:mm a').format(rawStartTime);
+    final formattedStartTime = DateFormat('hh:mm a').format(rawStartTime);
 
     final formattedEndTime = DateFormat(
       'HH:mm:ss',

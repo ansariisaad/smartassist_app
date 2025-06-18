@@ -64,7 +64,7 @@ import 'package:smartassist/utils/storage.dart';
 //   //   try {
 //   //     final response = await http.get(
 //   //       Uri.parse(
-//   //         'https://dev.smartassistapp.in/api/search/vehicles?vehicle=${Uri.encodeComponent(query)}',
+//   //         'https://api.smartassistapp.in/api/search/vehicles?vehicle=${Uri.encodeComponent(query)}',
 //   //       ),
 //   //       headers: {
 //   //         'Authorization': 'Bearer $token',

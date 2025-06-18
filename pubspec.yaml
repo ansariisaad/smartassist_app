@@ -82,6 +82,7 @@ dependencies:
   azlistview: ^2.0.0
   timeago: ^3.5.0
   share_plus: ^11.0.0
+  external_app_launcher: ^4.0.3
 
 dev_dependencies:
   flutter_test:

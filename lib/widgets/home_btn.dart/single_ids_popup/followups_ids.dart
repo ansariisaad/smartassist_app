@@ -149,7 +149,7 @@ class _FollowupsIdsState extends State<FollowupsIds> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://dev.smartassistapp.in/api/search/global?query=$query',
+          'https://api.smartassistapp.in/api/search/global?query=$query',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -440,7 +440,7 @@ class _FollowupsIdsState extends State<FollowupsIds> {
 
     // final formattedStartTime = DateFormat('HH:mm:ss').format(rawStartTime);
 
-        final formattedStartTime = DateFormat('hh:mm a').format(rawStartTime);
+    final formattedStartTime = DateFormat('hh:mm a').format(rawStartTime);
 
     final newTaskForLead = {
       'subject': _selectedSubject,
@@ -580,7 +580,7 @@ class _FollowupsIdsState extends State<FollowupsIds> {
             // ),
             EnhancedSpeechTextField(
               // contentPadding: EdgeInsets.zero,
-              label: 'Remarks',
+              label: 'Remarks:',
               controller: descriptionController,
               hint: 'Type or speak... ',
               onChanged: (text) {

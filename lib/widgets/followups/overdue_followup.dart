@@ -243,20 +243,23 @@ class overdueeFollowupsItem extends StatefulWidget {
 }
 
 class _overdueeFollowupsItemState extends State<overdueeFollowupsItem>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   bool _wasCallingPhone = false;
+  late SlidableController _slidableController;
 
   @override
   void initState() {
     super.initState();
     // Register this class as an observer to track app lifecycle changes
     WidgetsBinding.instance.addObserver(this);
+    _slidableController = SlidableController(this);
   }
 
   @override
   void dispose() {
     // Remove observer when widget is disposed
     WidgetsBinding.instance.removeObserver(this);
+    _slidableController.dispose();
     super.dispose();
   }
 
@@ -279,7 +282,27 @@ class _overdueeFollowupsItemState extends State<overdueeFollowupsItem>
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 5, 10, 0),
-      child: _buildOverdueCard(context),
+      child: InkWell(
+        onTap: () {
+          if (widget.leadId.isNotEmpty) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => FollowupsDetails(
+                  leadId: widget.leadId,
+                  isFromFreshlead: false,
+                  isFromManager: false,
+                  isFromTestdriveOverview: false,
+                  refreshDashboard: widget.refreshDashboard,
+                ),
+              ),
+            );
+          } else {
+            print("Invalid leadId");
+          }
+        },
+        child: _buildOverdueCard(context),
+      ),
     );
   }
 
@@ -289,12 +312,16 @@ class _overdueeFollowupsItemState extends State<overdueeFollowupsItem>
 
     return Slidable(
       key: ValueKey(widget.leadId), // Always good to set keys
+      controller: _slidableController,
       startActionPane: ActionPane(
         extentRatio: 0.2,
         motion: const ScrollMotion(),
         children: [
           ReusableSlidableAction(
-            onPressed: widget.onToggleFavorite, // handle fav toggle
+            onPressed: () {
+              widget.onToggleFavorite();
+              print('its trigger');
+            }, // handle fav toggle
             backgroundColor: Colors.amber,
             icon: widget.isFavorite
                 ? Icons.star_rounded
@@ -457,7 +484,19 @@ class _overdueeFollowupsItemState extends State<overdueeFollowupsItem>
   }
 
   Widget _buildUserDetails(BuildContext context) {
-    return Text(widget.name, style: AppFont.dashboardName(context));
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.of(context).size.width * .35,
+      ),
+      child: Text(
+        maxLines: 1, // Allow up to 2 lines
+        overflow: TextOverflow
+            .ellipsis, // Show ellipsis if it overflows beyond 2 lines
+        softWrap: true,
+        widget.name,
+        style: AppFont.dashboardName(context),
+      ),
+    );
   }
 
   Widget _buildSubjectDetails(BuildContext context) {
@@ -545,11 +584,13 @@ class _overdueeFollowupsItemState extends State<overdueeFollowupsItem>
 
   Widget _buildCarModel(BuildContext context) {
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 100),
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.of(context).size.width * .30,
+      ),
       child: Text(
         widget.vehicle,
         style: AppFont.dashboardCarName(context),
-        maxLines: 2, // Allow up to 2 lines
+        maxLines: 1, // Allow up to 2 lines
         overflow: TextOverflow
             .ellipsis, // Show ellipsis if it overflows beyond 2 lines
         softWrap: true, // Allow wrapping
@@ -557,34 +598,38 @@ class _overdueeFollowupsItemState extends State<overdueeFollowupsItem>
     );
   }
 
+  bool _isActionPaneOpen = false;
   Widget _buildNavigationButton(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        if (widget.leadId.isNotEmpty) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => FollowupsDetails(
-                leadId: widget.leadId,
-                isFromFreshlead: false,
-                isFromManager: false,
-                isFromTestdriveOverview: false,
-                refreshDashboard: widget.refreshDashboard,
-              ),
-            ),
-          );
+        if (_isActionPaneOpen) {
+          _slidableController.close();
+          setState(() {
+            _isActionPaneOpen = false;
+          });
         } else {
-          print("Invalid leadId");
+          _slidableController.close();
+          Future.delayed(Duration(milliseconds: 100), () {
+            _slidableController.openEndActionPane();
+            setState(() {
+              _isActionPaneOpen = true;
+            });
+          });
         }
       },
+
       child: Container(
         padding: const EdgeInsets.all(3),
         decoration: BoxDecoration(
           color: AppColors.arrowContainerColor,
           borderRadius: BorderRadius.circular(30),
         ),
-        child: const Icon(
-          Icons.arrow_forward_ios_rounded,
+
+        child: Icon(
+          _isActionPaneOpen
+              ? Icons.arrow_forward_ios_rounded
+              : Icons.arrow_back_ios_rounded,
+
           size: 25,
           color: Colors.white,
         ),

@@ -9,7 +9,7 @@ import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/follo
 import 'package:url_launcher/url_launcher.dart';
 
 class allOppointment extends StatefulWidget {
-  final String name, mobile, taskId;
+  final String name, mobile, taskId, time;
   final String subject;
   final String date;
   final String vehicle;
@@ -30,6 +30,7 @@ class allOppointment extends StatefulWidget {
     required this.onToggleFavorite,
     required this.mobile,
     required this.taskId,
+    required this.time,
   });
 
   @override
@@ -37,20 +38,24 @@ class allOppointment extends StatefulWidget {
 }
 
 class _AllFollowupsItemState extends State<allOppointment>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   bool _wasCallingPhone = false;
+
+  late SlidableController _slidableController;
 
   @override
   void initState() {
     super.initState();
     // Register this class as an observer to track app lifecycle changes
     WidgetsBinding.instance.addObserver(this);
+    _slidableController = SlidableController(this);
   }
 
   @override
   void dispose() {
     // Remove observer when widget is disposed
     WidgetsBinding.instance.removeObserver(this);
+    _slidableController.dispose();
     super.dispose();
   }
 
@@ -73,7 +78,27 @@ class _AllFollowupsItemState extends State<allOppointment>
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 5, 10, 0),
-      child: _buildOverdueCard(context),
+      child: InkWell(
+        onTap: () {
+          if (widget.leadId.isNotEmpty) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => FollowupsDetails(
+                  leadId: widget.leadId,
+                  isFromFreshlead: false,
+                  isFromManager: false,
+                  isFromTestdriveOverview: false,
+                  refreshDashboard: () async {},
+                ),
+              ),
+            );
+          } else {
+            print("Invalid leadId");
+          }
+        },
+        child: _buildOverdueCard(context),
+      ),
     );
   }
 
@@ -82,6 +107,7 @@ class _AllFollowupsItemState extends State<allOppointment>
     bool isCallSwipe = widget.swipeOffset < -50;
 
     return Slidable(
+      controller: _slidableController,
       key: ValueKey(widget.leadId), // Always good to set keys
       startActionPane: ActionPane(
         extentRatio: 0.2,
@@ -163,12 +189,17 @@ class _AllFollowupsItemState extends State<allOppointment>
                             children: [
                               _buildUserDetails(context),
                               _buildVerticalDivider(15),
-                              _buildSubjectDetails(context),
-                              _date(context),
+                              _buildCarModel(context),
                             ],
                           ),
                           const SizedBox(height: 4),
-                          Row(children: [_buildCarModel(context)]),
+                          Row(
+                            children: [
+                              _buildSubjectDetails(context),
+                              _date(context),
+                              _time(),
+                            ],
+                          ),
                         ],
                       ),
                     ],
@@ -180,6 +211,26 @@ class _AllFollowupsItemState extends State<allOppointment>
           ),
         ],
       ),
+    );
+  }
+
+  Widget _time() {
+    DateTime parsedTime = DateFormat("HH:mm:ss").parse(widget.time);
+    String formattedTime = DateFormat("ha").format(parsedTime);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(width: 4),
+        Text(
+          formattedTime,
+          style: GoogleFonts.poppins(
+            color: AppColors.fontColor,
+            fontWeight: FontWeight.w400,
+            fontSize: 12,
+          ),
+        ),
+      ],
     );
   }
 
@@ -247,7 +298,19 @@ class _AllFollowupsItemState extends State<allOppointment>
   }
 
   Widget _buildUserDetails(BuildContext context) {
-    return Text(widget.name, style: AppFont.dashboardName(context));
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.of(context).size.width * .35,
+      ),
+      child: Text(
+        maxLines: 1, // Allow up to 2 lines
+        overflow: TextOverflow
+            .ellipsis, // Show ellipsis if it overflows beyond 2 lines
+        softWrap: true,
+        widget.name,
+        style: AppFont.dashboardName(context),
+      ),
+    );
   }
 
   Widget _buildSubjectDetails(BuildContext context) {
@@ -266,7 +329,20 @@ class _AllFollowupsItemState extends State<allOppointment>
       children: [
         Icon(icon, color: Colors.blue, size: 18),
         const SizedBox(width: 5),
-        Text('${widget.subject},', style: AppFont.smallText(context)),
+        // Text('${widget.subject},', style: AppFont.smallText(context)),
+        ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * .40,
+          ),
+          child: Text(
+            widget.subject,
+            style: AppFont.dashboardCarName(context),
+            maxLines: 1, // Allow up to 2 lines
+            overflow: TextOverflow
+                .ellipsis, // Show ellipsis if it overflows beyond 2 lines
+            softWrap: true, // Allow wrapping
+          ),
+        ),
       ],
     );
   }
@@ -333,11 +409,13 @@ class _AllFollowupsItemState extends State<allOppointment>
 
   Widget _buildCarModel(BuildContext context) {
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 100),
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.of(context).size.width * .30,
+      ),
       child: Text(
         widget.vehicle,
         style: AppFont.dashboardCarName(context),
-        maxLines: 2, // Allow up to 2 lines
+        maxLines: 1, // Allow up to 2 lines
         overflow: TextOverflow
             .ellipsis, // Show ellipsis if it overflows beyond 2 lines
         softWrap: true, // Allow wrapping
@@ -354,24 +432,23 @@ class _AllFollowupsItemState extends State<allOppointment>
   //   );
   // }
 
+  bool _isActionPaneOpen = false;
   Widget _buildNavigationButton(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        if (widget.leadId.isNotEmpty) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => FollowupsDetails(
-                leadId: widget.leadId,
-                isFromFreshlead: false,
-                isFromManager: false,
-                refreshDashboard: () async {},
-                isFromTestdriveOverview: false,
-              ),
-            ),
-          );
+        if (_isActionPaneOpen) {
+          _slidableController.close();
+          setState(() {
+            _isActionPaneOpen = false;
+          });
         } else {
-          print("Invalid leadId");
+          _slidableController.close();
+          Future.delayed(Duration(milliseconds: 100), () {
+            _slidableController.openEndActionPane();
+            setState(() {
+              _isActionPaneOpen = true;
+            });
+          });
         }
       },
       child: Container(
@@ -380,8 +457,10 @@ class _AllFollowupsItemState extends State<allOppointment>
           color: AppColors.arrowContainerColor,
           borderRadius: BorderRadius.circular(30),
         ),
-        child: const Icon(
-          Icons.arrow_forward_ios_rounded,
+        child: Icon(
+          _isActionPaneOpen
+              ? Icons.arrow_forward_ios_rounded
+              : Icons.arrow_back_ios_rounded,
           size: 25,
           color: Colors.white,
         ),
@@ -477,21 +556,21 @@ class ReusableSlidableAction extends StatelessWidget {
   }
 }
 
-class AllFollowup extends StatefulWidget {
+class AllOppintment extends StatefulWidget {
   final List<dynamic> allFollowups;
   final bool isNested;
 
-  const AllFollowup({
+  const AllOppintment({
     super.key,
     required this.allFollowups,
     this.isNested = false,
   });
 
   @override
-  State<AllFollowup> createState() => _AllFollowupState();
+  State<AllOppintment> createState() => _AllOppintmentState();
 }
 
-class _AllFollowupState extends State<AllFollowup> {
+class _AllOppintmentState extends State<AllOppintment> {
   List<bool> _favorites = [];
 
   @override
@@ -501,7 +580,7 @@ class _AllFollowupState extends State<AllFollowup> {
   }
 
   @override
-  void didUpdateWidget(AllFollowup oldWidget) {
+  void didUpdateWidget(AllOppintment oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.allFollowups != oldWidget.allFollowups) {
       _initializeFavorites();
@@ -554,6 +633,7 @@ class _AllFollowupState extends State<AllFollowup> {
             final item = widget.allFollowups[index];
             return allOppointment(
               name: item['name'] ?? '',
+              time: item['time'] ?? '',
               subject: item['subject'] ?? '',
               date: item['due_date'] ?? '',
               vehicle: item['PMI'] ?? '',

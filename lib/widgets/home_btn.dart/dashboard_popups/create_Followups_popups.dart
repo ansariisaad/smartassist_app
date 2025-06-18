@@ -715,22 +715,46 @@ class _CreateFollowupsPopupsState extends State<CreateFollowupsPopups> {
               onChanged: (String value) {},
             ),
 
-            const SizedBox(height: 10),
-            // _buildTextField(
+            // const SizedBox(height: 10),
+            // // _buildTextField(
+            // //   label: 'Remarks:',
+            // //   controller: descriptionController,
+            // //   hint: 'Type or speak...',
+            // // ),
+            // EnhancedSpeechTextField(
+            //   // contentPadding: EdgeInsets.zero,
             //   label: 'Remarks:',
             //   controller: descriptionController,
-            //   hint: 'Type or speak...',
+            //    showLiveTranscription: true, 
+            //   hint: 'Type or speak... ',
+            //   onChanged: (text) {
+                
+            //     print('Text changed: $text');
+            //   },
             // ),
-            EnhancedSpeechTextField(
-              // contentPadding: EdgeInsets.zero,
-              label: 'Remarks:',
-              controller: descriptionController,
-              hint: 'Type or speak... ',
-              onChanged: (text) {
-                print('Text changed: $text');
-              },
-            ),
+            // const SizedBox(height: 10),
+
             const SizedBox(height: 10),
+       // Enhanced Speech-to-Text field with Indian TTS support
+EnhancedSpeechTextField(
+  label: 'Remarks:',
+  controller: descriptionController,
+  hint: 'Type or speak your remarks...',
+  showLiveTranscription: true,
+  enableTTS: true, // Enable text-to-speech functionality
+  preferredLanguage: 'en-IN', // Indian English accent
+  autoReadBack: false, // Disable auto read-back (no audio icons/text will show)
+  maxLines: 4, // Allow multiple lines for longer remarks
+  minLines: 2, // Minimum visible lines
+  listenDuration: const Duration(seconds: 30), // How long to listen
+  pauseDuration: const Duration(seconds: 3), // Pause before stopping
+  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+  onChanged: (text) {
+    print('Remarks changed: $text');
+    // You can add any other logic here like validation, auto-save, etc.
+  },
+),
+const SizedBox(height: 10),
             Row(
               children: [
                 Expanded(

@@ -1,404 +1,404 @@
-import 'dart:async';
-import 'package:flutter/material.dart';
-import 'package:smartassist/config/component/color/colors.dart';
-import 'package:smartassist/config/component/font/font.dart';
-import 'package:speech_to_text/speech_recognition_result.dart' as stt;
-import 'package:speech_to_text/speech_to_text.dart' as stt;
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:permission_handler/permission_handler.dart';
+// import 'dart:async';
+// import 'package:flutter/material.dart';
+// import 'package:smartassist/config/component/color/colors.dart';
+// import 'package:smartassist/config/component/font/font.dart';
+// import 'package:speech_to_text/speech_recognition_result.dart' as stt;
+// import 'package:speech_to_text/speech_to_text.dart' as stt;
+// import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+// import 'package:google_fonts/google_fonts.dart';
+// import 'package:permission_handler/permission_handler.dart';
 
-class EnhancedSpeechTextField extends StatefulWidget {
-  final String label;
-  final TextEditingController controller;
-  final String hint;
-  final Function(String)? onChanged;
-  final bool enabled;
-  final int maxLines;
-  final int minLines;
-  final Color? primaryColor;
-  final Color? backgroundColor;
-  final Color? textColor;
-  final double? fontSize;
-  final EdgeInsets? contentPadding;
-  final bool showLiveTranscription;
-  final Duration listenDuration;
-  final Duration pauseDuration;
+// class EnhancedSpeechTextField extends StatefulWidget {
+//   final String label;
+//   final TextEditingController controller;
+//   final String hint;
+//   final Function(String)? onChanged;
+//   final bool enabled;
+//   final int maxLines;
+//   final int minLines;
+//   final Color? primaryColor;
+//   final Color? backgroundColor;
+//   final Color? textColor;
+//   final double? fontSize;
+//   final EdgeInsets? contentPadding;
+//   final bool showLiveTranscription;
+//   final Duration listenDuration;
+//   final Duration pauseDuration;
 
-  const EnhancedSpeechTextField({
-    Key? key,
-    required this.label,
-    required this.controller,
-    required this.hint,
-    this.onChanged,
-    this.enabled = true,
-    this.maxLines = 5,
-    this.minLines = 1,
-    this.primaryColor,
-    this.backgroundColor,
-    this.textColor,
-    this.fontSize = 14,
-    this.contentPadding,
-    this.showLiveTranscription = true,
-    this.listenDuration = const Duration(seconds: 30),
-    this.pauseDuration = const Duration(
-      seconds: 5,
-    ), // Increased default for better timeout handling
-  }) : super(key: key);
+//   const EnhancedSpeechTextField({
+//     Key? key,
+//     required this.label,
+//     required this.controller,
+//     required this.hint,
+//     this.onChanged,
+//     this.enabled = true,
+//     this.maxLines = 5,
+//     this.minLines = 1,
+//     this.primaryColor,
+//     this.backgroundColor,
+//     this.textColor,
+//     this.fontSize = 14,
+//     this.contentPadding,
+//     this.showLiveTranscription = true,
+//     this.listenDuration = const Duration(seconds: 30),
+//     this.pauseDuration = const Duration(
+//       seconds: 5,
+//     ), // Increased default for better timeout handling
+//   }) : super(key: key);
 
-  @override
-  State<EnhancedSpeechTextField> createState() =>
-      _EnhancedSpeechTextFieldState();
-}
+//   @override
+//   State<EnhancedSpeechTextField> createState() =>
+//       _EnhancedSpeechTextFieldState();
+// }
 
-class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
-    with TickerProviderStateMixin {
-  final stt.SpeechToText _speech = stt.SpeechToText();
+// class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
+//     with TickerProviderStateMixin {
+//   final stt.SpeechToText _speech = stt.SpeechToText();
 
-  // State variables
-  bool _isListening = false;
-  bool _isInitialized = false;
-  bool _speechAvailable = false;
-  String _currentWords = '';
-  String _currentLocaleId = '';
-  double _confidence = 0.0;
+//   // State variables
+//   bool _isListening = false;
+//   bool _isInitialized = false;
+//   bool _speechAvailable = false;
+//   String _currentWords = '';
+//   String _currentLocaleId = '';
+//   double _confidence = 0.0;
 
-  late AnimationController _waveController;
-  late Animation<double> _waveAnimation;
+//   late AnimationController _waveController;
+//   late Animation<double> _waveAnimation;
 
-  // Colors
-  Color get _primaryColor => widget.primaryColor ?? AppColors.iconGrey;
-  Color get _errorColor => Colors.red;
+//   // Colors
+//   Color get _primaryColor => widget.primaryColor ?? AppColors.iconGrey;
+//   Color get _errorColor => Colors.red;
 
-  @override
-  void initState() {
-    super.initState();
-    _initializeAnimations();
-    _initializeSpeech();
-  }
+//   @override
+//   void initState() {
+//     super.initState();
+//     _initializeAnimations();
+//     _initializeSpeech();
+//   }
 
-  @override
-  void dispose() {
-    _cleanupResources();
-    super.dispose();
-  }
+//   @override
+//   void dispose() {
+//     _cleanupResources();
+//     super.dispose();
+//   }
 
-  void _initializeAnimations() {
-    _waveController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
-      vsync: this,
-    );
-    _waveAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _waveController, curve: Curves.easeInOut),
-    );
-  }
+//   void _initializeAnimations() {
+//     _waveController = AnimationController(
+//       duration: const Duration(milliseconds: 1200),
+//       vsync: this,
+//     );
+//     _waveAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+//       CurvedAnimation(parent: _waveController, curve: Curves.easeInOut),
+//     );
+//   }
 
-  Future<void> _initializeSpeech() async {
-    try {
-      bool hasPermission = await _checkMicrophonePermission();
-      if (!mounted) return;
+//   Future<void> _initializeSpeech() async {
+//     try {
+//       bool hasPermission = await _checkMicrophonePermission();
+//       if (!mounted) return;
 
-      if (!hasPermission) {
-        if (mounted) setState(() => _isInitialized = true);
-        return;
-      }
+//       if (!hasPermission) {
+//         if (mounted) setState(() => _isInitialized = true);
+//         return;
+//       }
 
-      _speechAvailable = await _speech.initialize(
-        onStatus: _onSpeechStatus,
-        onError: _onSpeechError,
-        debugLogging: false,
-      );
+//       _speechAvailable = await _speech.initialize(
+//         onStatus: _onSpeechStatus,
+//         onError: _onSpeechError,
+//         debugLogging: false,
+//       );
 
-      if (_speechAvailable) {
-        var locales = await _speech.locales();
-        var englishLocale = locales.firstWhere(
-          (locale) => locale.localeId.startsWith('en'),
-          orElse: () => stt.LocaleName('en_US', 'English'),
-        );
-        _currentLocaleId = englishLocale.localeId;
-      }
-      if (mounted) setState(() => _isInitialized = true);
-    } catch (e) {
-      debugPrint('Speech initialization error: $e');
-      if (mounted)
-        setState(() {
-          _isInitialized = true;
-          _speechAvailable = false;
-        });
-    }
-  }
+//       if (_speechAvailable) {
+//         var locales = await _speech.locales();
+//         var englishLocale = locales.firstWhere(
+//           (locale) => locale.localeId.startsWith('en'),
+//           orElse: () => stt.LocaleName('en_US', 'English'),
+//         );
+//         _currentLocaleId = englishLocale.localeId;
+//       }
+//       if (mounted) setState(() => _isInitialized = true);
+//     } catch (e) {
+//       debugPrint('Speech initialization error: $e');
+//       if (mounted)
+//         setState(() {
+//           _isInitialized = true;
+//           _speechAvailable = false;
+//         });
+//     }
+//   }
 
-  Future<bool> _checkMicrophonePermission() async {
-    return await Permission.microphone.request().isGranted;
-  }
+//   Future<bool> _checkMicrophonePermission() async {
+//     return await Permission.microphone.request().isGranted;
+//   }
 
-  // --- THIS IS A KEY FIX ---
-  // This method now acts as a "watchdog" to keep the UI in sync.
-  void _onSpeechStatus(String status) {
-    if (!mounted) return;
-    debugPrint('Speech engine status: $status. UI is listening: $_isListening');
+//   // --- THIS IS A KEY FIX ---
+//   // This method now acts as a "watchdog" to keep the UI in sync.
+//   void _onSpeechStatus(String status) {
+//     if (!mounted) return;
+//     debugPrint('Speech engine status: $status. UI is listening: $_isListening');
 
-    // If the native engine stops listening for any reason (timeout, end of speech, etc.)
-    if (status == 'notListening' || status == 'done') {
-      // And if our UI still thinks it's listening, we must force a synchronization.
-      if (_isListening) {
-        debugPrint('Engine stopped unexpectedly. Forcing UI to update.');
-        // We call our unified stop method to ensure everything resets correctly.
-        _stopListening();
-      }
-    }
-  }
+//     // If the native engine stops listening for any reason (timeout, end of speech, etc.)
+//     if (status == 'notListening' || status == 'done') {
+//       // And if our UI still thinks it's listening, we must force a synchronization.
+//       if (_isListening) {
+//         debugPrint('Engine stopped unexpectedly. Forcing UI to update.');
+//         // We call our unified stop method to ensure everything resets correctly.
+//         _stopListening();
+//       }
+//     }
+//   }
 
-  void _onSpeechError(dynamic error) {
-    debugPrint('Speech error received: $error');
-    if (!mounted) return;
-    // Pass the error to the stop method so it can be displayed.
-    _stopListening(showError: true, error: error.toString());
-  }
+//   void _onSpeechError(dynamic error) {
+//     debugPrint('Speech error received: $error');
+//     if (!mounted) return;
+//     // Pass the error to the stop method so it can be displayed.
+//     _stopListening(showError: true, error: error.toString());
+//   }
 
-  String _getErrorMessage(String error) {
-    if (error.contains('speech timeout') || error.contains('e_4')) {
-      return 'Listening timed out. Please speak sooner.';
-    } else if (error.contains('no-speech') || error.contains('e_6')) {
-      return 'No speech was detected.';
-    } else if (error.contains('network') || error.contains('e_7')) {
-      return 'A network error occurred.';
-    } else if (error.contains('audio') || error.contains('e_3')) {
-      return 'Microphone access error.';
-    }
-    return 'An unknown error occurred.';
-  }
+//   String _getErrorMessage(String error) {
+//     if (error.contains('speech timeout') || error.contains('e_4')) {
+//       return 'Listening timed out. Please speak sooner.';
+//     } else if (error.contains('no-speech') || error.contains('e_6')) {
+//       return 'No speech was detected.';
+//     } else if (error.contains('network') || error.contains('e_7')) {
+//       return 'A network error occurred.';
+//     } else if (error.contains('audio') || error.contains('e_3')) {
+//       return 'Microphone access error.';
+//     }
+//     return 'An unknown error occurred.';
+//   }
 
-  void _startAnimations() {
-    if (mounted && !_waveController.isAnimating) {
-      _waveController.repeat();
-    }
-  }
+//   void _startAnimations() {
+//     if (mounted && !_waveController.isAnimating) {
+//       _waveController.repeat();
+//     }
+//   }
 
-  void _stopAnimations() {
-    if (mounted && _waveController.isAnimating) {
-      _waveController.stop();
-      _waveController.reset();
-    }
-  }
+//   void _stopAnimations() {
+//     if (mounted && _waveController.isAnimating) {
+//       _waveController.stop();
+//       _waveController.reset();
+//     }
+//   }
 
-  Future<void> _toggleSpeechRecognition() async {
-    if (!_isInitialized) return;
-    if (!_speechAvailable) {
-      _showFeedback('Speech recognition not available.', isError: true);
-      _initializeSpeech(); // Attempt to re-initialize
-      return;
-    }
+//   Future<void> _toggleSpeechRecognition() async {
+//     if (!_isInitialized) return;
+//     if (!_speechAvailable) {
+//       _showFeedback('Speech recognition not available.', isError: true);
+//       _initializeSpeech(); // Attempt to re-initialize
+//       return;
+//     }
 
-    if (_isListening) {
-      await _stopListening();
-    } else {
-      await _startListening();
-    }
-  }
+//     if (_isListening) {
+//       await _stopListening();
+//     } else {
+//       await _startListening();
+//     }
+//   }
 
-  Future<void> _startListening() async {
-    if (!mounted || _isListening) return;
+//   Future<void> _startListening() async {
+//     if (!mounted || _isListening) return;
 
-    setState(() {
-      _isListening = true;
-      _currentWords = '';
-    });
-    _startAnimations();
+//     setState(() {
+//       _isListening = true;
+//       _currentWords = '';
+//     });
+//     _startAnimations();
 
-    try {
-      // Use cancelOnError: true so errors are reliably sent to _onSpeechError
-      await _speech.listen(
-        onResult: _onSpeechResult,
-        listenFor: widget.listenDuration,
-        pauseFor: widget.pauseDuration,
-        partialResults: true,
-        cancelOnError: true,
-        listenMode: stt.ListenMode.dictation,
-        localeId: _currentLocaleId,
-      );
-    } catch (e) {
-      debugPrint('Error on starting listen: $e');
-      await _stopListening(showError: true, error: e.toString());
-    }
-  }
+//     try {
+//       // Use cancelOnError: true so errors are reliably sent to _onSpeechError
+//       await _speech.listen(
+//         onResult: _onSpeechResult,
+//         listenFor: widget.listenDuration,
+//         pauseFor: widget.pauseDuration,
+//         partialResults: true,
+//         cancelOnError: true,
+//         listenMode: stt.ListenMode.dictation,
+//         localeId: _currentLocaleId,
+//       );
+//     } catch (e) {
+//       debugPrint('Error on starting listen: $e');
+//       await _stopListening(showError: true, error: e.toString());
+//     }
+//   }
 
-  // --- THIS IS THE SECOND KEY FIX ---
-  // A single, reliable method to stop everything and update the UI.
-  Future<void> _stopListening({bool showError = false, String? error}) async {
-    // If we are already stopped, do nothing. This prevents redundant calls.
-    if (!_isListening) return;
+//   // --- THIS IS THE SECOND KEY FIX ---
+//   // A single, reliable method to stop everything and update the UI.
+//   Future<void> _stopListening({bool showError = false, String? error}) async {
+//     // If we are already stopped, do nothing. This prevents redundant calls.
+//     if (!_isListening) return;
 
-    if (!mounted) return;
+//     if (!mounted) return;
 
-    debugPrint("Stop Listening Called. Error: $showError");
+//     debugPrint("Stop Listening Called. Error: $showError");
 
-    // Immediately update the UI state. This is the crucial step.
-    setState(() {
-      _isListening = false;
-    });
+//     // Immediately update the UI state. This is the crucial step.
+//     setState(() {
+//       _isListening = false;
+//     });
 
-    // Now, clean up the animations and the speech engine.
-    _stopAnimations();
-    if (_speech.isListening) {
-      await _speech.stop();
-    }
+//     // Now, clean up the animations and the speech engine.
+//     _stopAnimations();
+//     if (_speech.isListening) {
+//       await _speech.stop();
+//     }
 
-    // Display an error message if one was provided.
-    if (showError && error != null) {
-      String errorMessage = _getErrorMessage(error);
-      _showFeedback(errorMessage, isError: true);
-    }
-  }
+//     // Display an error message if one was provided.
+//     if (showError && error != null) {
+//       String errorMessage = _getErrorMessage(error);
+//       _showFeedback(errorMessage, isError: true);
+//     }
+//   }
 
-  void _onSpeechResult(stt.SpeechRecognitionResult result) {
-    if (!mounted) return;
+//   void _onSpeechResult(stt.SpeechRecognitionResult result) {
+//     if (!mounted) return;
 
-    setState(() {
-      _currentWords = result.recognizedWords;
-      _confidence = result.confidence;
-    });
+//     setState(() {
+//       _currentWords = result.recognizedWords;
+//       _confidence = result.confidence;
+//     });
 
-    if (result.finalResult) {
-      _addToTextField(result.recognizedWords);
-      Future.delayed(const Duration(milliseconds: 400), () {
-        if (mounted && _isListening) {
-          _stopListening();
-        }
-      });
-    }
-  }
+//     if (result.finalResult) {
+//       _addToTextField(result.recognizedWords);
+//       Future.delayed(const Duration(milliseconds: 400), () {
+//         if (mounted && _isListening) {
+//           _stopListening();
+//         }
+//       });
+//     }
+//   }
 
-  void _addToTextField(String words) {
-    if (words.trim().isEmpty) return;
+//   void _addToTextField(String words) {
+//     if (words.trim().isEmpty) return;
 
-    String currentText = widget.controller.text;
-    // Simple capitalization for the new phrase
-    String formattedWords = words.trim();
-    if (formattedWords.isNotEmpty) {
-      formattedWords =
-          formattedWords[0].toUpperCase() + formattedWords.substring(1);
-    }
+//     String currentText = widget.controller.text;
+//     // Simple capitalization for the new phrase
+//     String formattedWords = words.trim();
+//     if (formattedWords.isNotEmpty) {
+//       formattedWords =
+//           formattedWords[0].toUpperCase() + formattedWords.substring(1);
+//     }
 
-    if (currentText.isEmpty || currentText.endsWith(' ')) {
-      widget.controller.text += formattedWords;
-    } else {
-      widget.controller.text += ' $formattedWords';
-    }
+//     if (currentText.isEmpty || currentText.endsWith(' ')) {
+//       widget.controller.text += formattedWords;
+//     } else {
+//       widget.controller.text += ' $formattedWords';
+//     }
 
-    if (!widget.controller.text.endsWith(' ')) {
-      widget.controller.text += ' ';
-    }
+//     if (!widget.controller.text.endsWith(' ')) {
+//       widget.controller.text += ' ';
+//     }
 
-    widget.onChanged?.call(widget.controller.text);
-  }
+//     widget.onChanged?.call(widget.controller.text);
+//   }
 
-  void _cleanupResources() {
-    _waveController.dispose();
-    _speech.cancel();
-  }
+//   void _cleanupResources() {
+//     _waveController.dispose();
+//     _speech.cancel();
+//   }
 
-  void _showFeedback(String message, {required bool isError}) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message, style: const TextStyle(color: Colors.white)),
-        backgroundColor: isError ? _errorColor : Colors.green,
-      ),
-    );
-  }
+//   void _showFeedback(String message, {required bool isError}) {
+//     if (!mounted) return;
+//     ScaffoldMessenger.of(context).hideCurrentSnackBar();
+//     ScaffoldMessenger.of(context).showSnackBar(
+//       SnackBar(
+//         content: Text(message, style: const TextStyle(color: Colors.white)),
+//         backgroundColor: isError ? _errorColor : Colors.green,
+//       ),
+//     );
+//   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [_buildLabel(), _buildInputContainer()],
-    );
-  }
+//   @override
+//   Widget build(BuildContext context) {
+//     return Column(
+//       crossAxisAlignment: CrossAxisAlignment.start,
+//       children: [_buildLabel(), _buildInputContainer()],
+//     );
+//   }
 
-  Widget _buildLabel() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5.0),
-      child: Text(widget.label, style: AppFont.dropDowmLabel(context)),
-    );
-  }
+//   Widget _buildLabel() {
+//     return Padding(
+//       padding: const EdgeInsets.symmetric(vertical: 5.0),
+//       child: Text(widget.label, style: AppFont.dropDowmLabel(context)),
+//     );
+//   }
 
-  Widget _buildInputContainer() {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(5),
-        color: AppColors.containerBg,
-      ),
-      child: Row(
-        children: [
-          Expanded(child: _buildTextField()),
-          _buildSpeechButton(),
-        ],
-      ),
-    );
-  }
+//   Widget _buildInputContainer() {
+//     return Container(
+//       width: double.infinity,
+//       decoration: BoxDecoration(
+//         borderRadius: BorderRadius.circular(5),
+//         color: AppColors.containerBg,
+//       ),
+//       child: Row(
+//         children: [
+//           Expanded(child: _buildTextField()),
+//           _buildSpeechButton(),
+//         ],
+//       ),
+//     );
+//   }
 
-  Widget _buildTextField() {
-    return TextField(
-      controller: widget.controller,
-      enabled: widget.enabled && !_isListening,
-      maxLines: widget.maxLines,
-      minLines: widget.minLines,
-      keyboardType: TextInputType.multiline,
-      onChanged: widget.onChanged,
-      decoration: InputDecoration(
-        hintText: _isListening ? "Listening..." : widget.hint,
-        hintStyle: GoogleFonts.poppins(
-          color: _isListening ? _primaryColor : Colors.grey.shade600,
-        ),
-        contentPadding:
-            widget.contentPadding ??
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        border: InputBorder.none,
-        // prefixIcon: _isListening
-        //     ? const Padding(
-        //         padding: EdgeInsets.only(left: 12, right: 8),
-        //         child: Icon(
-        //           FontAwesomeIcons.microphoneLines,
-        //           color: Colors.red,
-        //           size: 16,
-        //         ),
-        //       )
-        //     : null,
-      ),
-      style: AppFont.dropDowmLabel(context),
-    );
-  }
+//   Widget _buildTextField() {
+//     return TextField(
+//       controller: widget.controller,
+//       enabled: widget.enabled && !_isListening,
+//       maxLines: widget.maxLines,
+//       minLines: widget.minLines,
+//       keyboardType: TextInputType.multiline,
+//       onChanged: widget.onChanged,
+//       decoration: InputDecoration(
+//         hintText: _isListening ? "Listening..." : widget.hint,
+//         hintStyle: GoogleFonts.poppins(
+//           color: _isListening ? _primaryColor : Colors.grey.shade600,
+//         ),
+//         contentPadding:
+//             widget.contentPadding ??
+//             const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+//         border: InputBorder.none,
+//         // prefixIcon: _isListening
+//         //     ? const Padding(
+//         //         padding: EdgeInsets.only(left: 12, right: 8),
+//         //         child: Icon(
+//         //           FontAwesomeIcons.microphoneLines,
+//         //           color: Colors.red,
+//         //           size: 16,
+//         //         ),
+//         //       )
+//         //     : null,
+//       ),
+//       style: AppFont.dropDowmLabel(context),
+//     );
+//   }
 
   
-  Widget _buildSpeechButton() {
-    if (!_isInitialized) {
-      return const Padding(
-        padding: EdgeInsets.all(12.0),
-        child: SizedBox(
-          width: 18,
-          height: 18,
-          child: CircularProgressIndicator(strokeWidth: 2),
-        ),
-      );
-    }
+//   Widget _buildSpeechButton() {
+//     if (!_isInitialized) {
+//       return const Padding(
+//         padding: EdgeInsets.all(12.0),
+//         child: SizedBox(
+//           width: 18,
+//           height: 18,
+//           child: CircularProgressIndicator(strokeWidth: 2),
+//         ),
+//       );
+//     }
 
-    return IconButton(
-      onPressed: _speechAvailable ? _toggleSpeechRecognition : null,
-      icon: Icon(
-        _isListening ? FontAwesomeIcons.stop : FontAwesomeIcons.microphone,
-        color: _isListening
-            ? Colors.red
-            : (_speechAvailable ? _primaryColor : AppColors.iconGrey),
-        size: 16,
-      ),
-      tooltip: _isListening ? 'Stop recording' : 'Start voice input',
-      splashRadius: 24,
-    );
-  }
-}
+//     return IconButton(
+//       onPressed: _speechAvailable ? _toggleSpeechRecognition : null,
+//       icon: Icon(
+//         _isListening ? FontAwesomeIcons.stop : FontAwesomeIcons.microphone,
+//         color: _isListening
+//             ? Colors.red
+//             : (_speechAvailable ? _primaryColor : AppColors.iconGrey),
+//         size: 16,
+//       ),
+//       tooltip: _isListening ? 'Stop recording' : 'Start voice input',
+//       splashRadius: 24,
+//     );
+//   }
+// }
 
 // import 'dart:async';
 // import 'package:flutter/material.dart';
@@ -1162,3 +1162,1456 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
 //     );
 //   }
 // }
+
+
+// msutafa final below this code 
+
+// import 'dart:async';
+// import 'package:flutter/material.dart';
+// import 'package:smartassist/config/component/color/colors.dart';
+// import 'package:smartassist/config/component/font/font.dart';
+// import 'package:speech_to_text/speech_recognition_result.dart' as stt;
+// import 'package:speech_to_text/speech_to_text.dart' as stt;
+// import 'package:flutter_tts/flutter_tts.dart';
+// import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+// import 'package:google_fonts/google_fonts.dart';
+// import 'package:permission_handler/permission_handler.dart';
+
+// class EnhancedSpeechTextField extends StatefulWidget {
+//   final String label;
+//   final TextEditingController controller;
+//   final String hint;
+//   final Function(String)? onChanged;
+//   final bool enabled;
+//   final int maxLines;
+//   final int minLines;
+//   final Color? primaryColor;
+//   final Color? backgroundColor;
+//   final Color? textColor;
+//   final double? fontSize;
+//   final EdgeInsets? contentPadding;
+//   final bool showLiveTranscription;
+//   final Duration listenDuration;
+//   final Duration pauseDuration;
+//   final bool enableTTS;
+//   final String preferredLanguage;
+//   final bool autoReadBack; // New parameter to control auto read-back
+
+//   const EnhancedSpeechTextField({
+//     Key? key,
+//     required this.label,
+//     required this.controller,
+//     required this.hint,
+//     this.onChanged,
+//     this.enabled = true,
+//     this.maxLines = 5,
+//     this.minLines = 1,
+//     this.primaryColor,
+//     this.backgroundColor,
+//     this.textColor,
+//     this.fontSize = 14,
+//     this.contentPadding,
+//     this.showLiveTranscription = true,
+//     this.listenDuration = const Duration(seconds: 30),
+//     this.pauseDuration = const Duration(seconds: 5),
+//     this.enableTTS = true,
+//     this.preferredLanguage = 'en-IN', // Indian English by default
+//     this.autoReadBack = true, // Auto read-back enabled by default
+//   }) : super(key: key);
+
+//   @override
+//   State<EnhancedSpeechTextField> createState() =>
+//       _EnhancedSpeechTextFieldState();
+// }
+
+// class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
+//     with TickerProviderStateMixin {
+//   final stt.SpeechToText _speech = stt.SpeechToText();
+//   final FlutterTts _flutterTts = FlutterTts();
+
+//   // State variables
+//   bool _isListening = false;
+//   bool _isInitialized = false;
+//   bool _speechAvailable = false;
+//   bool _isSpeaking = false;
+//   bool _ttsInitialized = false;
+//   String _currentWords = '';
+//   String _currentLocaleId = '';
+//   double _confidence = 0.0;
+//   String _lastSpokenText = '';
+//   Timer? _readBackTimer; // Timer for delayed read-back
+
+//   late AnimationController _waveController;
+//   late AnimationController _speakController;
+//   late Animation<double> _waveAnimation;
+//   late Animation<double> _speakAnimation;
+
+//   // Colors
+//   Color get _primaryColor => widget.primaryColor ?? AppColors.iconGrey;
+//   Color get _errorColor => Colors.red;
+//   Color get _speakingColor => const Color.fromARGB(255, 87, 87, 87);
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     _initializeAnimations();
+//     _initializeSpeech();
+//     _initializeTTS();
+//   }
+
+//   @override
+//   void dispose() {
+//     _cleanupResources();
+//     super.dispose();
+//   }
+
+//   void _initializeAnimations() {
+//     _waveController = AnimationController(
+//       duration: const Duration(milliseconds: 1200),
+//       vsync: this,
+//     );
+//     _waveAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+//       CurvedAnimation(parent: _waveController, curve: Curves.easeInOut),
+//     );
+
+//     _speakController = AnimationController(
+//       duration: const Duration(milliseconds: 800),
+//       vsync: this,
+//     );
+//     _speakAnimation = Tween<double>(begin: 0.8, end: 1.2).animate(
+//       CurvedAnimation(parent: _speakController, curve: Curves.easeInOut),
+//     );
+//   }
+
+//   Future<void> _initializeSpeech() async {
+//     try {
+//       bool hasPermission = await _checkMicrophonePermission();
+//       if (!mounted) return;
+
+//       if (!hasPermission) {
+//         if (mounted) setState(() => _isInitialized = true);
+//         return;
+//       }
+
+//       _speechAvailable = await _speech.initialize(
+//         onStatus: _onSpeechStatus,
+//         onError: _onSpeechError,
+//         debugLogging: false,
+//       );
+
+//       if (_speechAvailable) {
+//         var locales = await _speech.locales();
+//         // Try to find Indian English locale first
+//         var indianLocale = locales.firstWhere(
+//           (locale) => locale.localeId == 'en-IN',
+//           orElse: () => locales.firstWhere(
+//             (locale) => locale.localeId.startsWith('en'),
+//             orElse: () => stt.LocaleName('en_US', 'English'),
+//           ),
+//         );
+//         _currentLocaleId = indianLocale.localeId;
+//       }
+//       if (mounted) setState(() => _isInitialized = true);
+//     } catch (e) {
+//       debugPrint('Speech initialization error: $e');
+//       if (mounted)
+//         setState(() {
+//           _isInitialized = true;
+//           _speechAvailable = false;
+//         });
+//     }
+//   }
+
+//   Future<void> _initializeTTS() async {
+//     try {
+//       // Initialize TTS
+//       await _flutterTts.setLanguage(widget.preferredLanguage);
+//       await _flutterTts.setSpeechRate(0.6); // Slightly slower for better clarity
+//       await _flutterTts.setPitch(1.0);
+//       await _flutterTts.setVolume(0.9);
+      
+//       // Set up TTS handlers
+//       _flutterTts.setStartHandler(() {
+//         if (mounted) {
+//           setState(() => _isSpeaking = true);
+//           _startSpeakingAnimation();
+//         }
+//       });
+
+//       _flutterTts.setCompletionHandler(() {
+//         if (mounted) {
+//           setState(() => _isSpeaking = false);
+//           _stopSpeakingAnimation();
+//         }
+//       });
+
+//       _flutterTts.setErrorHandler((msg) {
+//         if (mounted) {
+//           setState(() => _isSpeaking = false);
+//           _stopSpeakingAnimation();
+//           _showFeedback('Speech error: $msg', isError: true);
+//         }
+//       });
+
+//       // Try to set Indian English voice if available
+//       List<dynamic> voices = await _flutterTts.getVoices;
+//       var indianVoice = voices.firstWhere(
+//         (voice) => voice['locale'].toString().contains('en-IN') ||
+//                    voice['name'].toString().toLowerCase().contains('indian'),
+//         orElse: () => null,
+//       );
+      
+//       if (indianVoice != null) {
+//         await _flutterTts.setVoice({
+//           "name": indianVoice['name'],
+//           "locale": indianVoice['locale']
+//         });
+//       }
+
+//       if (mounted) setState(() => _ttsInitialized = true);
+//     } catch (e) {
+//       debugPrint('TTS initialization error: $e');
+//       if (mounted) setState(() => _ttsInitialized = false);
+//     }
+//   }
+
+//   Future<bool> _checkMicrophonePermission() async {
+//     return await Permission.microphone.request().isGranted;
+//   }
+
+//   void _onSpeechStatus(String status) {
+//     if (!mounted) return;
+//     debugPrint('Speech engine status: $status. UI is listening: $_isListening');
+
+//     if (status == 'notListening' || status == 'done') {
+//       if (_isListening) {
+//         debugPrint('Engine stopped unexpectedly. Forcing UI to update.');
+//         _stopListening();
+//       }
+//     }
+//   }
+
+//   void _onSpeechError(dynamic error) {
+//     debugPrint('Speech error received: $error');
+//     if (!mounted) return;
+//     _stopListening(showError: true, error: error.toString());
+//   }
+
+//   String _getErrorMessage(String error) {
+//     if (error.contains('speech timeout') || error.contains('e_4')) {
+//       return 'Listening timed out. Please speak sooner.';
+//     } else if (error.contains('no-speech') || error.contains('e_6')) {
+//       return 'No speech was detected.';
+//     } else if (error.contains('network') || error.contains('e_7')) {
+//       return 'A network error occurred.';
+//     } else if (error.contains('audio') || error.contains('e_3')) {
+//       return 'Microphone access error.';
+//     }
+//     return 'An unknown error occurred.';
+//   }
+
+//   void _startAnimations() {
+//     if (mounted && !_waveController.isAnimating) {
+//       _waveController.repeat();
+//     }
+//   }
+
+//   void _stopAnimations() {
+//     if (mounted && _waveController.isAnimating) {
+//       _waveController.stop();
+//       _waveController.reset();
+//     }
+//   }
+
+//   void _startSpeakingAnimation() {
+//     if (mounted && !_speakController.isAnimating) {
+//       _speakController.repeat(reverse: true);
+//     }
+//   }
+
+//   void _stopSpeakingAnimation() {
+//     if (mounted && _speakController.isAnimating) {
+//       _speakController.stop();
+//       _speakController.reset();
+//     }
+//   }
+
+//   Future<void> _toggleSpeechRecognition() async {
+//     if (!_isInitialized) return;
+//     if (!_speechAvailable) {
+//       _showFeedback('Speech recognition not available.', isError: true);
+//       _initializeSpeech();
+//       return;
+//     }
+
+//     if (_isListening) {
+//       await _stopListening();
+//     } else {
+//       await _startListening();
+//     }
+//   }
+
+//   Future<void> _startListening() async {
+//     if (!mounted || _isListening) return;
+
+//     // Stop any ongoing speech and cancel any pending read-back
+//     if (_isSpeaking) {
+//       await _flutterTts.stop();
+//     }
+//     _readBackTimer?.cancel();
+
+//     setState(() {
+//       _isListening = true;
+//       _currentWords = '';
+//     });
+//     _startAnimations();
+
+//     try {
+//       await _speech.listen(
+//         onResult: _onSpeechResult,
+//         listenFor: widget.listenDuration,
+//         pauseFor: widget.pauseDuration,
+//         partialResults: true,
+//         cancelOnError: true,
+//         listenMode: stt.ListenMode.dictation,
+//         localeId: _currentLocaleId,
+//       );
+//     } catch (e) {
+//       debugPrint('Error on starting listen: $e');
+//       await _stopListening(showError: true, error: e.toString());
+//     }
+//   }
+
+//   Future<void> _stopListening({bool showError = false, String? error}) async {
+//     if (!_isListening) return;
+//     if (!mounted) return;
+
+//     debugPrint("Stop Listening Called. Error: $showError");
+
+//     setState(() {
+//       _isListening = false;
+//     });
+
+//     _stopAnimations();
+//     if (_speech.isListening) {
+//       await _speech.stop();
+//     }
+
+//     if (showError && error != null) {
+//       String errorMessage = _getErrorMessage(error);
+//       _showFeedback(errorMessage, isError: true);
+//     }
+//   }
+
+//   void _onSpeechResult(stt.SpeechRecognitionResult result) {
+//     if (!mounted) return;
+
+//     setState(() {
+//       _currentWords = result.recognizedWords;
+//       _confidence = result.confidence;
+//     });
+
+//     if (result.finalResult) {
+//       _addToTextField(result.recognizedWords);
+//       _lastSpokenText = result.recognizedWords;
+      
+//       // Stop listening after getting final result
+//       Future.delayed(const Duration(milliseconds: 400), () {
+//         if (mounted && _isListening) {
+//           _stopListening();
+//         }
+//       });
+
+//       // Schedule auto read-back if enabled
+//       if (widget.enableTTS && widget.autoReadBack && result.recognizedWords.trim().isNotEmpty) {
+//         _scheduleReadBack(result.recognizedWords);
+//       }
+//     }
+//   }
+
+//   void _scheduleReadBack(String text) {
+//     // Cancel any existing timer
+//     _readBackTimer?.cancel();
+    
+//     // Schedule read-back after a short delay
+//     _readBackTimer = Timer(const Duration(milliseconds: 1000), () {
+//       if (mounted && !_isListening) {
+//         _speakText(text);
+//       }
+//     });
+//   }
+
+//   void _addToTextField(String words) {
+//     if (words.trim().isEmpty) return;
+
+//     String currentText = widget.controller.text;
+//     String formattedWords = _formatTextForIndianStyle(words.trim());
+
+//     if (currentText.isEmpty || currentText.endsWith(' ')) {
+//       widget.controller.text += formattedWords;
+//     } else {
+//       widget.controller.text += ' $formattedWords';
+//     }
+
+//     if (!widget.controller.text.endsWith(' ')) {
+//       widget.controller.text += ' ';
+//     }
+
+//     // Move cursor to end to allow editing
+//     widget.controller.selection = TextSelection.fromPosition(
+//       TextPosition(offset: widget.controller.text.length),
+//     );
+
+//     widget.onChanged?.call(widget.controller.text);
+//   }
+
+//   String _formatTextForIndianStyle(String text) {
+//     if (text.isEmpty) return text;
+    
+//     // Capitalize first letter
+//     String formatted = text[0].toUpperCase() + text.substring(1);
+    
+//     // Add common Indian English patterns and corrections
+//     formatted = formatted
+//         .replaceAll(' na ', ' nah ')
+//         .replaceAll(' yaar ', ' yaar ')
+//         .replaceAll(' bhai ', ' bhai ')
+//         .replaceAll(' hai ', ' hai ')
+//         .replaceAll(' kya ', ' kya ');
+    
+//     return formatted;
+//   }
+
+//   Future<void> _speakText(String text) async {
+//     if (!_ttsInitialized || text.trim().isEmpty) return;
+    
+//     try {
+//       // Stop any ongoing speech
+//       await _flutterTts.stop();
+      
+//       // Speak the text with Indian accent and natural pauses
+//       String processedText = _processTextForSpeech(text);
+//       await _flutterTts.speak(processedText);
+      
+//       // Show feedback that text is being read back
+
+//     } catch (e) {
+//       debugPrint('TTS Error: $e');
+//       _showFeedback('Unable to speak text', isError: true);
+//     }
+//   }
+
+//   String _processTextForSpeech(String text) {
+//     // Add natural pauses and emphasis for Indian speaking style
+//     String processed = text
+//         .replaceAll('.', '. ')
+//         .replaceAll(',', ', ')
+//         .replaceAll('!', '! ')
+//         .replaceAll('?', '? ')
+//         .replaceAll(';', '; ');
+    
+//     return processed;
+//   }
+
+//   Future<void> _speakCurrentText() async {
+//     String currentText = widget.controller.text.trim();
+//     if (currentText.isEmpty) {
+//       _showFeedback('No text to speak', isError: false);
+//       return;
+//     }
+    
+//     await _speakText(currentText);
+//   }
+
+//   Future<void> _speakLastSpokenText() async {
+//     if (_lastSpokenText.trim().isEmpty) {
+//       _showFeedback('No recently spoken text to repeat', isError: false);
+//       return;
+//     }
+    
+//     await _speakText(_lastSpokenText);
+//   }
+
+//   Future<void> _stopSpeaking() async {
+//     if (_isSpeaking) {
+//       await _flutterTts.stop();
+//     }
+//     _readBackTimer?.cancel();
+//   }
+
+//   void _cleanupResources() {
+//     _readBackTimer?.cancel();
+//     _waveController.dispose();
+//     _speakController.dispose();
+//     _speech.cancel();
+//     _flutterTts.stop();
+//   }
+
+//   void _showFeedback(String message, {required bool isError}) {
+//     if (!mounted) return;
+//     ScaffoldMessenger.of(context).hideCurrentSnackBar();
+//     ScaffoldMessenger.of(context).showSnackBar(
+//       SnackBar(
+//         content: Text(message, style: const TextStyle(color: Colors.white)),
+//         backgroundColor: isError ? _errorColor : Colors.green,
+//         duration: Duration(seconds: isError ? 4 : 2),
+//       ),
+//     );
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Column(
+//       crossAxisAlignment: CrossAxisAlignment.start,
+//       children: [
+//         _buildLabel(),
+//         _buildInputContainer(),
+//         if (widget.showLiveTranscription && _isListening) _buildLiveTranscription(),
+//         if (widget.enableTTS) _buildReadBackControls(),
+//       ],
+//     );
+//   }
+
+//   Widget _buildLabel() {
+//     return Padding(
+//       padding: const EdgeInsets.symmetric(vertical: 5.0),
+//       child: Row(
+//         children: [
+//           Text(widget.label, style: AppFont.dropDowmLabel(context)),
+//           if (_confidence > 0 && _isListening) ...[
+//             const SizedBox(width: 8),
+//             Text(
+//               '${(_confidence * 100).toInt()}%',
+//               style: TextStyle(
+//                 fontSize: 12,
+//                 color: _primaryColor,
+//                 fontWeight: FontWeight.w500,
+//               ),
+//             ),
+//           ],
+//           // Removed auto read-back icon and text from label
+//         ],
+//       ),
+//     );
+//   }
+
+//   Widget _buildInputContainer() {
+//     return Container(
+//       width: double.infinity,
+//       decoration: BoxDecoration(
+//         borderRadius: BorderRadius.circular(5),
+//         color: AppColors.containerBg,
+//         border: _isListening 
+//             ? Border.all(color: _primaryColor, width: 2)
+//             : _isSpeaking 
+//                 ? Border.all(color: _speakingColor, width: 2)
+//                 : null,
+//       ),
+//       child: Row(
+//         children: [
+//           Expanded(child: _buildTextField()),
+//           _buildActionButtons(),
+//         ],
+//       ),
+//     );
+//   }
+
+//   Widget _buildTextField() {
+//     return TextField(
+//       controller: widget.controller,
+//       enabled: widget.enabled, // Removed the && !_isListening condition to allow editing while listening
+//       maxLines: widget.maxLines,
+//       minLines: widget.minLines,
+//       keyboardType: TextInputType.multiline,
+//       onChanged: widget.onChanged,
+//       decoration: InputDecoration(
+//         hintText: _isListening 
+//             ? "Listening... Speak now" 
+//             : _isSpeaking 
+//                 ? "Speaking..." 
+//                 : widget.hint,
+//         hintStyle: GoogleFonts.poppins(
+//           color: _isListening 
+//               ? _primaryColor 
+//               : _isSpeaking 
+//                   ? _speakingColor 
+//                   : Colors.grey.shade600,
+//         ),
+//         contentPadding: widget.contentPadding ??
+//             const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+//         border: InputBorder.none,
+//       ),
+//       style: AppFont.dropDowmLabel(context),
+//     );
+//   }
+
+//   Widget _buildActionButtons() {
+//     return Row(
+//       mainAxisSize: MainAxisSize.min,
+//       children: [
+//         _buildSpeechButton(),
+//         if (widget.enableTTS) _buildSpeakButton(),
+//       ],
+//     );
+//   }
+
+//   Widget _buildSpeechButton() {
+//     if (!_isInitialized) {
+//       return const Padding(
+//         padding: EdgeInsets.all(12.0),
+//         child: SizedBox(
+//           width: 18,
+//           height: 18,
+//           child: CircularProgressIndicator(strokeWidth: 2),
+//         ),
+//       );
+//     }
+
+//     return AnimatedBuilder(
+//       animation: _waveAnimation,
+//       builder: (context, child) {
+//         return Transform.scale(
+//           scale: _isListening ? 1.0 + (_waveAnimation.value * 0.2) : 1.0,
+//           child: IconButton(
+//             onPressed: _speechAvailable ? _toggleSpeechRecognition : null,
+//             icon: Icon(
+//               _isListening ? FontAwesomeIcons.stop : FontAwesomeIcons.microphone,
+//               color: _isListening
+//                   ? Colors.red
+//                   : (_speechAvailable ? _primaryColor : AppColors.iconGrey),
+//               size: 16,
+//             ),
+//             tooltip: _isListening ? 'Stop recording' : 'Start voice input',
+//             splashRadius: 24,
+//           ),
+//         );
+//       },
+//     );
+//   }
+
+//   Widget _buildSpeakButton() {
+//     if (!_ttsInitialized) {
+//       return const Padding(
+//         padding: EdgeInsets.all(12.0),
+//         child: SizedBox(
+//           width: 18,
+//           height: 18,
+//           child: CircularProgressIndicator(strokeWidth: 2),
+//         ),
+//       );
+//     }
+
+//     return AnimatedBuilder(
+//       animation: _speakAnimation,
+//       builder: (context, child) {
+//         return Transform.scale(
+//           scale: _isSpeaking ? _speakAnimation.value : 1.0,
+//           child: IconButton(
+//             onPressed: _isSpeaking ? _stopSpeaking : _speakCurrentText,
+//             icon: Icon(
+//               _isSpeaking ? FontAwesomeIcons.stop : FontAwesomeIcons.volumeHigh,
+//               color: _isSpeaking ? Colors.red : _speakingColor,
+//               size: 16,
+//             ),
+//             tooltip: _isSpeaking ? 'Stop speaking' : 'Speak text aloud',
+//             splashRadius: 24,
+//           ),
+//         );
+//       },
+//     );
+//   }
+
+//   Widget _buildReadBackControls() {
+//     if (!_ttsInitialized) return const SizedBox.shrink();
+    
+//     return Padding(
+//       padding: const EdgeInsets.only(top: 8.0),
+//       child: Row(
+//         children: [
+//           if (_lastSpokenText.isNotEmpty) ...[
+//             TextButton.icon(
+//               onPressed: _isSpeaking ? null : _speakLastSpokenText,
+//               icon: Icon(
+//                 FontAwesomeIcons.repeat,
+//                 size: 12,
+//                 color: _isSpeaking ? Colors.grey : _speakingColor,
+//               ),
+//               label: Text(
+//                 'Repeat last',
+//                 style: TextStyle(
+//                   fontSize: 12,
+//                   color: _isSpeaking ? Colors.grey : _speakingColor,
+//                 ),
+//               ),
+//             ),
+//           ],
+//           // Removed the Auto read-back toggle button
+//         ],
+//       ),
+//     );
+//   }
+
+//   Widget _buildLiveTranscription() {
+//     if (_currentWords.isEmpty) return const SizedBox.shrink();
+    
+//     return Container(
+//       margin: const EdgeInsets.only(top: 8),
+//       padding: const EdgeInsets.all(8),
+//       decoration: BoxDecoration(
+//         color: _primaryColor.withOpacity(0.1),
+//         borderRadius: BorderRadius.circular(5),
+//         border: Border.all(color: _primaryColor.withOpacity(0.3)),
+//       ),
+//       child: Row(
+//         children: [
+//           Icon(
+//             FontAwesomeIcons.microphoneLines,
+//             size: 14,
+//             color: _primaryColor,
+//           ),
+//           const SizedBox(width: 8),
+//           Expanded(
+//             child: Text(
+//               _currentWords,
+//               style: GoogleFonts.poppins(
+//                 fontSize: 12,
+//                 color: _primaryColor,
+//                 fontStyle: FontStyle.italic,
+//               ),
+//             ),
+//           ),
+//           // Removed the audio icon from live transcription
+//         ],
+//       ),
+//     );
+//   }
+// }
+
+
+// SECOND LAST MUSTAFA 
+
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:smartassist/config/component/color/colors.dart';
+import 'package:smartassist/config/component/font/font.dart';
+import 'package:speech_to_text/speech_recognition_result.dart' as stt;
+import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:flutter_tts/flutter_tts.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:permission_handler/permission_handler.dart';
+
+class EnhancedSpeechTextField extends StatefulWidget {
+  final String label;
+  final TextEditingController controller;
+  final String hint;
+  final Function(String)? onChanged;
+  final bool enabled;
+  final int maxLines;
+  final int minLines;
+  final Color? primaryColor;
+  final Color? backgroundColor;
+  final Color? textColor;
+  final double? fontSize;
+  final EdgeInsets? contentPadding;
+  final bool showLiveTranscription;
+  final Duration listenDuration;
+  final Duration pauseDuration;
+  final bool enableTTS;
+  final String preferredLanguage;
+  final bool autoReadBack; // New parameter to control auto read-back
+
+  const EnhancedSpeechTextField({
+    Key? key,
+    required this.label,
+    required this.controller,
+    required this.hint,
+    this.onChanged,
+    this.enabled = true,
+    this.maxLines = 5,
+    this.minLines = 1,
+    this.primaryColor,
+    this.backgroundColor,
+    this.textColor,
+    this.fontSize = 14,
+    this.contentPadding,
+    this.showLiveTranscription = true,
+    this.listenDuration = const Duration(seconds: 30),
+    this.pauseDuration = const Duration(seconds: 5),
+    this.enableTTS = true,
+    this.preferredLanguage = 'en-IN', // Indian English by default
+    this.autoReadBack = true, // Auto read-back enabled by default
+  }) : super(key: key);
+
+  @override
+  State<EnhancedSpeechTextField> createState() =>
+      _EnhancedSpeechTextFieldState();
+}
+
+class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
+    with TickerProviderStateMixin {
+  final stt.SpeechToText _speech = stt.SpeechToText();
+  final FlutterTts _flutterTts = FlutterTts();
+
+  // State variables
+  bool _isListening = false;
+  bool _isInitialized = false;
+  bool _speechAvailable = false;
+  bool _isSpeaking = false;
+  bool _ttsInitialized = false;
+  String _currentWords = '';
+  String _currentLocaleId = '';
+  double _confidence = 0.0;
+  String _lastSpokenText = '';
+  Timer? _readBackTimer; // Timer for delayed read-back
+
+  late AnimationController _waveController;
+  late AnimationController _speakController;
+  late Animation<double> _waveAnimation;
+  late Animation<double> _speakAnimation;
+
+  // Colors
+  Color get _primaryColor => widget.primaryColor ?? AppColors.iconGrey;
+  Color get _errorColor => Colors.red;
+  Color get _speakingColor => const Color.fromARGB(255, 87, 87, 87);
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeAnimations();
+    _initializeSpeech();
+    _initializeTTS();
+  }
+
+  @override
+  void dispose() {
+    _cleanupResources();
+    super.dispose();
+  }
+
+  void _initializeAnimations() {
+    _waveController = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    );
+    _waveAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _waveController, curve: Curves.easeInOut),
+    );
+
+    _speakController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _speakAnimation = Tween<double>(begin: 0.8, end: 1.2).animate(
+      CurvedAnimation(parent: _speakController, curve: Curves.easeInOut),
+    );
+  }
+
+  Future<void> _initializeSpeech() async {
+    try {
+      bool hasPermission = await _checkMicrophonePermission();
+      if (!mounted) return;
+
+      if (!hasPermission) {
+        if (mounted) setState(() => _isInitialized = true);
+        return;
+      }
+
+      _speechAvailable = await _speech.initialize(
+        onStatus: _onSpeechStatus,
+        onError: _onSpeechError,
+        debugLogging: false,
+      );
+
+      if (_speechAvailable) {
+        var locales = await _speech.locales();
+        // Try to find Indian English locale first
+        var indianLocale = locales.firstWhere(
+          (locale) => locale.localeId == 'en-IN',
+          orElse: () => locales.firstWhere(
+            (locale) => locale.localeId.startsWith('en'),
+            orElse: () => stt.LocaleName('en_US', 'English'),
+          ),
+        );
+        _currentLocaleId = indianLocale.localeId;
+      }
+      if (mounted) setState(() => _isInitialized = true);
+    } catch (e) {
+      debugPrint('Speech initialization error: $e');
+      if (mounted)
+        setState(() {
+          _isInitialized = true;
+          _speechAvailable = false;
+        });
+    }
+  }
+
+  Future<void> _initializeTTS() async {
+    try {
+      // Initialize TTS
+      await _flutterTts.setLanguage(widget.preferredLanguage);
+      await _flutterTts.setSpeechRate(0.6); // Slightly slower for better clarity
+      await _flutterTts.setPitch(1.0);
+      await _flutterTts.setVolume(0.9);
+      
+      // Set up TTS handlers
+      _flutterTts.setStartHandler(() {
+        if (mounted) {
+          setState(() => _isSpeaking = true);
+          _startSpeakingAnimation();
+        }
+      });
+
+      _flutterTts.setCompletionHandler(() {
+        if (mounted) {
+          setState(() => _isSpeaking = false);
+          _stopSpeakingAnimation();
+        }
+      });
+
+      _flutterTts.setErrorHandler((msg) {
+        if (mounted) {
+          setState(() => _isSpeaking = false);
+          _stopSpeakingAnimation();
+          _showFeedback('Speech error: $msg', isError: true);
+        }
+      });
+
+      // Try to set Indian English voice if available
+      List<dynamic> voices = await _flutterTts.getVoices;
+      var indianVoice = voices.firstWhere(
+        (voice) => voice['locale'].toString().contains('en-IN') ||
+                   voice['name'].toString().toLowerCase().contains('indian'),
+        orElse: () => null,
+      );
+      
+      if (indianVoice != null) {
+        await _flutterTts.setVoice({
+          "name": indianVoice['name'],
+          "locale": indianVoice['locale']
+        });
+      }
+
+      if (mounted) setState(() => _ttsInitialized = true);
+    } catch (e) {
+      debugPrint('TTS initialization error: $e');
+      if (mounted) setState(() => _ttsInitialized = false);
+    }
+  }
+
+  Future<bool> _checkMicrophonePermission() async {
+    return await Permission.microphone.request().isGranted;
+  }
+
+  void _onSpeechStatus(String status) {
+    if (!mounted) return;
+    debugPrint('Speech engine status: $status. UI is listening: $_isListening');
+
+    if (status == 'notListening' || status == 'done') {
+      if (_isListening) {
+        debugPrint('Engine stopped unexpectedly. Forcing UI to update.');
+        _stopListening();
+      }
+    }
+  }
+
+  void _onSpeechError(dynamic error) {
+    debugPrint('Speech error received: $error');
+    if (!mounted) return;
+    _stopListening(showError: true, error: error.toString());
+  }
+
+  String _getErrorMessage(String error) {
+    if (error.contains('speech timeout') || error.contains('e_4')) {
+      return 'Listening timed out. Please speak sooner.';
+    } else if (error.contains('no-speech') || error.contains('e_6')) {
+      return 'No speech was detected.';
+    } else if (error.contains('network') || error.contains('e_7')) {
+      return 'A network error occurred.';
+    } else if (error.contains('audio') || error.contains('e_3')) {
+      return 'Microphone access error.';
+    }
+    return 'An unknown error occurred.';
+  }
+
+  void _startAnimations() {
+    if (mounted && !_waveController.isAnimating) {
+      _waveController.repeat();
+    }
+  }
+
+  void _stopAnimations() {
+    if (mounted && _waveController.isAnimating) {
+      _waveController.stop();
+      _waveController.reset();
+    }
+  }
+
+  void _startSpeakingAnimation() {
+    if (mounted && !_speakController.isAnimating) {
+      _speakController.repeat(reverse: true);
+    }
+  }
+
+  void _stopSpeakingAnimation() {
+    if (mounted && _speakController.isAnimating) {
+      _speakController.stop();
+      _speakController.reset();
+    }
+  }
+
+  Future<void> _toggleSpeechRecognition() async {
+    if (!_isInitialized) return;
+    if (!_speechAvailable) {
+      _showFeedback('Speech recognition not available.', isError: true);
+      _initializeSpeech();
+      return;
+    }
+
+    if (_isListening) {
+      await _stopListening();
+    } else {
+      await _startListening();
+    }
+  }
+
+  Future<void> _startListening() async {
+    if (!mounted || _isListening) return;
+
+    // Stop any ongoing speech and cancel any pending read-back
+    if (_isSpeaking) {
+      await _flutterTts.stop();
+    }
+    _readBackTimer?.cancel();
+
+    setState(() {
+      _isListening = true;
+      _currentWords = '';
+    });
+    _startAnimations();
+
+    try {
+      await _speech.listen(
+        onResult: _onSpeechResult,
+        listenFor: widget.listenDuration,
+        pauseFor: widget.pauseDuration,
+        partialResults: true,
+        cancelOnError: true,
+        listenMode: stt.ListenMode.dictation,
+        localeId: _currentLocaleId,
+      );
+    } catch (e) {
+      debugPrint('Error on starting listen: $e');
+      await _stopListening(showError: true, error: e.toString());
+    }
+  }
+
+  Future<void> _stopListening({bool showError = false, String? error}) async {
+    if (!_isListening) return;
+    if (!mounted) return;
+
+    debugPrint("Stop Listening Called. Error: $showError");
+
+    setState(() {
+      _isListening = false;
+    });
+
+    _stopAnimations();
+    if (_speech.isListening) {
+      await _speech.stop();
+    }
+
+    if (showError && error != null) {
+      String errorMessage = _getErrorMessage(error);
+      _showFeedback(errorMessage, isError: true);
+    }
+  }
+
+  void _onSpeechResult(stt.SpeechRecognitionResult result) {
+    if (!mounted) return;
+
+    setState(() {
+      _currentWords = result.recognizedWords;
+      _confidence = result.confidence;
+    });
+
+    if (result.finalResult) {
+      _addToTextField(result.recognizedWords);
+      _lastSpokenText = result.recognizedWords;
+      
+      // Stop listening after getting final result
+      Future.delayed(const Duration(milliseconds: 400), () {
+        if (mounted && _isListening) {
+          _stopListening();
+        }
+      });
+
+      // Schedule auto read-back if enabled
+      if (widget.enableTTS && widget.autoReadBack && result.recognizedWords.trim().isNotEmpty) {
+        _scheduleReadBack(result.recognizedWords);
+      }
+    }
+  }
+
+  void _scheduleReadBack(String text) {
+    // Cancel any existing timer
+    _readBackTimer?.cancel();
+    
+    // Schedule read-back after a short delay
+    _readBackTimer = Timer(const Duration(milliseconds: 1000), () {
+      if (mounted && !_isListening) {
+        _speakText(text);
+      }
+    });
+  }
+
+  void _addToTextField(String words) {
+    if (words.trim().isEmpty) return;
+
+    String currentText = widget.controller.text;
+    String formattedWords = _formatTextForIndianStyle(words.trim());
+
+    if (currentText.isEmpty || currentText.endsWith(' ')) {
+      widget.controller.text += formattedWords;
+    } else {
+      widget.controller.text += ' $formattedWords';
+    }
+
+    if (!widget.controller.text.endsWith(' ')) {
+      widget.controller.text += ' ';
+    }
+
+    // Move cursor to end to allow editing
+    widget.controller.selection = TextSelection.fromPosition(
+      TextPosition(offset: widget.controller.text.length),
+    );
+
+    widget.onChanged?.call(widget.controller.text);
+  }
+
+  String _formatTextForIndianStyle(String text) {
+    if (text.isEmpty) return text;
+    
+    // Capitalize first letter
+    String formatted = text[0].toUpperCase() + text.substring(1);
+    
+    // Add common Indian English patterns and corrections
+    formatted = formatted
+        .replaceAll(' na ', ' nah ')
+        .replaceAll(' yaar ', ' yaar ')
+        .replaceAll(' bhai ', ' bhai ')
+        .replaceAll(' hai ', ' hai ')
+        .replaceAll(' kya ', ' kya ');
+    
+    return formatted;
+  }
+
+  Future<void> _speakText(String text) async {
+    if (!_ttsInitialized || text.trim().isEmpty) return;
+    
+    try {
+      // Stop any ongoing speech
+      await _flutterTts.stop();
+      
+      // Speak the text with Indian accent and natural pauses
+      String processedText = _processTextForSpeech(text);
+      await _flutterTts.speak(processedText);
+      
+      // Show feedback that text is being read back
+
+    } catch (e) {
+      debugPrint('TTS Error: $e');
+      _showFeedback('Unable to speak text', isError: true);
+    }
+  }
+
+  String _processTextForSpeech(String text) {
+    // Add natural pauses and emphasis for Indian speaking style
+    String processed = text
+        .replaceAll('.', '. ')
+        .replaceAll(',', ', ')
+        .replaceAll('!', '! ')
+        .replaceAll('?', '? ')
+        .replaceAll(';', '; ');
+    
+    return processed;
+  }
+
+  Future<void> _speakCurrentText() async {
+    String currentText = widget.controller.text.trim();
+    if (currentText.isEmpty) {
+      _showFeedback('No text to speak', isError: false);
+      return;
+    }
+    
+    await _speakText(currentText);
+  }
+
+  Future<void> _speakLastSpokenText() async {
+    if (_lastSpokenText.trim().isEmpty) {
+      _showFeedback('No recently spoken text to repeat', isError: false);
+      return;
+    }
+    
+    await _speakText(_lastSpokenText);
+  }
+
+  Future<void> _stopSpeaking() async {
+    if (_isSpeaking) {
+      await _flutterTts.stop();
+    }
+    _readBackTimer?.cancel();
+  }
+
+  void _cleanupResources() {
+    _readBackTimer?.cancel();
+    _waveController.dispose();
+    _speakController.dispose();
+    _speech.cancel();
+    _flutterTts.stop();
+  }
+
+  void _showFeedback(String message, {required bool isError}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: const TextStyle(color: Colors.white)),
+        backgroundColor: isError ? _errorColor : Colors.green,
+        duration: Duration(seconds: isError ? 4 : 2),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel(),
+        _buildInputContainer(),
+        if (widget.showLiveTranscription && _isListening) _buildLiveTranscription(),
+        if (widget.enableTTS) _buildReadBackControls(),
+      ],
+    );
+  }
+
+  Widget _buildLabel() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5.0),
+      child: Row(
+        children: [
+          Text(widget.label, style: AppFont.dropDowmLabel(context)),
+          if (_confidence > 0 && _isListening) ...[
+            const SizedBox(width: 8),
+            Text(
+              '${(_confidence * 100).toInt()}%',
+              style: TextStyle(
+                fontSize: 12,
+                color: _primaryColor,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+          // Removed auto read-back icon and text from label
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInputContainer() {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(5),
+        color: AppColors.containerBg,
+        border: _isListening 
+            ? Border.all(color: _primaryColor, width: 2)
+            : _isSpeaking 
+                ? Border.all(color: _speakingColor, width: 2)
+                : null,
+      ),
+      child: Row(
+        children: [
+          Expanded(child: _buildTextField()),
+          _buildActionButtons(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTextField() {
+    return TextField(
+      controller: widget.controller,
+      enabled: widget.enabled, // Removed the && !_isListening condition to allow editing while listening
+      maxLines: widget.maxLines,
+      minLines: widget.minLines,
+      keyboardType: TextInputType.multiline,
+      onChanged: widget.onChanged,
+      decoration: InputDecoration(
+        hintText: _isListening 
+            ? "Listening... Speak now" 
+            : _isSpeaking 
+                ? "Speaking..." 
+                : widget.hint,
+        hintStyle: GoogleFonts.poppins(
+          color: _isListening 
+              ? _primaryColor 
+              : _isSpeaking 
+                  ? _speakingColor 
+                  : Colors.grey.shade600,
+        ),
+        contentPadding: widget.contentPadding ??
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        border: InputBorder.none,
+      ),
+      style: AppFont.dropDowmLabel(context),
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _buildSpeechButton(),
+        if (widget.enableTTS) _buildSpeakButton(),
+      ],
+    );
+  }
+
+  Widget _buildSpeechButton() {
+    if (!_isInitialized) {
+      return const Padding(
+        padding: EdgeInsets.all(12.0),
+        child: SizedBox(
+          width: 18,
+          height: 18,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    }
+
+    return AnimatedBuilder(
+      animation: _waveAnimation,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _isListening ? 1.0 + (_waveAnimation.value * 0.2) : 1.0,
+          child: IconButton(
+            onPressed: _speechAvailable ? _toggleSpeechRecognition : null,
+            icon: Icon(
+              _isListening ? FontAwesomeIcons.stop : FontAwesomeIcons.microphone,
+              color: _isListening
+                  ? Colors.red
+                  : (_speechAvailable ? _primaryColor : AppColors.iconGrey),
+              size: 16,
+            ),
+            tooltip: _isListening ? 'Stop recording' : 'Start voice input',
+            splashRadius: 24,
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSpeakButton() {
+    if (!_ttsInitialized) {
+      return const Padding(
+        padding: EdgeInsets.all(12.0),
+        child: SizedBox(
+          width: 18,
+          height: 18,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    }
+
+    return AnimatedBuilder(
+      animation: _speakAnimation,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _isSpeaking ? _speakAnimation.value : 1.0,
+          child: IconButton(
+            onPressed: _isSpeaking ? _stopSpeaking : _speakCurrentText,
+            icon: Icon(
+              _isSpeaking ? FontAwesomeIcons.stop : FontAwesomeIcons.volumeHigh,
+              color: _isSpeaking ? Colors.red : _speakingColor,
+              size: 16,
+            ),
+            tooltip: _isSpeaking ? 'Stop speaking' : 'Speak text aloud',
+            splashRadius: 24,
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildReadBackControls() {
+    if (!_ttsInitialized) return const SizedBox.shrink();
+    
+    return Padding(
+      padding: const EdgeInsets.only(top: 8.0),
+      child: Row(
+        children: [
+          if (_lastSpokenText.isNotEmpty) ...[
+            TextButton.icon(
+              onPressed: _isSpeaking ? null : _speakLastSpokenText,
+              icon: Icon(
+                FontAwesomeIcons.repeat,
+                size: 12,
+                color: _isSpeaking ? Colors.grey : _speakingColor,
+              ),
+              label: Text(
+                'Repeat last',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: _isSpeaking ? Colors.grey : _speakingColor,
+                ),
+              ),
+            ),
+          ],
+          // Removed the Auto read-back toggle button
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLiveTranscription() {
+    if (_currentWords.isEmpty) return const SizedBox.shrink();
+    
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: _primaryColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(5),
+        border: Border.all(color: _primaryColor.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            FontAwesomeIcons.microphoneLines,
+            size: 14,
+            color: _primaryColor,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              _currentWords,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                color: _primaryColor,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
+          // Removed the audio icon from live transcription
+        ],
+      ),
+    );
+  }
+}
+
+
+
+
+

@@ -10,6 +10,7 @@ import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
+import 'package:smartassist/widgets/remarks_field.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class FollowupsEdit extends StatefulWidget {
@@ -140,7 +141,7 @@ class _FollowupsEditState extends State<FollowupsEdit> {
   //   try {
   //     final response = await http.get(
   //       Uri.parse(
-  //         'https://dev.smartassistapp.in/api/search/global?query=$query',
+  //         'https://api.smartassistapp.in/api/search/global?query=$query',
   //       ),
   //       headers: {
   //         'Authorization': 'Bearer $token',
@@ -171,7 +172,7 @@ class _FollowupsEditState extends State<FollowupsEdit> {
 
     try {
       final response = await http.get(
-        Uri.parse('https://dev.smartassistapp.in/api/tasks/${widget.taskId}'),
+        Uri.parse('https://api.smartassistapp.in/api/tasks/${widget.taskId}'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -279,7 +280,7 @@ class _FollowupsEditState extends State<FollowupsEdit> {
     try {
       final response = await http.put(
         Uri.parse(
-          'https://dev.smartassistapp.in/api/tasks/${widget.taskId}/update',
+          'https://api.smartassistapp.in/api/tasks/${widget.taskId}/update',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -649,11 +650,14 @@ class _FollowupsEditState extends State<FollowupsEdit> {
                 const SizedBox(width: 10),
                 Expanded(
                   flex: 3,
-                  child: _buildTextField(
-                    // label: 'Remark :',
+                  child: EnhancedSpeechTextField(
+                    // contentPadding: EdgeInsets.zero,
+                    label: 'Remarks:',
                     controller: descriptionController,
-
-                    hint: 'Type or speak...',
+                    hint: 'Type or speak... ',
+                    onChanged: (text) {
+                      print('Text changed: $text');
+                    },
                   ),
                 ),
               ],

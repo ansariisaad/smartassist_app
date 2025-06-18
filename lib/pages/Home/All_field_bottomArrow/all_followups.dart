@@ -11,16 +11,8 @@ import 'package:smartassist/widgets/followups/overdue_followup.dart';
 import 'package:smartassist/widgets/followups/upcoming_row.dart';
 import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/create_Followups_popups.dart';
 import 'package:smartassist/widgets/buttons/add_btn.dart';
-import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:smartassist/config/component/color/colors.dart';
-import 'package:smartassist/config/component/font/font.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:smartassist/pages/navbar_page/call_logs.dart';
-import 'package:smartassist/utils/storage.dart';
 
 class AddFollowups extends StatefulWidget {
   final Future<void> Function() refreshDashboard;
@@ -88,15 +80,29 @@ class _AddFollowupsState extends State<AddFollowups> {
     return 27.0 * _getResponsiveScale(); // Base height: 27
   }
 
+  // double _getSubTabWidth() {
+  //   return 240.0 * _getResponsiveScale(); // Base width: 150
+  // }
+
   double _getSubTabWidth() {
-    return 240.0 * _getResponsiveScale(); // Base width: 150
+    // Calculate approximate width needed based on content
+    double baseWidth = 240.0 * _getResponsiveScale();
+
+    // Add extra width if count is large (adjust as needed)
+    if (count > 99) {
+      baseWidth += 30.0 * _getResponsiveScale();
+    } else if (count > 9) {
+      baseWidth += 15.0 * _getResponsiveScale();
+    }
+
+    return baseWidth;
   }
 
   Future<void> fetchTasks() async {
     setState(() => _isLoading = true);
     try {
       final token = await Storage.getToken();
-      const String apiUrl = "https://dev.smartassistapp.in/api/tasks/all-tasks";
+      const String apiUrl = "https://api.smartassistapp.in/api/tasks/all-tasks";
 
       final response = await http.get(
         Uri.parse(apiUrl),
@@ -367,7 +373,7 @@ class _AddFollowupsState extends State<AddFollowups> {
           // padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 0),
           padding: EdgeInsets.symmetric(
             vertical: 5.0 * _getResponsiveScale(),
-            horizontal: 8.0 * _getResponsiveScale(),
+            horizontal: 4.0 * _getResponsiveScale(),
           ),
           side: BorderSide(
             color: isActive ? activeColor : Colors.transparent,

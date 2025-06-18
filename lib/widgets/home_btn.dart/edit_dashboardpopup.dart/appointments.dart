@@ -11,6 +11,7 @@ import 'package:smartassist/utils/storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
+import 'package:smartassist/widgets/remarks_field.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class AppointmentsEdit extends StatefulWidget {
@@ -127,7 +128,7 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
 
     try {
       final response = await http.get(
-        Uri.parse('https://dev.smartassistapp.in/api/tasks/${widget.eventId}'),
+        Uri.parse('https://api.smartassistapp.in/api/tasks/${widget.eventId}'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -205,7 +206,7 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
     try {
       final response = await http.put(
         Uri.parse(
-          'https://dev.smartassistapp.in/api/tasks/${widget.eventId}/update',
+          'https://api.smartassistapp.in/api/tasks/${widget.eventId}/update',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -568,12 +569,25 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
                   ),
                 ),
                 const SizedBox(width: 10),
+
+                // Expanded(
+                //   flex: 3,
+                //   child: _buildTextField(
+                //     // label: 'Remark :',
+                //     controller: descriptionController,
+                //     hint: 'Type or speak...',
+                //   ),
+                // ),
                 Expanded(
                   flex: 3,
-                  child: _buildTextField(
-                    // label: 'Remark :',
+                  child: EnhancedSpeechTextField(
+                    // contentPadding: EdgeInsets.zero,
+                    label: 'Remarks:',
                     controller: descriptionController,
-                    hint: 'Type or speak...',
+                    hint: 'Type or speak... ',
+                    onChanged: (text) {
+                      print('Text changed: $text');
+                    },
                   ),
                 ),
               ],

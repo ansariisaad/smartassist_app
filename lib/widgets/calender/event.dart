@@ -239,14 +239,14 @@ class _EventRow extends StatelessWidget {
               GestureDetector(
                 onTap: () {
                   // Navigate to your target screen
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => AllAppointment(
-                        refreshDashboard: () async {},
-                      ), // Replace with your screen
-                    ),
-                  );
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(
+                  //     builder: (context) => AllAppointment(
+                  //       refreshDashboard: () async {},
+                  //     ), // Replace with your screen
+                  //   ),
+                  // );
                 },
                 child: const Icon(
                   Icons.arrow_forward_ios_rounded,

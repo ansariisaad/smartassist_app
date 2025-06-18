@@ -384,13 +384,13 @@ class _BottomBtnThirdState extends State<BottomBtnThird> {
                     width: 1,
                     height:
                         30, // Match height of both header rows for consistent divider
-                    color: Colors.grey.withOpacity(0.6),
+                    color: Colors.grey.withOpacity(0.3),
                     margin: const EdgeInsets.symmetric(horizontal: 4),
                   ),
                   Expanded(
                     flex: 2,
                     child: Container(
-                      alignment: Alignment.center,
+                      padding: EdgeInsets.only(left: 9.0),
                       child: Text(
                         'Rank',
                         style: AppFont.mediumText14(
@@ -412,7 +412,7 @@ class _BottomBtnThirdState extends State<BottomBtnThird> {
                   Container(
                     width: 1,
                     height: 20,
-                    color: Colors.grey.withOpacity(0.6),
+                    color: Colors.grey.withOpacity(0.3),
                   ),
                   Expanded(flex: 1, child: _buildHeaderCell('Dealership')),
                   Expanded(flex: 1, child: _buildHeaderCell('All India')),
@@ -453,7 +453,7 @@ class _BottomBtnThirdState extends State<BottomBtnThird> {
               ? BoxDecoration(
                   border: Border(
                     right: BorderSide(
-                      color: Colors.grey.withOpacity(0.6),
+                      color: Colors.grey.withOpacity(0.3),
                       width: 1,
                     ),
                   ),

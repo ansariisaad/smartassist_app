@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smartassist/config/component/color/colors.dart';
 
 class CustomFloatingButton extends StatelessWidget {
   final VoidCallback onPressed;
@@ -10,7 +11,7 @@ class CustomFloatingButton extends StatelessWidget {
     Key? key,
     required this.onPressed,
     this.icon = Icons.add,
-    this.backgroundColor = const Color(0xFF1380FE),
+    this.backgroundColor = AppColors.colorsBlue,
     this.iconColor = Colors.white,
   }) : super(key: key);
 

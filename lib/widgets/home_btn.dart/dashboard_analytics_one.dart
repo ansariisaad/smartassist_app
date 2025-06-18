@@ -259,9 +259,7 @@ class _BottomBtnSecondState extends State<BottomBtnSecond> {
       padding: const EdgeInsets.symmetric(vertical: 8),
       minimumSize: const Size(0, 0),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-      backgroundColor: isSelected
-          ? const Color(0xFF1380FE)
-          : Colors.transparent,
+      backgroundColor: isSelected ? AppColors.colorsBlue : Colors.transparent,
       foregroundColor: isSelected ? Colors.white : AppColors.fontColor,
       textStyle: AppFont.threeBtn(context),
     );

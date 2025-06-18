@@ -354,7 +354,7 @@ class _CalendarSmState extends State<CalendarSm> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1380FE),
+        backgroundColor: AppColors.colorsBlue,
         automaticallyImplyLeading: false,
         title: Align(
           alignment: Alignment.centerLeft,
@@ -1756,7 +1756,7 @@ class _CalendarSmState extends State<CalendarSm> {
 //     return Scaffold(
 //       backgroundColor: Colors.white,
 //       appBar: AppBar(
-//         backgroundColor: const Color(0xFF1380FE),
+//         backgroundColor: AppColors.colorsBlue,
 //         automaticallyImplyLeading: false,
 //         title: Align(
 //           alignment: Alignment.centerLeft,

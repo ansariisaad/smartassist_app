@@ -411,7 +411,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
         ),
-        backgroundColor: const Color(0xFF1380FE),
+        backgroundColor: AppColors.colorsBlue,
         automaticallyImplyLeading: false,
       ),
       body: isLoading
@@ -578,7 +578,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                             vertical: 6,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: const Color(0xFF1380FE),
+                                            color: AppColors.colorsBlue,
                                             borderRadius: BorderRadius.circular(
                                               20,
                                             ),
@@ -1012,7 +1012,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 //             ],
 //           ),
 //         ),
-//         backgroundColor: const Color(0xFF1380FE),
+//         backgroundColor: AppColors.colorsBlue,
 
 //         automaticallyImplyLeading: false,
 //       ),

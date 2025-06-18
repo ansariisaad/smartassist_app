@@ -136,29 +136,33 @@ class _ThreebtnState extends State<Threebtn> {
                 isNested: false,
               )
             : OverdueFollowup(
-              refreshDashboard: widget.refreshDashboard,
+                refreshDashboard: widget.refreshDashboard,
                 overdueeFollowups: widget.overdueFollowups,
                 isNested: false,
               );
         break;
       case 1:
         newWidget = _childButtonIndex == 0
-            ? OppUpcoming(refreshDashboard: widget.refreshDashboard,
+            ? OppUpcoming(
+                refreshDashboard: widget.refreshDashboard,
                 upcomingOpp: widget.upcomingAppointments,
                 isNested: false,
               )
-            : OppOverdue(refreshDashboard: widget.refreshDashboard,
+            : OppOverdue(
+                refreshDashboard: widget.refreshDashboard,
                 overdueeOpp: widget.overdueAppointments,
                 isNested: false,
               );
         break;
       case 2:
         newWidget = _childButtonIndex == 0
-            ? TestUpcoming(refreshDashboard: widget.refreshDashboard,
+            ? TestUpcoming(
+                refreshDashboard: widget.refreshDashboard,
                 upcomingTestDrive: widget.upcomingTestDrives,
                 isNested: false,
               )
-            : TestOverdue(refreshDashboard: widget.refreshDashboard,
+            : TestOverdue(
+                refreshDashboard: widget.refreshDashboard,
                 overdueTestDrive: widget.overdueTestDrives,
                 isNested: false,
               );
@@ -194,7 +198,7 @@ class _ThreebtnState extends State<Threebtn> {
   }
 
   double _getMainTabHeight() {
-    return (MediaQuery.sizeOf(context).height * 0.05).clamp(40.0, 60.0);
+    return (MediaQuery.sizeOf(context).height * 0.04).clamp(40.0, 50.0);
   }
 
   double _getSubTabHeight() {

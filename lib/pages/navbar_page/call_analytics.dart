@@ -219,7 +219,7 @@ class _CallAnalyticsState extends State<CallAnalytics>
           Icon(
             Icons.call,
             size: _isSmallScreen ? 14 : 16,
-            color: const Color(0xFF1380FE),
+            color: AppColors.colorsBlue,
           ),
           SizedBox(width: _isSmallScreen ? 4 : 6),
           Flexible(
@@ -392,7 +392,7 @@ class _CallAnalyticsState extends State<CallAnalytics>
             ),
           ),
         ),
-        backgroundColor: const Color(0xFF1380FE),
+        backgroundColor: AppColors.colorsBlue,
         automaticallyImplyLeading: false,
       ),
       body: SafeArea(
@@ -428,7 +428,7 @@ class _CallAnalyticsState extends State<CallAnalytics>
               width: _isTablet ? 150 : (_isSmallScreen ? 100 : 120),
               height: _isTablet ? 60 : (_isSmallScreen ? 45 : 56),
               child: FloatingActionButton(
-                backgroundColor: const Color(0xFF1380FE),
+                backgroundColor: AppColors.colorsBlue,
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -501,14 +501,14 @@ class _CallAnalyticsState extends State<CallAnalytics>
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: isActive ? const Color(0xFF1380FE) : Colors.transparent,
+            color: isActive ? AppColors.colorsBlue : Colors.transparent,
           ),
         ),
         child: Text(
           label,
           textAlign: TextAlign.center,
           style: GoogleFonts.poppins(
-            color: isActive ? const Color(0xFF1380FE) : AppColors.fontColor,
+            color: isActive ? AppColors.colorsBlue : AppColors.fontColor,
             fontSize: _isTablet ? 16 : (_isSmallScreen ? 11 : 14),
             fontWeight: FontWeight.w500,
           ),
@@ -556,7 +556,7 @@ class _CallAnalyticsState extends State<CallAnalytics>
                       child: _buildStatBox(
                         currentTabData['conversationTime']?.toString() ?? '0',
                         'Conversation\ntime',
-                        const Color(0xFF1380FE),
+                        AppColors.colorsBlue,
                         Icons.access_time,
                       ),
                     ),
@@ -584,7 +584,7 @@ class _CallAnalyticsState extends State<CallAnalytics>
                     _buildStatBox(
                       currentTabData['conversationTime']?.toString() ?? '0',
                       'Conversation time',
-                      const Color(0xFF1380FE),
+                      AppColors.colorsBlue,
                       Icons.access_time,
                     ),
                     const SizedBox(height: 12),
@@ -609,7 +609,7 @@ class _CallAnalyticsState extends State<CallAnalytics>
                     _buildStatBox(
                       currentTabData['conversationTime']?.toString() ?? '0',
                       'Conversation\ntime',
-                      const Color(0xFF1380FE),
+                      AppColors.colorsBlue,
                       Icons.access_time,
                     ),
                     _buildVerticalDivider(50),
@@ -818,14 +818,14 @@ class _CallAnalyticsState extends State<CallAnalytics>
           vertical: _isSmallScreen ? 3 : 5,
         ),
         decoration: BoxDecoration(
-          color: isActive ? const Color(0xFF1380FE) : Colors.transparent,
+          color: isActive ? AppColors.colorsBlue : Colors.transparent,
           borderRadius: BorderRadius.circular(18),
         ),
         child: Text(
           label,
           textAlign: TextAlign.center,
           style: GoogleFonts.poppins(
-            color: isActive ? Colors.white : const Color(0xFF1380FE),
+            color: isActive ? Colors.white : AppColors.colorsBlue,
             fontSize: _isTablet ? 14 : (_isSmallScreen ? 14 : 16),
             fontWeight: FontWeight.w500,
           ),
@@ -1165,7 +1165,7 @@ class _CallAnalyticsState extends State<CallAnalytics>
             LineChartBarData(
               spots: allCallSpots,
               isCurved: true,
-              color: const Color(0xFF1380FE),
+              color: AppColors.colorsBlue,
               barWidth: 3,
               isStrokeCapRound: true,
               dotData: const FlDotData(show: true),

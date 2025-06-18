@@ -326,7 +326,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
                 Navigator.of(context).pop(); // Go back to previous screen
               },
               style: TextButton.styleFrom(
-                backgroundColor: const Color(0xFF1380FE),
+                backgroundColor: AppColors.colorsBlue,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -436,7 +436,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
             ),
           ),
         ),
-        backgroundColor: const Color(0xFF1380FE),
+        backgroundColor: AppColors.colorsBlue,
         automaticallyImplyLeading: false,
       ),
       body: SafeArea(
@@ -516,7 +516,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
             children: [
               Icon(
                 Icons.feedback,
-                color: const Color(0xFF1380FE),
+                color: AppColors.colorsBlue,
                 size: _isTablet(context) ? 28 : 24,
               ),
               SizedBox(width: 12),
@@ -641,12 +641,12 @@ class _FeedbackFormState extends State<FeedbackForm> {
                   ),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? const Color(0xFF1380FE)
+                        ? AppColors.colorsBlue
                         : AppColors.backgroundLightGrey,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: isSelected
-                          ? const Color(0xFF1380FE)
+                          ? AppColors.colorsBlue
                           : Colors.transparent,
                     ),
                   ),
@@ -829,7 +829,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
             children: [
               Icon(
                 Icons.attach_file,
-                color: const Color(0xFF1380FE),
+                color: AppColors.colorsBlue,
                 size: _isTablet(context) ? 24 : 20,
               ),
               SizedBox(width: 8),
@@ -864,12 +864,12 @@ class _FeedbackFormState extends State<FeedbackForm> {
               ),
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: const Color(0xFF1380FE),
+                  color: AppColors.colorsBlue,
                   style: BorderStyle.solid,
                   width: 2,
                 ),
                 borderRadius: BorderRadius.circular(8),
-                color: const Color(0xFF1380FE).withOpacity(0.05),
+                color: AppColors.colorsBlue.withOpacity(0.05),
               ),
               child: _isPickingFiles
                   ? Row(
@@ -881,7 +881,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              const Color(0xFF1380FE),
+                              AppColors.colorsBlue,
                             ),
                           ),
                         ),
@@ -890,7 +890,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
                           'Selecting files...',
                           style: GoogleFonts.poppins(
                             fontSize: _bodyFontSize(context),
-                            color: const Color(0xFF1380FE),
+                            color: AppColors.colorsBlue,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -901,7 +901,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
                       children: [
                         Icon(
                           Icons.cloud_upload_outlined,
-                          color: const Color(0xFF1380FE),
+                          color: AppColors.colorsBlue,
                           size: _isTablet(context) ? 24 : 20,
                         ),
                         SizedBox(width: 8),
@@ -909,7 +909,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
                           'Choose Photos or Videos',
                           style: GoogleFonts.poppins(
                             fontSize: _bodyFontSize(context),
-                            color: const Color(0xFF1380FE),
+                            color: AppColors.colorsBlue,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -1011,7 +1011,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
   //               _isAnonymous = value ?? false;
   //             });
   //           },
-  //           activeColor: const Color(0xFF1380FE),
+  //           activeColor: AppColors.colorsBlue,
   //         ),
   //         Expanded(
   //           child: GestureDetector(
@@ -1041,7 +1041,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
       child: ElevatedButton(
         onPressed: _isSubmitting ? null : _submitFeedback,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF1380FE),
+          backgroundColor: AppColors.colorsBlue,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),

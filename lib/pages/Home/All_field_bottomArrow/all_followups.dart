@@ -184,7 +184,7 @@ class _AddFollowupsState extends State<AddFollowups> {
       final token = await Storage.getToken();
       final response = await http.get(
         Uri.parse(
-          'https://dev.smartassistapp.in/api/search/global?query=$query',
+          'https://api.smartassistapp.in/api/search/global?query=$query',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -362,7 +362,10 @@ class _AddFollowupsState extends State<AddFollowups> {
               child: Column(
                 children: [
                   Container(
-                    margin: EdgeInsets.all(isTablet ? 15 : 10),
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 15,
+                      vertical: 10,
+                    ),
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
                         minHeight: 38, // Minimum height for accessibility
@@ -396,7 +399,7 @@ class _AddFollowupsState extends State<AddFollowups> {
                             ),
                           ),
                           filled: true,
-                          fillColor: AppColors.searchBar,
+                          fillColor: AppColors.containerBg,
                           hintText: 'Search by name, email or phone',
                           hintStyle: GoogleFonts.poppins(
                             fontSize: _getResponsiveHintFontSize(

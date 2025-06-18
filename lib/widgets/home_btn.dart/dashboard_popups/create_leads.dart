@@ -2109,6 +2109,7 @@ class _CreateLeadsState extends State<CreateLeads> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
+          width: double.infinity,
           // margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           // padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(

@@ -14,6 +14,7 @@ import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/bottom_navigation.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
+import 'package:smartassist/utils/token_manager.dart';
 import 'package:smartassist/widgets/call_history.dart';
 import 'package:smartassist/widgets/home_btn.dart/single_ids_popup/appointment_ids.dart';
 import 'package:smartassist/widgets/home_btn.dart/single_ids_popup/followups_ids.dart';
@@ -1003,11 +1004,12 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? spId = prefs.getString('user_id');
+      // String? user_email = prefs.getString('user_email');
       final url = Uri.parse('https://dev.smartassistapp.in/api/init-wa');
       final token = await Storage.getToken();
 
       // Create the request body
-      final requestBody = {'sessionId': spId, email: email.toString()};
+      final requestBody = {'sessionId': spId};
       final response = await http.post(
         url,
         headers: {
@@ -1038,8 +1040,8 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
             builder: (context) => WhatsappChat(
               chatId: chatId,
               userName: lead_name,
-              email: email,
-              sessionId: spId.toString(),
+              // email: userEmail.toString(),
+              // sessionId: spId.toString(),
             ),
           ),
         );
@@ -1595,8 +1597,13 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                                                 horizontal: 10,
                                               ),
                                             ),
-                                            onPressed: () {
-                                              handleWhatsappAction();
+                                            onPressed: () async {
+                                              Get.to(
+                                                WhatsappChat(
+                                                  chatId: chatId,
+                                                  userName: lead_name,
+                                                ),
+                                              );
                                             },
                                             child: Text(
                                               'Whatsapp',

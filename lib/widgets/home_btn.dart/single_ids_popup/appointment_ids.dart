@@ -10,6 +10,8 @@ import 'package:smartassist/utils/storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
+import 'package:smartassist/widgets/reusable/action_button.dart';
+import 'package:smartassist/widgets/reusable/date_button.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class AppointmentIds extends StatefulWidget {
@@ -32,6 +34,8 @@ class _AppointmentIdsState extends State<AppointmentIds> {
   int _currentStep = 0;
   late stt.SpeechToText _speech;
   bool _isListening = false;
+  Map<String, String> _errors = {};
+  bool isSubmitting = false;
 
   bool _isLoadingSearch = false;
   String _query = '';
@@ -261,6 +265,53 @@ class _AppointmentIdsState extends State<AppointmentIds> {
     }
   }
 
+  void _submit() async {
+    if (isSubmitting) return;
+
+    bool isValid = true;
+
+    setState(() {
+      isSubmitting = true;
+      _errors = {};
+
+      // if (_leadId == null || _leadId!.isEmpty) {
+      //   _errors['select lead name'] = 'Please select a lead name';
+      //   isValid = false;
+      // }
+
+      if (_selectedSubject == null || _selectedSubject!.isEmpty) {
+        _errors['subject'] = 'Please select an action';
+        isValid = false;
+      }
+
+      if (startDateController == null || startDateController.text!.isEmpty) {
+        _errors['date'] = 'Please select an action';
+        isValid = false;
+      }
+    });
+
+    // 💡 Check validity before calling the API
+    if (!isValid) {
+      setState(() => isSubmitting = false);
+      return;
+    }
+
+    try {
+      await submitForm(); // ✅ Only call if valid
+      // Show snackbar or do post-submit work here
+    } catch (e) {
+      print(e.toString());
+      // Get.snackbar(
+      //   'Error',
+      //   'Submission failed: ${e.toString()}',
+      //   backgroundColor: Colors.red,
+      //   colorText: Colors.white,
+      // );
+    } finally {
+      setState(() => isSubmitting = false);
+    }
+  }
+
   Widget _buildTextField({
     required String label,
     required TextEditingController controller,
@@ -360,24 +411,34 @@ class _AppointmentIdsState extends State<AppointmentIds> {
             children: [
               // _buildSearchField(),
               const SizedBox(height: 15),
-              Row(
-                children: [
-                  Text('Start', style: AppFont.dropDowmLabel(context)),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _buildDatePicker(
-                      controller: startDateController,
-                      onTap: _pickStartDate,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _buildDatePicker1(
-                      controller: startTimeController,
-                      onTap: _pickStartTime,
-                    ),
-                  ),
-                ],
+              // Row(
+              //   children: [
+              //     Text('Start', style: AppFont.dropDowmLabel(context)),
+              //     const SizedBox(width: 10),
+              //     Expanded(
+              //       child: _buildDatePicker(
+              //         controller: startDateController,
+              //         onTap: _pickStartDate,
+              //       ),
+              //     ),
+              //     const SizedBox(width: 10),
+              //     Expanded(
+              //       child: _buildDatePicker1(
+              //         controller: startTimeController,
+              //         onTap: _pickStartTime,
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              DateButton(
+                errorText: _errors['date'],
+                isRequired: true,
+                label: 'When?',
+                dateController: startDateController,
+                timeController: startTimeController,
+                onDateTap: _pickStartDate,
+                onTimeTap: _pickStartTime,
+                onChanged: (String value) {},
               ),
               // Row(
               //   children: [
@@ -400,7 +461,24 @@ class _AppointmentIdsState extends State<AppointmentIds> {
               //   ],
               // ),
               const SizedBox(height: 10),
-              _buildButtons(
+              // _buildButtons(
+              //   options: {
+              //     "Meeting": "Meeting",
+              //     "Vehicle selection": "Vehicle Selection",
+              //     "Showroom appointment": "Showroom appointment",
+              //     "Trade in evaluation": "Trade in evaluation",
+              //   },
+              //   groupValue: _selectedSubject,
+              //   label: 'Action:',
+              //   onChanged: (value) {
+              //     setState(() {
+              //       _selectedSubject = value;
+              //     });
+              //   },
+              // ),
+              ActionButton(
+                label: "Action:",
+                isRequired: true,
                 options: {
                   "Meeting": "Meeting",
                   "Vehicle selection": "Vehicle Selection",
@@ -408,12 +486,15 @@ class _AppointmentIdsState extends State<AppointmentIds> {
                   "Trade in evaluation": "Trade in evaluation",
                 },
                 groupValue: _selectedSubject,
-                label: 'Action:',
                 onChanged: (value) {
                   setState(() {
                     _selectedSubject = value;
+                    if (_errors.containsKey('subject')) {
+                      _errors.remove('subject');
+                    }
                   });
                 },
+                errorText: _errors['subject'],
               ),
               const SizedBox(height: 10),
               _buildTextField(
@@ -461,7 +542,7 @@ class _AppointmentIdsState extends State<AppointmentIds> {
                       borderRadius: BorderRadius.circular(5),
                     ),
                   ),
-                  onPressed: submitForm,
+                  onPressed: _submit,
                   child: Text("Create", style: AppFont.buttons(context)),
                 ),
               ),
@@ -944,7 +1025,9 @@ class _AppointmentIdsState extends State<AppointmentIds> {
       'dd/MM/yyyy',
     ).format(rawEndDate); // Automatically set
 
-    final formattedStartTime = DateFormat('HH:mm:ss').format(rawStartTime);
+    // final formattedStartTime = DateFormat('HH:mm:ss').format(rawStartTime);
+        final formattedStartTime = DateFormat('hh:mm a').format(rawStartTime);
+
     final formattedEndTime = DateFormat(
       'HH:mm:ss',
     ).format(rawEndTime); // Automatically set

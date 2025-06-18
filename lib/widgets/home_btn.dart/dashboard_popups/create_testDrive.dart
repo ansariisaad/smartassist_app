@@ -15,6 +15,7 @@ import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/widgets/google_location.dart';
 import 'package:smartassist/widgets/popups_widget/leadSearch_textfield.dart';
 import 'package:smartassist/widgets/popups_widget/vehicleSearch_textfield.dart';
+import 'package:smartassist/widgets/reusable/date_button.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class CreateTestdrive extends StatefulWidget {
@@ -150,6 +151,52 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
         cancelOnError: true,
         listenMode: stt.ListenMode.confirmation,
       );
+    }
+  }
+
+  void _submit() async {
+    if (isSubmitting) return;
+
+    bool isValid = true;
+
+    setState(() {
+      isSubmitting = true;
+      _errors = {};
+
+      if (_leadId == null || _leadId!.isEmpty) {
+        _errors['select lead name'] = 'Please select a lead name';
+        isValid = false;
+      }
+
+      // if (_selectedSubject == null || _selectedSubject!.isEmpty) {
+      //   _errors['subject'] = 'Please select an action';
+      //   isValid = false;
+      // }
+
+      if (startDateController == null || startDateController.text!.isEmpty) {
+        _errors['date'] = 'Please select an action';
+        isValid = false;
+      }
+    });
+
+    // 💡 Check validity before calling the API
+    if (!isValid) {
+      setState(() => isSubmitting = false);
+      return;
+    }
+
+    try {
+      await submitForm(); // ✅ Only call if valid
+      // Show snackbar or do post-submit work here
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Submission failed: ${e.toString()}',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      setState(() => isSubmitting = false);
     }
   }
 
@@ -547,6 +594,7 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               LeadTextfield(
+                isRequired: true,
                 onChanged: (value) {
                   if (_errors.containsKey('select lead name')) {
                     setState(() {
@@ -563,6 +611,7 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
                   });
                 },
               ),
+
               // _buildSearchField(),
               // const SizedBox(
               //   height: 10,
@@ -630,24 +679,35 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
                 isRequired: true,
               ),
               const SizedBox(height: 15),
-              Row(
-                children: [
-                  Text('Start', style: AppFont.dropDowmLabel(context)),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _buildDatePicker(
-                      controller: startDateController,
-                      onTap: _pickStartDate,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _buildDatePicker1(
-                      controller: startTimeController,
-                      onTap: _pickStartTime,
-                    ),
-                  ),
-                ],
+
+              // Row(
+              //   children: [
+              //     Text('Start', style: AppFont.dropDowmLabel(context)),
+              //     const SizedBox(width: 10),
+              //     Expanded(
+              //       child: _buildDatePicker(
+              //         controller: startDateController,
+              //         onTap: _pickStartDate,
+              //       ),
+              //     ),
+              //     const SizedBox(width: 10),
+              //     Expanded(
+              //       child: _buildDatePicker1(
+              //         controller: startTimeController,
+              //         onTap: _pickStartTime,
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              DateButton(
+                errorText: _errors['date'],
+                isRequired: true,
+                label: 'Start',
+                dateController: startDateController,
+                timeController: startTimeController,
+                onDateTap: _pickStartDate,
+                onTimeTap: _pickStartTime,
+                onChanged: (String value) {},
               ),
 
               const SizedBox(height: 10),
@@ -683,7 +743,7 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
                       borderRadius: BorderRadius.circular(5),
                     ),
                   ),
-                  onPressed: _submitForms,
+                  onPressed: _submit,
                   child: Text("Create", style: AppFont.buttons(context)),
                 ),
               ),
@@ -1121,25 +1181,25 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
     );
   }
 
-  Future<void> _submitForms() async {
-    if (isSubmitting) return;
+  // Future<void> _submitForms() async {
+  //   if (isSubmitting) return;
 
-    setState(() => isSubmitting = true);
+  //   setState(() => isSubmitting = true);
 
-    try {
-      await submitForm(); // Your actual API call
-      // Optionally show a success snackbar or navigate
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Submission failed: ${e.toString()}',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-    } finally {
-      setState(() => isSubmitting = false);
-    }
-  }
+  //   try {
+  //     await submitForm(); // Your actual API call
+  //     // Optionally show a success snackbar or navigate
+  //   } catch (e) {
+  //     Get.snackbar(
+  //       'Error',
+  //       'Submission failed: ${e.toString()}',
+  //       backgroundColor: Colors.red,
+  //       colorText: Colors.white,
+  //     );
+  //   } finally {
+  //     setState(() => isSubmitting = false);
+  //   }
+  // }
 
   Future<void> submitForm() async {
     // Retrieve sp_id from SharedPreferences.
@@ -1172,7 +1232,8 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
       'dd/MM/yyyy',
     ).format(rawEndDate); // Automatically set
 
-    final formattedStartTime = DateFormat('HH:mm:ss').format(rawStartTime);
+    // final formattedStartTime = DateFormat('HH:mm:ss').format(rawStartTime);
+    final formattedStartTime = DateFormat('hh:mm a').format(rawStartTime);
     final formattedEndTime = DateFormat(
       'HH:mm:ss',
     ).format(rawEndTime); // Automatically set

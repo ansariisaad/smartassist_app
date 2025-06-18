@@ -90,7 +90,6 @@ class _FOpportunityState extends State<FOpportunity> {
   }
 }
 
-// ---------------- TASK ITEM ----------------
 class TaskItem extends StatefulWidget {
   final String name;
   final String date;

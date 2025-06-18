@@ -681,42 +681,7 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
     }
   }
 
-  // void _phoneAction() {
-  //   print("Call action triggered for ${widget.mobile}");
-
-  //   // String mobile = item['mobile'] ?? '';
-
-  //   if (widget.mobile.isNotEmpty) {
-  //     try {
-  //       // Set flag that we're making a phone call
-  //       _wasCallingPhone = true;
-
-  //       // Simple approach without canLaunchUrl check
-  //       final phoneNumber = 'tel:${widget.mobile}';
-  //       launchUrl(
-  //         Uri.parse(phoneNumber),
-  //         mode: LaunchMode.externalNonBrowserApplication,
-  //       );
-  //     } catch (e) {
-  //       print('Error launching phone app: $e');
-
-  //       // Reset flag if there was an error
-  //       _wasCallingPhone = false;
-  //       // Show error message to user
-  //       if (context.mounted) {
-  //         ScaffoldMessenger.of(context).showSnackBar(
-  //           SnackBar(content: Text('Could not launch phone dialer')),
-  //         );
-  //       }
-  //     }
-  //   } else {
-  //     if (context.mounted) {
-  //       ScaffoldMessenger.of(
-  //         context,
-  //       ).showSnackBar(SnackBar(content: Text('No phone number available')));
-  //     }
-  //   }
-  // }
+ 
 
   void _messageAction() {
     print("Message action triggered");

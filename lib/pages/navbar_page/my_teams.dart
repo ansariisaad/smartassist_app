@@ -4,7 +4,6 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
@@ -3844,17 +3843,43 @@ class _MyTeamsState extends State<MyTeams> {
                   Row(
                     // crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text(name, style: AppFont.smallTextBold14(context)),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      if (vehicle.isNotEmpty)
-                        Text(
-                          vehicle,
-                          style: AppFont.smallText12(context),
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: MediaQuery.of(context).size.width * .30,
+                        ),
+                        child: Text(
+                          name,
+                          maxLines: 1, // Allow up to 2 lines
+                          overflow: TextOverflow
+                              .ellipsis, // Show ellipsis if it overflows beyond 2 lines
                           softWrap: true,
-                          overflow: TextOverflow.visible,
+                          style: AppFont.dashboardName(context),
+                        ),
+                      ),
+                      // SizedBox(width: 5),
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 10),
+                        height: 15,
+                        width: 0.1,
+                        decoration: const BoxDecoration(
+                          border: Border(
+                            right: BorderSide(color: AppColors.fontColor),
+                          ),
+                        ),
+                      ),
+                      if (vehicle.isNotEmpty)
+                        ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth: MediaQuery.of(context).size.width * .30,
+                          ),
+                          child: Text(
+                            vehicle,
+                            style: AppFont.dashboardCarName(context),
+                            maxLines: 1, // Allow up to 2 lines
+                            overflow: TextOverflow
+                                .ellipsis, // Show ellipsis if it overflows beyond 2 lines
+                            softWrap: true, // Allow wrapping
+                          ),
                         ),
                     ],
                   ),

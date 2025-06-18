@@ -411,178 +411,6 @@ class _MyTeamsState extends State<MyTeams> {
     });
   }
 
-  // Fetch team details using the new API endpoint
-  // Future<void> _fetchTeamDetails() async {
-  //   try {
-  //     final token = await Storage.getToken();
-
-  //     // Build period parameter
-  //     String? periodParam;
-  //     switch (_periodIndex) {
-  //       case 1:
-  //         periodParam = 'MTD';
-  //         break;
-  //       case 0:
-  //         periodParam = 'QTD';
-  //         break;
-  //       case 2:
-  //         periodParam = 'YTD';
-  //         break;
-  //       default:
-  //         periodParam = 'QTD';
-  //     }
-
-  //     final Map<String, String> queryParams = {};
-
-  //     if (periodParam != null) {
-  //       queryParams['type'] = periodParam;
-  //     }
-
-  //     final targetMetric = [
-  //       'target_enquiries',
-  //       'target_testDrives',
-  //       'target_orders',
-  //       'target_cancellation',
-  //       'target_netOrders',
-  //       'target_retail',
-  //     ];
-
-  //     // Define summary metrics (moved outside to be available for both cases)
-  //     final summaryMetrics = [
-  //       'enquiries',
-  //       'testDrives',
-  //       'orders',
-  //       'cancellation',
-  //       'netOrders',
-  //       'retail',
-  //     ];
-  //     final summaryParam = summaryMetrics[_metricIndex];
-  //     final targetParam = targetMetric[_metricIndex];
-
-  //     // ✅ Add summary parameter for both All and specific user selection
-  //     queryParams['summary'] = summaryParam;
-  //     queryParams['target'] = targetParam;
-
-  //     // 🔥 REMOVE THE DUPLICATE LOGIC - Only keep this single user selection logic
-  //     // ❌ REMOVED: Duplicate user_id logic that was causing the issue
-  //     // if (_selectedProfileIndex != 0 && _selectedUserId.isNotEmpty) {
-  //     //   queryParams['user_id'] = _selectedUserId;
-  //     // }
-
-  //     // 🔥 MODIFIED LOGIC: Handle user selection based on comparison mode
-  //     if (_isComparing && selectedUserIds.isNotEmpty) {
-  //       // ✅ If comparison mode is ON, ONLY pass userIds (NO user_id)
-  //       queryParams['userIds'] = selectedUserIds.join(',');
-  //     } else if (!_isComparing &&
-  //         _selectedProfileIndex != 0 &&
-  //         _selectedUserId.isNotEmpty) {
-  //       // ✅ If comparison mode is OFF and specific user is selected, pass user_id
-  //       queryParams['user_id'] = _selectedUserId;
-  //     }
-  //     // ✅ If "All" is selected (_selectedProfileIndex == 0), no user parameters are added
-
-  //     final baseUri = Uri.parse(
-  //       'https://api.smartassistapp.in/api/users/sm/dashboard/team-dashboard',
-  //     );
-
-  //     final uri = baseUri.replace(queryParameters: queryParams);
-
-  //     print('📤 Fetching from: $uri');
-
-  //     final response = await http.get(
-  //       uri,
-  //       headers: {
-  //         'Authorization': 'Bearer $token',
-  //         'Content-Type': 'application/json',
-  //       },
-  //     );
-
-  //     print('📥 Status Code: ${response.statusCode}');
-  //     print('📥 Response: ${response.body}');
-
-  //     if (response.statusCode == 200) {
-  //       final data = json.decode(response.body);
-
-  //       setState(() {
-  //         _teamData = data['data'] ?? {};
-
-  //         // teams comparison
-  //         if (_teamData.containsKey('teamComparsion')) {
-  //           _teamComparisonData = List<dynamic>.from(
-  //             _teamData['teamComparsion'] ?? [],
-  //           );
-  //           print('📊 Team Comparison Data: $_teamComparisonData');
-  //         } else {
-  //           _teamComparisonData = [];
-  //         }
-
-  //         // Save total performance
-  //         if (_teamData.containsKey('totalPerformance')) {
-  //           _selectedUserData?['totalPerformance'] =
-  //               _teamData['totalPerformance'];
-  //         }
-
-  //         if (_teamData.containsKey('allMember') &&
-  //             _teamData['allMember'].isNotEmpty) {
-  //           _teamMembers = [];
-
-  //           for (var member in _teamData['allMember']) {
-  //             _teamMembers.add({
-  //               'fname': member['fname'] ?? '',
-  //               'lname': member['lname'] ?? '',
-  //               'user_id': member['user_id'] ?? '',
-  //               'profile': member['profile'],
-  //               'initials': member['initials'] ?? '',
-  //             });
-  //           }
-  //         }
-
-  //         if (_selectedProfileIndex == 0) {
-  //           // Summary data
-  //           _selectedUserData = _teamData['summary'] ?? {};
-  //           _selectedUserData?['totalPerformance'] =
-  //               _teamData['totalPerformance'] ?? {};
-  //         } else if (_selectedProfileIndex - 1 < _teamMembers.length) {
-  //           // Specific user selected
-  //           final selectedMember = _teamMembers[_selectedProfileIndex - 1];
-  //           _selectedUserData = selectedMember;
-
-  //           final selectedUserPerformance =
-  //               _teamData['selectedUserPerformance'] ?? {};
-  //           final upcoming = selectedUserPerformance['Upcoming'] ?? {};
-  //           final overdue = selectedUserPerformance['Overdue'] ?? {};
-
-  //           if (_upcommingButtonIndex == 0) {
-  //             _upcomingFollowups = List<Map<String, dynamic>>.from(
-  //               upcoming['upComingFollowups'] ?? [],
-  //             );
-  //             _upcomingAppointments = List<Map<String, dynamic>>.from(
-  //               upcoming['upComingAppointment'] ?? [],
-  //             );
-  //             _upcomingTestDrives = List<Map<String, dynamic>>.from(
-  //               upcoming['upComingTestDrive'] ?? [],
-  //             );
-  //           } else {
-  //             _upcomingFollowups = List<Map<String, dynamic>>.from(
-  //               overdue['overdueFollowups'] ?? [],
-  //             );
-  //             _upcomingAppointments = List<Map<String, dynamic>>.from(
-  //               overdue['overdueAppointments'] ?? [],
-  //             );
-  //             _upcomingTestDrives = List<Map<String, dynamic>>.from(
-  //               overdue['overdueTestDrives'] ?? [],
-  //             );
-  //           }
-  //         }
-  //       });
-  //     } else {
-  //       throw Exception('Failed to fetch team details: ${response.statusCode}');
-  //     }
-  //   } catch (e) {
-  //     print('Error fetching team details: $e');
-  //   }
-  // } rpujari@modimotorsjlr.com Rakesh@01
-
   Future<void> _fetchTeamDetails() async {
     try {
       setState(() {
@@ -797,31 +625,7 @@ class _MyTeamsState extends State<MyTeams> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('My Team', style: AppFont.appbarfontWhite(context)),
-            // if (selectedUserIds.length >= 2)
-            //   Container(
-            //     padding: const EdgeInsets.symmetric(
-            //       horizontal: 10,
-            //       vertical: 0,
-            //     ),
-            //     decoration: BoxDecoration(
-            //       color: Colors.transparent,
-            //       borderRadius: BorderRadius.circular(10),
-            //     ),
-            //     child: InkWell(
-            //       onTap: () async {
-            //         setState(() {
-            //           _isComparing = true;
-            //         });
-            //         // Wait for the next frame to ensure setState is complete
-            //         await Future.delayed(Duration.zero);
-            //         _fetchTeamDetails();
-            //       },
-            //       child: Text(
-            //         'Compare',
-            //         style: AppFont.mediumText14white(context),
-            //       ),
-            //     ),
-            //   ),
+
             if (selectedUserIds.length >= 2)
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -851,57 +655,6 @@ class _MyTeamsState extends State<MyTeams> {
         ),
       ),
 
-      // same below code but worst way
-      //  body: NotificationListener<ScrollNotification>(
-      //   onNotification: (ScrollNotification notification) {
-      //     if (notification is UserScrollNotification) {
-      //       final direction = notification.direction;
-      //       if (direction == ScrollDirection.reverse && _isFabVisible) {
-      //         setState(() => _isFabVisible = false);
-      //       } else if (direction == ScrollDirection.forward && !_isFabVisible) {
-      //         setState(() => _isFabVisible = true);
-      //       }
-      //     }
-      //     return false;
-      //   },
-      //   child: Stack(
-      //     children: [
-      //       SafeArea(
-      //         child: RefreshIndicator(
-      //           onRefresh: _fetchTeamDetails,
-      //           child: isLoading
-      //               ? const Center(child: CircularProgressIndicator())
-      //               : SingleChildScrollView(
-      //                   controller: fabController.scrollController,
-      //                   child: Container(
-      //                     color: Colors.white,
-      //                     padding: const EdgeInsets.all(10.0),
-      //                     child: Column(
-      //                       crossAxisAlignment: CrossAxisAlignment.start,
-      //                       children: [
-      //                         SingleChildScrollView(
-      //                           scrollDirection: Axis.horizontal,
-      //                           child: Row(children: [_buildProfileAvatars()]),
-      //                         ),
-
-      //                         const SizedBox(height: 10),
-      //                         if (!_isComparing)
-      //                           _buildIndividualPerformanceTab(
-      //                             context,
-      //                             screenWidth,
-      //                           ),
-      //                         const SizedBox(height: 10),
-      //                         _buildTeamComparisonTab(context, screenWidth),
-      //                         const SizedBox(height: 10),
-      //                       ],
-      //                     ),
-      //                   ),
-      //                 ),
-      //         ), //refreshIndicator
-      //       ),
-      //     ],
-      //   ),
-      // ),
       body: NotificationListener<ScrollNotification>(
         onNotification: (ScrollNotification notification) {
           if (notification is UserScrollNotification) {
@@ -955,85 +708,38 @@ class _MyTeamsState extends State<MyTeams> {
           ],
         ),
       ),
-
-      // body: Stack(
-      //   children: [
-      //     SafeArea(
-      //       child: RefreshIndicator(
-      //         onRefresh: _fetchTeamDetails,
-      //         child: isLoading
-      //             ? const Center(child: CircularProgressIndicator())
-      //             : SingleChildScrollView(
-      //                 controller: fabController.scrollController,
-      //                 child: Container(
-      //                   color: Colors.white,
-      //                   padding: const EdgeInsets.all(10.0),
-      //                   child: Column(
-      //                     crossAxisAlignment: CrossAxisAlignment.start,
-      //                     children: [
-      //                       SingleChildScrollView(
-      //                         scrollDirection: Axis.horizontal,
-      //                         child: Row(children: [_buildProfileAvatars()]),
-      //                       ),
-      //                       const SizedBox(height: 10),
-      //                       if (!_isComparing)
-      //                         _buildIndividualPerformanceTab(
-      //                           context,
-      //                           screenWidth,
-      //                         ),
-      //                       const SizedBox(height: 10),
-      //                       _buildTeamComparisonTab(context, screenWidth),
-      //                       const SizedBox(height: 10),
-      //                     ],
-      //                   ),
-      //                 ),
-      //               ),
-      //       ),
-      //     ),
-      //   ],
-      // ),
-      // floatingActionButton: _isFabVisible
-      //     ? CustomFloatingButton(
-      //         onPressed: () {
-      //           Navigator.push(
-      //             context,
-      //             MaterialPageRoute(builder: (context) => AllLeads()),
-      //           );
-      //         },
-      //       )
-      //     : null,
     );
   }
 
-  Widget _buildFloatingActionButton(BuildContext context) {
-    return Obx(
-      () => GestureDetector(
-        onTap: fabController.toggleFab,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          width: MediaQuery.of(context).size.width * .15,
-          height: MediaQuery.of(context).size.height * .08,
-          decoration: BoxDecoration(
-            color: fabController.isFabExpanded.value
-                ? Colors.red
-                : AppColors.colorsBlue,
-            shape: BoxShape.circle,
-          ),
-          child: Center(
-            child: AnimatedRotation(
-              turns: fabController.isFabExpanded.value ? 0.25 : 0.0,
-              duration: const Duration(milliseconds: 300),
-              child: Icon(
-                fabController.isFabExpanded.value ? Icons.close : Icons.add,
-                color: Colors.white,
-                size: 30,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  // Widget _buildFloatingActionButton(BuildContext context) {
+  //   return Obx(
+  //     () => GestureDetector(
+  //       onTap: fabController.toggleFab,
+  //       child: AnimatedContainer(
+  //         duration: const Duration(milliseconds: 300),
+  //         width: MediaQuery.of(context).size.width * .15,
+  //         height: MediaQuery.of(context).size.height * .08,
+  //         decoration: BoxDecoration(
+  //           color: fabController.isFabExpanded.value
+  //               ? Colors.red
+  //               : AppColors.colorsBlue,
+  //           shape: BoxShape.circle,
+  //         ),
+  //         child: Center(
+  //           child: AnimatedRotation(
+  //             turns: fabController.isFabExpanded.value ? 0.25 : 0.0,
+  //             duration: const Duration(milliseconds: 300),
+  //             child: Icon(
+  //               fabController.isFabExpanded.value ? Icons.close : Icons.add,
+  //               color: Colors.white,
+  //               size: 30,
+  //             ),
+  //           ),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   // Popup Item Builder
   Widget _buildPopupItem(
@@ -1274,11 +980,11 @@ class _MyTeamsState extends State<MyTeams> {
           ),
 
           // ✅ FAB positioned above the overlay
-          Positioned(
-            bottom: 20,
-            right: 15,
-            child: _buildFloatingActionButton(context),
-          ),
+          // Positioned(
+          //   bottom: 20,
+          //   right: 15,
+          //   child: _buildFloatingActionButton(context),
+          // ),
         ],
       ),
     );

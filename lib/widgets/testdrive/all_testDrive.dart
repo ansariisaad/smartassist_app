@@ -39,43 +39,47 @@ class AllTestrive extends StatefulWidget {
 }
 
 class _AllFollowupsItemState extends State<AllTestrive>
-    with WidgetsBindingObserver {
+    with SingleTickerProviderStateMixin {
   bool _wasCallingPhone = false;
 
+  late SlidableController _slidableController;
   @override
   void initState() {
     super.initState();
-    // Register this class as an observer to track app lifecycle changes
-    WidgetsBinding.instance.addObserver(this);
+    _slidableController = SlidableController(this);
   }
 
   @override
   void dispose() {
-    // Remove observer when widget is disposed
-    WidgetsBinding.instance.removeObserver(this);
+    _slidableController.dispose();
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    // This gets called when app lifecycle state changes
-    if (state == AppLifecycleState.resumed && _wasCallingPhone) {
-      // App is resumed and we marked that user was making a call
-      _wasCallingPhone = false;
-      // Show the mail action dialog after a short delay to ensure app is fully resumed
-      Future.delayed(const Duration(milliseconds: 300), () {
-        if (mounted) {
-          _mailAction();
-        }
-      });
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 5, 10, 0),
-      child: _buildOverdueCard(context),
+      child: InkWell(
+        onTap: () {
+          if (widget.leadId.isNotEmpty) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => FollowupsDetails(
+                  leadId: widget.leadId,
+                  isFromFreshlead: false,
+                  isFromManager: false,
+                  isFromTestdriveOverview: false,
+                  refreshDashboard: () async {},
+                ),
+              ),
+            );
+          } else {
+            print("Invalid leadId");
+          }
+        },
+        child: _buildOverdueCard(context),
+      ),
     );
   }
 
@@ -85,6 +89,7 @@ class _AllFollowupsItemState extends State<AllTestrive>
 
     return Slidable(
       key: ValueKey(widget.leadId), // Always good to set keys
+      controller: _slidableController,
       startActionPane: ActionPane(
         extentRatio: 0.2,
         motion: const ScrollMotion(),
@@ -165,14 +170,12 @@ class _AllFollowupsItemState extends State<AllTestrive>
                             children: [
                               _buildUserDetails(context),
                               _buildVerticalDivider(15),
-                              _buildSubjectDetails(context),
-                              _date(context),
+                              _buildCarModel(context),
                             ],
                           ),
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              // _buildCarModel(context),
                               _buildSubjectDetails(context),
                               _date(context),
                               _time(),
@@ -276,7 +279,19 @@ class _AllFollowupsItemState extends State<AllTestrive>
   }
 
   Widget _buildUserDetails(BuildContext context) {
-    return Text(widget.name, style: AppFont.dashboardName(context));
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.of(context).size.width * .35,
+      ),
+      child: Text(
+        maxLines: 1, // Allow up to 2 lines
+        overflow: TextOverflow
+            .ellipsis, // Show ellipsis if it overflows beyond 2 lines
+        softWrap: true,
+        widget.name,
+        style: AppFont.dashboardName(context),
+      ),
+    );
   }
 
   Widget _buildSubjectDetails(BuildContext context) {
@@ -359,42 +374,53 @@ class _AllFollowupsItemState extends State<AllTestrive>
   }
 
   Widget _buildCarModel(BuildContext context) {
-    return Text(
-      widget.vehicle,
-      style: AppFont.dashboardCarName(context),
-      overflow: TextOverflow.visible,
-      softWrap: true,
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.of(context).size.width * .30,
+      ),
+      child: Text(
+        widget.vehicle,
+        style: AppFont.dashboardCarName(context),
+        maxLines: 1, // Allow up to 2 lines
+        overflow: TextOverflow
+            .ellipsis, // Show ellipsis if it overflows beyond 2 lines
+        softWrap: true, // Allow wrapping
+      ),
     );
   }
 
+  bool _isActionPaneOpen = false;
   Widget _buildNavigationButton(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        if (widget.leadId.isNotEmpty) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => FollowupsDetails(
-                leadId: widget.leadId,
-                isFromFreshlead: false,
-                isFromManager: false,
-                refreshDashboard: () async {},
-                isFromTestdriveOverview: false,
-              ),
-            ),
-          );
+        if (_isActionPaneOpen) {
+          _slidableController.close();
+          setState(() {
+            _isActionPaneOpen = false;
+          });
         } else {
-          print("Invalid leadId");
+          _slidableController.close();
+          Future.delayed(Duration(milliseconds: 100), () {
+            _slidableController.openEndActionPane();
+            setState(() {
+              _isActionPaneOpen = true;
+            });
+          });
         }
       },
+
       child: Container(
         padding: const EdgeInsets.all(3),
         decoration: BoxDecoration(
           color: AppColors.arrowContainerColor,
           borderRadius: BorderRadius.circular(30),
         ),
-        child: const Icon(
-          Icons.arrow_forward_ios_rounded,
+
+        child: Icon(
+          _isActionPaneOpen
+              ? Icons.arrow_forward_ios_rounded
+              : Icons.arrow_back_ios_rounded,
+
           size: 25,
           color: Colors.white,
         ),

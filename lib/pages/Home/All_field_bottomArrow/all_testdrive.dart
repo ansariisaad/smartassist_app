@@ -3,23 +3,25 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
+
+import 'package:smartassist/utils/bottom_navigation.dart';
+
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
+import 'package:smartassist/widgets/followups/all_followups.dart';
+// import 'package:smartassist/widgets/followups/all_followup.dart'; // Import the new widget
+import 'package:smartassist/widgets/followups/overdue_followup.dart';
+import 'package:smartassist/widgets/followups/upcoming_row.dart';
+import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/create_Followups_popups.dart';
 import 'package:smartassist/widgets/buttons/add_btn.dart';
-import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/create_testDrive.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:smartassist/widgets/oppointment/all_oppintment.dart';
+import 'package:smartassist/widgets/oppointment/overdue.dart';
+import 'package:smartassist/widgets/oppointment/upcoming.dart';
 import 'package:smartassist/widgets/testdrive/all_testDrive.dart';
 import 'package:smartassist/widgets/testdrive/overdue.dart';
 import 'package:smartassist/widgets/testdrive/upcoming.dart';
-import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:smartassist/config/component/color/colors.dart';
-import 'package:smartassist/config/component/font/font.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:smartassist/pages/navbar_page/call_logs.dart';
-import 'package:smartassist/utils/storage.dart';
 
 class AllTestdrive extends StatefulWidget {
   final Future<void> Function() refreshDashboard;
@@ -30,7 +32,7 @@ class AllTestdrive extends StatefulWidget {
 }
 
 class _AllTestdriveState extends State<AllTestdrive> {
-  final Widget _createTestDrive = CreateTestdrive(onFormSubmit: () {});
+  final Widget _createFollowups = CreateFollowupsPopups(onFormSubmit: () {});
   List<dynamic> _originalAllTasks = [];
   List<dynamic> _originalUpcomingTasks = [];
   List<dynamic> _originalOverdueTasks = [];
@@ -43,6 +45,7 @@ class _AllTestdriveState extends State<AllTestdrive> {
   List<dynamic> _filteredTasks = [];
   String _query = '';
   int _upcommingButtonIndex = 0;
+
   final TextEditingController _searchController = TextEditingController();
 
   bool _isLoading = true;
@@ -53,7 +56,7 @@ class _AllTestdriveState extends State<AllTestdrive> {
     fetchTasks();
   }
 
-  //Helper method to get responsive dimensions
+
   bool get _isTablet => MediaQuery.of(context).size.width > 768;
   bool get _isSmallScreen => MediaQuery.of(context).size.width < 400;
   double get _screenWidth => MediaQuery.of(context).size.width;
@@ -71,6 +74,43 @@ class _AllTestdriveState extends State<AllTestdrive> {
   double get _smallFontSize => _isTablet ? 14 : (_isSmallScreen ? 10 : 12);
 
   double _getScreenWidth() => MediaQuery.sizeOf(context).width;
+
+  // Responsive scaling while maintaining current design proportions
+  double _getResponsiveScale() {
+    final width = _getScreenWidth();
+    if (width <= 320) return 0.85; // Very small phones
+    if (width <= 375) return 0.95; // Small phones
+    if (width <= 414) return 1.0; // Standard phones (base size)
+    if (width <= 600) return 1.05; // Large phones
+    if (width <= 768) return 1.1; // Small tablets
+    return 1.15; // Large tablets and up
+  }
+
+  double _getSubTabFontSize() {
+    return 12.0 * _getResponsiveScale(); // Base font size: 12
+  }
+
+  double _getSubTabHeight() {
+    return 27.0 * _getResponsiveScale(); // Base height: 27
+  }
+
+  // double _getSubTabWidth() {
+  //   return 240.0 * _getResponsiveScale(); // Base width: 150
+  // }
+
+  double _getSubTabWidth() {
+    // Calculate approximate width needed based on content
+    double baseWidth = 240.0 * _getResponsiveScale();
+
+    // Add extra width if count is large (adjust as needed)
+    if (count > 99) {
+      baseWidth += 30.0 * _getResponsiveScale();
+    } else if (count > 9) {
+      baseWidth += 15.0 * _getResponsiveScale();
+    }
+
+    return baseWidth;
+  }
 
   Future<void> fetchTasks() async {
     setState(() => _isLoading = true);
@@ -104,9 +144,75 @@ class _AllTestdriveState extends State<AllTestdrive> {
         setState(() => _isLoading = false);
       }
     } catch (e) {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
+
+  void _performLocalSearch(String query) {
+    if (query.isEmpty) {
+      setState(() {
+        _filteredTasks = List.from(upcomingTasks);
+      });
+      return;
+    }
+
+    setState(() {
+      _filteredTasks = upcomingTasks.where((item) {
+        String name = (item['lead_name'] ?? '').toString().toLowerCase();
+        String email = (item['email'] ?? '').toString().toLowerCase();
+        String phone = (item['mobile'] ?? '').toString().toLowerCase();
+        String searchQuery = query.toLowerCase();
+
+        return name.contains(searchQuery) ||
+            email.contains(searchQuery) ||
+            phone.contains(searchQuery);
+      }).toList();
+    });
+  }
+
+  Future<void> _fetchSearchResults(String query) async {
+    if (query.isEmpty) {
+      setState(() {
+        _searchResults.clear();
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoadingSearch = true;
+    });
+
+    try {
+      final token = await Storage.getToken();
+      final response = await http.get(
+        Uri.parse(
+          'https://dev.smartassistapp.in/api/search/global?query=$query',
+        ),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      final Map<String, dynamic> data = json.decode(response.body);
+      if (response.statusCode == 200) {
+        setState(() {
+          _searchResults = data['data']['suggestions'] ?? [];
+        });
+      } else {
+        showErrorMessage(context, message: data['message']);
+      }
+    } catch (e) {
+      showErrorMessage(context, message: 'Something went wrong..!');
+    } finally {
+      setState(() {
+        _isLoadingSearch = false;
+      });
+    }
+  }
+
 
   void _performLocalSearch(String query) {
     if (query.isEmpty) {
@@ -188,6 +294,7 @@ class _AllTestdriveState extends State<AllTestdrive> {
     });
   }
 
+
   double _getResponsiveFontSize(BuildContext context, bool isTablet) {
     final screenWidth = MediaQuery.of(context).size.width;
     if (screenWidth < 360) return 12; // Very small screens
@@ -266,6 +373,7 @@ class _AllTestdriveState extends State<AllTestdrive> {
     });
   }
 
+
   // Responsive scaling while maintaining current design proportions
   double _getResponsiveScale() {
     final width = _getScreenWidth();
@@ -289,6 +397,7 @@ class _AllTestdriveState extends State<AllTestdrive> {
     return 240.0 * _getResponsiveScale(); // Base width: 150
   }
 
+
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
@@ -309,7 +418,7 @@ class _AllTestdriveState extends State<AllTestdrive> {
         title: Align(
           alignment: Alignment.centerLeft,
           child: Text(
-            'Your Test Drives',
+            'Your Testdrive',
             style: GoogleFonts.poppins(
               fontSize: _titleFontSize,
               fontWeight: FontWeight.w400,
@@ -331,13 +440,18 @@ class _AllTestdriveState extends State<AllTestdrive> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: _createTestDrive, // Your follow-up widget
+                child: _createFollowups, // Your follow-up widget
               );
             },
           );
         },
       ),
-      body: CustomScrollView(
+
+      body: RefreshIndicator(
+        onRefresh: fetchTasks,
+                      
+                      
+        CustomScrollView(
         slivers: [
           // Top section with search bar and filter buttons.
           SliverToBoxAdapter(
@@ -473,10 +587,24 @@ class _AllTestdriveState extends State<AllTestdrive> {
                     child: CircularProgressIndicator(
                       color: AppColors.colorsBlue,
                     ),
-                  )
-                : _buildContentBySelectedTab(),
-          ),
-        ],
+                  ),
+                  const SizedBox(height: 5),
+                ],
+              ),
+            ),
+
+            SliverToBoxAdapter(
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.colorsBlue,
+                      ),
+                    )
+                  : _buildContentBySelectedTab(),
+            ),
+          ],
+        ),
+      ),
       ),
     );
   }
@@ -549,7 +677,7 @@ class _AllTestdriveState extends State<AllTestdrive> {
           // padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 0),
           padding: EdgeInsets.symmetric(
             vertical: 5.0 * _getResponsiveScale(),
-            horizontal: 8.0 * _getResponsiveScale(),
+            horizontal: 4.0 * _getResponsiveScale(),
           ),
           side: BorderSide(
             color: isActive ? activeColor : Colors.transparent,
@@ -570,80 +698,4 @@ class _AllTestdriveState extends State<AllTestdrive> {
       ),
     );
   }
-
-  // Widget _buildFilterButton({
-  //   required int index,
-  //   required String text,
-  //   required Color activeColor,
-  //   required Color color,
-  // }) {
-  //   final bool isActive = _upcommingButtonIndex == index;
-
-  //   return Expanded(
-  //     child: TextButton(
-  //       onPressed: () => setState(() => _upcommingButtonIndex = index),
-  //       style: TextButton.styleFrom(
-  //         backgroundColor: isActive ? activeColor.withOpacity(0.29) : null,
-  //         foregroundColor: isActive ? Colors.blueGrey : Colors.black,
-  //         padding: const EdgeInsets.symmetric(vertical: 5),
-  //         side: BorderSide(
-  //           color: isActive ? activeColor : Colors.transparent,
-  //           width: .5,
-  //         ),
-  //         shape: RoundedRectangleBorder(
-  //           borderRadius: BorderRadius.circular(30),
-  //         ),
-  //       ),
-  //       child: Text(
-  //         text,
-  //         style: TextStyle(
-  //           fontSize: 14,
-  //           fontWeight: FontWeight.w400,
-  //           color: isActive ? color : Colors.grey,
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
 }
-
-
-  // SliverToBoxAdapter(
-  //           child: _isLoading
-  //               ? const Center(
-  //                   child:
-  //                       CircularProgressIndicator(color: AppColors.colorsBlue))
-  //               : _upcommingButtonIndex == 0
-  //                   ? (_filteredUpcomingTasks.isEmpty &&
-  //                           _filteredOverdueTasks.isEmpty)
-  //                       ? const Center(
-  //                           child: Padding(
-  //                             padding: EdgeInsets.symmetric(vertical: 20),
-  //                             child: Text("No appointments available"),
-  //                           ),
-  //                         )
-  //                       : Column(
-  //                           children: [
-  //                             if (_filteredUpcomingTasks.isNotEmpty)
-  //                               TestUpcoming(
-  //                                 upcomingTestDrive: _filteredUpcomingTasks,
-  //                                 isNested: true,
-  //                               ),
-  //                             if (_filteredOverdueTasks.isNotEmpty)
-  //                               TestOverdue(
-  //                                 overdueTestDrive: _filteredOverdueTasks,
-  //                                 isNested: true,
-  //                               ),
-  //                           ],
-  //                         )
-  //                   : _upcommingButtonIndex == 1
-  //                       ? TestUpcoming(
-  //                           upcomingTestDrive: _filteredUpcomingTasks,
-  //                           isNested: true,
-  //                         )
-  //                       : TestOverdue(
-  //                           overdueTestDrive: _filteredOverdueTasks,
-  //                           isNested: true,
-  //                         ),
-  //         ),
-        

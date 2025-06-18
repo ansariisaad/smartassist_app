@@ -286,46 +286,59 @@ class upcomingTestDrivesItem extends StatefulWidget {
   State<upcomingTestDrivesItem> createState() => _upcomingTestDrivesItemState();
 }
 
-class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem> {
+class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
+    with SingleTickerProviderStateMixin {
+  late SlidableController _slidableController;
+  @override
+  void initState() {
+    super.initState();
+    _slidableController = SlidableController(this);
+  }
+
+  @override
+  void dispose() {
+    _slidableController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 5, 10, 0),
-      child: _buildFollowupCard(context), // ✅ Pass context here
+      child: InkWell(
+        onTap: () {
+          if (widget.leadId.isNotEmpty) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => FollowupsDetails(
+                  leadId: widget.leadId,
+                  isFromFreshlead: false,
+                  isFromManager: false,
+                  isFromTestdriveOverview: false,
+                  refreshDashboard: widget.refreshDashboard,
+                ),
+              ),
+            );
+          } else {
+            print("Invalid leadId");
+          }
+        },
+        child: _buildFollowupCard(context),
+      ),
     );
   }
 
   Widget _buildFollowupCard(BuildContext context) {
     bool isFavoriteSwipe = widget.swipeOffset > 50;
     bool isCallSwipe = widget.swipeOffset < -50;
-    // // Gradient background for swipe
-    // LinearGradient _buildSwipeGradient() {
-    //   if (isFavoriteSwipe) {
-    //     return const LinearGradient(
-    //       colors: [
-    //         Color.fromRGBO(239, 206, 29, 0.67),
-    //         Color.fromRGBO(239, 206, 29, 0.67)
-    //       ],
-    //       begin: Alignment.centerLeft,
-    //       end: Alignment.centerRight,
-    //     );
-    //   } else if (isCallSwipe) {
-    //     return LinearGradient(
-    //       colors: [Colors.blue.withOpacity(0.2), Colors.blue.withOpacity(0.2)],
-    //       begin: Alignment.centerRight,
-    //       end: Alignment.centerLeft,
-    //     );
-    //   }
-    //   return const LinearGradient(
-    //     colors: [AppColors.containerBg, AppColors.containerBg],
-    //     begin: Alignment.centerLeft,
-    //     end: Alignment.centerRight,
-    //   );
-    // }
 
     return Slidable(
       key: ValueKey(widget.leadId), // Always good to set keys
+
+      controller: _slidableController,
       startActionPane: ActionPane(
+        extentRatio: 0.2,
         motion: const ScrollMotion(),
         children: [
           ReusableSlidableAction(
@@ -371,86 +384,6 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem> {
 
       child: Stack(
         children: [
-          // Favorite Swipe Overlay
-          if (isFavoriteSwipe)
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.yellow.withOpacity(0.2),
-                      Colors.yellow.withOpacity(0.8),
-                    ],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      const SizedBox(width: 15),
-                      Icon(
-                        widget.isFavorite
-                            ? Icons.star_outline_rounded
-                            : Icons.star_rounded,
-                        color: const Color.fromRGBO(226, 195, 34, 1),
-                        size: 40,
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        widget.isFavorite ? 'Unfavorite' : 'Favorite',
-                        style: GoogleFonts.poppins(
-                          color: Color.fromRGBO(187, 158, 0, 1),
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-          // Call Swipe Overlay
-          if (isCallSwipe)
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppColors.colorsBlue, AppColors.colorsBlue],
-                    begin: Alignment.centerRight,
-                    end: Alignment.centerLeft,
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      const SizedBox(width: 20),
-                      const Icon(
-                        Icons.directions_car,
-                        color: Colors.white,
-                        size: 30,
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        'Start Test Drive',
-                        style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(width: 5),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
           // Main Container
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
@@ -542,12 +475,18 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem> {
   }
 
   Widget _buildUserDetails(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(widget.name, style: AppFont.dashboardName(context)),
-        const SizedBox(height: 5),
-      ],
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.of(context).size.width * .35,
+      ),
+      child: Text(
+        maxLines: 1, // Allow up to 2 lines
+        overflow: TextOverflow
+            .ellipsis, // Show ellipsis if it overflows beyond 2 lines
+        softWrap: true,
+        widget.name,
+        style: AppFont.dashboardName(context),
+      ),
     );
   }
 
@@ -640,47 +579,52 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem> {
 
   Widget _buildCarModel(BuildContext context) {
     return ConstrainedBox(
-      constraints: const BoxConstraints(
-        maxWidth: 100,
-      ), // Adjust width as needed
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.of(context).size.width * .30,
+      ),
       child: Text(
         widget.vehicle,
         style: AppFont.dashboardCarName(context),
-        overflow: TextOverflow.visible, // Allow text wrapping
-        softWrap: true, // Enable wrapping
+        maxLines: 1, // Allow up to 2 lines
+        overflow: TextOverflow
+            .ellipsis, // Show ellipsis if it overflows beyond 2 lines
+        softWrap: true, // Allow wrapping
       ),
     );
   }
 
+  bool _isActionPaneOpen = false;
   Widget _buildNavigationButton(BuildContext context) {
-    // ✅ Accept context
     return GestureDetector(
       onTap: () {
-        if (widget.leadId.isNotEmpty) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => FollowupsDetails(
-                leadId: widget.leadId,
-                isFromFreshlead: false,
-                isFromManager: false,
-                isFromTestdriveOverview: false,
-                refreshDashboard: widget.refreshDashboard,
-              ),
-            ),
-          );
+        if (_isActionPaneOpen) {
+          _slidableController.close();
+          setState(() {
+            _isActionPaneOpen = false;
+          });
         } else {
-          print("Invalid leadId");
+          _slidableController.close();
+          Future.delayed(Duration(milliseconds: 100), () {
+            _slidableController.openEndActionPane();
+            setState(() {
+              _isActionPaneOpen = true;
+            });
+          });
         }
       },
+
       child: Container(
         padding: const EdgeInsets.all(3),
         decoration: BoxDecoration(
           color: AppColors.arrowContainerColor,
           borderRadius: BorderRadius.circular(30),
         ),
-        child: const Icon(
-          Icons.arrow_forward_ios_rounded,
+
+        child: Icon(
+          _isActionPaneOpen
+              ? Icons.arrow_forward_ios_rounded
+              : Icons.arrow_back_ios_rounded,
+
           size: 25,
           color: Colors.white,
         ),
@@ -707,13 +651,6 @@ class ReusableSlidableAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // return SlidableAction(
-    //   onPressed: (context) => onPressed(),
-    //   backgroundColor: backgroundColor,
-    //   foregroundColor: foregroundColor ?? Colors.white,
-    //   icon: icon,
-    //   borderRadius: BorderRadius.circular(8),
-    // );
     return CustomSlidableAction(
       onPressed: (context) => onPressed(),
       backgroundColor: backgroundColor,

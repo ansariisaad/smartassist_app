@@ -390,7 +390,7 @@ class _AddFollowupsState extends State<AddFollowups> {
                             ),
                           ),
                           filled: true,
-                          fillColor: AppColors.searchBar,
+                          fillColor: AppColors.containerBg,
                           hintText: 'Search by name, email or phone',
                           hintStyle: GoogleFonts.poppins(
                             fontSize: _getResponsiveHintFontSize(

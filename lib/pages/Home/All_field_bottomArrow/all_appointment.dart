@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/utils/bottom_navigation.dart';
+import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/buttons/add_btn.dart';
 import 'package:smartassist/widgets/followups/all_followups.dart';
@@ -39,9 +40,16 @@ class _AllAppointmentState extends State<AllAppointment> {
   List<dynamic> _filteredUpcomingTasks = [];
   List<dynamic> _filteredOverdueTasks = [];
   int _upcommingButtonIndex = 0;
+  bool _isLoadingSearch = false;
+  List<dynamic> upcomingTasks = [];
+  List<dynamic> _searchResults = [];
+  List<dynamic> _filteredTasks = [];
+  String _query = '';
+
+  int count = 0;
+
   TextEditingController searchController = TextEditingController();
   bool _isLoading = true;
-  int count = 0;
 
   @override
   void initState() {
@@ -88,6 +96,64 @@ class _AllAppointmentState extends State<AllAppointment> {
     }
   }
 
+  Future<void> _fetchSearchResults(String query) async {
+    if (query.isEmpty) {
+      setState(() {
+        _searchResults.clear();
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoadingSearch = true;
+    });
+
+    try {
+      final token = await Storage.getToken();
+      final response = await http.get(
+        Uri.parse(
+          'https://api.smartassistapp.in/api/search/global?query=$query',
+        ),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      final Map<String, dynamic> data = json.decode(response.body);
+      if (response.statusCode == 200) {
+        setState(() {
+          _searchResults = data['data']['suggestions'] ?? [];
+        });
+      } else {
+        showErrorMessage(context, message: data['message']);
+      }
+    } catch (e) {
+      showErrorMessage(context, message: 'Something went wrong..!');
+    } finally {
+      setState(() {
+        _isLoadingSearch = false;
+      });
+    }
+  }
+
+  void _onSearchChanged() {
+    final newQuery = _searchController.text.trim();
+    if (newQuery == _query) return;
+
+    _query = newQuery;
+
+    // Perform local search immediately for better UX
+    _performLocalSearch(_query);
+
+    // Also perform API search with debounce
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (_query == _searchController.text.trim()) {
+        _fetchSearchResults(_query);
+      }
+    });
+  }
+
   void _filterTasks(String query) {
     setState(() {
       if (query.isEmpty) {
@@ -115,6 +181,28 @@ class _AllAppointmentState extends State<AllAppointment> {
         filterList(_originalUpcomingTasks, _filteredUpcomingTasks);
         filterList(_originalOverdueTasks, _filteredOverdueTasks);
       }
+    });
+  }
+
+  void _performLocalSearch(String query) {
+    if (query.isEmpty) {
+      setState(() {
+        _filteredTasks = List.from(upcomingTasks);
+      });
+      return;
+    }
+
+    setState(() {
+      _filteredTasks = upcomingTasks.where((item) {
+        String name = (item['lead_name'] ?? '').toString().toLowerCase();
+        String email = (item['email'] ?? '').toString().toLowerCase();
+        String phone = (item['mobile'] ?? '').toString().toLowerCase();
+        String searchQuery = query.toLowerCase();
+
+        return name.contains(searchQuery) ||
+            email.contains(searchQuery) ||
+            phone.contains(searchQuery);
+      }).toList();
     });
   }
 
@@ -160,8 +248,61 @@ class _AllAppointmentState extends State<AllAppointment> {
   double get _bodyFontSize => _isTablet ? 16 : (_isSmallScreen ? 12 : 14);
   double get _smallFontSize => _isTablet ? 14 : (_isSmallScreen ? 10 : 12);
 
+  // Responsive helper methods
+  double _getResponsiveFontSize(BuildContext context, bool isTablet) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth < 360) return 12; // Very small screens
+    if (screenWidth < 400) return 13; // Small screens
+    if (isTablet) return 16;
+    return 14; // Default
+  }
+
+  double _getResponsiveHintFontSize(BuildContext context, bool isTablet) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth < 360) return 10;
+    if (screenWidth < 400) return 11;
+    if (isTablet) return 14;
+    return 12;
+  }
+
+  double _getResponsiveIconSize(BuildContext context, bool isTablet) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth < 360) return 14;
+    if (screenWidth < 400) return 15;
+    if (isTablet) return 18;
+    return 16;
+  }
+
+  double _getResponsiveHorizontalPadding(BuildContext context, bool isTablet) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth < 360) return 12;
+    if (screenWidth < 400) return 14;
+    if (isTablet) return 20;
+    return 16;
+  }
+
+  double _getResponsiveVerticalPadding(BuildContext context, bool isTablet) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth < 360) return 10;
+    if (screenWidth < 400) return 12;
+    if (isTablet) return 16;
+    return 14;
+  }
+
+  double _getResponsiveIconContainerWidth(BuildContext context, bool isTablet) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth < 360) return 40;
+    if (screenWidth < 400) return 45;
+    if (isTablet) return 55;
+    return 50;
+  }
+
+  final TextEditingController _searchController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isTablet = screenSize.width > 600;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -215,34 +356,81 @@ class _AllAppointmentState extends State<AllAppointment> {
               child: Column(
                 children: [
                   Container(
-                    margin: const EdgeInsets.all(10),
-                    child: TextField(
-                      controller: searchController,
-                      onChanged: _filterTasks,
-                      decoration: InputDecoration(
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide.none,
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 15,
+                      vertical: 10,
+                    ),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: 38, // Minimum height for accessibility
+                        maxHeight: 38, // Maximum height to prevent oversizing
+                      ),
+                      child: TextField(
+                        autofocus: false,
+                        controller: _searchController,
+                        onChanged: (value) => _onSearchChanged(),
+                        textAlignVertical: TextAlignVertical.center,
+                        style: GoogleFonts.poppins(
+                          fontSize: _getResponsiveFontSize(context, isTablet),
                         ),
-                        focusedBorder: OutlineInputBorder(
-                          // 👈 Add this
-                          borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide.none,
+                        decoration: InputDecoration(
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: _getResponsiveHorizontalPadding(
+                              context,
+                              isTablet,
+                            ),
+                            vertical: _getResponsiveVerticalPadding(
+                              context,
+                              isTablet,
+                            ),
+                          ),
+                          filled: true,
+                          fillColor: AppColors.containerBg,
+                          hintText: 'Search by name, email or phone',
+                          hintStyle: GoogleFonts.poppins(
+                            fontSize: _getResponsiveHintFontSize(
+                              context,
+                              isTablet,
+                            ),
+                            fontWeight: FontWeight.w300,
+                          ),
+                          prefixIcon: Container(
+                            width: _getResponsiveIconContainerWidth(
+                              context,
+                              isTablet,
+                            ),
+                            child: Center(
+                              child: Icon(
+                                FontAwesomeIcons.magnifyingGlass,
+                                color: AppColors.fontColor,
+                                size: _getResponsiveIconSize(context, isTablet),
+                              ),
+                            ),
+                          ),
+                          prefixIconConstraints: BoxConstraints(
+                            minWidth: _getResponsiveIconContainerWidth(
+                              context,
+                              isTablet,
+                            ),
+                            maxWidth: _getResponsiveIconContainerWidth(
+                              context,
+                              isTablet,
+                            ),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: BorderSide.none,
+                          ),
+                          isDense: true,
                         ),
-                        filled: true,
-                        fillColor: AppColors.containerBg,
-                        contentPadding: const EdgeInsets.fromLTRB(1, 4, 0, 4),
-                        border: InputBorder.none,
-                        hintText: 'Search by name, email or phone',
-                        hintStyle: const TextStyle(
-                          color: Colors.grey,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        prefixIcon: const Icon(
-                          Icons.search,
-                          color: Colors.grey,
-                        ),
-                        // suffixIcon: const Icon(Icons.mic, color: Colors.grey),
                       ),
                     ),
                   ),
@@ -252,12 +440,12 @@ class _AllAppointmentState extends State<AllAppointment> {
                       children: [
                         const SizedBox(width: 10),
                         Container(
-                          width: 250,
-                          height: 30,
+                          width: _getSubTabWidth(),
+                          height: _getSubTabHeight(),
                           decoration: BoxDecoration(
                             border: Border.all(
-                              color: const Color(0xFF767676),
-                              width: .5,
+                              color: const Color(0xFF767676).withOpacity(0.3),
+                              width: 0.5,
                             ),
                             borderRadius: BorderRadius.circular(30),
                           ),

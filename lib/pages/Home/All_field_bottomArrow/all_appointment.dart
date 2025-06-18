@@ -54,7 +54,7 @@ class _AllAppointmentState extends State<AllAppointment> {
     try {
       final token = await Storage.getToken();
       const String apiUrl =
-          "https://dev.smartassistapp.in/api/tasks/all-appointments";
+          "https://api.smartassistapp.in/api/tasks/all-appointments";
 
       final response = await http.get(
         Uri.parse(apiUrl),
@@ -69,10 +69,12 @@ class _AllAppointmentState extends State<AllAppointment> {
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
         setState(() {
-          count = data['data']['overdueTasks']?['overdueEvents'] ?? 0;
+          count = data['data']['overdueWeekTasks']?['count'] ?? 0;
           _originalAllTasks = data['data']['allTasks']?['rows'] ?? [];
-          _originalUpcomingTasks = data['data']['upcomingTasks']?['rows'] ?? [];
-          _originalOverdueTasks = data['data']['overdueTasks']?['rows'] ?? [];
+          _originalUpcomingTasks =
+              data['data']['upcomingWeekTasks']?['rows'] ?? [];
+          _originalOverdueTasks =
+              data['data']['overdueWeekTasks']?['rows'] ?? [];
           _filteredAllTasks = List.from(_originalAllTasks);
           _filteredUpcomingTasks = List.from(_originalUpcomingTasks);
           _filteredOverdueTasks = List.from(_originalOverdueTasks);
@@ -373,7 +375,7 @@ class _AllAppointmentState extends State<AllAppointment> {
           // padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 0),
           padding: EdgeInsets.symmetric(
             vertical: 5.0 * _getResponsiveScale(),
-            horizontal: 8.0 * _getResponsiveScale(),
+            horizontal: 4.0 * _getResponsiveScale(),
           ),
           side: BorderSide(
             color: isActive ? activeColor : Colors.transparent,

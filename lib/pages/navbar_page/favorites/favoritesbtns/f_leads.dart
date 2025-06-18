@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
@@ -21,12 +22,33 @@ class FLeads extends StatefulWidget {
 class _FLeadsState extends State<FLeads> {
   bool isLoading = true;
   final Map<String, double> _swipeOffsets = {};
+  Set<String> selectedLeads = {};
+  bool isSelectionMode = false;
   List<dynamic> upcomingTasks = [];
 
   void _onHorizontalDragUpdate(DragUpdateDetails details, String leadId) {
     setState(() {
       _swipeOffsets[leadId] =
           (_swipeOffsets[leadId] ?? 0) + (details.primaryDelta ?? 0);
+    });
+  }
+
+  void _toggleSelection(String leadId) {
+    HapticFeedback.selectionClick();
+
+    setState(() {
+      if (selectedLeads.contains(leadId)) {
+        selectedLeads.remove(leadId);
+        if (selectedLeads.isEmpty) {
+          isSelectionMode = false;
+        }
+      } else {
+        selectedLeads.add(leadId);
+        if (!isSelectionMode) {
+          isSelectionMode = true;
+          HapticFeedback.mediumImpact();
+        }
+      }
     });
   }
 
@@ -178,6 +200,9 @@ class _FLeadsState extends State<FLeads> {
             swipeOffset: swipeOffset,
             fetchDashboardData: () {},
             onFavoriteToggled: fetchTasksData,
+            onTap: selectedLeads.isNotEmpty
+                ? () => _toggleSelection(leadId)
+                : null,
             onFavoriteChanged: (newStatus) {
               setState(() {
                 upcomingTasks[index]['favourite'] = newStatus;
@@ -213,6 +238,7 @@ class TaskItem extends StatefulWidget {
   final VoidCallback onFavoriteToggled;
   final Function(bool) onFavoriteChanged;
   final VoidCallback onToggleFavorite;
+  final VoidCallback? onTap;
 
   const TaskItem({
     super.key,
@@ -226,6 +252,7 @@ class TaskItem extends StatefulWidget {
     required this.onFavoriteToggled,
     required this.brand,
     required this.subject,
+    required this.onTap,
     required this.swipeOffset,
     required this.fetchDashboardData,
     required this.onToggleFavorite,
@@ -282,186 +309,233 @@ class _TaskItemState extends State<TaskItem>
     bool isFavoriteSwipe = widget.swipeOffset > 50;
     bool isCallSwipe = widget.swipeOffset < -50;
 
-    return Slidable(
-      key: ValueKey(widget.leadId),
-      startActionPane: ActionPane(
-        extentRatio: isTablet ? 0.15 : 0.2,
-        motion: const ScrollMotion(),
-        children: [
-          ReusableSlidableAction(
-            onPressed: widget.onToggleFavorite,
-            backgroundColor: Colors.amber,
-            icon: widget.isFavorite
-                ? Icons.star_rounded
-                : Icons.star_border_rounded,
-            foregroundColor: Colors.white,
-            iconSize: isTablet ? 45 : 40,
-          ),
-        ],
-      ),
-      endActionPane: ActionPane(
-        motion: const StretchMotion(),
-        extentRatio: isTablet ? 0.15 : 0.2,
-        children: [
-          ReusableSlidableAction(
-            onPressed: _mailAction,
-            backgroundColor: const Color.fromARGB(255, 231, 225, 225),
-            icon: Icons.edit,
-            foregroundColor: Colors.white,
-            iconSize: isTablet ? 45 : 40,
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          // Favorite Swipe Overlay
-          if (isFavoriteSwipe)
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.yellow.withOpacity(0.2),
-                      Colors.yellow.withOpacity(0.8),
-                    ],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      SizedBox(width: isTablet ? 20 : 15),
-                      Icon(
-                        isFav ? Icons.star_outline_rounded : Icons.star_rounded,
-                        color: const Color.fromRGBO(226, 195, 34, 1),
-                        size: isTablet ? 50 : 40,
-                      ),
-                      SizedBox(width: isTablet ? 15 : 10),
-                      Text(
-                        isFav ? 'Unfavorite' : 'Favorite',
-                        style: GoogleFonts.poppins(
-                          color: const Color.fromRGBO(187, 158, 0, 1),
-                          fontSize: isTablet ? 20 : 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+    return GestureDetector(
+      onTap:
+          widget.onTap ??
+          () {
+            if (widget.leadId.isNotEmpty) {
+              HapticFeedback.lightImpact();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => FollowupsDetails(
+                    leadId: widget.leadId,
+                    isFromFreshlead: false,
+                    isFromManager: true,
 
-          // Call Swipe Overlay
-          if (isCallSwipe)
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.green.withOpacity(0.2),
-                      Colors.green.withOpacity(0.8),
-                    ],
-                    begin: Alignment.centerRight,
-                    end: Alignment.centerLeft,
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      SizedBox(width: isTablet ? 15 : 10),
-                      Icon(
-                        Icons.phone_in_talk,
-                        color: Colors.white,
-                        size: isTablet ? 35 : 30,
-                      ),
-                      SizedBox(width: isTablet ? 15 : 10),
-                      Text(
-                        'Call',
-                        style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontSize: isTablet ? 20 : 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+                    isFromTestdriveOverview: false,
+                    refreshDashboard: () async {},
                   ),
                 ),
-              ),
+              );
+            } else {
+              print("Invalid leadId");
+            }
+          },
+      child: Slidable(
+        key: ValueKey(widget.leadId),
+        controller: _slidableController, // Add this line
+        closeOnScroll: true,
+        startActionPane: ActionPane(
+          extentRatio: isTablet ? 0.15 : 0.2,
+          motion: const ScrollMotion(),
+          children: [
+            ReusableSlidableAction(
+              onPressed: () {
+                widget.onToggleFavorite();
+                _slidableController.close();
+                setState(() {
+                  _isActionPaneOpen = false;
+                });
+              },
+              onDismissed: () {},
+              backgroundColor: Colors.amber,
+              icon: widget.isFavorite
+                  ? Icons.star_rounded
+                  : Icons.star_border_rounded,
+              foregroundColor: Colors.white,
+              iconSize: isTablet ? 45 : 40,
             ),
+          ],
+        ),
+        endActionPane: ActionPane(
+          motion: const StretchMotion(),
+          extentRatio: isTablet ? 0.15 : 0.2,
+          children: [
+            ReusableSlidableAction(
+              onPressed: () {
+                _mailAction();
+                _slidableController.close();
+                setState(() {
+                  _isActionPaneOpen = false;
+                });
+              },
 
-          // Main Container
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: isTablet ? 15 : 10,
-              vertical: isTablet ? 20 : 15,
+              backgroundColor: const Color.fromARGB(255, 231, 225, 225),
+              icon: Icons.edit,
+              foregroundColor: Colors.white,
+              iconSize: isTablet ? 45 : 40,
+              onDismissed: () {
+                setState(() {
+                  _isActionPaneOpen = false;
+                });
+              },
             ),
-            decoration: BoxDecoration(
-              color: AppColors.backgroundLightGrey,
-              borderRadius: BorderRadius.circular(7),
-              border: Border(
-                left: BorderSide(
-                  width: isTablet ? 10.0 : 8.0,
-                  color: isFav
-                      ? (isCallSwipe
-                            ? Colors.green.withOpacity(0.9)
-                            : Colors.yellow.withOpacity(
-                                isFavoriteSwipe ? 0.1 : 0.9,
-                              ))
-                      : (isFavoriteSwipe
-                            ? Colors.yellow.withOpacity(0.1)
-                            : (isCallSwipe
-                                  ? Colors.green.withOpacity(0.1)
-                                  : AppColors.sideGreen)),
-                ),
-              ),
-            ),
-            child: Opacity(
-              opacity: (isFavoriteSwipe || isCallSwipe) ? 0 : 1.0,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
+          ],
+        ),
+        child: Stack(
+          children: [
+            // Favorite Swipe Overlay
+            if (isFavoriteSwipe)
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.yellow.withOpacity(0.2),
+                        Colors.yellow.withOpacity(0.8),
+                      ],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Center(
                     child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        SizedBox(width: isTablet ? 12 : 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Flexible(child: _buildUserDetails(context)),
-                                  _buildVerticalDivider(isTablet ? 18 : 15),
-                                  Flexible(
-                                    child: _buildSubjectDetails(context),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: isTablet ? 6 : 4),
-                              Row(
-                                children: [
-                                  Flexible(child: _buildCarModel(context)),
-                                ],
-                              ),
-                            ],
+                        SizedBox(width: isTablet ? 20 : 15),
+                        Icon(
+                          isFav
+                              ? Icons.star_outline_rounded
+                              : Icons.star_rounded,
+                          color: const Color.fromRGBO(226, 195, 34, 1),
+                          size: isTablet ? 50 : 40,
+                        ),
+                        SizedBox(width: isTablet ? 15 : 10),
+                        Text(
+                          isFav ? 'Unfavorite' : 'Favorite',
+                          style: GoogleFonts.poppins(
+                            color: const Color.fromRGBO(187, 158, 0, 1),
+                            fontSize: isTablet ? 20 : 18,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  _buildNavigationButton(context),
-                ],
+                ),
+              ),
+
+            // Call Swipe Overlay
+            if (isCallSwipe)
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.green.withOpacity(0.2),
+                        Colors.green.withOpacity(0.8),
+                      ],
+                      begin: Alignment.centerRight,
+                      end: Alignment.centerLeft,
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        SizedBox(width: isTablet ? 15 : 10),
+                        Icon(
+                          Icons.phone_in_talk,
+                          color: Colors.white,
+                          size: isTablet ? 35 : 30,
+                        ),
+                        SizedBox(width: isTablet ? 15 : 10),
+                        Text(
+                          'Call',
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontSize: isTablet ? 20 : 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+            // Main Container
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: isTablet ? 15 : 10,
+                vertical: isTablet ? 20 : 15,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.backgroundLightGrey,
+                borderRadius: BorderRadius.circular(7),
+                border: Border(
+                  left: BorderSide(
+                    width: isTablet ? 10.0 : 8.0,
+                    color: isFav
+                        ? (isCallSwipe
+                              ? Colors.green.withOpacity(0.9)
+                              : Colors.yellow.withOpacity(
+                                  isFavoriteSwipe ? 0.1 : 0.9,
+                                ))
+                        : (isFavoriteSwipe
+                              ? Colors.yellow.withOpacity(0.1)
+                              : (isCallSwipe
+                                    ? Colors.green.withOpacity(0.1)
+                                    : AppColors.sideGreen)),
+                  ),
+                ),
+              ),
+              child: Opacity(
+                opacity: (isFavoriteSwipe || isCallSwipe) ? 0 : 1.0,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          SizedBox(width: isTablet ? 12 : 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Flexible(child: _buildUserDetails(context)),
+                                    _buildVerticalDivider(isTablet ? 18 : 15),
+                                    Flexible(
+                                      child: _buildSubjectDetails(context),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: isTablet ? 6 : 4),
+                                Row(
+                                  children: [
+                                    Flexible(child: _buildCarModel(context)),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    _buildNavigationButton(context),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -490,37 +564,36 @@ class _TaskItemState extends State<TaskItem>
 
   bool _isActionPaneOpen = false;
   Widget _buildNavigationButton(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isTablet = screenSize.width > 600;
+
     return GestureDetector(
       onTap: () {
         if (_isActionPaneOpen) {
+          // Close the action pane if it's open
           _slidableController.close();
           setState(() {
             _isActionPaneOpen = false;
           });
         } else {
-          _slidableController.close();
-          Future.delayed(Duration(milliseconds: 100), () {
-            _slidableController.openEndActionPane();
-            setState(() {
-              _isActionPaneOpen = true;
-            });
+          // Open the end action pane if it's closed
+          _slidableController.openEndActionPane();
+          setState(() {
+            _isActionPaneOpen = true;
           });
         }
       },
-
       child: Container(
-        padding: const EdgeInsets.all(3),
+        padding: EdgeInsets.all(isTablet ? 4 : 3),
         decoration: BoxDecoration(
           color: AppColors.arrowContainerColor,
           borderRadius: BorderRadius.circular(30),
         ),
-
         child: Icon(
           _isActionPaneOpen
               ? Icons.arrow_forward_ios_rounded
               : Icons.arrow_back_ios_rounded,
-
-          size: 25,
+          size: isTablet ? 28 : 25,
           color: Colors.white,
         ),
       ),

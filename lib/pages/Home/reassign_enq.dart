@@ -420,8 +420,8 @@ class _AllEnqState extends State<AllEnq> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  const Color(0xFF1380FE),
-                  const Color(0xFF1380FE).withOpacity(0.7),
+                  AppColors.colorsBlue,
+                  AppColors.colorsBlue.withOpacity(0.7),
                 ],
               ),
               borderRadius: BorderRadius.circular(24),
@@ -453,10 +453,7 @@ class _AllEnqState extends State<AllEnq> {
       height: 48,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            const Color(0xFF1380FE),
-            const Color(0xFF1380FE).withOpacity(0.7),
-          ],
+          colors: [AppColors.colorsBlue, AppColors.colorsBlue.withOpacity(0.7)],
         ),
         borderRadius: BorderRadius.circular(24),
       ),
@@ -513,7 +510,7 @@ class _AllEnqState extends State<AllEnq> {
             ),
           ),
         ),
-        backgroundColor: const Color(0xFF1380FE),
+        backgroundColor: AppColors.colorsBlue,
         automaticallyImplyLeading: false,
         actions: selectedLeads.isNotEmpty
             ? [
@@ -583,7 +580,7 @@ class _AllEnqState extends State<AllEnq> {
                                       decoration: BoxDecoration(
                                         gradient: LinearGradient(
                                           colors: [
-                                            const Color(0xFF1380FE),
+                                            AppColors.colorsBlue,
                                             const Color(
                                               0xFF1380FE,
                                             ).withOpacity(0.8),
@@ -1712,6 +1709,7 @@ class _TaskItemState extends State<TaskItem>
                 HapticFeedback.heavyImpact();
                 widget.onLongPress(); // Handle slide action
               },
+              onDismissed: () {},
               backgroundColor: const Color.fromARGB(255, 231, 225, 225),
               icon: Icons.check_circle_outline_rounded,
               foregroundColor: Colors.white,
@@ -2035,6 +2033,7 @@ class ReusableSlidableAction extends StatelessWidget {
     required this.icon,
     this.foregroundColor,
     this.iconSize = 40.0,
+    required Null Function() onDismissed,
   }) : super(key: key);
 
   @override

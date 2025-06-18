@@ -184,7 +184,7 @@ class _CalenderState extends State<Calender> {
     return Scaffold(
       // backgroundColor: const Color(0xffF2F2F2),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1380FE),
+        backgroundColor: AppColors.colorsBlue,
         automaticallyImplyLeading: false,
         // title: Text(
         //   DateFormat('MMMM yyyy').format(_focusedDay),
@@ -193,7 +193,8 @@ class _CalenderState extends State<Calender> {
         // ),
         title: Align(
           alignment: Alignment.centerLeft,
-          child: Text('Calendar', style: AppFont.appbarfontWhite(context))),
+          child: Text('Calendar', style: AppFont.appbarfontWhite(context)),
+        ),
         actions: [
           IconButton(
             onPressed: () {

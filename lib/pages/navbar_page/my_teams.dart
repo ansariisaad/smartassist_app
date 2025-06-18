@@ -1811,7 +1811,7 @@ class _MyTeamsState extends State<MyTeams> {
                 //         color: Colors.white,
                 //         shape: BoxShape.circle,
                 //         border: Border.all(
-                //           color: const Color(0xFF1380FE),
+                //           color: AppColors.colorsBlue,
                 //           width: 2,
                 //         ),
                 //         boxShadow: [
@@ -1839,12 +1839,12 @@ class _MyTeamsState extends State<MyTeams> {
                 //       width: 16,
                 //       height: 16,
                 //       decoration: BoxDecoration(
-                //         color: const Color(0xFF1380FE),
+                //         color: AppColors.colorsBlue,
                 //         shape: BoxShape.circle,
                 //         border: Border.all(color: Colors.white, width: 2),
                 //         boxShadow: [
                 //           BoxShadow(
-                //             color: const Color(0xFF1380FE).withOpacity(0.3),
+                //             color: AppColors.colorsBlue.withOpacity(0.3),
                 //             blurRadius: 4,
                 //             offset: const Offset(0, 1),
                 //           ),
@@ -1981,14 +1981,11 @@ class _MyTeamsState extends State<MyTeams> {
   // Helper method to determine border style based on selection state
   Border? _getBorderStyle(bool isSelectedForComparison, int index) {
     if (isSelectedForComparison) {
-      return Border.all(color: const Color(0xFF1380FE), width: 3);
+      return Border.all(color: AppColors.colorsBlue, width: 3);
     } else if (_selectedProfileIndex == index) {
-      return Border.all(color: const Color(0xFF1380FE), width: 2);
+      return Border.all(color: AppColors.colorsBlue, width: 2);
     }
-    return Border.all(
-      color: const Color(0xFF1380FE).withOpacity(0.1),
-      width: 1,
-    );
+    return Border.all(color: AppColors.colorsBlue.withOpacity(0.1), width: 1);
   }
 
   // Helper method to build profile content with modern styling
@@ -2007,8 +2004,8 @@ class _MyTeamsState extends State<MyTeams> {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              const Color(0xFF1380FE),
-              const Color(0xFF1380FE).withOpacity(0.8),
+              AppColors.colorsBlue,
+              AppColors.colorsBlue.withOpacity(0.8),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -2436,7 +2433,7 @@ class _MyTeamsState extends State<MyTeams> {
                             metrics[j]['key'] as String,
                           ).toString(),
                     metrics[j]['label'] as String,
-                    const Color(0xFF1380FE),
+                    AppColors.colorsBlue,
                     isSelected: _metricIndex == j,
                     isUserSelected: _selectedType != 'All',
                   ),

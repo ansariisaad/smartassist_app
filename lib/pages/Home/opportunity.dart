@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/widgets/home_btn.dart/dashboard_analytics_one.dart';
 import 'package:smartassist/widgets/home_btn.dart/threebtn.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -21,7 +22,7 @@ class _OpportunityState extends State<Opportunity> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: const Color(0xFF1380FE),
+        backgroundColor: AppColors.colorsBlue,
         title: Text(
           'Good morning Richard !',
           style: GoogleFonts.poppins(

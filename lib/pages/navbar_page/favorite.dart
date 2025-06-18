@@ -105,7 +105,7 @@ class _FavoritePageState extends State<FavoritePage> {
             ),
           ),
         ),
-        backgroundColor: const Color(0xFF1380FE),
+        backgroundColor: AppColors.colorsBlue,
         automaticallyImplyLeading: false,
       ),
       body: SingleChildScrollView(

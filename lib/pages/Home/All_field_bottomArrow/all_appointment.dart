@@ -186,7 +186,7 @@ class _AllAppointmentState extends State<AllAppointment> {
             ),
           ),
         ),
-        backgroundColor: const Color(0xFF1380FE),
+        backgroundColor: AppColors.colorsBlue,
         automaticallyImplyLeading: false,
       ),
       floatingActionButton: CustomFloatingButton(

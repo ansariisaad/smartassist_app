@@ -482,7 +482,7 @@ class BottomNavigation extends StatelessWidget {
               ListTile(
                 leading: const Icon(Icons.warning_amber_rounded, size: 28),
                 title: Text(
-                  'Report an issue',
+                  'Contact Support',
                   style: GoogleFonts.poppins(fontSize: 18),
                 ),
                 onTap: () =>

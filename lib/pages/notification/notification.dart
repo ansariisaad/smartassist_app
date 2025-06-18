@@ -290,7 +290,7 @@ class _NotificationPageState extends State<NotificationPage> {
             ),
           ),
         ),
-        backgroundColor: const Color(0xFF1380FE),
+        backgroundColor: AppColors.colorsBlue,
         automaticallyImplyLeading: false,
         actions: [
           // Add "Mark All as Read" button in the app bar

@@ -481,7 +481,7 @@ class _HomeScreenState extends State<HomeScreen> {
               backgroundColor: Colors.white,
               appBar: AppBar(
                 automaticallyImplyLeading: false,
-                backgroundColor: const Color(0xFF1380FE),
+                backgroundColor: AppColors.colorsBlue,
                 title: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
@@ -559,7 +559,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       Expanded(
                                         child: Container(
                                           margin: const EdgeInsets.symmetric(
-                                            horizontal: 10,
+                                            horizontal: 15,
                                             vertical: 10,
                                           ),
                                           child: SizedBox(
@@ -626,11 +626,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     child: Container(
                                                       width: 28,
                                                       height: 28,
-                                                      decoration: BoxDecoration(
-                                                        color: AppColors
-                                                            .backgroundLightGrey,
-                                                        shape: BoxShape.circle,
-                                                      ),
+                                                      // decoration: BoxDecoration(
+                                                      //   color: AppColors
+                                                      //       .backgroundLightGrey,
+                                                      //   shape: BoxShape.circle,
+                                                      // ),
                                                       alignment:
                                                           Alignment.center,
                                                       child:
@@ -685,22 +685,43 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                     },
                                                               ),
                                                             )
-                                                          : Text(
-                                                              name.isNotEmpty
-                                                                  ? name
-                                                                        .substring(
-                                                                          0,
-                                                                          1,
-                                                                        )
-                                                                        .toUpperCase()
-                                                                  : 'N/A',
-                                                              style:
-                                                                  AppFont.mediumText14bluebold(
+                                                          : Container(
+                                                              width:
+                                                                  MediaQuery.of(
                                                                     context,
-                                                                  ).copyWith(
-                                                                    fontSize:
-                                                                        14,
-                                                                  ),
+                                                                  ).size.width *
+                                                                  0.08,
+                                                              height:
+                                                                  MediaQuery.of(
+                                                                    context,
+                                                                  ).size.width *
+                                                                  0.08,
+                                                              alignment:
+                                                                  Alignment
+                                                                      .center,
+                                                              decoration: BoxDecoration(
+                                                                color: AppColors
+                                                                    .backgroundLightGrey,
+                                                                shape: BoxShape
+                                                                    .circle,
+                                                              ),
+                                                              child: Text(
+                                                                name.isNotEmpty
+                                                                    ? name
+                                                                          .substring(
+                                                                            0,
+                                                                            1,
+                                                                          )
+                                                                          .toUpperCase()
+                                                                    : 'N/A',
+                                                                style:
+                                                                    AppFont.mediumText14bluebold(
+                                                                      context,
+                                                                    ).copyWith(
+                                                                      fontSize:
+                                                                          14,
+                                                                    ),
+                                                              ),
                                                             ),
                                                     ),
                                                   ),
@@ -739,11 +760,20 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
 
                                   Padding(
-                                    padding: const EdgeInsets.only(right: 10.0),
+                                    padding: const EdgeInsets.only(
+                                      left: 10.0,
+                                      right: 10.0,
+                                    ),
                                     child: Row(
                                       // mainAxisAlignment:
                                       //     MainAxisAlignment.spaceBetween,
                                       children: [
+                                        Text(
+                                          'Performance Analysis',
+                                          style: AppFont.appbarfontgrey(
+                                            context,
+                                          ),
+                                        ),
                                         IconButton(
                                           onPressed: () {
                                             setState(() {
@@ -758,12 +788,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       .keyboard_arrow_up_rounded,
                                             size: 35,
                                             color: AppColors.iconGrey,
-                                          ),
-                                        ),
-                                        Text(
-                                          'Performance Analysis',
-                                          style: AppFont.appbarfontgrey(
-                                            context,
                                           ),
                                         ),
                                       ],
@@ -1624,7 +1648,7 @@ class _HomeScreenState extends State<HomeScreen> {
 //               backgroundColor: Colors.white,
 //               appBar: AppBar(
 //                 automaticallyImplyLeading: false,
-//                 backgroundColor: const Color(0xFF1380FE),
+//                 backgroundColor: AppColors.colorsBlue,
 //                 title: Text(
 //                   ' $greeting',
 //                   textAlign: TextAlign.start,

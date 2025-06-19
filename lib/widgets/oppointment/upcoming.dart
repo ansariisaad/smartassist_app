@@ -102,7 +102,7 @@ class _OppUpcomingState extends State<OppUpcoming> {
     bool currentStatus = widget.upcomingOpp[index]['favourite'] ?? false;
     bool newFavoriteStatus = !currentStatus;
 
-    final success = await LeadsSrv.favoriteEvent(eventId: eventId);
+    final success = await LeadsSrv.favorite(taskId: eventId);
 
     if (success) {
       setState(() {

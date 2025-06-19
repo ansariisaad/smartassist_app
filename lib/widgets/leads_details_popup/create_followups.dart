@@ -364,9 +364,20 @@ class LeadsCreateFollowupState extends State<LeadsCreateFollowup> {
         Navigator.pop(context); // Closes the modal
       }
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Form Submit Successful.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Follow up created !', style: GoogleFonts.poppins()),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+          behavior:
+              SnackBarBehavior.floating, // Optional: Makes it float above UI
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(
+              10,
+            ), // Optional: rounded corners
+          ),
+        ),
+      );
     } else {
       print('Failed to submit lead.');
     }

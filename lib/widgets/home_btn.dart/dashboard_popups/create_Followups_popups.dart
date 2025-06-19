@@ -195,7 +195,7 @@ class _CreateFollowupsPopupsState extends State<CreateFollowupsPopups> {
       }
 
       if (startDateController == null || startDateController.text!.isEmpty) {
-        _errors['date'] = 'Please select an action';
+        _errors['date'] = 'Please select a date';
         isValid = false;
       }
     });
@@ -325,7 +325,21 @@ class _CreateFollowupsPopupsState extends State<CreateFollowupsPopups> {
     if (success) {
       Navigator.pop(context, true);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Follow-up submitted successfully!')),
+        SnackBar(
+          content: Text(
+            'Follow up created successfully for $formattedStartDate',
+            style: GoogleFonts.poppins(),
+          ),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+          behavior:
+              SnackBarBehavior.floating, // Optional: Makes it float above UI
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(
+              10,
+            ), // Optional: rounded corners
+          ),
+        ),
       );
       widget.onFormSubmit?.call(); // Refresh dashboard data
       widget.onTabChange?.call(0);

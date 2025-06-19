@@ -338,9 +338,20 @@ class _CreateAppointmentState extends State<CreateAppointment> {
         Navigator.pop(context); // Closes the modal
       }
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Form Submit Successful.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Appointment created !', style: GoogleFonts.poppins()),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+          behavior:
+              SnackBarBehavior.floating, // Optional: Makes it float above UI
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(
+              10,
+            ), // Optional: rounded corners
+          ),
+        ),
+      );
     } else {
       print('Failed to submit lead.');
     }

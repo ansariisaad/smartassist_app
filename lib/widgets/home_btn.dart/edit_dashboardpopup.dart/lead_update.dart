@@ -1217,7 +1217,8 @@ class _LeadUpdateState extends State<LeadUpdate> {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = json.decode(response.body);
-        String message = responseData['message'] ?? 'submitted successfully!';
+        String message =
+            responseData['message'] ?? 'Enquiry updated suceesfully!';
 
         Navigator.pop(context, true);
         widget.onEdit();

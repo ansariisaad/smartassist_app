@@ -1179,18 +1179,6 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
             ],
           ),
         ),
-        // actions: [
-        // Align(
-        //   alignment: Alignment.centerLeft,
-        //   child: Column(
-        //     mainAxisAlignment: MainAxisAlignment.start,
-        //     children: [
-        //       Text('Enquiry', style: AppFont.appbarfontWhite(context)),
-        //       Text('data', style: AppFont.mediumText14white(context))
-        //     ],
-        //   ),
-        // ),
-        // ],
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back_ios_new_outlined,
@@ -1255,7 +1243,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                                     child: const Icon(
                                       Icons.receipt_long_rounded,
                                       size: 40,
-                                      color: Color.fromRGBO(2, 118, 254, 1),
+                                      color: AppColors.colorsBlue,
                                     ),
                                   ),
                                   const SizedBox(width: 10),

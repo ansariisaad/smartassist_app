@@ -2682,7 +2682,7 @@ class _CreateLeadsState extends State<CreateLeads> {
           }
 
           String successMessage =
-              response['message'] ?? 'Form submitted successfully';
+              response['message'] ?? 'Enquiry created successfully';
           Get.snackbar(
             'Success',
             successMessage,

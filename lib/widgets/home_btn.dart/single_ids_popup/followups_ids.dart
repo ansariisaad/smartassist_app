@@ -464,7 +464,18 @@ class _FollowupsIdsState extends State<FollowupsIds> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Follow-up submitted successfully!')),
+        SnackBar(
+          content: Text('Follow up created !', style: GoogleFonts.poppins()),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+          behavior:
+              SnackBarBehavior.floating, // Optional: Makes it float above UI
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(
+              10,
+            ), // Optional: rounded corners
+          ),
+        ),
       );
       widget.onFormSubmit(widget.leadId);
       widget.onSubmitStatus(widget.leadId);

@@ -3364,7 +3364,7 @@ class _MyTeamsState extends State<MyTeams> {
                   height: 30,
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: const Color(0xFF767676),
+                      color: AppColors.arrowContainerColor,
                       width: .5,
                     ),
                     borderRadius: BorderRadius.circular(30),

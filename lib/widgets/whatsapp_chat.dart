@@ -157,7 +157,7 @@ class _WhatsappChatState extends State<WhatsappChat> {
       spId = prefs.getString('user_id') ?? '';
       email = await TokenManager.getUserEmail() ?? '';
       // String? user_email = prefs.getString('user_email');
-      final url = Uri.parse('https://dev.smartassistapp.in/api/init-wa');
+      final url = Uri.parse('https://api.smartassistapp.in/api/init-wa');
       final token = await Storage.getToken();
 
       // Create the request body
@@ -294,7 +294,7 @@ class _WhatsappChatState extends State<WhatsappChat> {
   }
 
   void initSocket() {
-    socket = IO.io('wss://dev.smartassistapp.in', <String, dynamic>{
+    socket = IO.io('wss://api.smartassistapp.in', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': true,
       'reconnection': true,
@@ -860,7 +860,7 @@ class _WhatsappChatState extends State<WhatsappChat> {
 //   Future<void> _checkWhatsAppScanStatus() async {
 //     try {
 //       final url = Uri.parse(
-//         'https://dev.smartassistapp.in/api/check-wa-status',
+//         'https://api.smartassistapp.in/api/check-wa-status',
 //       );
 //       final token = await Storage.getToken();
 //       final response = await http.post(
@@ -889,7 +889,7 @@ class _WhatsappChatState extends State<WhatsappChat> {
 //     setState(() => isLoading = true);
 
 //     try {
-//       final url = Uri.parse('https://dev.smartassistapp.in/api/init-wa');
+//       final url = Uri.parse('https://api.smartassistapp.in/api/init-wa');
 //       final token = await Storage.getToken();
 //       final response = await http.post(
 //         url,
@@ -952,7 +952,7 @@ class _WhatsappChatState extends State<WhatsappChat> {
 //   }
 
 //   void _initSocket() {
-//     socket = IO.io('wss://dev.smartassistapp.in', {
+//     socket = IO.io('wss://api.smartassistapp.in', {
 //       'transports': ['websocket'],
 //       'autoConnect': true,
 //       'reconnection': true,

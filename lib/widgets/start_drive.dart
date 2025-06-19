@@ -179,7 +179,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
   // Initialize the Socket.IO connection
   void _initializeSocket() {
     try {
-      socket = IO.io('wss://dev.smartassistapp.in', <String, dynamic>{
+      socket = IO.io('wss://api.smartassistapp.in', <String, dynamic>{
         'transports': ['websocket'],
         'autoConnect': true,
         'reconnection': true,
@@ -307,7 +307,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
   Future<void> _startTestDrive(LatLng currentLocation) async {
     try {
       final url = Uri.parse(
-        'https://dev.smartassistapp.in/api/events/${widget.eventId}/start-drive',
+        'https://api.smartassistapp.in/api/events/${widget.eventId}/start-drive',
       );
       final token = await Storage.getToken();
 
@@ -453,7 +453,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
   // Future<void> _uploadDriveSummary() async {
   //   try {
   //     final url = Uri.parse(
-  //         'https://dev.smartassistapp.in/api/events/${widget.eventId}/drive-summary');
+  //         'https://api.smartassistapp.in/api/events/${widget.eventId}/drive-summary');
   //     final token = await Storage.getToken();
 
   //     // Convert route points to a simpler format for the API
@@ -766,7 +766,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
   Future<void> _endTestDrive() async {
     try {
       final url = Uri.parse(
-        'https://dev.smartassistapp.in/api/events/${widget.eventId}/end-drive',
+        'https://api.smartassistapp.in/api/events/${widget.eventId}/end-drive',
       );
       final token = await Storage.getToken();
 
@@ -862,7 +862,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
   // Improved upload image function with better error handling
   Future<bool> _uploadImage(File file) async {
     final url = Uri.parse(
-      'https://dev.smartassistapp.in/api/events/${widget.eventId}/upload-map',
+      'https://api.smartassistapp.in/api/events/${widget.eventId}/upload-map',
     );
     final token = await Storage.getToken();
 
@@ -905,7 +905,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
 
   // Future<void> _uploadImage(File file) async {
   //   final url = Uri.parse(
-  //       'https://dev.smartassistapp.in/api/events/${widget.eventId}/upload-map');
+  //       'https://api.smartassistapp.in/api/events/${widget.eventId}/upload-map');
   //   final token = await Storage.getToken();
   //   try {
   //     var request = http.MultipartRequest('POST', url)

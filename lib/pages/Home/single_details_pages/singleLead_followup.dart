@@ -14,13 +14,13 @@ import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/bottom_navigation.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
-import 'package:smartassist/utils/token_manager.dart';
 import 'package:smartassist/widgets/call_history.dart';
 import 'package:smartassist/widgets/home_btn.dart/single_ids_popup/appointment_ids.dart';
 import 'package:smartassist/widgets/home_btn.dart/single_ids_popup/followups_ids.dart';
 import 'package:smartassist/widgets/home_btn.dart/single_ids_popup/testdrive_ids.dart';
 import 'package:smartassist/widgets/leads_details_popup/create_appointment.dart';
 import 'package:smartassist/widgets/leads_details_popup/create_followups.dart';
+import 'package:smartassist/widgets/remarks_field.dart';
 import 'package:smartassist/widgets/timeline/timeline_overdue.dart';
 import 'package:smartassist/widgets/timeline/timeline_tasks.dart';
 import 'package:smartassist/widgets/timeline/timeline_completed.dart';
@@ -251,7 +251,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
 
   static Future<Map<String, int>> fetchCallLogs(String mobile) async {
     const String apiUrl =
-        "https://api.smartassistapp.in/api/leads/call-logs/all";
+        "https://dev.smartassistapp.in/api/leads/call-logs/all";
     final token = await Storage.getToken();
 
     try {
@@ -646,10 +646,20 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                 ),
               ),
               const SizedBox(height: 30),
-              _buildTextField(
-                // label: 'resion:',
+
+              // _buildTextField(
+              //   // label: 'resion:',
+              //   controller: descriptionController,
+              //   hint: 'Type or speak...',
+              // ),
+              EnhancedSpeechTextField(
+                // contentPadding: EdgeInsets.zero,
+                label: 'Remarks:',
                 controller: descriptionController,
-                hint: 'Type or speak...',
+                hint: 'Type or speak... ',
+                onChanged: (text) {
+                  print('Text changed: $text');
+                },
               ),
             ],
           ),
@@ -695,7 +705,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? spId = prefs.getString('user_id');
       final url = Uri.parse(
-        'https://api.smartassistapp.in/api/leads/mark-lost/${widget.leadId}',
+        'https://dev.smartassistapp.in/api/leads/mark-lost/${widget.leadId}',
       );
       final token = await Storage.getToken();
 
@@ -916,7 +926,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? spId = prefs.getString('user_id');
       final url = Uri.parse(
-        'https://api.smartassistapp.in/api/leads/convert-to-opp/${widget.leadId}',
+        'https://dev.smartassistapp.in/api/leads/convert-to-opp/${widget.leadId}',
       );
       final token = await Storage.getToken();
 
@@ -1005,7 +1015,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
   //     SharedPreferences prefs = await SharedPreferences.getInstance();
   //     String? spId = prefs.getString('user_id');
   //     // String? user_email = prefs.getString('user_email');
-  //     final url = Uri.parse('https://api.smartassistapp.in/api/init-wa');
+  //     final url = Uri.parse('https://dev.smartassistapp.in/api/init-wa');
   //     final token = await Storage.getToken();
 
   //     // Create the request body

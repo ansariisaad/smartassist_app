@@ -24,7 +24,7 @@ class _FOpportunityState extends State<FOpportunity> {
     final token = await Storage.getToken();
     try {
       final response = await http.get(
-        Uri.parse('https://api.smartassistapp.in/api/favourites/opps/all'),
+        Uri.parse('https://dev.smartassistapp.in/api/favourites/opps/all'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -90,7 +90,6 @@ class _FOpportunityState extends State<FOpportunity> {
   }
 }
 
-// ---------------- TASK ITEM ----------------
 class TaskItem extends StatefulWidget {
   final String name;
   final String date;
@@ -129,7 +128,7 @@ class _TaskItemState extends State<TaskItem> {
     try {
       final response = await http.put(
         Uri.parse(
-          'https://api.smartassistapp.in/api/favourites/mark-fav/task/${widget.taskId}',
+          'https://dev.smartassistapp.in/api/favourites/mark-fav/task/${widget.taskId}',
         ),
         headers: {
           'Authorization': 'Bearer $token',

@@ -77,7 +77,7 @@ class _AllTestdriveState extends State<AllTestdrive> {
     try {
       final token = await Storage.getToken();
       const String apiUrl =
-          "https://api.smartassistapp.in/api/events/all-events";
+          "https://dev.smartassistapp.in/api/events/all-events";
 
       final response = await http.get(
         Uri.parse(apiUrl),
@@ -146,7 +146,7 @@ class _AllTestdriveState extends State<AllTestdrive> {
       final token = await Storage.getToken();
       final response = await http.get(
         Uri.parse(
-          'https://api.smartassistapp.in/api/search/global?query=$query',
+          'https://dev.smartassistapp.in/api/search/global?query=$query',
         ),
         headers: {
           'Authorization': 'Bearer $token',

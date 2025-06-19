@@ -1,5 +1,3 @@
- 
-
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -42,13 +40,6 @@ class _AllAppointmentState extends State<AllAppointment> {
   List<dynamic> _filteredTasks = [];
   String _query = '';
   int _upcommingButtonIndex = 0;
-
-  bool _isLoadingSearch = false;
-  List<dynamic> upcomingTasks = [];
-  List<dynamic> _searchResults = [];
-  List<dynamic> _filteredTasks = [];
-  String _query = '';
-
 
   int count = 0;
 
@@ -196,113 +187,6 @@ class _AllAppointmentState extends State<AllAppointment> {
       final token = await Storage.getToken();
       final response = await http.get(
         Uri.parse(
-          'https://dev.smartassistapp.in/api/search/global?query=$query',
-        ),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
-
-      final Map<String, dynamic> data = json.decode(response.body);
-      if (response.statusCode == 200) {
-        setState(() {
-          _searchResults = data['data']['suggestions'] ?? [];
-        });
-      } else {
-        showErrorMessage(context, message: data['message']);
-      }
-    } catch (e) {
-      showErrorMessage(context, message: 'Something went wrong..!');
-    } finally {
-      setState(() {
-        _isLoadingSearch = false;
-      });
-    }
-  }
-
-  void _onSearchChanged() {
-    final newQuery = _searchController.text.trim();
-    if (newQuery == _query) return;
-
-    _query = newQuery;
-
-    // Perform local search immediately for better UX
-    _performLocalSearch(_query);
-
-    // Also perform API search with debounce
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (_query == _searchController.text.trim()) {
-        _fetchSearchResults(_query);
-      }
-    });
-  }
-
-  // Responsive helper methods
-  double _getResponsiveFontSize(BuildContext context, bool isTablet) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    if (screenWidth < 360) return 12; // Very small screens
-    if (screenWidth < 400) return 13; // Small screens
-    if (isTablet) return 16;
-    return 14; // Default
-  }
-
-  double _getResponsiveHintFontSize(BuildContext context, bool isTablet) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    if (screenWidth < 360) return 10;
-    if (screenWidth < 400) return 11;
-    if (isTablet) return 14;
-    return 12;
-  }
-
-  double _getResponsiveIconSize(BuildContext context, bool isTablet) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    if (screenWidth < 360) return 14;
-    if (screenWidth < 400) return 15;
-    if (isTablet) return 18;
-    return 16;
-  }
-
-  double _getResponsiveHorizontalPadding(BuildContext context, bool isTablet) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    if (screenWidth < 360) return 12;
-    if (screenWidth < 400) return 14;
-    if (isTablet) return 20;
-    return 16;
-  }
-
-  double _getResponsiveVerticalPadding(BuildContext context, bool isTablet) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    if (screenWidth < 360) return 10;
-    if (screenWidth < 400) return 12;
-    if (isTablet) return 16;
-    return 14;
-  }
-
-  double _getResponsiveIconContainerWidth(BuildContext context, bool isTablet) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    if (screenWidth < 360) return 40;
-    if (screenWidth < 400) return 45;
-    if (isTablet) return 55;
-    return 50;
-  }
-
-  Future<void> _fetchSearchResults(String query) async {
-    if (query.isEmpty) {
-      setState(() {
-        _searchResults.clear();
-      });
-      return;
-    }
-
-    setState(() {
-      _isLoadingSearch = true;
-    });
-
-    try {
-      final token = await Storage.getToken();
-      final response = await http.get(
-        Uri.parse(
           'https://api.smartassistapp.in/api/search/global?query=$query',
         ),
         headers: {
@@ -345,101 +229,6 @@ class _AllAppointmentState extends State<AllAppointment> {
     });
   }
 
-  void _filterTasks(String query) {
-    setState(() {
-      if (query.isEmpty) {
-        _filteredAllTasks = List.from(_originalAllTasks);
-        _filteredUpcomingTasks = List.from(_originalUpcomingTasks);
-        _filteredOverdueTasks = List.from(_originalOverdueTasks);
-      } else {
-        final lowercaseQuery = query.toLowerCase();
-        void filterList(List<dynamic> original, List<dynamic> filtered) {
-          filtered.clear();
-          filtered.addAll(
-            original.where(
-              (task) =>
-                  task['name'].toString().toLowerCase().contains(
-                    lowercaseQuery,
-                  ) ||
-                  task['subject'].toString().toLowerCase().contains(
-                    lowercaseQuery,
-                  ),
-            ),
-          );
-        }
-
-        filterList(_originalAllTasks, _filteredAllTasks);
-        filterList(_originalUpcomingTasks, _filteredUpcomingTasks);
-        filterList(_originalOverdueTasks, _filteredOverdueTasks);
-      }
-    });
-  }
-
-
-  void _performLocalSearch(String query) {
-    if (query.isEmpty) {
-      setState(() {
-        _filteredTasks = List.from(upcomingTasks);
-      });
-      return;
-    }
-
-    setState(() {
-      _filteredTasks = upcomingTasks.where((item) {
-        String name = (item['lead_name'] ?? '').toString().toLowerCase();
-        String email = (item['email'] ?? '').toString().toLowerCase();
-        String phone = (item['mobile'] ?? '').toString().toLowerCase();
-        String searchQuery = query.toLowerCase();
-
-        return name.contains(searchQuery) ||
-            email.contains(searchQuery) ||
-            phone.contains(searchQuery);
-      }).toList();
-    });
-  }
-
-  double _getScreenWidth() => MediaQuery.sizeOf(context).width;
-
-  // Responsive scaling while maintaining current design proportions
-  double _getResponsiveScale() {
-    final width = _getScreenWidth();
-    if (width <= 320) return 0.85; // Very small phones
-    if (width <= 375) return 0.95; // Small phones
-    if (width <= 414) return 1.0; // Standard phones (base size)
-    if (width <= 600) return 1.05; // Large phones
-    if (width <= 768) return 1.1; // Small tablets
-    return 1.15; // Large tablets and up
-  }
-
-  double _getSubTabFontSize() {
-    return 12.0 * _getResponsiveScale(); // Base font size: 12
-  }
-
-  double _getSubTabHeight() {
-    return 27.0 * _getResponsiveScale(); // Base height: 27
-  }
-
-  double _getSubTabWidth() {
-    return 240.0 * _getResponsiveScale(); // Base width: 150
-  }
-
-  // Helper method to get responsive dimensions
-  bool get _isTablet => MediaQuery.of(context).size.width > 768;
-  bool get _isSmallScreen => MediaQuery.of(context).size.width < 400;
-  double get _screenWidth => MediaQuery.of(context).size.width;
-  double get _screenHeight => MediaQuery.of(context).size.height;
-
-  // Responsive padding
-  EdgeInsets get _responsivePadding => EdgeInsets.symmetric(
-    horizontal: _isTablet ? 20 : (_isSmallScreen ? 8 : 10),
-    vertical: _isTablet ? 12 : 8,
-  );
-
-  // Responsive font sizes
-  double get _titleFontSize => _isTablet ? 20 : (_isSmallScreen ? 16 : 18);
-  double get _bodyFontSize => _isTablet ? 16 : (_isSmallScreen ? 12 : 14);
-  double get _smallFontSize => _isTablet ? 14 : (_isSmallScreen ? 10 : 12);
-
   // Responsive helper methods
   double _getResponsiveFontSize(BuildContext context, bool isTablet) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -489,7 +278,35 @@ class _AllAppointmentState extends State<AllAppointment> {
     return 50;
   }
 
-  final TextEditingController _searchController = TextEditingController();
+  void _filterTasks(String query) {
+    setState(() {
+      if (query.isEmpty) {
+        _filteredAllTasks = List.from(_originalAllTasks);
+        _filteredUpcomingTasks = List.from(_originalUpcomingTasks);
+        _filteredOverdueTasks = List.from(_originalOverdueTasks);
+      } else {
+        final lowercaseQuery = query.toLowerCase();
+        void filterList(List<dynamic> original, List<dynamic> filtered) {
+          filtered.clear();
+          filtered.addAll(
+            original.where(
+              (task) =>
+                  task['name'].toString().toLowerCase().contains(
+                    lowercaseQuery,
+                  ) ||
+                  task['subject'].toString().toLowerCase().contains(
+                    lowercaseQuery,
+                  ),
+            ),
+          );
+        }
+
+        filterList(_originalAllTasks, _filteredAllTasks);
+        filterList(_originalUpcomingTasks, _filteredUpcomingTasks);
+        filterList(_originalOverdueTasks, _filteredOverdueTasks);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -548,7 +365,6 @@ class _AllAppointmentState extends State<AllAppointment> {
               child: Column(
                 children: [
                   Container(
-
                     margin: const EdgeInsets.symmetric(
                       horizontal: 15,
                       vertical: 10,

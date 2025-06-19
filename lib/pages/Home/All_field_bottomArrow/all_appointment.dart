@@ -328,7 +328,7 @@ class _AllAppointmentState extends State<AllAppointment> {
         title: Align(
           alignment: Alignment.centerLeft,
           child: Text(
-            'Your Follow ups',
+            'Your Appointments',
             style: GoogleFonts.poppins(
               fontSize: _titleFontSize,
               fontWeight: FontWeight.w400,

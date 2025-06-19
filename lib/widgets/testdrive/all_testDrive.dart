@@ -109,7 +109,7 @@ class _AllFollowupsItemState extends State<AllTestrive>
         extentRatio: 0.4,
         motion: const StretchMotion(),
         children: [
-          if (widget.subject == 'Call')
+          if (widget.subject == 'Test Drive')
             ReusableSlidableAction(
               onPressed: _phoneAction,
               backgroundColor: Colors.blue,
@@ -153,7 +153,7 @@ class _AllFollowupsItemState extends State<AllTestrive>
                     width: 8.0,
                     color: widget.isFavorite
                         ? Colors.yellow
-                        : Colors.blueAccent,
+                        : AppColors.colorsBlueBar,
                   ),
                 ),
               ),
@@ -296,8 +296,8 @@ class _AllFollowupsItemState extends State<AllTestrive>
 
   Widget _buildSubjectDetails(BuildContext context) {
     IconData icon;
-    if (widget.subject == 'Call') {
-      icon = Icons.phone_in_talk;
+    if (widget.subject == 'Test Drive') {
+      icon = Icons.directions_car_filled_rounded;
     } else if (widget.subject == 'Send SMS') {
       icon = Icons.mail_rounded;
     } else {

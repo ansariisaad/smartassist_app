@@ -8,7 +8,7 @@ import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/utils/token_manager.dart';
 
 class LeadsSrv {
-  static const String baseUrl = 'https://dev.smartassistapp.in/api/';
+  static const String baseUrl = 'https://api.smartassistapp.in/api/';
   static final ConnectionService _connectionService = ConnectionService();
 
   // ApiService(this.baseUrl);
@@ -241,7 +241,7 @@ class LeadsSrv {
   }
 
   // static Future<Map<String, dynamic>> setPwd(Map body) async {
-  //   const url = 'https://dev.smartassistapp.in/api/login/create-pwd';
+  //   const url = 'https://api.smartassistapp.in/api/login/create-pwd';
   //   final uri = Uri.parse(url);
 
   //   try {
@@ -601,7 +601,7 @@ class LeadsSrv {
   // static Future<List<Map<String, dynamic>>> singleTasksById(
   //     String leadId) async {
   //   const String apiUrl =
-  //       "https://dev.smartassistapp.in/api/admin/leads/tasks/all/";
+  //       "https://api.smartassistapp.in/api/admin/leads/tasks/all/";
 
   //   final token = await Storage.getToken();
   //   if (token == null) {
@@ -1388,7 +1388,7 @@ class LeadsSrv {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
-        return {'success': true, 'data': data['data']['rows'] ?? []};
+        return {'success': true, 'data': data['data'] ?? []};
       } else {
         return {
           'success': false,
@@ -1457,7 +1457,7 @@ class LeadsSrv {
     try {
       final token = await Storage.getToken();
       final url = Uri.parse(
-        'https://dev.smartassistapp.in/api/events/$eventId/send-consent',
+        'https://api.smartassistapp.in/api/events/$eventId/send-consent',
       );
 
       final response = await http.post(

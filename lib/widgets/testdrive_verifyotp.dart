@@ -392,7 +392,7 @@ class _TestdriveVerifyotpState extends State<TestdriveVerifyotp> {
 
     try {
       final url = Uri.parse(
-        'https://dev.smartassistapp.in/api/events/${widget.eventId}/verify-otp',
+        'https://api.smartassistapp.in/api/events/${widget.eventId}/verify-otp',
       );
       final token = await Storage.getToken();
 

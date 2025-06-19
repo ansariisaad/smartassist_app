@@ -16,6 +16,7 @@ import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/google_location.dart';
 import 'package:smartassist/widgets/popups_widget/vehicleSearch_textfield.dart';
+import 'package:smartassist/widgets/reusable/vehicle_colors.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class CreateLeads extends StatefulWidget {
@@ -171,7 +172,7 @@ class _CreateLeadsState extends State<CreateLeads> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://dev.smartassistapp.in/api/search/vehicles?vehicle=${Uri.encodeComponent(query)}',
+          'https://api.smartassistapp.in/api/search/vehicles?vehicle=${Uri.encodeComponent(query)}',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -240,7 +241,7 @@ class _CreateLeadsState extends State<CreateLeads> {
       final token = await Storage.getToken();
 
       final apiUrl =
-          'https://dev.smartassistapp.in/api/search/vehicle-color?color=$query';
+          'https://api.smartassistapp.in/api/search/vehicle-color?color=$query';
       print("API URL: $apiUrl"); // Debug URL
 
       final response = await http.get(
@@ -297,7 +298,7 @@ class _CreateLeadsState extends State<CreateLeads> {
   //   final encodedName = Uri.encodeComponent(vehicleName);
 
   //   final url =
-  //       'https://dev.smartassistapp.in/api/users/vehicles/all?vehicle_name=$encodedName';
+  //       'https://api.smartassistapp.in/api/users/vehicles/all?vehicle_name=$encodedName';
 
   //   try {
   //     final response = await http.get(
@@ -356,7 +357,7 @@ class _CreateLeadsState extends State<CreateLeads> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://dev.smartassistapp.in/api/leads/existing-check?mobile=$encodedMobile',
+          'https://api.smartassistapp.in/api/leads/existing-check?mobile=$encodedMobile',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -961,9 +962,6 @@ class _CreateLeadsState extends State<CreateLeads> {
                             selectedVehicleData = selectedVehicle;
                             selectedVehicleName =
                                 selectedVehicle['vehicle_name'];
-                            selectedBrand =
-                                selectedVehicle['brand'] ??
-                                ''; // Handle null brand
                           });
 
                           print("Selected Vehicle: $selectedVehicleName");
@@ -972,6 +970,7 @@ class _CreateLeadsState extends State<CreateLeads> {
                           );
                         },
                       ),
+
                       // _buildSearchField(
                       //   errorText: _errors['model'],
                       //   onChanged: (value) {
@@ -991,8 +990,21 @@ class _CreateLeadsState extends State<CreateLeads> {
                       //   // },
                       // ),
                       const SizedBox(height: 10),
-                      _buildVehicleColorSearch(),
+                      VehicleColors(
+                        onVehicleColorSelected: (selectedColorData) {
+                          setState(() {
+                            selectedColorName = selectedColorData['color_name'];
+                            // selectedColorId = selectedColorData['color_id'];
+                            // selectedColorImageUrl =
+                            //     selectedColorData['image_url'];
+                          });
+                          print("Selected Color Name: $selectedColorName");
+                        },
+                      ),
+
                       const SizedBox(height: 10),
+                      // _buildVehicleColorSearch(),
+                      // const SizedBox(height: 10),
                       // _buildButtonsFloat(
                       //   isRequired: true,
                       //   options: {
@@ -1011,7 +1023,7 @@ class _CreateLeadsState extends State<CreateLeads> {
                       //     });
                       //   },
                       // ),
-                      const SizedBox(height: 10),
+                      // const SizedBox(height: 10),
                       // const SizedBox(
                       //   height: 10,
                       // ),

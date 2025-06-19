@@ -5,15 +5,28 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/services/leads_srv.dart';
 
-
 typedef VehicleColorSelectedCallback =
     void Function(Map<String, dynamic> selectedVehicle);
 
 class VehicleColors extends StatefulWidget {
-  final VehicleColorSelectedCallback? VehicleColorSelected;
+  final VehicleColorSelectedCallback?
+  onVehicleColorSelected; // Fixed callback name
+  final String? label;
+  final String? hintText;
+  final String? errorText;
+  final bool isRequired;
+  final TextEditingController? controller;
+  final ValueChanged<String>? onChanged;
+
   const VehicleColors({
     super.key,
-    this.VehicleColorSelected
+    this.onVehicleColorSelected, // Fixed parameter name
+    this.label,
+    this.hintText,
+    this.errorText,
+    this.isRequired = false,
+    this.controller,
+    this.onChanged,
   });
 
   @override
@@ -36,6 +49,11 @@ class _VehicleColorsState extends State<VehicleColors> {
   void initState() {
     super.initState();
     _loadAllColors();
+
+    // Add listener to search controller for real-time filtering
+    _searchControllerVehicleColor.addListener(() {
+      _onSearchChanged(_searchControllerVehicleColor.text);
+    });
   }
 
   @override
@@ -52,8 +70,9 @@ class _VehicleColorsState extends State<VehicleColors> {
     });
 
     try {
+      // Fixed: Use the correct API method
       final result =
-          await LeadsSrv.getAllVehicles(); // Update if API is for colors
+          await LeadsSrv.getAllColors(); // Changed from getAllVehicles to getAllColors
 
       if (result['success']) {
         final List<Map<String, dynamic>> data = List<Map<String, dynamic>>.from(
@@ -61,7 +80,7 @@ class _VehicleColorsState extends State<VehicleColors> {
         );
         setState(() {
           _allColors = data;
-          _searchResultsColor = data; // preload suggestions
+          _searchResultsColor = []; // Don't preload suggestions - start empty
           _hasLoadedColors = true;
         });
       } else {
@@ -87,6 +106,13 @@ class _VehicleColorsState extends State<VehicleColors> {
   }
 
   void _onSearchChanged(String query) {
+    if (query.isEmpty) {
+      setState(() {
+        _searchResultsColor = [];
+      });
+      return;
+    }
+
     setState(() {
       _searchResultsColor = _allColors
           .where(
@@ -95,6 +121,18 @@ class _VehicleColorsState extends State<VehicleColors> {
           )
           .toList();
     });
+  }
+
+  // Method to get selected color data for API
+  Map<String, dynamic>? getSelectedColorData() {
+    if (selectedVehicleColorId != null && selectedColorName != null) {
+      return {
+        'color_id': selectedVehicleColorId,
+        'color_name': selectedColorName,
+        'image_url': selectedUrl,
+      };
+    }
+    return null;
   }
 
   @override
@@ -144,16 +182,19 @@ class _VehicleColorsState extends State<VehicleColors> {
                     fontWeight: FontWeight.w500,
                     color: Colors.black,
                   ),
-                  onChanged: _onSearchChanged,
+                  // onChanged removed since we're using listener
                 ),
               ),
             ],
           ),
         ),
-        if (_isLoadingColor)
+        // Show loading indicator when initially loading colors
+        if (_isLoadingColor && !_hasLoadedColors)
           const Padding(
             padding: EdgeInsets.only(top: 8.0),
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(
+              // child: CircularProgressIndicator() // Commented out like in vehicle search
+            ),
           ),
         if (_searchResultsColor.isNotEmpty)
           Container(
@@ -182,8 +223,18 @@ class _VehicleColorsState extends State<VehicleColors> {
                       selectedUrl = imageUrl;
                       _searchControllerVehicleColor.text =
                           result['color_name'] ?? '';
-                      _searchResultsColor.clear();
+                      _searchResultsColor
+                          .clear(); // Clear results after selection
                     });
+
+                    // Fixed: Call the callback with proper data
+                    if (widget.onVehicleColorSelected != null) {
+                      widget.onVehicleColorSelected!({
+                        'color_id': selectedVehicleColorId,
+                        'color_name': selectedColorName,
+                        'image_url': selectedUrl,
+                      });
+                    }
                   },
                   title: Text(
                     result['color_name'] ?? 'No Name',

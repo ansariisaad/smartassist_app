@@ -17,6 +17,9 @@ class AllTestrive extends StatefulWidget {
   final double swipeOffset;
   final bool isFavorite;
   final VoidCallback onToggleFavorite;
+  // final VoidCallback handleTestDrive;
+  // final dynamic item;
+  // final VoidCallback otpTrigger;
 
   const AllTestrive({
     super.key,
@@ -32,6 +35,9 @@ class AllTestrive extends StatefulWidget {
     required this.taskId,
     required this.startTime,
     required this.eventId,
+    // required this.handleTestDrive,
+    // this.item,
+    // required this.otpTrigger,
   });
 
   @override
@@ -111,7 +117,7 @@ class _AllFollowupsItemState extends State<AllTestrive>
         children: [
           if (widget.subject == 'Test Drive')
             ReusableSlidableAction(
-              onPressed: _phoneAction,
+              onPressed: _showAleart,
               backgroundColor: Colors.blue,
               icon: Icons.phone,
               foregroundColor: Colors.white,
@@ -192,6 +198,96 @@ class _AllFollowupsItemState extends State<AllTestrive>
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> _showAleart() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // User must tap button to close dialog
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          title: Text(
+            'Are You Sure?',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          ),
+          content: Text(
+            'Are you sure you want to start a testdrive?',
+            style: GoogleFonts.poppins(),
+          ),
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(
+                overlayColor: Colors.grey.withOpacity(0.1),
+                foregroundColor: Colors.grey,
+              ),
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text('No', style: GoogleFonts.poppins(color: Colors.grey)),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                overlayColor: Colors.blue.withOpacity(0.1),
+                foregroundColor: Colors.blue,
+              ),
+              // onPressed: () => Navigator.of(context).pop(
+              // true),
+              onPressed: () {
+                // initwhatsappChat(context); // Pass context to submit
+                // widget.handleTestDrive();
+                // widget.otpTrigger();
+              },
+              child: Text(
+                'Yes',
+                style: GoogleFonts.poppins(color: Colors.blue),
+              ),
+            ),
+          ],
+        );
+
+        // return AlertDialog(
+        //   shape: RoundedRectangleBorder(
+        //     borderRadius: BorderRadius.circular(15),
+        //   ),
+        //   backgroundColor: Colors.white,
+        //   insetPadding: const EdgeInsets.all(10),
+        //   contentPadding: EdgeInsets.zero,
+        //   title: Column(
+        //     crossAxisAlignment: CrossAxisAlignment.start,
+        //     children: [
+        //       Align(
+        //         alignment: Alignment.bottomLeft,
+        //         child: Text(
+        //           textAlign: TextAlign.center,
+        //           'Share your gmail?',
+        //           style: AppFont.mediumText14(context),
+        //         ),
+        //       ),
+        //       const SizedBox(height: 10),
+        //     ],
+        //   ),
+        //   actions: [
+        //     TextButton(
+        //       onPressed: () {
+        //         Navigator.pop(context);
+        //       },
+        //       child: Text(
+        //         'Cancel',
+        //         // style: TextStyle(color: AppColors.colorsBlue),
+        //         style: AppFont.mediumText14blue(context),
+        //       ),
+        //     ),
+        //     TextButton(
+        //       onPressed: () {
+        //         whatsappChat(context); // Pass context to submit
+        //       },
+        //       child: Text('Submit', style: AppFont.mediumText14blue(context)),
+        //     ),
+        //   ],
+        // );
+      },
     );
   }
 
@@ -585,6 +681,7 @@ class _AllTestDriveState extends State<AllTestDrive> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
           ),
+
         ListView.builder(
           physics: const NeverScrollableScrollPhysics(),
           shrinkWrap: true,
@@ -603,6 +700,12 @@ class _AllTestDriveState extends State<AllTestDrive> {
               eventId: item['event_id'],
               isFavorite: _favorites[index],
               onToggleFavorite: () => _toggleFavorite(index),
+              // handleTestDrive: () {
+              //   _handleTestDrive(item);
+              // },
+              //  otpTrigger: () {
+              //   _getOtp(eventId);
+              // },
             );
           },
         ),

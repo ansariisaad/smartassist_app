@@ -128,7 +128,7 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
 
     try {
       final response = await http.get(
-        Uri.parse('https://dev.smartassistapp.in/api/tasks/${widget.eventId}'),
+        Uri.parse('https://api.smartassistapp.in/api/tasks/${widget.eventId}'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -206,7 +206,7 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
     try {
       final response = await http.put(
         Uri.parse(
-          'https://dev.smartassistapp.in/api/tasks/${widget.eventId}/update',
+          'https://api.smartassistapp.in/api/tasks/${widget.eventId}/update',
         ),
         headers: {
           'Authorization': 'Bearer $token',

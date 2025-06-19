@@ -122,7 +122,7 @@ class _FollowupsTeamsState extends State<FollowupsTeams> {
       ); // Debug token presence
 
       final apiUrl =
-          'https://dev.smartassistapp.in/api/search/users?user=$query';
+          'https://api.smartassistapp.in/api/search/users?user=$query';
       print("API URL: $apiUrl"); // Debug URL
 
       final response = await http.get(
@@ -219,7 +219,7 @@ class _FollowupsTeamsState extends State<FollowupsTeams> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://dev.smartassistapp.in/api/search/global?query=$query',
+          'https://api.smartassistapp.in/api/search/global?query=$query',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -1475,7 +1475,7 @@ class _FollowupsTeamsState extends State<FollowupsTeams> {
 //     try {
 //       final response = await http.get(
 //         Uri.parse(
-//             'https://dev.smartassistapp.in/api/search/global?query=$query'),
+//             'https://api.smartassistapp.in/api/search/global?query=$query'),
 //         headers: {
 //           'Authorization': 'Bearer $token',
 //           'Content-Type': 'application/json',

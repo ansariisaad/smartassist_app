@@ -7,9 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
-import 'package:http/http.dart' as http;
 import 'package:smartassist/services/api_srv.dart';
-import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/testdrive.dart';
 import 'package:smartassist/widgets/testdrive_verifyotp.dart';
 
@@ -113,7 +111,7 @@ class _TestUpcomingState extends State<TestUpcoming> {
 
   //     final response = await http.put(
   //       Uri.parse(
-  //         'https://dev.smartassistapp.in/api/favourites/mark-fav/event/$eventId',
+  //         'https://api.smartassistapp.in/api/favourites/mark-fav/event/$eventId',
   //       ),
   //       headers: {
   //         'Authorization': 'Bearer $token',
@@ -156,7 +154,7 @@ class _TestUpcomingState extends State<TestUpcoming> {
   // ) async {
   //   try {
   //     final url = Uri.parse(
-  //         'https://dev.smartassistapp.in/api/events/$eventId/send-consent');
+  //         'https://api.smartassistapp.in/api/events/$eventId/send-consent');
   //     final token = await Storage.getToken();
 
   //     final response = await http.post(
@@ -357,10 +355,11 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
         children: [
           if (widget.subject == 'Test Drive')
             ReusableSlidableAction(
-              onPressed: () {
-                widget.handleTestDrive();
-                widget.otpTrigger();
-              },
+              onPressed: _showAleart,
+              // onPressed: () {
+              //   widget.handleTestDrive();
+              //   widget.otpTrigger();
+              // },
               backgroundColor: Colors.blue,
               icon: Icons.directions_car,
               foregroundColor: Colors.white,
@@ -470,6 +469,96 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
           ),
           child: Testdrive(onFormSubmit: () {}, eventId: widget.eventId),
         );
+      },
+    );
+  }
+
+  Future<void> _showAleart() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // User must tap button to close dialog
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          title: Text(
+            'Are You Sure?',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          ),
+          content: Text(
+            'Are you sure you want to start a testdrive?',
+            style: GoogleFonts.poppins(),
+          ),
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(
+                overlayColor: Colors.grey.withOpacity(0.1),
+                foregroundColor: Colors.grey,
+              ),
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text('No', style: GoogleFonts.poppins(color: Colors.grey)),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                overlayColor: Colors.blue.withOpacity(0.1),
+                foregroundColor: Colors.blue,
+              ),
+              // onPressed: () => Navigator.of(context).pop(
+              // true),
+              onPressed: () {
+                // initwhatsappChat(context); // Pass context to submit
+                widget.handleTestDrive();
+                widget.otpTrigger();
+              },
+              child: Text(
+                'Yes',
+                style: GoogleFonts.poppins(color: Colors.blue),
+              ),
+            ),
+          ],
+        );
+
+        // return AlertDialog(
+        //   shape: RoundedRectangleBorder(
+        //     borderRadius: BorderRadius.circular(15),
+        //   ),
+        //   backgroundColor: Colors.white,
+        //   insetPadding: const EdgeInsets.all(10),
+        //   contentPadding: EdgeInsets.zero,
+        //   title: Column(
+        //     crossAxisAlignment: CrossAxisAlignment.start,
+        //     children: [
+        //       Align(
+        //         alignment: Alignment.bottomLeft,
+        //         child: Text(
+        //           textAlign: TextAlign.center,
+        //           'Share your gmail?',
+        //           style: AppFont.mediumText14(context),
+        //         ),
+        //       ),
+        //       const SizedBox(height: 10),
+        //     ],
+        //   ),
+        //   actions: [
+        //     TextButton(
+        //       onPressed: () {
+        //         Navigator.pop(context);
+        //       },
+        //       child: Text(
+        //         'Cancel',
+        //         // style: TextStyle(color: AppColors.colorsBlue),
+        //         style: AppFont.mediumText14blue(context),
+        //       ),
+        //     ),
+        //     TextButton(
+        //       onPressed: () {
+        //         whatsappChat(context); // Pass context to submit
+        //       },
+        //       child: Text('Submit', style: AppFont.mediumText14blue(context)),
+        //     ),
+        //   ],
+        // );
       },
     );
   }

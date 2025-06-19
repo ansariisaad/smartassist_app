@@ -111,7 +111,7 @@ class _AddFollowupsState extends State<AddFollowups> {
     setState(() => _isLoading = true);
     try {
       final token = await Storage.getToken();
-      const String apiUrl = "https://api.smartassistapp.in/api/tasks/all-tasks";
+      const String apiUrl = "https://dev.smartassistapp.in/api/tasks/all-tasks";
 
       final response = await http.get(
         Uri.parse(apiUrl),
@@ -184,7 +184,7 @@ class _AddFollowupsState extends State<AddFollowups> {
       final token = await Storage.getToken();
       final response = await http.get(
         Uri.parse(
-          'https://api.smartassistapp.in/api/search/global?query=$query',
+          'https://dev.smartassistapp.in/api/search/global?query=$query',
         ),
         headers: {
           'Authorization': 'Bearer $token',

@@ -344,10 +344,10 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
       child: Stack(
         children: [
           // Favorite Swipe Overlay
-          if (isFavoriteSwipe) Positioned.fill(child: _buildFavoriteOverlay()),
+          // if (isFavoriteSwipe) Positioned.fill(child: _buildFavoriteOverlay()),
 
-          // Call Swipe Overlay
-          if (isCallSwipe) Positioned.fill(child: _buildCallOverlay()),
+          // // Call Swipe Overlay
+          // if (isCallSwipe) Positioned.fill(child: _buildCallOverlay()),
 
           // Main Card
           Opacity(
@@ -375,8 +375,14 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildUserDetails(context),
-                          _buildCarModel(context),
+                          Row(
+                            children: [
+                              _buildUserDetails(context),
+                              _buildVerticalDivider(15),
+                              _buildCarModel(context),
+                            ],
+                          ),
+
                           const SizedBox(height: 2),
                           Row(
                             children: [
@@ -462,7 +468,19 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
   }
 
   Widget _buildUserDetails(BuildContext context) {
-    return Text(widget.name, style: AppFont.dashboardName(context));
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.of(context).size.width * .35,
+      ),
+      child: Text(
+        maxLines: 1, // Allow up to 2 lines
+        overflow: TextOverflow
+            .ellipsis, // Show ellipsis if it overflows beyond 2 lines
+        softWrap: true,
+        widget.name,
+        style: AppFont.dashboardName(context),
+      ),
+    );
   }
 
   Widget _buildSubjectDetails(BuildContext context) {
@@ -497,6 +515,17 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
   //     ],
   //   );
   // }
+
+  Widget _buildVerticalDivider(double height) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 10),
+      height: height,
+      width: 0.1,
+      decoration: const BoxDecoration(
+        border: Border(right: BorderSide(color: AppColors.fontColor)),
+      ),
+    );
+  }
 
   Widget _date(BuildContext context) {
     String formattedDate = '';
@@ -538,13 +567,18 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
   }
 
   Widget _buildCarModel(BuildContext context) {
-    return Text(
-      widget.vehicle,
-      style: AppFont.dashboardCarName(context),
-      maxLines: 2, // Allow up to 2 lines
-      overflow:
-          TextOverflow.ellipsis, // Show ellipsis if it overflows beyond 2 lines
-      softWrap: true, // Allow wrapping
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.of(context).size.width * .30,
+      ),
+      child: Text(
+        widget.vehicle,
+        style: AppFont.dashboardCarName(context),
+        maxLines: 1, // Allow up to 2 lines
+        overflow: TextOverflow
+            .ellipsis, // Show ellipsis if it overflows beyond 2 lines
+        softWrap: true, // Allow wrapping
+      ),
     );
   }
 
@@ -647,42 +681,7 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
     }
   }
 
-  // void _phoneAction() {
-  //   print("Call action triggered for ${widget.mobile}");
-
-  //   // String mobile = item['mobile'] ?? '';
-
-  //   if (widget.mobile.isNotEmpty) {
-  //     try {
-  //       // Set flag that we're making a phone call
-  //       _wasCallingPhone = true;
-
-  //       // Simple approach without canLaunchUrl check
-  //       final phoneNumber = 'tel:${widget.mobile}';
-  //       launchUrl(
-  //         Uri.parse(phoneNumber),
-  //         mode: LaunchMode.externalNonBrowserApplication,
-  //       );
-  //     } catch (e) {
-  //       print('Error launching phone app: $e');
-
-  //       // Reset flag if there was an error
-  //       _wasCallingPhone = false;
-  //       // Show error message to user
-  //       if (context.mounted) {
-  //         ScaffoldMessenger.of(context).showSnackBar(
-  //           SnackBar(content: Text('Could not launch phone dialer')),
-  //         );
-  //       }
-  //     }
-  //   } else {
-  //     if (context.mounted) {
-  //       ScaffoldMessenger.of(
-  //         context,
-  //       ).showSnackBar(SnackBar(content: Text('No phone number available')));
-  //     }
-  //   }
-  // }
+ 
 
   void _messageAction() {
     print("Message action triggered");

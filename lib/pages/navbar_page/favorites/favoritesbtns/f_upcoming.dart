@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -7,6 +8,8 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
 import 'package:smartassist/utils/storage.dart';
+import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/followups.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class FUpcoming extends StatefulWidget {
   final String leadId;
@@ -188,8 +191,12 @@ class _FUpcomingState extends State<FUpcoming> {
             isFavorite: item['favourite'] ?? false,
             swipeOffset: swipeOffset,
             isUpcoming: isUpcoming,
+            mobile: item['mobile'],
             fetchDashboardData: () {},
             onFavoriteToggled: () {}, // Placeholder, replace with actual method
+            onToggleFavorite: () {
+              _toggleFavorite(taskId, index);
+            },
           ),
         );
       },
@@ -198,7 +205,7 @@ class _FUpcomingState extends State<FUpcoming> {
 }
 
 class TaskItem extends StatefulWidget {
-  final String name, subject;
+  final String name, subject, mobile;
   final String date;
   final String vehicle;
   final String leadId;
@@ -208,6 +215,8 @@ class TaskItem extends StatefulWidget {
   final double swipeOffset;
   final VoidCallback fetchDashboardData;
   final VoidCallback onFavoriteToggled;
+
+  final VoidCallback onToggleFavorite;
 
   const TaskItem({
     super.key,
@@ -222,241 +231,418 @@ class TaskItem extends StatefulWidget {
     required this.subject,
     required this.swipeOffset,
     required this.fetchDashboardData,
+    required this.onToggleFavorite,
+    required this.mobile,
   });
 
   @override
   State<TaskItem> createState() => _TaskItemState();
 }
 
-class _TaskItemState extends State<TaskItem> {
+class _TaskItemState extends State<TaskItem>
+    with WidgetsBindingObserver, SingleTickerProviderStateMixin {
+  bool _wasCallingPhone = false;
   late bool isFav;
+
+  late SlidableController _slidableController;
+  //  final GlobalKey<SlidableState> _slidableKey = GlobalKey<SlidableState>();
+
+  @override
+  void initState() {
+    super.initState();
+    // Register this class as an observer to track app lifecycle changes
+    WidgetsBinding.instance.addObserver(this);
+    _slidableController = SlidableController(this);
+  }
+
+  @override
+  void dispose() {
+    // Remove observer when widget is disposed
+    WidgetsBinding.instance.removeObserver(this);
+    _slidableController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // This gets called when app lifecycle state changes
+    if (state == AppLifecycleState.resumed && _wasCallingPhone) {
+      // App is resumed and we marked that user was making a call
+      _wasCallingPhone = false;
+      // Show the mail action dialog after a short delay to ensure app is fully resumed
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) {
+          _mailAction();
+        }
+      });
+    }
+  }
+
+  // @override
+  // Widget build(BuildContext context) {
+  //   return Padding(
+  //     padding: const EdgeInsets.fromLTRB(10, 5, 10, 0),
+  //     child: _buildFollowupCard(context),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 5, 10, 0),
-      child: _buildFollowupCard(context),
+      child: InkWell(
+        onTap: () {
+          if (widget.leadId.isNotEmpty) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => FollowupsDetails(
+                  leadId: widget.leadId,
+                  isFromFreshlead: false,
+                  isFromManager: false,
+                  isFromTestdriveOverview: false,
+                  refreshDashboard: () async {},
+                ),
+              ),
+            );
+          } else {
+            print("Invalid leadId");
+          }
+        },
+        child: _buildFollowupCard(context),
+      ),
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    isFav = widget.isFavorite;
-  }
+  // Widget _buildFollowupCard(BuildContext context) {
+  //   bool isFavoriteSwipe = widget.swipeOffset > 50;
+  //   bool isCallSwipe = widget.swipeOffset < -50;
+
+  //   // Gradient background for swipe
+  //   // LinearGradient _buildSwipeGradient() {
+  //   //   if (isFavoriteSwipe) {
+  //   //     return const LinearGradient(
+  //   //       colors: [
+  //   //         Color.fromRGBO(239, 206, 29, 0.67),
+  //   //         // Colors.yellow.withOpacity(0.2),
+  //   //         // Colors.yellow.withOpacity(0.8)
+  //   //         Color.fromRGBO(239, 206, 29, 0.67),
+  //   //       ],
+  //   //       begin: Alignment.centerLeft,
+  //   //       end: Alignment.centerRight,
+  //   //     );
+  //   //   } else if (isCallSwipe) {
+  //   //     return LinearGradient(
+  //   //       colors: [
+  //   //         Colors.green.withOpacity(0.2),
+  //   //         Colors.green.withOpacity(0.8),
+  //   //       ],
+  //   //       begin: Alignment.centerRight,
+  //   //       end: Alignment.centerLeft,
+  //   //     );
+  //   //   }
+  //   //   return const LinearGradient(
+  //   //     colors: [AppColors.containerBg, AppColors.containerBg],
+  //   //     begin: Alignment.centerLeft,
+  //   //     end: Alignment.centerRight,
+  //   //   );
+  //   // }
+
+  //   return Stack(
+  //     children: [
+  //       // Favorite Swipe Overlay
+  //       // if (isFavoriteSwipe)
+  //       //   Positioned.fill(
+  //       //     child: Container(
+  //       //       decoration: BoxDecoration(
+  //       //         gradient: LinearGradient(
+  //       //           colors: [
+  //       //             Colors.yellow.withOpacity(0.2),
+  //       //             Colors.yellow.withOpacity(0.8),
+  //       //           ],
+  //       //           begin: Alignment.centerLeft,
+  //       //           end: Alignment.centerRight,
+  //       //         ),
+  //       //         borderRadius: BorderRadius.circular(10),
+  //       //       ),
+  //       //       child: Center(
+  //       //         child: Row(
+  //       //           mainAxisAlignment: MainAxisAlignment.start,
+  //       //           children: [
+  //       //             const SizedBox(width: 15),
+  //       //             Icon(
+  //       //               isFav ? Icons.star_outline_rounded : Icons.star_rounded,
+  //       //               color: Color.fromRGBO(226, 195, 34, 1),
+  //       //               size: 40,
+  //       //             ),
+  //       //             const SizedBox(width: 10),
+  //       //             Text(
+  //       //               isFav ? 'Unfavorite' : 'Favorite',
+  //       //               style: GoogleFonts.poppins(
+  //       //                 color: const Color.fromRGBO(187, 158, 0, 1),
+  //       //                 fontSize: 18,
+  //       //                 fontWeight: FontWeight.bold,
+  //       //               ),
+  //       //             ),
+  //       //           ],
+  //       //         ),
+  //       //       ),
+  //       //     ),
+  //       //   ),
+
+  //       // // Call Swipe Overlay
+  //       // if (isCallSwipe)
+  //       //   Positioned.fill(
+  //       //     child: Container(
+  //       //       decoration: BoxDecoration(
+  //       //         gradient: LinearGradient(
+  //       //           colors: [
+  //       //             Colors.green.withOpacity(0.2),
+  //       //             Colors.green.withOpacity(0.8),
+  //       //           ],
+  //       //           begin: Alignment.centerRight,
+  //       //           end: Alignment.centerLeft,
+  //       //         ),
+  //       //         borderRadius: BorderRadius.circular(10),
+  //       //       ),
+  //       //       child: Center(
+  //       //         child: Row(
+  //       //           mainAxisAlignment: MainAxisAlignment.start,
+  //       //           children: [
+  //       //             const SizedBox(width: 10),
+  //       //             const Icon(
+  //       //               Icons.phone_in_talk,
+  //       //               color: Colors.white,
+  //       //               size: 30,
+  //       //             ),
+  //       //             const SizedBox(width: 10),
+  //       //             Text(
+  //       //               'Call',
+  //       //               style: GoogleFonts.poppins(
+  //       //                 color: Colors.white,
+  //       //                 fontSize: 18,
+  //       //                 fontWeight: FontWeight.bold,
+  //       //               ),
+  //       //             ),
+  //       //             const SizedBox(width: 5),
+  //       //           ],
+  //       //         ),
+  //       //       ),
+  //       //     ),
+  //       //   ),
+
+  //       // Main Container
+  //       Container(
+  //         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+  //         decoration: BoxDecoration(
+  //           // gradient: _buildSwipeGradient(),
+  //           borderRadius: BorderRadius.circular(7),
+  //           border: Border(
+  //             left: BorderSide(
+  //               width: 8.0,
+  //               color: isFav
+  //                   ? (isCallSwipe
+  //                         ? Colors.green.withOpacity(
+  //                             0.9,
+  //                           ) // Green when swiping for a call
+  //                         : Colors.yellow.withOpacity(
+  //                             isFavoriteSwipe ? 0.1 : 0.9,
+  //                           )) // Keep yellow when favorite
+  //                   : (isFavoriteSwipe
+  //                         ? Colors.yellow.withOpacity(0.1)
+  //                         : (isCallSwipe
+  //                               ? Colors.green.withOpacity(0.1)
+  //                               : AppColors.sideGreen)),
+  //             ),
+  //           ),
+  //         ),
+  //         child: Opacity(
+  //           opacity: (isFavoriteSwipe || isCallSwipe) ? 0 : 1.0,
+  //           child: Row(
+  //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //             crossAxisAlignment: CrossAxisAlignment.center,
+  //             children: [
+  //               Row(
+  //                 children: [
+  //                   const SizedBox(width: 8),
+  //                   Column(
+  //                     crossAxisAlignment: CrossAxisAlignment.start,
+  //                     children: [
+  //                       Row(
+  //                         crossAxisAlignment: CrossAxisAlignment.end,
+  //                         children: [
+  //                           _buildUserDetails(context),
+  //                           _buildVerticalDivider(15),
+  //                           _buildCarModel(context),
+  //                         ],
+  //                       ),
+  //                       const SizedBox(height: 4),
+  //                       Row(
+  //                         children: [
+  //                           _buildSubjectDetails(context),
+  //                           _date(context),
+  //                         ],
+  //                       ),
+  //                     ],
+  //                   ),
+  //                 ],
+  //               ),
+  //               _buildNavigationButton(context),
+  //             ],
+  //           ),
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
 
   Widget _buildFollowupCard(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isTablet = screenSize.width > 600;
     bool isFavoriteSwipe = widget.swipeOffset > 50;
     bool isCallSwipe = widget.swipeOffset < -50;
 
-    // Gradient background for swipe
-    LinearGradient _buildSwipeGradient() {
-      if (isFavoriteSwipe) {
-        return const LinearGradient(
-          colors: [
-            Color.fromRGBO(239, 206, 29, 0.67),
-            // Colors.yellow.withOpacity(0.2),
-            // Colors.yellow.withOpacity(0.8)
-            Color.fromRGBO(239, 206, 29, 0.67),
-          ],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        );
-      } else if (isCallSwipe) {
-        return LinearGradient(
-          colors: [
-            Colors.green.withOpacity(0.2),
-            Colors.green.withOpacity(0.8),
-          ],
-          begin: Alignment.centerRight,
-          end: Alignment.centerLeft,
-        );
-      }
-      return const LinearGradient(
-        colors: [AppColors.containerBg, AppColors.containerBg],
-        begin: Alignment.centerLeft,
-        end: Alignment.centerRight,
-      );
-    }
-
-    return Stack(
-      children: [
-        // Favorite Swipe Overlay
-        if (isFavoriteSwipe)
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.yellow.withOpacity(0.2),
-                    Colors.yellow.withOpacity(0.8),
-                  ],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                ),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    const SizedBox(width: 15),
-                    Icon(
-                      isFav ? Icons.star_outline_rounded : Icons.star_rounded,
-                      color: Color.fromRGBO(226, 195, 34, 1),
-                      size: 40,
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      isFav ? 'Unfavorite' : 'Favorite',
-                      style: GoogleFonts.poppins(
-                        color: const Color.fromRGBO(187, 158, 0, 1),
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+    return Slidable(
+      key: ValueKey(widget.leadId), // Always good to set keys
+      controller: _slidableController,
+      startActionPane: ActionPane(
+        extentRatio: 0.2,
+        motion: const ScrollMotion(),
+        children: [
+          ReusableSlidableAction(
+            onPressed: widget.onToggleFavorite, // handle fav toggle
+            backgroundColor: Colors.amber,
+            icon: widget.isFavorite
+                ? Icons.star_rounded
+                : Icons.star_border_rounded,
+            foregroundColor: Colors.white,
           ),
+        ],
+      ),
 
-        // Call Swipe Overlay
-        if (isCallSwipe)
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.green.withOpacity(0.2),
-                    Colors.green.withOpacity(0.8),
-                  ],
-                  begin: Alignment.centerRight,
-                  end: Alignment.centerLeft,
-                ),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    const SizedBox(width: 10),
-                    const Icon(
-                      Icons.phone_in_talk,
-                      color: Colors.white,
-                      size: 30,
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      'Call',
-                      style: GoogleFonts.poppins(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(width: 5),
-                  ],
-                ),
-              ),
+      endActionPane: ActionPane(
+        extentRatio: 0.4,
+        motion: const StretchMotion(),
+        children: [
+          if (widget.subject == 'Call')
+            ReusableSlidableAction(
+              onPressed: _phoneAction,
+              backgroundColor: Colors.blue,
+              icon: Icons.phone,
+              foregroundColor: Colors.white,
             ),
+          if (widget.subject == 'Send SMS')
+            ReusableSlidableAction(
+              onPressed: _messageAction,
+              backgroundColor: Colors.blueGrey,
+              icon: Icons.message_rounded,
+              foregroundColor: Colors.white,
+            ),
+          // Edit is always shown
+          ReusableSlidableAction(
+            onPressed: _mailAction,
+            backgroundColor: const Color.fromARGB(255, 231, 225, 225),
+            icon: Icons.edit,
+            foregroundColor: Colors.white,
           ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          // Favorite Swipe Overlay
+          // if (isFavoriteSwipe) Positioned.fill(child: _buildFavoriteOverlay()),
 
-        // Main Container
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-          decoration: BoxDecoration(
-            gradient: _buildSwipeGradient(),
-            borderRadius: BorderRadius.circular(7),
-            border: Border(
-              left: BorderSide(
-                width: 8.0,
-                color: isFav
-                    ? (isCallSwipe
-                          ? Colors.green.withOpacity(
-                              0.9,
-                            ) // Green when swiping for a call
-                          : Colors.yellow.withOpacity(
-                              isFavoriteSwipe ? 0.1 : 0.9,
-                            )) // Keep yellow when favorite
-                    : (isFavoriteSwipe
-                          ? Colors.yellow.withOpacity(0.1)
-                          : (isCallSwipe
-                                ? Colors.green.withOpacity(0.1)
-                                : AppColors.sideGreen)),
-              ),
-            ),
-          ),
-          child: Opacity(
+          // // Call Swipe Overlay
+          // if (isCallSwipe) Positioned.fill(child: _buildCallOverlay()),
+
+          // Main Card
+          Opacity(
             opacity: (isFavoriteSwipe || isCallSwipe) ? 0 : 1.0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Row(
-                  children: [
-                    const SizedBox(width: 8),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            _buildUserDetails(context),
-                            _buildVerticalDivider(15),
-                            _buildCarModel(context),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            _buildSubjectDetails(context),
-                            _date(context),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+              decoration: BoxDecoration(
+                color: AppColors.containerBg,
+                borderRadius: BorderRadius.circular(5),
+                border: Border(
+                  left: BorderSide(
+                    width: 8.0,
+                    color: widget.isFavorite
+                        ? Colors.yellow
+                        : AppColors.sideGreen,
+                  ),
                 ),
-                _buildNavigationButton(context),
-              ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const SizedBox(width: 8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              _buildUserDetails(context),
+                              _buildVerticalDivider(15),
+                              _buildCarModel(context),
+                            ],
+                          ),
+
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              _buildSubjectDetails(context),
+                              _date(context),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  _buildNavigationButton(context),
+                ],
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
+  bool _isActionPaneOpen = false;
+
   Widget _buildNavigationButton(BuildContext context) {
-    // ✅ Accept context
     return GestureDetector(
       onTap: () {
-        if (widget.leadId.isNotEmpty) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => FollowupsDetails(
-                leadId: widget.leadId,
-                isFromFreshlead: false,
-                isFromManager: false,
-
-                isFromTestdriveOverview: false,
-                refreshDashboard: () async {},
-              ),
-            ),
-          );
+        if (_isActionPaneOpen) {
+          _slidableController.close();
+          setState(() {
+            _isActionPaneOpen = false;
+          });
         } else {
-          print("Invalid leadId");
+          _slidableController.close();
+          Future.delayed(Duration(milliseconds: 100), () {
+            _slidableController.openEndActionPane();
+            setState(() {
+              _isActionPaneOpen = true;
+            });
+          });
         }
       },
+
       child: Container(
         padding: const EdgeInsets.all(3),
         decoration: BoxDecoration(
           color: AppColors.arrowContainerColor,
           borderRadius: BorderRadius.circular(30),
         ),
-        child: const Icon(
-          Icons.arrow_forward_ios_rounded,
+
+        child: Icon(
+          _isActionPaneOpen
+              ? Icons.arrow_forward_ios_rounded
+              : Icons.arrow_back_ios_rounded,
+
           size: 25,
           color: Colors.white,
         ),
@@ -465,10 +651,18 @@ class _TaskItemState extends State<TaskItem> {
   }
 
   Widget _buildUserDetails(BuildContext context) {
-    return Text(
-      widget.name,
-      textAlign: TextAlign.end,
-      style: AppFont.dashboardName(context),
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.of(context).size.width * .35,
+      ),
+      child: Text(
+        maxLines: 1, // Allow up to 2 lines
+        overflow: TextOverflow
+            .ellipsis, // Show ellipsis if it overflows beyond 2 lines
+        softWrap: true,
+        widget.name,
+        style: AppFont.dashboardName(context),
+      ),
     );
   }
 
@@ -542,16 +736,104 @@ class _TaskItemState extends State<TaskItem> {
   }
 
   Widget _buildCarModel(BuildContext context) {
-    return Text(
-      widget.vehicle,
-      textAlign: TextAlign.start,
-      style: AppFont.dashboardCarName(context),
-      softWrap: true,
-      overflow: TextOverflow.visible,
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.of(context).size.width * .30,
+      ),
+      child: Text(
+        widget.vehicle,
+        style: AppFont.dashboardCarName(context),
+        maxLines: 1, // Allow up to 2 lines
+        overflow: TextOverflow
+            .ellipsis, // Show ellipsis if it overflows beyond 2 lines
+        softWrap: true, // Allow wrapping
+      ),
+    );
+  }
+
+  void _phoneAction() {
+    print("Call action triggered for ${widget.mobile}");
+
+    if (widget.mobile.isNotEmpty) {
+      try {
+        // Set flag that we're making a phone call
+        _wasCallingPhone = true;
+
+        // Use the same approach as _handleCall - no launch mode specified
+        launchUrl(Uri.parse('tel:${widget.mobile}'));
+
+        print('Phone dialer launched');
+      } catch (e) {
+        print('Error launching phone app: $e');
+
+        // Reset flag if there was an error
+        _wasCallingPhone = false;
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not launch phone dialer')),
+          );
+        }
+      }
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No phone number available')),
+        );
+      }
+    }
+  }
+
+  void _messageAction() {
+    print("Message action triggered");
+  }
+
+  void _mailAction() {
+    print("Mail action triggered");
+
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) {
+        return Dialog(
+          insetPadding: const EdgeInsets.symmetric(horizontal: 10),
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: FollowupsEdit(onFormSubmit: () {}, taskId: widget.taskId),
+        );
+      },
     );
   }
 }
 
+class ReusableSlidableAction extends StatelessWidget {
+  final VoidCallback onPressed;
+  final Color backgroundColor;
+  final IconData icon;
+  final Color? foregroundColor;
+  final double iconSize;
+
+  const ReusableSlidableAction({
+    Key? key,
+    required this.onPressed,
+    required this.backgroundColor,
+    required this.icon,
+    this.foregroundColor,
+    this.iconSize = 40.0,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomSlidableAction(
+      padding: EdgeInsets.zero,
+      onPressed: (context) => onPressed(),
+      backgroundColor: backgroundColor,
+      child: Icon(icon, size: iconSize, color: foregroundColor ?? Colors.white),
+    );
+  }
+}
 // class FUpcoming extends StatefulWidget {
 //   final String leadId;
 //   const FUpcoming({super.key, required this.leadId});

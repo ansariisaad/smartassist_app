@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
+import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/buttons/add_btn.dart';
 import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/create_testDrive.dart';
@@ -36,16 +37,40 @@ class _AllTestdriveState extends State<AllTestdrive> {
   List<dynamic> _filteredAllTasks = [];
   List<dynamic> _filteredUpcomingTasks = [];
   List<dynamic> _filteredOverdueTasks = [];
+  bool _isLoadingSearch = false;
+  List<dynamic> upcomingTasks = [];
+  List<dynamic> _searchResults = [];
+  List<dynamic> _filteredTasks = [];
+  String _query = '';
   int _upcommingButtonIndex = 0;
-  TextEditingController searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
+
   bool _isLoading = true;
   int count = 0;
-
   @override
   void initState() {
     super.initState();
     fetchTasks();
   }
+
+  //Helper method to get responsive dimensions
+  bool get _isTablet => MediaQuery.of(context).size.width > 768;
+  bool get _isSmallScreen => MediaQuery.of(context).size.width < 400;
+  double get _screenWidth => MediaQuery.of(context).size.width;
+  double get _screenHeight => MediaQuery.of(context).size.height;
+
+  // Responsive padding
+  EdgeInsets get _responsivePadding => EdgeInsets.symmetric(
+    horizontal: _isTablet ? 20 : (_isSmallScreen ? 8 : 10),
+    vertical: _isTablet ? 12 : 8,
+  );
+
+  // Responsive font sizes
+  double get _titleFontSize => _isTablet ? 20 : (_isSmallScreen ? 16 : 18);
+  double get _bodyFontSize => _isTablet ? 16 : (_isSmallScreen ? 12 : 14);
+  double get _smallFontSize => _isTablet ? 14 : (_isSmallScreen ? 10 : 12);
+
+  double _getScreenWidth() => MediaQuery.sizeOf(context).width;
 
   Future<void> fetchTasks() async {
     setState(() => _isLoading = true);
@@ -83,6 +108,134 @@ class _AllTestdriveState extends State<AllTestdrive> {
     }
   }
 
+  void _performLocalSearch(String query) {
+    if (query.isEmpty) {
+      setState(() {
+        _filteredTasks = List.from(upcomingTasks);
+      });
+      return;
+    }
+
+    setState(() {
+      _filteredTasks = upcomingTasks.where((item) {
+        String name = (item['lead_name'] ?? '').toString().toLowerCase();
+        String email = (item['email'] ?? '').toString().toLowerCase();
+        String phone = (item['mobile'] ?? '').toString().toLowerCase();
+        String searchQuery = query.toLowerCase();
+
+        return name.contains(searchQuery) ||
+            email.contains(searchQuery) ||
+            phone.contains(searchQuery);
+      }).toList();
+    });
+  }
+
+  Future<void> _fetchSearchResults(String query) async {
+    if (query.isEmpty) {
+      setState(() {
+        _searchResults.clear();
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoadingSearch = true;
+    });
+
+    try {
+      final token = await Storage.getToken();
+      final response = await http.get(
+        Uri.parse(
+          'https://api.smartassistapp.in/api/search/global?query=$query',
+        ),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      final Map<String, dynamic> data = json.decode(response.body);
+      if (response.statusCode == 200) {
+        setState(() {
+          _searchResults = data['data']['suggestions'] ?? [];
+        });
+      } else {
+        showErrorMessage(context, message: data['message']);
+      }
+    } catch (e) {
+      showErrorMessage(context, message: 'Something went wrong..!');
+    } finally {
+      setState(() {
+        _isLoadingSearch = false;
+      });
+    }
+  }
+
+  void _onSearchChanged() {
+    final newQuery = _searchController.text.trim();
+    if (newQuery == _query) return;
+
+    _query = newQuery;
+
+    // Perform local search immediately for better UX
+    _performLocalSearch(_query);
+
+    // Also perform API search with debounce
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (_query == _searchController.text.trim()) {
+        _fetchSearchResults(_query);
+      }
+    });
+  }
+
+  double _getResponsiveFontSize(BuildContext context, bool isTablet) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth < 360) return 12; // Very small screens
+    if (screenWidth < 400) return 13; // Small screens
+    if (isTablet) return 16;
+    return 14; // Default
+  }
+
+  double _getResponsiveHintFontSize(BuildContext context, bool isTablet) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth < 360) return 10;
+    if (screenWidth < 400) return 11;
+    if (isTablet) return 14;
+    return 12;
+  }
+
+  double _getResponsiveIconSize(BuildContext context, bool isTablet) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth < 360) return 14;
+    if (screenWidth < 400) return 15;
+    if (isTablet) return 18;
+    return 16;
+  }
+
+  double _getResponsiveHorizontalPadding(BuildContext context, bool isTablet) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth < 360) return 12;
+    if (screenWidth < 400) return 14;
+    if (isTablet) return 20;
+    return 16;
+  }
+
+  double _getResponsiveVerticalPadding(BuildContext context, bool isTablet) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth < 360) return 10;
+    if (screenWidth < 400) return 12;
+    if (isTablet) return 16;
+    return 14;
+  }
+
+  double _getResponsiveIconContainerWidth(BuildContext context, bool isTablet) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth < 360) return 40;
+    if (screenWidth < 400) return 45;
+    if (isTablet) return 55;
+    return 50;
+  }
+
   void _filterTasks(String query) {
     setState(() {
       if (query.isEmpty) {
@@ -113,8 +266,6 @@ class _AllTestdriveState extends State<AllTestdrive> {
     });
   }
 
-  double _getScreenWidth() => MediaQuery.sizeOf(context).width;
-
   // Responsive scaling while maintaining current design proportions
   double _getResponsiveScale() {
     final width = _getScreenWidth();
@@ -138,25 +289,10 @@ class _AllTestdriveState extends State<AllTestdrive> {
     return 240.0 * _getResponsiveScale(); // Base width: 150
   }
 
-  // Helper method to get responsive dimensions
-  bool get _isTablet => MediaQuery.of(context).size.width > 768;
-  bool get _isSmallScreen => MediaQuery.of(context).size.width < 400;
-  double get _screenWidth => MediaQuery.of(context).size.width;
-  double get _screenHeight => MediaQuery.of(context).size.height;
-
-  // Responsive padding
-  EdgeInsets get _responsivePadding => EdgeInsets.symmetric(
-    horizontal: _isTablet ? 20 : (_isSmallScreen ? 8 : 10),
-    vertical: _isTablet ? 12 : 8,
-  );
-
-  // Responsive font sizes
-  double get _titleFontSize => _isTablet ? 20 : (_isSmallScreen ? 16 : 18);
-  double get _bodyFontSize => _isTablet ? 16 : (_isSmallScreen ? 12 : 14);
-  double get _smallFontSize => _isTablet ? 14 : (_isSmallScreen ? 10 : 12);
-
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isTablet = screenSize.width > 600;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -201,95 +337,150 @@ class _AllTestdriveState extends State<AllTestdrive> {
           );
         },
       ),
-      body: CustomScrollView(
-        slivers: [
-          // Top section with search bar and filter buttons.
-          SliverToBoxAdapter(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 5,
-                    horizontal: 10,
-                  ),
-                  child: TextField(
-                    controller: searchController,
-                    onChanged: _filterTasks,
-                    decoration: InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide.none,
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        // 👈 Add this
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide.none,
-                      ),
-                      filled: true,
-                      fillColor: AppColors.containerBg,
-                      contentPadding: const EdgeInsets.fromLTRB(1, 1, 0, 1),
-                      border: InputBorder.none,
-                      hintText: 'Search by name, email or phone',
-                      hintStyle: const TextStyle(
-                        color: Colors.grey,
-                        fontWeight: FontWeight.w400,
-                      ),
-                      prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                      // suffixIcon: const Icon(Icons.mic, color: Colors.grey),
+      body: RefreshIndicator(
+        onRefresh: fetchTasks,
+
+        child: CustomScrollView(
+          slivers: [
+            // Top section with search bar and filter buttons.
+            SliverToBoxAdapter(
+              child: Column(
+                children: [
+                  Container(
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 15,
+                      vertical: 10,
                     ),
-                  ),
-                ),
-                Row(
-                  children: [
-                    const SizedBox(width: 20),
-                    Container(
-                      width: 250,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: const Color(0xFF767676),
-                          width: .5,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: 38, // Minimum height for accessibility
+                        maxHeight: 38, // Maximum height to prevent oversizing
+                      ),
+                      child: TextField(
+                        autofocus: false,
+                        controller: _searchController,
+                        onChanged: (value) => _onSearchChanged(),
+                        textAlignVertical: TextAlignVertical.center,
+                        style: GoogleFonts.poppins(
+                          fontSize: _getResponsiveFontSize(context, isTablet),
                         ),
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: Row(
-                        children: [
-                          _buildFilterButton(
-                            color: AppColors.colorsBlue,
-                            index: 0,
-                            text: 'All',
-                            activeColor: AppColors.borderblue,
+                        decoration: InputDecoration(
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: BorderSide.none,
                           ),
-                          _buildFilterButton(
-                            color: AppColors.containerGreen,
-                            index: 1,
-                            text: 'Upcoming',
-                            activeColor: AppColors.borderGreen,
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: BorderSide.none,
                           ),
-                          _buildFilterButton(
-                            color: AppColors.containerRed,
-                            index: 2,
-                            text: 'Overdue ($count)',
-                            activeColor: AppColors.borderRed,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: _getResponsiveHorizontalPadding(
+                              context,
+                              isTablet,
+                            ),
+                            vertical: _getResponsiveVerticalPadding(
+                              context,
+                              isTablet,
+                            ),
                           ),
-                        ],
+                          filled: true,
+                          fillColor: AppColors.containerBg,
+                          hintText: 'Search by name, email or phone',
+                          hintStyle: GoogleFonts.poppins(
+                            fontSize: _getResponsiveHintFontSize(
+                              context,
+                              isTablet,
+                            ),
+                            fontWeight: FontWeight.w300,
+                          ),
+                          prefixIcon: Container(
+                            width: _getResponsiveIconContainerWidth(
+                              context,
+                              isTablet,
+                            ),
+                            child: Center(
+                              child: Icon(
+                                FontAwesomeIcons.magnifyingGlass,
+                                color: AppColors.fontColor,
+                                size: _getResponsiveIconSize(context, isTablet),
+                              ),
+                            ),
+                          ),
+                          prefixIconConstraints: BoxConstraints(
+                            minWidth: _getResponsiveIconContainerWidth(
+                              context,
+                              isTablet,
+                            ),
+                            maxWidth: _getResponsiveIconContainerWidth(
+                              context,
+                              isTablet,
+                            ),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: BorderSide.none,
+                          ),
+                          isDense: true,
+                        ),
                       ),
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 0),
+                    child: Row(
+                      children: [
+                        const SizedBox(width: 10),
+                        Container(
+                          width: _getSubTabWidth(),
+                          height: _getSubTabHeight(),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: const Color(0xFF767676).withOpacity(0.3),
+                              width: 0.5,
+                            ),
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          child: Row(
+                            children: [
+                              _buildFilterButton(
+                                color: AppColors.colorsBlue,
+                                index: 0,
+                                text: 'All',
+                                activeColor: AppColors.borderblue,
+                              ),
+                              _buildFilterButton(
+                                color: AppColors.containerGreen,
+                                index: 1,
+                                text: 'Upcoming',
+                                activeColor: AppColors.borderGreen,
+                              ),
+                              _buildFilterButton(
+                                color: AppColors.containerRed,
+                                index: 2,
+                                text: 'Overdue ($count)',
+                                activeColor: AppColors.borderRed,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                ],
+              ),
             ),
-          ),
-          SliverToBoxAdapter(
-            child: _isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.colorsBlue,
-                    ),
-                  )
-                : _buildContentBySelectedTab(),
-          ),
-        ],
+            SliverToBoxAdapter(
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.colorsBlue,
+                      ),
+                    )
+                  : _buildContentBySelectedTab(),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -383,80 +574,4 @@ class _AllTestdriveState extends State<AllTestdrive> {
       ),
     );
   }
-
-  // Widget _buildFilterButton({
-  //   required int index,
-  //   required String text,
-  //   required Color activeColor,
-  //   required Color color,
-  // }) {
-  //   final bool isActive = _upcommingButtonIndex == index;
-
-  //   return Expanded(
-  //     child: TextButton(
-  //       onPressed: () => setState(() => _upcommingButtonIndex = index),
-  //       style: TextButton.styleFrom(
-  //         backgroundColor: isActive ? activeColor.withOpacity(0.29) : null,
-  //         foregroundColor: isActive ? Colors.blueGrey : Colors.black,
-  //         padding: const EdgeInsets.symmetric(vertical: 5),
-  //         side: BorderSide(
-  //           color: isActive ? activeColor : Colors.transparent,
-  //           width: .5,
-  //         ),
-  //         shape: RoundedRectangleBorder(
-  //           borderRadius: BorderRadius.circular(30),
-  //         ),
-  //       ),
-  //       child: Text(
-  //         text,
-  //         style: TextStyle(
-  //           fontSize: 14,
-  //           fontWeight: FontWeight.w400,
-  //           color: isActive ? color : Colors.grey,
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
 }
-
-
-  // SliverToBoxAdapter(
-  //           child: _isLoading
-  //               ? const Center(
-  //                   child:
-  //                       CircularProgressIndicator(color: AppColors.colorsBlue))
-  //               : _upcommingButtonIndex == 0
-  //                   ? (_filteredUpcomingTasks.isEmpty &&
-  //                           _filteredOverdueTasks.isEmpty)
-  //                       ? const Center(
-  //                           child: Padding(
-  //                             padding: EdgeInsets.symmetric(vertical: 20),
-  //                             child: Text("No appointments available"),
-  //                           ),
-  //                         )
-  //                       : Column(
-  //                           children: [
-  //                             if (_filteredUpcomingTasks.isNotEmpty)
-  //                               TestUpcoming(
-  //                                 upcomingTestDrive: _filteredUpcomingTasks,
-  //                                 isNested: true,
-  //                               ),
-  //                             if (_filteredOverdueTasks.isNotEmpty)
-  //                               TestOverdue(
-  //                                 overdueTestDrive: _filteredOverdueTasks,
-  //                                 isNested: true,
-  //                               ),
-  //                           ],
-  //                         )
-  //                   : _upcommingButtonIndex == 1
-  //                       ? TestUpcoming(
-  //                           upcomingTestDrive: _filteredUpcomingTasks,
-  //                           isNested: true,
-  //                         )
-  //                       : TestOverdue(
-  //                           overdueTestDrive: _filteredOverdueTasks,
-  //                           isNested: true,
-  //                         ),
-  //         ),
-        

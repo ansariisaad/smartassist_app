@@ -1,18 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
 import 'package:smartassist/services/api_srv.dart';
-import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/appointments.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-// ---------------- appointment UPCOMING LIST ----------------
 class OppUpcoming extends StatefulWidget {
   final Future<void> Function() refreshDashboard;
   final List<dynamic> upcomingOpp;
@@ -22,7 +18,8 @@ class OppUpcoming extends StatefulWidget {
     super.key,
     required this.upcomingOpp,
     required this.isNested,
-    this.onFavoriteToggle, required this.refreshDashboard,
+    this.onFavoriteToggle,
+    required this.refreshDashboard,
   });
 
   @override
@@ -231,7 +228,8 @@ class OppUpcomingItem extends StatefulWidget {
     required this.subject,
     required this.swipeOffset,
     required this.onToggleFavorite,
-    required this.mobile, required this.refreshDashboard,
+    required this.mobile,
+    required this.refreshDashboard,
   });
 
   @override
@@ -239,22 +237,26 @@ class OppUpcomingItem extends StatefulWidget {
 }
 
 class _OppUpcomingItemState extends State<OppUpcomingItem>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   late bool isFav;
 
   bool _wasCallingPhone = false;
+
+  late SlidableController _slidableController;
 
   @override
   void initState() {
     super.initState();
     // Register this class as an observer to track app lifecycle changes
     WidgetsBinding.instance.addObserver(this);
+    _slidableController = SlidableController(this);
   }
 
   @override
   void dispose() {
     // Remove observer when widget is disposed
     WidgetsBinding.instance.removeObserver(this);
+    _slidableController.dispose();
     super.dispose();
   }
 
@@ -277,7 +279,27 @@ class _OppUpcomingItemState extends State<OppUpcomingItem>
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 5, 10, 0),
-      child: _buildFollowupCard(context),
+      child: InkWell(
+        onTap: () {
+          if (widget.leadId.isNotEmpty) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => FollowupsDetails(
+                  leadId: widget.leadId,
+                  isFromFreshlead: false,
+                  isFromManager: false,
+                  isFromTestdriveOverview: false,
+                  refreshDashboard: widget.refreshDashboard,
+                ),
+              ),
+            );
+          } else {
+            print("Invalid leadId");
+          }
+        },
+        child: _buildFollowupCard(context),
+      ),
     );
   }
 
@@ -287,6 +309,7 @@ class _OppUpcomingItemState extends State<OppUpcomingItem>
 
     return Slidable(
       key: ValueKey(widget.eventId), // Always good to set keys
+      controller: _slidableController,
       startActionPane: ActionPane(
         extentRatio: 0.2,
         motion: const ScrollMotion(),
@@ -332,86 +355,6 @@ class _OppUpcomingItemState extends State<OppUpcomingItem>
 
       child: Stack(
         children: [
-          // Favorite Swipe Overlay
-          if (isFavoriteSwipe)
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.yellow.withOpacity(0.2),
-                      Colors.yellow.withOpacity(0.8),
-                    ],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      const SizedBox(width: 15),
-                      Icon(
-                        widget.isFavorite
-                            ? Icons.star_outline_rounded
-                            : Icons.star_rounded,
-                        color: const Color.fromRGBO(226, 195, 34, 1),
-                        size: 40,
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        widget.isFavorite ? 'Unfavorite' : 'Favorite',
-                        style: GoogleFonts.poppins(
-                          color: Color.fromRGBO(187, 158, 0, 1),
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-          // Call Swipe Overlay
-          if (isCallSwipe)
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Colors.green, Colors.green],
-                    begin: Alignment.centerRight,
-                    end: Alignment.centerLeft,
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      const SizedBox(width: 10),
-                      const Icon(
-                        Icons.phone_in_talk,
-                        color: Colors.white,
-                        size: 30,
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        'Call',
-                        style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(width: 5),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
           // Main Container
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
@@ -480,12 +423,18 @@ class _OppUpcomingItemState extends State<OppUpcomingItem>
   }
 
   Widget _buildUserDetails(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(widget.name, style: AppFont.dashboardName(context)),
-        const SizedBox(height: 5),
-      ],
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.of(context).size.width * .35,
+      ),
+      child: Text(
+        maxLines: 1, // Allow up to 2 lines
+        overflow: TextOverflow
+            .ellipsis, // Show ellipsis if it overflows beyond 2 lines
+        softWrap: true,
+        widget.name,
+        style: AppFont.dashboardName(context),
+      ),
     );
   }
 
@@ -588,11 +537,13 @@ class _OppUpcomingItemState extends State<OppUpcomingItem>
 
   Widget _buildCarModel(BuildContext context) {
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 100),
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.of(context).size.width * .30,
+      ),
       child: Text(
         widget.vehicle,
         style: AppFont.dashboardCarName(context),
-        maxLines: 2, // Allow up to 2 lines
+        maxLines: 1, // Allow up to 2 lines
         overflow: TextOverflow
             .ellipsis, // Show ellipsis if it overflows beyond 2 lines
         softWrap: true, // Allow wrapping
@@ -600,36 +551,38 @@ class _OppUpcomingItemState extends State<OppUpcomingItem>
     );
   }
 
+  bool _isActionPaneOpen = false;
   Widget _buildNavigationButton(BuildContext context) {
-    // ✅ Accept context
     return GestureDetector(
       onTap: () {
-        if (widget.leadId.isNotEmpty) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => FollowupsDetails(
-                leadId: widget.leadId,
-                isFromFreshlead: false,
-                isFromManager: false,
-
-                isFromTestdriveOverview: false,
-                refreshDashboard: widget.refreshDashboard,
-              ),
-            ),
-          );
+        if (_isActionPaneOpen) {
+          _slidableController.close();
+          setState(() {
+            _isActionPaneOpen = false;
+          });
         } else {
-          print("Invalid leadId");
+          _slidableController.close();
+          Future.delayed(Duration(milliseconds: 100), () {
+            _slidableController.openEndActionPane();
+            setState(() {
+              _isActionPaneOpen = true;
+            });
+          });
         }
       },
+
       child: Container(
         padding: const EdgeInsets.all(3),
         decoration: BoxDecoration(
           color: AppColors.arrowContainerColor,
           borderRadius: BorderRadius.circular(30),
         ),
-        child: const Icon(
-          Icons.arrow_forward_ios_rounded,
+
+        child: Icon(
+          _isActionPaneOpen
+              ? Icons.arrow_forward_ios_rounded
+              : Icons.arrow_back_ios_rounded,
+
           size: 25,
           color: Colors.white,
         ),

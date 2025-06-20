@@ -51,11 +51,9 @@ class _VehicleColorsState extends State<VehicleColors> {
     _loadAllColors();
 
     // Add listener to search controller for real-time filtering
-    // _searchControllerVehicleColor.addListener(() {
-    //   _onSearchChanged(_searchControllerVehicleColor.text);
-    // });
-
-    _searchControllerVehicleColor.addListener(_handleSearchChange);
+    _searchControllerVehicleColor.addListener(() {
+      _onSearchChanged(_searchControllerVehicleColor.text);
+    });
   }
 
   @override
@@ -137,36 +135,12 @@ class _VehicleColorsState extends State<VehicleColors> {
     return null;
   }
 
-  void _handleSearchChange() {
-    _onSearchChanged(_searchControllerVehicleColor.text);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Text('Color', style: AppFont.dropDowmLabel(context)),
-        Padding(
-          padding: const EdgeInsets.only(bottom: 0.0, left: 5),
-          child: RichText(
-            text: TextSpan(
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: AppColors.fontBlack,
-              ),
-              children: [
-                TextSpan(text: 'Color', style: AppFont.dropDowmLabel(context)),
-
-                const TextSpan(
-                  text: " *",
-                  style: TextStyle(color: Colors.red),
-                ),
-              ],
-            ),
-          ),
-        ),
+        Text('Color', style: AppFont.dropDowmLabel(context)),
         const SizedBox(height: 10),
         Container(
           height: MediaQuery.of(context).size.height * 0.055,
@@ -198,34 +172,9 @@ class _VehicleColorsState extends State<VehicleColors> {
                       vertical: 0,
                       horizontal: 10,
                     ),
-
-                    // border: OutlineInputBorder(
-                    //   borderRadius: BorderRadius.circular(5),
-                    //   borderSide: BorderSide.none,
-                    // ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(5),
-                      borderSide: BorderSide(
-                        color: widget.errorText != null
-                            ? Colors.red
-                            : Colors.transparent,
-                      ),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5),
-                      borderSide: BorderSide(
-                        color: widget.errorText != null
-                            ? Colors.red
-                            : Colors.transparent,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5),
-                      borderSide: BorderSide(
-                        color: widget.errorText != null
-                            ? Colors.red
-                            : Colors.transparent,
-                      ),
+                      borderSide: BorderSide.none,
                     ),
                   ),
                   style: GoogleFonts.poppins(
@@ -267,41 +216,15 @@ class _VehicleColorsState extends State<VehicleColors> {
 
                 return ListTile(
                   onTap: () {
-                    // setState(() {
-                    //   FocusScope.of(context).unfocus();
-                    //   selectedVehicleColorId = result['color_id'];
-                    //   selectedColorName = result['color_name'];
-                    //   selectedUrl = imageUrl;
-                    //   _searchControllerVehicleColor.text =
-                    //       result['color_name'] ?? '';
-                    //   _searchResultsColor
-                    //       .clear(); // Clear results after selection
-                    // });
-
                     setState(() {
                       FocusScope.of(context).unfocus();
                       selectedVehicleColorId = result['color_id'];
                       selectedColorName = result['color_name'];
                       selectedUrl = imageUrl;
-
-                      // Remove listener temporarily
-                      // _searchControllerVehicleColor.removeListener(() {
-                      //   _onSearchChanged(_searchControllerVehicleColor.text);
-                      // });
-
-                      _searchControllerVehicleColor.removeListener(
-                        _handleSearchChange,
-                      );
-
                       _searchControllerVehicleColor.text =
                           result['color_name'] ?? '';
-
-                      // Add listener back
-                      _searchControllerVehicleColor.addListener(
-                        _handleSearchChange,
-                      );
-
-                      _searchResultsColor.clear();
+                      _searchResultsColor
+                          .clear(); // Clear results after selection
                     });
 
                     // Fixed: Call the callback with proper data

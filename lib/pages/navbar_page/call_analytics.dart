@@ -891,9 +891,9 @@ class _CallAnalyticsState extends State<CallAnalytics>
       }
 
       // Connected calls (treating as incoming for now)
-      if (data['connected'] != null) {
-        incomingCalls += (data['connected']['calls'] as num?)?.toInt() ?? 0;
-        incomingDuration = data['connected']['duration']?.toString() ?? "0m";
+      if (data['Connected'] != null) {
+        incomingCalls += (data['Connected']['calls'] as num?)?.toInt() ?? 0;
+        incomingDuration = data['Connected']['duration']?.toString() ?? "0m";
       }
 
       // Missed calls

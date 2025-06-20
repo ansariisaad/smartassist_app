@@ -166,7 +166,6 @@ class _AllTestdriveState extends State<AllTestdrive> {
         description.contains(searchQuery) ||
         vehicleModel.contains(searchQuery) ||
         customerName.contains(searchQuery);
-
   }
 
   // Removed the API search method since we're doing local search only

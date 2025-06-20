@@ -497,15 +497,15 @@ class _CreateLeadsState extends State<CreateLeads> {
       //   isValid = false;
       // }
 
-       if (selectedVehicleData == null || selectedVehicleName!.isEmpty) {
+      if (selectedVehicleData == null || selectedVehicleName!.isEmpty) {
         _errors['vehicleName'] = 'Please select a vehicle';
         isValid = false;
       }
 
-      if (selectedColorName == null || selectedColorName!.isEmpty) {
-        _errors['vehicleColors'] = 'Please select a vehicle color';
-        isValid = false;
-      }
+      // if (selectedColorName == null || selectedColorName!.isEmpty) {
+      //   _errors['vehicleColors'] = 'Please select a vehicle color';
+      //   isValid = false;
+      // }
 
       // Validate purchase type
       if (_selectedPurchaseType.isEmpty) {
@@ -911,7 +911,6 @@ class _CreateLeadsState extends State<CreateLeads> {
                           print("mobile: $value");
                         },
                       ),
-                      //////////////////////////////////////////////////////////////
                       _buildTextField(
                         isRequired: true,
                         label: 'Email',
@@ -974,6 +973,7 @@ class _CreateLeadsState extends State<CreateLeads> {
                             selectedVehicleData = selectedVehicle;
                             selectedVehicleName =
                                 selectedVehicle['vehicle_name'];
+                            selectedBrand = selectedVehicle['brand'];
                             if (_errors.containsKey('vehicleName')) {
                               _errors.remove('vehicleName');
                             }
@@ -985,25 +985,6 @@ class _CreateLeadsState extends State<CreateLeads> {
                           );
                         },
                       ),
-
-                      // _buildSearchField(
-                      //   errorText: _errors['model'],
-                      //   onChanged: (value) {
-                      //     if (_errors.containsKey('model')) {
-                      //       setState(() {
-                      //         _errors.remove('model');
-                      //       });
-                      //     }
-                      //   },
-                      //   // onChanged: (value) {
-                      //   //   setState(() {
-                      //   //     modelInterestController = value;
-                      //   //     if (_errors.containsKey('model')) {
-                      //   //       _errors.remove('model');
-                      //   //     }
-                      //   //   });
-                      //   // },
-                      // ),
                       const SizedBox(height: 10),
                       VehicleColors(
                         errorText: _errors['vehicleColors'], // Add comma here

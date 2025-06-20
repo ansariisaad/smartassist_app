@@ -3,7 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
-import 'package:smartassist/services/api_srv.dart'; 
+import 'package:smartassist/services/api_srv.dart';
 
 typedef VehicleSelectedCallback =
     void Function(Map<String, dynamic> selectedVehicle);
@@ -32,6 +32,7 @@ class _VehiclesearchTextfieldState extends State<VehiclesearchTextfield> {
 
   Map<String, dynamic>? selectedVehicle; // Store entire vehicle object
   String? selectedVehicleName;
+  String? vehicleBrand;
 
   @override
   void initState() {
@@ -250,6 +251,7 @@ class _VehiclesearchTextfieldState extends State<VehiclesearchTextfield> {
                         selectedVehicle =
                             vehicle; // Store entire vehicle object
                         selectedVehicleName = vehicle['vehicle_name'];
+                        vehicleBrand = vehicle['brand'];
                         _searchController1.clear();
                         _filteredVehicles.clear();
                       });

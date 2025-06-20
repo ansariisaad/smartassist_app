@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/config/component/color/colors.dart';
+import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/utils/token_manager.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
@@ -185,9 +186,6 @@ class _WhatsappChatState extends State<WhatsappChat> {
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );
-        Navigator.pop(context); // Dismiss the dialog after success
-
-        // Launch WhatsApp scanner after successful API call
         await launchWhatsAppScanner();
       } else {
         // Error handling
@@ -396,9 +394,10 @@ class _WhatsappChatState extends State<WhatsappChat> {
     socket.on('wa_error', (data) {
       print('WebSocket error: $data');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${data['error'] ?? 'Unknown error'}')),
-        );
+        print(' this is error ${data['error']}');
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   SnackBar(content: Text('Error: ${data['error'] ?? 'Unknown error'}')),
+        // );
       }
     });
   }
@@ -488,7 +487,7 @@ class _WhatsappChatState extends State<WhatsappChat> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.colorsBlue,
+        backgroundColor: AppColors.colorsBlueButton,
         leadingWidth: 40,
         leading: IconButton(
           icon: const Icon(
@@ -552,26 +551,35 @@ class _WhatsappChatState extends State<WhatsappChat> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
+                        // if (!isConnected)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: InkWell(
+                            child: Text(
+                              'click to connect',
+                              style: AppFont.dropDowmLabel(context),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 10),
                         InkWell(
                           onTap: () {
                             initwhatsappChat(context);
                             print('clicked');
                           },
-                          child: Text('Connect your whatsapp'),
-                        ),
-                        if (!isConnected)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8.0),
-                            child: InkWell(
-                              child: Text(
-                                'click to connect',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 12,
-                                ),
-                              ),
+                          child: Container(
+                            // margin: EdgeInsets.all(10),
+                            padding: EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: AppColors.colorsBlueButton,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              'Connect your whatsapp',
+                              style: AppFont.appbarfontWhite(context),
                             ),
                           ),
+                        ),
                       ],
                     ),
                   )
@@ -646,53 +654,57 @@ class _WhatsappChatState extends State<WhatsappChat> {
                     },
                   ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 5.0),
-            color: Colors.white,
-            child: Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.emoji_emotions_outlined),
-                  color: Colors.grey[600],
-                  onPressed: () {},
-                ),
-                IconButton(
-                  icon: const Icon(Icons.attach_file),
-                  color: Colors.grey[600],
-                  onPressed: () {},
-                ),
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 15),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                    child: TextField(
-                      controller: _messageController,
-                      decoration: const InputDecoration(
-                        hintText: 'Type a message',
-                        border: InputBorder.none,
+          if (!isConnected)
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8.0,
+                vertical: 5.0,
+              ),
+              color: Colors.white,
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.emoji_emotions_outlined),
+                    color: Colors.grey[600],
+                    onPressed: () {},
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.attach_file),
+                    color: Colors.grey[600],
+                    onPressed: () {},
+                  ),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 15),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(25),
                       ),
-                      maxLines: null,
+                      child: TextField(
+                        controller: _messageController,
+                        decoration: const InputDecoration(
+                          hintText: 'Type a message',
+                          border: InputBorder.none,
+                        ),
+                        maxLines: null,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  decoration: const BoxDecoration(
-                    color: AppColors.colorsBlue,
-                    shape: BoxShape.circle,
+                  const SizedBox(width: 8),
+                  Container(
+                    decoration: const BoxDecoration(
+                      color: AppColors.colorsBlue,
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.send),
+                      color: Colors.white,
+                      onPressed: sendMessage,
+                    ),
                   ),
-                  child: IconButton(
-                    icon: const Icon(Icons.send),
-                    color: Colors.white,
-                    onPressed: sendMessage,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );

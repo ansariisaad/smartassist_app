@@ -497,9 +497,20 @@ class _CreateLeadsState extends State<CreateLeads> {
       //   isValid = false;
       // }
 
+       if (selectedVehicleData == null || selectedVehicleName!.isEmpty) {
+        _errors['vehicleName'] = 'Please select a vehicle';
+        isValid = false;
+      }
+
+      if (selectedColorName == null || selectedColorName!.isEmpty) {
+        _errors['vehicleColors'] = 'Please select a vehicle color';
+        isValid = false;
+      }
+
       // Validate purchase type
       if (_selectedPurchaseType.isEmpty) {
         _errors['purchaseType'] = 'Please select a purchase type';
+
         isValid = false;
       }
 
@@ -957,11 +968,15 @@ class _CreateLeadsState extends State<CreateLeads> {
                     children: [
                       _buildAmountRange(isRequired: true),
                       VehiclesearchTextfield(
+                        errorText: _errors['vehicleName'],
                         onVehicleSelected: (selectedVehicle) {
                           setState(() {
                             selectedVehicleData = selectedVehicle;
                             selectedVehicleName =
                                 selectedVehicle['vehicle_name'];
+                            if (_errors.containsKey('vehicleName')) {
+                              _errors.remove('vehicleName');
+                            }
                           });
 
                           print("Selected Vehicle: $selectedVehicleName");
@@ -991,62 +1006,21 @@ class _CreateLeadsState extends State<CreateLeads> {
                       // ),
                       const SizedBox(height: 10),
                       VehicleColors(
+                        errorText: _errors['vehicleColors'], // Add comma here
                         onVehicleColorSelected: (selectedColorData) {
                           setState(() {
                             selectedColorName = selectedColorData['color_name'];
-                            // selectedColorId = selectedColorData['color_id'];
-                            // selectedColorImageUrl =
-                            //     selectedColorData['image_url'];
+                            if (_errors.containsKey('vehicleColors')) {
+                              _errors.remove('vehicleColors');
+                            }
                           });
+
                           print("Selected Color Name: $selectedColorName");
                         },
                       ),
 
-                      const SizedBox(height: 10),
-                      // _buildVehicleColorSearch(),
-                      // const SizedBox(height: 10),
-                      // _buildButtonsFloat(
-                      //   isRequired: true,
-                      //   options: {
-                      //     "Jaguar": "Jaguar",
-                      //     "Land Rover": "Land Rover",
-                      //   },
-                      //   groupValue: _selectedBrand,
-                      //   label: 'Brand',
-                      //   errorText: _errors['brand'],
-                      //   onChanged: (value) {
-                      //     setState(() {
-                      //       _selectedBrand = value;
-                      //       if (_errors.containsKey('brand')) {
-                      //         _errors.remove('brand');
-                      //       }
-                      //     });
-                      //   },
-                      // ),
-                      // const SizedBox(height: 10),
-                      // const SizedBox(
-                      //   height: 10,
-                      // ),
+                      const SizedBox(height: 5),
 
-                      // _buildButtonsFloat(
-                      //     isRequired: true,
-                      //     options: {
-                      //       // "EV": "EV",
-                      //       "Petrol": "Petrol",
-                      //       "Diesel": "Diesel",
-                      //     },
-                      //     groupValue: _selectedFuel,
-                      //     label: 'Fuel Type',
-                      //     errorText: _errors['fuel'],
-                      //     onChanged: (value) {
-                      //       setState(() {
-                      //         if (_errors.containsKey('fuel')) {
-                      //           _errors.remove('fuel');
-                      //         }
-                      //         _selectedFuel = value;
-                      //       });
-                      //     }),
-                      // const SizedBox(height: 10),
                       _buildButtonsFloat(
                         isRequired: true,
                         options: {

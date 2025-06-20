@@ -42,11 +42,13 @@ class _AllTestdriveState extends State<AllTestdrive> {
   List<dynamic> _searchResults = [];
   List<dynamic> _filteredTasks = [];
   String _query = '';
+  bool _isSearching = false;
   int _upcommingButtonIndex = 0;
   final TextEditingController _searchController = TextEditingController();
 
   bool _isLoading = true;
   int count = 0;
+
   @override
   void initState() {
     super.initState();
@@ -108,84 +110,74 @@ class _AllTestdriveState extends State<AllTestdrive> {
     }
   }
 
+  // Modified local search method to search across all original task arrays
   void _performLocalSearch(String query) {
-    if (query.isEmpty) {
-      setState(() {
-        _filteredTasks = List.from(upcomingTasks);
-      });
-      return;
-    }
-
     setState(() {
-      _filteredTasks = upcomingTasks.where((item) {
-        String name = (item['lead_name'] ?? '').toString().toLowerCase();
-        String email = (item['email'] ?? '').toString().toLowerCase();
-        String phone = (item['mobile'] ?? '').toString().toLowerCase();
-        String searchQuery = query.toLowerCase();
-
-        return name.contains(searchQuery) ||
-            email.contains(searchQuery) ||
-            phone.contains(searchQuery);
-      }).toList();
-    });
-  }
-
-  Future<void> _fetchSearchResults(String query) async {
-    if (query.isEmpty) {
-      setState(() {
-        _searchResults.clear();
-      });
-      return;
-    }
-
-    setState(() {
-      _isLoadingSearch = true;
-    });
-
-    try {
-      final token = await Storage.getToken();
-      final response = await http.get(
-        Uri.parse(
-          'https://api.smartassistapp.in/api/search/global?query=$query',
-        ),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
-
-      final Map<String, dynamic> data = json.decode(response.body);
-      if (response.statusCode == 200) {
-        setState(() {
-          _searchResults = data['data']['suggestions'] ?? [];
-        });
+      if (query.isEmpty) {
+        _filteredAllTasks = List.from(_originalAllTasks);
+        _filteredUpcomingTasks = List.from(_originalUpcomingTasks);
+        _filteredOverdueTasks = List.from(_originalOverdueTasks);
+        _isSearching = false;
       } else {
-        showErrorMessage(context, message: data['message']);
+        _isSearching = true;
+        final searchQuery = query.toLowerCase();
+
+        // Search in All Tasks
+        _filteredAllTasks = _originalAllTasks.where((item) {
+          return _matchesSearchCriteria(item, searchQuery);
+        }).toList();
+
+        // Search in Upcoming Tasks
+        _filteredUpcomingTasks = _originalUpcomingTasks.where((item) {
+          return _matchesSearchCriteria(item, searchQuery);
+        }).toList();
+
+        // Search in Overdue Tasks
+        _filteredOverdueTasks = _originalOverdueTasks.where((item) {
+          return _matchesSearchCriteria(item, searchQuery);
+        }).toList();
       }
-    } catch (e) {
-      showErrorMessage(context, message: 'Something went wrong..!');
-    } finally {
-      setState(() {
-        _isLoadingSearch = false;
-      });
-    }
+    });
   }
 
+  // Helper method to check if an item matches search criteria
+  bool _matchesSearchCriteria(dynamic item, String searchQuery) {
+    // Check common fields that might exist in test drive data
+    String name = (item['lead_name'] ?? item['name'] ?? '')
+        .toString()
+        .toLowerCase();
+    String email = (item['email'] ?? '').toString().toLowerCase();
+    String phone = (item['mobile'] ?? item['phone'] ?? '')
+        .toString()
+        .toLowerCase();
+    String subject = (item['subject'] ?? '').toString().toLowerCase();
+    String description = (item['description'] ?? '').toString().toLowerCase();
+    String vehicleModel = (item['vehicle_model'] ?? '')
+        .toString()
+        .toLowerCase();
+    String customerName = (item['customer_name'] ?? '')
+        .toString()
+        .toLowerCase();
+
+    return name.contains(searchQuery) ||
+        email.contains(searchQuery) ||
+        phone.contains(searchQuery) ||
+        subject.contains(searchQuery) ||
+        description.contains(searchQuery) ||
+        vehicleModel.contains(searchQuery) ||
+        customerName.contains(searchQuery);
+
+  }
+
+  // Removed the API search method since we're doing local search only
   void _onSearchChanged() {
     final newQuery = _searchController.text.trim();
     if (newQuery == _query) return;
 
     _query = newQuery;
 
-    // Perform local search immediately for better UX
+    // Perform local search immediately
     _performLocalSearch(_query);
-
-    // Also perform API search with debounce
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (_query == _searchController.text.trim()) {
-        _fetchSearchResults(_query);
-      }
-    });
   }
 
   double _getResponsiveFontSize(BuildContext context, bool isTablet) {
@@ -236,35 +228,7 @@ class _AllTestdriveState extends State<AllTestdrive> {
     return 50;
   }
 
-  void _filterTasks(String query) {
-    setState(() {
-      if (query.isEmpty) {
-        _filteredAllTasks = List.from(_originalAllTasks);
-        _filteredUpcomingTasks = List.from(_originalUpcomingTasks);
-        _filteredOverdueTasks = List.from(_originalOverdueTasks);
-      } else {
-        final lowercaseQuery = query.toLowerCase();
-        void filterList(List<dynamic> original, List<dynamic> filtered) {
-          filtered.clear();
-          filtered.addAll(
-            original.where(
-              (task) =>
-                  task['name'].toString().toLowerCase().contains(
-                    lowercaseQuery,
-                  ) ||
-                  task['subject'].toString().toLowerCase().contains(
-                    lowercaseQuery,
-                  ),
-            ),
-          );
-        }
-
-        filterList(_originalAllTasks, _filteredAllTasks);
-        filterList(_originalUpcomingTasks, _filteredUpcomingTasks);
-        filterList(_originalOverdueTasks, _filteredOverdueTasks);
-      }
-    });
-  }
+  // Removed the old _filterTasks method since _performLocalSearch now handles all filtering
 
   // Responsive scaling while maintaining current design proportions
   double _getResponsiveScale() {
@@ -339,7 +303,6 @@ class _AllTestdriveState extends State<AllTestdrive> {
       ),
       body: RefreshIndicator(
         onRefresh: fetchTasks,
-
         child: CustomScrollView(
           slivers: [
             // Top section with search bar and filter buttons.
@@ -470,6 +433,25 @@ class _AllTestdriveState extends State<AllTestdrive> {
                 ],
               ),
             ),
+            // Search hint section
+            if (_isSearching && _query.isNotEmpty)
+              SliverToBoxAdapter(
+                child: Container(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 15,
+                    vertical: 8,
+                  ),
+                  child: Text(
+                    'Showing results for: "$_query"',
+                    style: GoogleFonts.poppins(
+                      fontSize: _smallFontSize,
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.fontColor.withOpacity(0.7),
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
+              ),
             SliverToBoxAdapter(
               child: _isLoading
                   ? const Center(
@@ -486,6 +468,50 @@ class _AllTestdriveState extends State<AllTestdrive> {
   }
 
   Widget _buildContentBySelectedTab() {
+    // Check if we're searching and all filtered arrays are empty
+    bool isSearchingWithNoResults =
+        _isSearching &&
+        _filteredAllTasks.isEmpty &&
+        _filteredUpcomingTasks.isEmpty &&
+        _filteredOverdueTasks.isEmpty;
+
+    // If searching with no results, show a unified message
+    if (isSearchingWithNoResults) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                FontAwesomeIcons.magnifyingGlass,
+                size: 48,
+                color: AppColors.fontColor.withOpacity(0.3),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'No matching records found',
+                style: GoogleFonts.poppins(
+                  fontSize: _bodyFontSize,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.fontColor.withOpacity(0.7),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Try adjusting your search terms',
+                style: GoogleFonts.poppins(
+                  fontSize: _smallFontSize,
+                  fontWeight: FontWeight.w400,
+                  color: AppColors.fontColor.withOpacity(0.5),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     switch (_upcommingButtonIndex) {
       case 0: // All Followups
         return _filteredAllTasks.isEmpty
@@ -493,7 +519,9 @@ class _AllTestdriveState extends State<AllTestdrive> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   child: Text(
-                    "No Testdrive available",
+                    _isSearching
+                        ? "No matching testdrive found"
+                        : "No Testdrive available",
                     style: AppFont.smallText12(context),
                   ),
                 ),
@@ -505,7 +533,9 @@ class _AllTestdriveState extends State<AllTestdrive> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   child: Text(
-                    "No upcoming Testdrive available",
+                    _isSearching
+                        ? "No matching upcoming testdrive found"
+                        : "No upcoming Testdrive available",
                     style: AppFont.smallText12(context),
                   ),
                 ),
@@ -521,7 +551,9 @@ class _AllTestdriveState extends State<AllTestdrive> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   child: Text(
-                    "No overdue Testdrive available",
+                    _isSearching
+                        ? "No matching overdue testdrive found"
+                        : "No overdue Testdrive available",
                     style: AppFont.smallText12(context),
                   ),
                 ),
@@ -550,7 +582,6 @@ class _AllTestdriveState extends State<AllTestdrive> {
         style: TextButton.styleFrom(
           backgroundColor: isActive ? activeColor.withOpacity(0.29) : null,
           foregroundColor: isActive ? Colors.white : Colors.black,
-          // padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 0),
           padding: EdgeInsets.symmetric(
             vertical: 5.0 * _getResponsiveScale(),
             horizontal: 0.0 * _getResponsiveScale(),

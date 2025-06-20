@@ -665,7 +665,7 @@ class _TaskItemState extends State<TaskItem>
                   builder: (context) => FollowupsDetails(
                     leadId: widget.leadId,
                     isFromFreshlead: false,
-                    isFromManager: true,
+                    isFromManager: false,
 
                     isFromTestdriveOverview: false,
                     refreshDashboard: () async {},

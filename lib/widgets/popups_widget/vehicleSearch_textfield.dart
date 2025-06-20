@@ -1,25 +1,23 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
-import 'package:smartassist/services/api_srv.dart';
-import 'package:smartassist/utils/snackbar_helper.dart';
-import 'package:smartassist/utils/storage.dart';
-
- 
+import 'package:smartassist/services/api_srv.dart'; 
 
 typedef VehicleSelectedCallback =
     void Function(Map<String, dynamic> selectedVehicle);
 
 // Updated VehiclesearchTextfield widget
 class VehiclesearchTextfield extends StatefulWidget {
+  final String? errorText;
   final VehicleSelectedCallback? onVehicleSelected;
 
-  const VehiclesearchTextfield({Key? key, this.onVehicleSelected})
-    : super(key: key);
+  const VehiclesearchTextfield({
+    Key? key,
+    this.onVehicleSelected,
+    this.errorText,
+  }) : super(key: key);
 
   @override
   _VehiclesearchTextfieldState createState() => _VehiclesearchTextfieldState();
@@ -125,7 +123,30 @@ class _VehiclesearchTextfieldState extends State<VehiclesearchTextfield> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 10),
-        Text('Select Vehicle', style: AppFont.dropDowmLabel(context)),
+        // Text('Select Vehicle', style: AppFont.dropDowmLabel(context)),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 0.0, left: 5),
+          child: RichText(
+            text: TextSpan(
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: AppColors.fontBlack,
+              ),
+              children: [
+                TextSpan(
+                  text: 'Select Vehicle',
+                  style: AppFont.dropDowmLabel(context),
+                ),
+
+                const TextSpan(
+                  text: " *",
+                  style: TextStyle(color: Colors.red),
+                ),
+              ],
+            ),
+          ),
+        ),
         const SizedBox(height: 10),
         Container(
           height: MediaQuery.of(context).size.height * 0.055,
@@ -140,6 +161,30 @@ class _VehiclesearchTextfieldState extends State<VehiclesearchTextfield> {
                 child: TextField(
                   controller: _searchController1,
                   decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5),
+                      borderSide: BorderSide(
+                        color: widget.errorText != null
+                            ? Colors.red
+                            : Colors.transparent,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5),
+                      borderSide: BorderSide(
+                        color: widget.errorText != null
+                            ? Colors.red
+                            : Colors.transparent,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5),
+                      borderSide: BorderSide(
+                        color: widget.errorText != null
+                            ? Colors.red
+                            : Colors.transparent,
+                      ),
+                    ),
                     filled: true,
                     fillColor: AppColors.containerBg,
                     hintText: selectedVehicleName ?? 'Search vehicles...',
@@ -156,10 +201,6 @@ class _VehiclesearchTextfieldState extends State<VehiclesearchTextfield> {
                     contentPadding: const EdgeInsets.symmetric(
                       vertical: 0,
                       horizontal: 10,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5),
-                      borderSide: BorderSide.none,
                     ),
                   ),
                   style: GoogleFonts.poppins(

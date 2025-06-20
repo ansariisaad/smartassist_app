@@ -1388,7 +1388,7 @@ class LeadsSrv {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
-        return {'success': true, 'data': data['data']['rows'] ?? []};
+        return {'success': true, 'data': data['data'] ?? []};
       } else {
         return {
           'success': false,

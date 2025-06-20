@@ -166,6 +166,7 @@ class _AllTestdriveState extends State<AllTestdrive> {
         description.contains(searchQuery) ||
         vehicleModel.contains(searchQuery) ||
         customerName.contains(searchQuery);
+
   }
 
   // Removed the API search method since we're doing local search only
@@ -583,7 +584,7 @@ class _AllTestdriveState extends State<AllTestdrive> {
           foregroundColor: isActive ? Colors.white : Colors.black,
           padding: EdgeInsets.symmetric(
             vertical: 5.0 * _getResponsiveScale(),
-            horizontal: 8.0 * _getResponsiveScale(),
+            horizontal: 0.0 * _getResponsiveScale(),
           ),
           side: BorderSide(
             color: isActive ? activeColor : Colors.transparent,

@@ -284,67 +284,64 @@ class _CreateFollowupsPopupsState extends State<CreateFollowupsPopups> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? spId = prefs.getString('user_id');
     // Parse and format the selected dates/times.
-    final rawStartDate = DateFormat(
-      'dd MMM yyyy',
-    ).parse(startDateController.text);
-    final rawEndDate = DateFormat(
-      'dd MMM yyyy',
-    ).parse(endDateController.text); // Automatically set
 
-    final rawStartTime = DateFormat('hh:mm a').parse(startTimeController.text);
-    final rawEndTime = DateFormat(
-      'hh:mm a',
-    ).parse(endTimeController.text); // Automatically set
+    try {
+      final rawStartDate = DateFormat(
+        'dd MMM yyyy',
+      ).parse(startDateController.text);
+      final rawEndDate = DateFormat(
+        'dd MMM yyyy',
+      ).parse(endDateController.text); // Automatically set
 
-    // Format for API
-    final formattedStartDate = DateFormat('dd-MM-yyyy').format(rawStartDate);
-    final formattedEndDate = DateFormat(
-      'dd/MM/yyyy',
-    ).format(rawEndDate); // Automatically set
+      final rawStartTime = DateFormat(
+        'hh:mm a',
+      ).parse(startTimeController.text);
+      final rawEndTime = DateFormat(
+        'hh:mm a',
+      ).parse(endTimeController.text); // Automatically set
 
-    final formattedStartTime = DateFormat('hh:mm a').format(rawStartTime);
-    final formattedEndTime = DateFormat(
-      'HH:mm:ss',
-    ).format(rawEndTime); // Automatically set
+      // Format for API
+      final formattedStartDate = DateFormat('dd-MM-yyyy').format(rawStartDate);
+      final formattedEndDate = DateFormat(
+        'dd/MM/yyyy',
+      ).format(rawEndDate); // Automatically set
 
-    final newTaskForLead = {
-      'subject': _selectedSubject,
-      'status': 'Not Started',
-      'priority': 'High',
-      'time': formattedStartTime,
-      'due_date': formattedStartDate,
-      'remarks': descriptionController.text,
-      'sp_id': spId,
-      'lead_id': _leadId,
-    };
+      final formattedStartTime = DateFormat('hh:mm a').format(rawStartTime);
+      final formattedEndTime = DateFormat(
+        'HH:mm:ss',
+      ).format(rawEndTime); // Automatically set
 
-    bool success = await LeadsSrv.submitFollowups(newTaskForLead, _leadId!);
+      final newTaskForLead = {
+        'subject': _selectedSubject,
+        'status': 'Not Started',
+        'priority': 'High',
+        'time': formattedStartTime,
+        'due_date': formattedStartDate,
+        'remarks': descriptionController.text,
+        'sp_id': spId,
+        'lead_id': _leadId,
+      };
 
-    print('Selected Lead ID: $_leadId');
-
-    if (success) {
-      Navigator.pop(context, true);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Follow up created successfully for $formattedStartDate',
-            style: GoogleFonts.poppins(),
-          ),
-          backgroundColor: Colors.green,
-          duration: const Duration(seconds: 2),
-          behavior:
-              SnackBarBehavior.floating, // Optional: Makes it float above UI
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-              10,
-            ), // Optional: rounded corners
-          ),
-        ),
+      bool success = await LeadsSrv.submitFollowups(
+        newTaskForLead,
+        _leadId!,
+        context,
       );
-      widget.onFormSubmit?.call(); // Refresh dashboard data
-      widget.onTabChange?.call(0);
-    } else {
-      showErrorMessage(context, message: 'Submission failed. Try again.');
+
+      if (success) {
+        Navigator.pop(context, true);
+        showSuccessMessage(
+          context,
+          message: 'Follow-up created successfully for $formattedStartDate',
+        );
+        widget.onFormSubmit?.call();
+        widget.onTabChange?.call(0);
+      }
+    } catch (e) {
+      showErrorMessage(
+        context,
+        message: 'Invalid input. Please check your entries.',
+      );
     }
   }
 

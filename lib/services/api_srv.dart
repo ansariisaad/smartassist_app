@@ -1,9 +1,13 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:smartassist/pages/login_steps/login_page.dart';
 import 'package:smartassist/utils/connection_service.dart';
+import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/utils/token_manager.dart';
 
@@ -381,13 +385,41 @@ class LeadsSrv {
 
       final responseData = json.decode(response.body);
 
+      //   if (response.statusCode == 201) {
+      //     return responseData;
+      //   } else {
+      //     return {"error": responseData['message'] ?? "Failed."};
+      //   }
+      // } catch (e) {
+      //   return {"error": "An error occurred: $e"};
+      // }
+
       if (response.statusCode == 201) {
         return responseData;
       } else {
-        return {"error": responseData['message'] ?? "Failed."};
+        print('Error: ${response.statusCode}');
+        print('Error details: ${response.body}');
+        showErrorMessageGetx(
+          message: 'Submission failed: ${response.statusCode}',
+        );
+        // return false;
       }
+    } on SocketException {
+      showErrorMessageGetx(
+        message: 'No internet connection. Please check your network.',
+      );
+      // return false;
+    } on TimeoutException {
+      showErrorMessageGetx(
+        message: 'Request timed out. Please try again later.',
+      );
+      // return false;
     } catch (e) {
-      return {"error": "An error occurred: $e"};
+      print('Unexpected error: $e');
+      showErrorMessageGetx(
+        message: 'An unexpected error occurred. Please try again.',
+      );
+      // return false;
     }
   }
 
@@ -396,6 +428,7 @@ class LeadsSrv {
   static Future<bool> submitFollowups(
     Map<String, dynamic> followupsData,
     String leadId,
+    BuildContext context,
   ) async {
     final token = await Storage.getToken();
 
@@ -423,22 +456,38 @@ class LeadsSrv {
       //  final followupsData = json.decode(response.body);
 
       if (response.statusCode == 201) {
-        return true; // Task created successfully
+        return true;
       } else {
-        // Handle unexpected error responses
         print('Error: ${response.statusCode}');
         print('Error details: ${response.body}');
+        showErrorMessage(
+          context,
+          message: 'Submission failed: ${response.statusCode}',
+        );
         return false;
       }
+    } on SocketException {
+      showErrorMessageGetx(
+        message: 'No internet connection. Please check your network.',
+      );
+      return false;
+    } on TimeoutException {
+      showErrorMessage(
+        context,
+        message: 'Request timed out. Please try again later.',
+      );
+      return false;
     } catch (e) {
-      // Catch any network or other errors
-      print('Error: $e');
+      print('Unexpected error: $e');
+      showErrorMessage(
+        context,
+        message: 'An unexpected error occurred. Please try again.',
+      );
       return false;
     }
   }
 
   // create appoinment
-
   static Future<bool> submitAppoinment(
     Map<String, dynamic> followupsData,
     String leadId,
@@ -466,19 +515,88 @@ class LeadsSrv {
       print('API Response Body: ${response.body}');
 
       if (response.statusCode == 201) {
-        return true; // Task created successfully
+        return true;
       } else {
-        // Handle unexpected error responses
         print('Error: ${response.statusCode}');
         print('Error details: ${response.body}');
+        showErrorMessageGetx(
+          message: 'Submission failed: ${response.statusCode}',
+        );
         return false;
       }
+    } on SocketException {
+      showErrorMessageGetx(
+        message: 'No internet connection. Please check your network.',
+      );
+      return false; // Added return statement
+    } on TimeoutException {
+      showErrorMessageGetx(
+        message: 'Request timed out. Please try again later.',
+      );
+      return false;
     } catch (e) {
-      // Catch any network or other errors
-      print('Error: $e');
+      print('Unexpected error: $e');
+      showErrorMessageGetx(
+        message: 'An unexpected error occurred. Please try again.',
+      );
       return false;
     }
   }
+  // static Future<bool> submitAppoinment(
+  //   Map<String, dynamic> followupsData,
+  //   String leadId,
+
+  // ) async {
+  //   final token = await Storage.getToken();
+
+  //   // Debugging: print the headers and body
+  //   print(
+  //     'Headers: ${{'Authorization': 'Bearer $token', 'Content-Type': 'application/json', 'recordId': leadId}}',
+  //   );
+  //   print('Request body: ${jsonEncode(followupsData)}');
+
+  //   try {
+  //     final response = await http.post(
+  //       Uri.parse('${baseUrl}admin/records/$leadId/tasks/create-appointment'),
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //         'recordId': leadId,
+  //       },
+  //       body: jsonEncode(followupsData),
+  //     );
+
+  //     print('API Response Status: ${response.statusCode}');
+  //     print('API Response Body: ${response.body}');
+
+  //     if (response.statusCode == 201) {
+  //       return true;
+  //     } else {
+  //       print('Error: ${response.statusCode}');
+  //       print('Error details: ${response.body}');
+  //       showErrorMessageGetx(
+  //         message: 'Submission failed: ${response.statusCode}',
+  //       );
+  //       return false;
+  //     }
+  //   } on SocketException {
+  //     showErrorMessageGetx(
+  //       message: 'No internet connection. Please check your network.',
+  //     );
+  //     // return false;
+  //   } on TimeoutException {
+  //     showErrorMessageGetx(
+  //       message: 'Request timed out. Please try again later.',
+  //     );
+  //     return false;
+  //   } catch (e) {
+  //     print('Unexpected error: $e');
+  //     showErrorMessageGetx(
+  //       message: 'An unexpected error occurred. Please try again.',
+  //     );
+  //     return false;
+  //   }
+  // }
 
   static Future<bool> submitTestDrive(
     Map<String, dynamic> testdriveData,
@@ -501,15 +619,30 @@ class LeadsSrv {
       print('API Response Body: ${response.body}');
 
       if (response.statusCode == 201) {
-        return true; // Task created successfully
+        return true;
       } else {
-        // Handle unexpected error responses
         print('Error: ${response.statusCode}');
         print('Error details: ${response.body}');
+        showErrorMessageGetx(
+          message: 'Submission failed: ${response.statusCode}',
+        );
         return false;
       }
+    } on SocketException {
+      showErrorMessageGetx(
+        message: 'No internet connection. Please check your network.',
+      );
+      return false;
+    } on TimeoutException {
+      showErrorMessageGetx(
+        message: 'Request timed out. Please try again later.',
+      );
+      return false;
     } catch (e) {
-      print('Error: $e');
+      print('Unexpected error: $e');
+      showErrorMessageGetx(
+        message: 'An unexpected error occurred. Please try again.',
+      );
       return false;
     }
   }

@@ -165,7 +165,12 @@ class _VehiclesearchTextfieldState extends State<VehiclesearchTextfield> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(5),
                       borderSide: BorderSide(
-                        color: widget.errorText != null
+                        // color: widget.errorText != null
+                        //     ? Colors.red
+                        //     : Colors.transparent,
+                        color:
+                            widget.errorText != null &&
+                                widget.errorText!.isNotEmpty
                             ? Colors.red
                             : Colors.transparent,
                       ),

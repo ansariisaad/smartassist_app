@@ -557,12 +557,29 @@ class _FeedbackFormState extends State<FeedbackForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Subject',
-            style: GoogleFonts.poppins(
-              fontSize: _bodyFontSize(context),
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[800],
+          // Text(
+          //   'Subject',
+          //   style: GoogleFonts.poppins(
+          //     fontSize: _bodyFontSize(context),
+          //     fontWeight: FontWeight.w600,
+          //     color: Colors.grey[800],
+          //   ),
+          // ),
+          RichText(
+            text: TextSpan(
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: AppColors.fontBlack,
+              ),
+              children: [
+                TextSpan(text: 'Subject'),
+
+                const TextSpan(
+                  text: " *",
+                  style: TextStyle(color: Colors.red),
+                ),
+              ],
             ),
           ),
           SizedBox(height: 8),
@@ -769,14 +786,31 @@ class _FeedbackFormState extends State<FeedbackForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Your Feedback',
-            style: GoogleFonts.poppins(
-              fontSize: _bodyFontSize(context),
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[800],
+          RichText(
+            text: TextSpan(
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: AppColors.fontBlack,
+              ),
+              children: [
+                TextSpan(text: 'Your Feedback'),
+
+                const TextSpan(
+                  text: " *",
+                  style: TextStyle(color: Colors.red),
+                ),
+              ],
             ),
           ),
+          // Text(
+          //   'Your Feedback',
+          //   style: GoogleFonts.poppins(
+          //     fontSize: _bodyFontSize(context),
+          //     fontWeight: FontWeight.w600,
+          //     color: Colors.grey[800],
+          //   ),
+          // ),
           SizedBox(height: 8),
           TextFormField(
             controller: _feedbackController,

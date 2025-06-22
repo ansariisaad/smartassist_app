@@ -1375,7 +1375,32 @@ class LeadsSrv {
     }
   }
 
-  static Future<bool> favoriteEvent({required String eventId}) async {
+  static Future<bool> favoriteEvent({required String taskId}) async {
+    try {
+      final token = await Storage.getToken();
+      final response = await http.put(
+        Uri.parse('${baseUrl}favourites/mark-fav/task/$taskId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        print(response.body.toString());
+        return true;
+      } else {
+        print(Uri.parse.toString());
+        print('❌ Failed to mark favorite: ${response.statusCode}');
+        return false;
+      }
+    } catch (e) {
+      print('❌ Error in favorite(): $e');
+      return false;
+    }
+  }
+
+  static Future<bool> favoriteTestDrive({required String eventId}) async {
     try {
       final token = await Storage.getToken();
       final response = await http.put(

@@ -98,11 +98,28 @@ class _OppUpcomingState extends State<OppUpcoming> {
     }
   }
 
-  Future<void> _toggleFavorite(String eventId, int index) async {
+  // Future<void> _toggleFavorite(String eventId, int index) async {
+  //   bool currentStatus = widget.upcomingOpp[index]['favourite'] ?? false;
+  //   bool newFavoriteStatus = !currentStatus;
+
+  //   final success = await LeadsSrv.favorite(taskId: eventId);
+
+  //   if (success) {
+  //     setState(() {
+  //       widget.upcomingOpp[index]['favourite'] = newFavoriteStatus;
+  //     });
+
+  //     if (widget.onFavoriteToggle != null) {
+  //       widget.onFavoriteToggle!(eventId, newFavoriteStatus);
+  //     }
+  //   }
+  // }
+
+  Future<void> _toggleFavorite(String taskId, int index) async {
     bool currentStatus = widget.upcomingOpp[index]['favourite'] ?? false;
     bool newFavoriteStatus = !currentStatus;
 
-    final success = await LeadsSrv.favorite(taskId: eventId);
+    final success = await LeadsSrv.favoriteEvent(taskId: taskId);
 
     if (success) {
       setState(() {
@@ -110,7 +127,7 @@ class _OppUpcomingState extends State<OppUpcoming> {
       });
 
       if (widget.onFavoriteToggle != null) {
-        widget.onFavoriteToggle!(eventId, newFavoriteStatus);
+        widget.onFavoriteToggle!(taskId, newFavoriteStatus);
       }
     }
   }
@@ -138,41 +155,6 @@ class _OppUpcomingState extends State<OppUpcoming> {
         var item = widget.upcomingOpp[index];
         print('Item at index $index: $item');
 
-        // if (!(item.containsKey('assigned_to') &&
-        //     item.containsKey('start_date') &&
-        //     item.containsKey('lead_id') &&
-        //     item.containsKey('event_id'))) {
-        //   return ListTile(title: Text('Invalid data at index $index'));
-        // }
-
-        // String eventId = item['event_id'];
-        // double swipeOffset = _swipeOffsets[eventId] ?? 0;
-
-        // return GestureDetector(
-        //   onHorizontalDragUpdate: (details) =>
-        //       _onHorizontalDragUpdate(details, eventId),
-        //   onHorizontalDragEnd: (details) =>
-        //       _onHorizontalDragEnd(details, item, index),
-        //   child: OppUpcomingItem(
-        //     key: ValueKey(item['event_id']),
-        //     name: item['name'],
-        //     subject: item['subject'] ?? 'Meeting',
-        //     date: item['start_date'] ?? '',
-        //     vehicle: item['PMI'] ?? 'Range Rover Velar',
-        //     leadId: item['lead_id'],
-        //     mobile: item['mobile'] ?? '',
-        //     time: item['start_time'] ?? '',
-        //     eventId: item['event_id'],
-        //     isFavorite: item['favourite'] ?? false,
-        //     swipeOffset: swipeOffset,
-        //     fetchDashboardData:
-        //         () {}, // Placeholder, replace with actual method
-        //     onToggleFavorite: () {
-        //       _toggleFavorite(eventId, index);
-        //     },
-        //   ),
-        // );
-
         String eventId = item['task_id'];
         double swipeOffset = _swipeOffsets[eventId] ?? 0;
 
@@ -190,7 +172,7 @@ class _OppUpcomingState extends State<OppUpcoming> {
             leadId: item['lead_id'],
             mobile: item['mobile'] ?? '',
             time: item['time'] ?? '',
-            eventId: eventId,
+            taskId: item['task_id'] ?? '',
             refreshDashboard: widget.refreshDashboard,
             isFavorite: item['favourite'] ?? false,
             swipeOffset: swipeOffset,
@@ -207,7 +189,7 @@ class _OppUpcomingState extends State<OppUpcoming> {
 
 // ---------------- INDIVIDUAL FOLLOWUP ITEM ----------------
 class OppUpcomingItem extends StatefulWidget {
-  final String name, date, vehicle, mobile, leadId, eventId, time, subject;
+  final String name, date, vehicle, mobile, leadId, taskId, time, subject;
   final bool isFavorite;
   final double swipeOffset;
   final Future<void> Function() refreshDashboard;
@@ -223,7 +205,7 @@ class OppUpcomingItem extends StatefulWidget {
     required this.leadId,
     required this.isFavorite,
     required this.fetchDashboardData,
-    required this.eventId,
+    required this.taskId,
     required this.time,
     required this.subject,
     required this.swipeOffset,
@@ -308,7 +290,7 @@ class _OppUpcomingItemState extends State<OppUpcomingItem>
     bool isCallSwipe = widget.swipeOffset < -50;
 
     return Slidable(
-      key: ValueKey(widget.eventId), // Always good to set keys
+      key: ValueKey(widget.taskId), // Always good to set keys
       controller: _slidableController,
       startActionPane: ActionPane(
         extentRatio: 0.2,
@@ -640,7 +622,7 @@ class _OppUpcomingItemState extends State<OppUpcomingItem>
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
-          child: AppointmentsEdit(onFormSubmit: () {}, eventId: widget.eventId),
+          child: AppointmentsEdit(onFormSubmit: () {}, taskId: widget.taskId),
         );
       },
     );

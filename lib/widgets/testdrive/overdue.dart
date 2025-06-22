@@ -87,7 +87,7 @@ class _TestOverdueState extends State<TestOverdue> {
     bool currentStatus = widget.overdueTestDrive[index]['favourite'] ?? false;
     bool newFavoriteStatus = !currentStatus;
 
-    final success = await LeadsSrv.favoriteEvent(eventId: eventId);
+    final success = await LeadsSrv.favoriteTestDrive(eventId: eventId);
 
     if (success) {
       setState(() {

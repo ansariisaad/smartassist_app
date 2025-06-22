@@ -599,12 +599,13 @@ class _CreateLeadsState extends State<CreateLeads> {
         // No need for PageController navigation with IndexedStack
       } else {
         String errorMessage = _errors.values.join('\n');
-        Get.snackbar(
-          'Error',
-          errorMessage,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
+        print(errorMessage.toString());
+        // Get.snackbar(
+        //   'Error',
+        //   errorMessage,
+        //   backgroundColor: Colors.red,
+        //   colorText: Colors.white,
+        // );
       }
     } else if (_currentStep == 1) {
       if (_validatePage2()) {
@@ -612,24 +613,26 @@ class _CreateLeadsState extends State<CreateLeads> {
         // No need for PageController navigation with IndexedStack
       } else {
         String errorMessage = _errors.values.join('\n');
-        Get.snackbar(
-          'Error',
-          errorMessage,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
+        print(errorMessage.toString());
+        // Get.snackbar(
+        //   'Error',
+        //   errorMessage,
+        //   backgroundColor: Colors.red,
+        //   colorText: Colors.white,
+        // );
       }
     } else {
       if (_validatePage3()) {
         _submitForm(); // ✅ API will hit now
       } else {
         String errorMessage = _errors.values.join('\n');
-        Get.snackbar(
-          'Error',
-          errorMessage,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
+        print(errorMessage.toString());
+        // Get.snackbar(
+        //   'Error',
+        //   errorMessage,
+        //   backgroundColor: Colors.red,
+        //   colorText: Colors.white,
+        // );
       }
     }
   }

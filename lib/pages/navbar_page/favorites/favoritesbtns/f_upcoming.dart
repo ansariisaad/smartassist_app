@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
+import 'package:smartassist/services/leads_srv.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/followups.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -50,39 +51,98 @@ class _FUpcomingState extends State<FUpcoming> {
     });
   }
 
+  // Alternative simpler approach - replace your _toggleFavorite method:
+
   Future<void> _toggleFavorite(String taskId, int index) async {
-    final token = await Storage.getToken();
-    try {
-      // Get the current favorite status before toggling
-      bool currentStatus = upcomingTasks[index]['favourite'] ?? false;
-      bool newFavoriteStatus = !currentStatus;
+    // Find the current favorite status by searching for the task
+    bool currentStatus = false;
 
-      final response = await http.put(
-        Uri.parse(
-          'https://api.smartassistapp.in/api/favourites/mark-fav/task/$taskId',
-        ),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        // Parse the response to get the updated favorite status
-        final responseData = json.decode(response.body);
-
-        // Update only the specific item in the list
-        setState(() {
-          upcomingTasks[index]['favourite'] = newFavoriteStatus;
-          overdueTasks[index]['favourite'] = newFavoriteStatus;
-        });
-      } else {
-        print('Failed to toggle favorite: ${response.statusCode}');
+    // Search in upcoming tasks
+    for (var task in upcomingTasks) {
+      if (task['task_id'] == taskId) {
+        currentStatus = task['favourite'] ?? false;
+        break;
       }
-    } catch (e) {
-      print('Error toggling favorite: $e');
+    }
+
+    // If not found in upcoming, search in overdue tasks
+    if (!currentStatus) {
+      for (var task in overdueTasks) {
+        if (task['task_id'] == taskId) {
+          currentStatus = task['favourite'] ?? false;
+          break;
+        }
+      }
+    }
+
+    bool newFavoriteStatus = !currentStatus;
+
+    final success = await LeadsSrv.favorite(taskId: taskId);
+
+    if (success) {
+      // Update the task in both lists if it exists
+      setState(() {
+        // Update in upcoming tasks
+        for (int i = 0; i < upcomingTasks.length; i++) {
+          if (upcomingTasks[i]['task_id'] == taskId) {
+            upcomingTasks[i]['favourite'] = newFavoriteStatus;
+            break;
+          }
+        }
+
+        // Update in overdue tasks
+        for (int i = 0; i < overdueTasks.length; i++) {
+          if (overdueTasks[i]['task_id'] == taskId) {
+            overdueTasks[i]['favourite'] = newFavoriteStatus;
+            break;
+          }
+        }
+      });
+
+      print('upcomingTasks length: ${upcomingTasks.length}');
+      print('overdueTasks length: ${overdueTasks.length}');
+
+      // Optionally refresh data from server
+      await fetchTasksData();
+    } else {
+      print('Failed to toggle favorite for task: $taskId');
     }
   }
+  // Future<void> _toggleFavorite(String taskId, int index) async {
+  //   final token = await Storage.getToken();
+  //   try {
+  //     // Get the current favorite status before toggling
+  //     bool currentStatus = upcomingTasks[index]['favourite'] ?? false;
+  //     bool newFavoriteStatus = !currentStatus;
+
+  //     final response = await http.put(
+  //       Uri.parse(
+  //         'https://api.smartassistapp.in/api/favourites/mark-fav/task/$taskId',
+  //       ),
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+
+  //     if (response.statusCode == 200) {
+  //       // Parse the response to get the updated favorite status
+  //       final responseData = json.decode(response.body);
+
+  //       // Update only the specific item in the list
+  //       setState(() {
+  //         upcomingTasks[index]['favourite'] = newFavoriteStatus;
+  //         overdueTasks[index]['favourite'] = newFavoriteStatus;
+  //       });
+
+  //       await fetchTasksData();
+  //     } else {
+  //       print('Failed to toggle favorite: ${response.statusCode}');
+  //     }
+  //   } catch (e) {
+  //     print('Error toggling favorite: $e');
+  //   }
+  // }
 
   void _handleCall(dynamic item) {
     print("Call action triggered for ${item['name']}");
@@ -278,14 +338,6 @@ class _TaskItemState extends State<TaskItem>
     }
   }
 
-  // @override
-  // Widget build(BuildContext context) {
-  //   return Padding(
-  //     padding: const EdgeInsets.fromLTRB(10, 5, 10, 0),
-  //     child: _buildFollowupCard(context),
-  //   );
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -313,188 +365,6 @@ class _TaskItemState extends State<TaskItem>
       ),
     );
   }
-
-  // Widget _buildFollowupCard(BuildContext context) {
-  //   bool isFavoriteSwipe = widget.swipeOffset > 50;
-  //   bool isCallSwipe = widget.swipeOffset < -50;
-
-  //   // Gradient background for swipe
-  //   // LinearGradient _buildSwipeGradient() {
-  //   //   if (isFavoriteSwipe) {
-  //   //     return const LinearGradient(
-  //   //       colors: [
-  //   //         Color.fromRGBO(239, 206, 29, 0.67),
-  //   //         // Colors.yellow.withOpacity(0.2),
-  //   //         // Colors.yellow.withOpacity(0.8)
-  //   //         Color.fromRGBO(239, 206, 29, 0.67),
-  //   //       ],
-  //   //       begin: Alignment.centerLeft,
-  //   //       end: Alignment.centerRight,
-  //   //     );
-  //   //   } else if (isCallSwipe) {
-  //   //     return LinearGradient(
-  //   //       colors: [
-  //   //         Colors.green.withOpacity(0.2),
-  //   //         Colors.green.withOpacity(0.8),
-  //   //       ],
-  //   //       begin: Alignment.centerRight,
-  //   //       end: Alignment.centerLeft,
-  //   //     );
-  //   //   }
-  //   //   return const LinearGradient(
-  //   //     colors: [AppColors.containerBg, AppColors.containerBg],
-  //   //     begin: Alignment.centerLeft,
-  //   //     end: Alignment.centerRight,
-  //   //   );
-  //   // }
-
-  //   return Stack(
-  //     children: [
-  //       // Favorite Swipe Overlay
-  //       // if (isFavoriteSwipe)
-  //       //   Positioned.fill(
-  //       //     child: Container(
-  //       //       decoration: BoxDecoration(
-  //       //         gradient: LinearGradient(
-  //       //           colors: [
-  //       //             Colors.yellow.withOpacity(0.2),
-  //       //             Colors.yellow.withOpacity(0.8),
-  //       //           ],
-  //       //           begin: Alignment.centerLeft,
-  //       //           end: Alignment.centerRight,
-  //       //         ),
-  //       //         borderRadius: BorderRadius.circular(10),
-  //       //       ),
-  //       //       child: Center(
-  //       //         child: Row(
-  //       //           mainAxisAlignment: MainAxisAlignment.start,
-  //       //           children: [
-  //       //             const SizedBox(width: 15),
-  //       //             Icon(
-  //       //               isFav ? Icons.star_outline_rounded : Icons.star_rounded,
-  //       //               color: Color.fromRGBO(226, 195, 34, 1),
-  //       //               size: 40,
-  //       //             ),
-  //       //             const SizedBox(width: 10),
-  //       //             Text(
-  //       //               isFav ? 'Unfavorite' : 'Favorite',
-  //       //               style: GoogleFonts.poppins(
-  //       //                 color: const Color.fromRGBO(187, 158, 0, 1),
-  //       //                 fontSize: 18,
-  //       //                 fontWeight: FontWeight.bold,
-  //       //               ),
-  //       //             ),
-  //       //           ],
-  //       //         ),
-  //       //       ),
-  //       //     ),
-  //       //   ),
-
-  //       // // Call Swipe Overlay
-  //       // if (isCallSwipe)
-  //       //   Positioned.fill(
-  //       //     child: Container(
-  //       //       decoration: BoxDecoration(
-  //       //         gradient: LinearGradient(
-  //       //           colors: [
-  //       //             Colors.green.withOpacity(0.2),
-  //       //             Colors.green.withOpacity(0.8),
-  //       //           ],
-  //       //           begin: Alignment.centerRight,
-  //       //           end: Alignment.centerLeft,
-  //       //         ),
-  //       //         borderRadius: BorderRadius.circular(10),
-  //       //       ),
-  //       //       child: Center(
-  //       //         child: Row(
-  //       //           mainAxisAlignment: MainAxisAlignment.start,
-  //       //           children: [
-  //       //             const SizedBox(width: 10),
-  //       //             const Icon(
-  //       //               Icons.phone_in_talk,
-  //       //               color: Colors.white,
-  //       //               size: 30,
-  //       //             ),
-  //       //             const SizedBox(width: 10),
-  //       //             Text(
-  //       //               'Call',
-  //       //               style: GoogleFonts.poppins(
-  //       //                 color: Colors.white,
-  //       //                 fontSize: 18,
-  //       //                 fontWeight: FontWeight.bold,
-  //       //               ),
-  //       //             ),
-  //       //             const SizedBox(width: 5),
-  //       //           ],
-  //       //         ),
-  //       //       ),
-  //       //     ),
-  //       //   ),
-
-  //       // Main Container
-  //       Container(
-  //         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-  //         decoration: BoxDecoration(
-  //           // gradient: _buildSwipeGradient(),
-  //           borderRadius: BorderRadius.circular(7),
-  //           border: Border(
-  //             left: BorderSide(
-  //               width: 8.0,
-  //               color: isFav
-  //                   ? (isCallSwipe
-  //                         ? Colors.green.withOpacity(
-  //                             0.9,
-  //                           ) // Green when swiping for a call
-  //                         : Colors.yellow.withOpacity(
-  //                             isFavoriteSwipe ? 0.1 : 0.9,
-  //                           )) // Keep yellow when favorite
-  //                   : (isFavoriteSwipe
-  //                         ? Colors.yellow.withOpacity(0.1)
-  //                         : (isCallSwipe
-  //                               ? Colors.green.withOpacity(0.1)
-  //                               : AppColors.sideGreen)),
-  //             ),
-  //           ),
-  //         ),
-  //         child: Opacity(
-  //           opacity: (isFavoriteSwipe || isCallSwipe) ? 0 : 1.0,
-  //           child: Row(
-  //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //             crossAxisAlignment: CrossAxisAlignment.center,
-  //             children: [
-  //               Row(
-  //                 children: [
-  //                   const SizedBox(width: 8),
-  //                   Column(
-  //                     crossAxisAlignment: CrossAxisAlignment.start,
-  //                     children: [
-  //                       Row(
-  //                         crossAxisAlignment: CrossAxisAlignment.end,
-  //                         children: [
-  //                           _buildUserDetails(context),
-  //                           _buildVerticalDivider(15),
-  //                           _buildCarModel(context),
-  //                         ],
-  //                       ),
-  //                       const SizedBox(height: 4),
-  //                       Row(
-  //                         children: [
-  //                           _buildSubjectDetails(context),
-  //                           _date(context),
-  //                         ],
-  //                       ),
-  //                     ],
-  //                   ),
-  //                 ],
-  //               ),
-  //               _buildNavigationButton(context),
-  //             ],
-  //           ),
-  //         ),
-  //       ),
-  //     ],
-  //   );
-  // }
 
   Widget _buildFollowupCard(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;

@@ -24,7 +24,9 @@ class _FOpportunityState extends State<FOpportunity> {
     final token = await Storage.getToken();
     try {
       final response = await http.get(
-        Uri.parse('https://api.smartassistapp.in/api/favourites/opps/all'),
+        Uri.parse(
+          'https://api.smartassistapp.in/api/favourites/events/appointments/all',
+        ),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',

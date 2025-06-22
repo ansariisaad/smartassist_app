@@ -9,18 +9,17 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/widgets/remarks_field.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class AppointmentsEdit extends StatefulWidget {
-  final String eventId;
+  final String taskId;
   final Function onFormSubmit;
   const AppointmentsEdit({
     super.key,
     required this.onFormSubmit,
-    required this.eventId,
+    required this.taskId,
   });
 
   @override
@@ -128,7 +127,7 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
 
     try {
       final response = await http.get(
-        Uri.parse('https://api.smartassistapp.in/api/tasks/${widget.eventId}'),
+        Uri.parse('https://api.smartassistapp.in/api/tasks/${widget.taskId}'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -206,7 +205,7 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
     try {
       final response = await http.put(
         Uri.parse(
-          'https://api.smartassistapp.in/api/tasks/${widget.eventId}/update',
+          'https://api.smartassistapp.in/api/tasks/${widget.taskId}/update',
         ),
         headers: {
           'Authorization': 'Bearer $token',

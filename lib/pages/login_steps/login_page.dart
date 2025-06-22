@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:local_auth/local_auth.dart';
@@ -125,6 +126,7 @@ class _LoginPageState extends State<LoginPage>
                               const SizedBox(height: 25),
                               buildInputLabel('Password'),
                               buildTextField(
+                                inputLength: 20,
                                 newPwdController,
                                 'Enter Password',
                                 true,
@@ -248,8 +250,10 @@ class _LoginPageState extends State<LoginPage>
     String hint,
     bool isPassword, {
     TextInputType keyboardType = TextInputType.text,
+    int? inputLength,
   }) {
     return TextField(
+      inputFormatters: [LengthLimitingTextInputFormatter(inputLength)],
       style: GoogleFonts.poppins(
         fontSize: 14,
         fontWeight: FontWeight.w400,
@@ -477,7 +481,12 @@ class _LoginPageState extends State<LoginPage>
 
         if (userId != null && authToken != null) {
           // Save authentication data
-          await TokenManager.saveAuthData(authToken, userId, userRole , userEmail);
+          await TokenManager.saveAuthData(
+            authToken,
+            userId,
+            userRole,
+            userEmail,
+          );
           String successMessage =
               response['message']?.toString() ?? 'Login Successful';
           Get.snackbar(

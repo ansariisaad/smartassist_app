@@ -88,7 +88,7 @@ class _TestUpcomingState extends State<TestUpcoming> {
     bool currentStatus = widget.upcomingTestDrive[index]['favourite'] ?? false;
     bool newFavoriteStatus = !currentStatus;
 
-    final success = await LeadsSrv.favoriteEvent(eventId: eventId);
+    final success = await LeadsSrv.favoriteTestDrive(eventId: eventId);
 
     if (success) {
       setState(() {

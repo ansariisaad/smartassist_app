@@ -49,11 +49,22 @@ class _FTestdriveState extends State<FTestdrive> {
     });
   }
 
+  // Alternative simpler approach - replace your _toggleFavorite method:
+
   Future<void> _toggleFavorite(String eventId, int index) async {
     final token = await Storage.getToken();
     try {
-      // Get the current favorite status before toggling
-      bool currentStatus = upcomingTasks[index]['favourite'] ?? false;
+      // Find the current favorite status by searching for the event
+      bool currentStatus = false;
+
+      // Search in both lists to find the current status
+      for (var task in [...upcomingTasks, ...overdueTasks]) {
+        if (task['event_id'] == eventId) {
+          currentStatus = task['favourite'] ?? false;
+          break;
+        }
+      }
+
       bool newFavoriteStatus = !currentStatus;
 
       final response = await http.put(
@@ -70,16 +81,33 @@ class _FTestdriveState extends State<FTestdrive> {
         // Parse the response to get the updated favorite status
         final responseData = json.decode(response.body);
 
-        // Update only the specific item in the list
+        // Update the task in both lists if it exists
         setState(() {
-          upcomingTasks[index]['favourite'] = newFavoriteStatus;
-          overdueTasks[index]['favourite'] = newFavoriteStatus;
+          // Update in upcoming tasks
+          for (int i = 0; i < upcomingTasks.length; i++) {
+            if (upcomingTasks[i]['event_id'] == eventId) {
+              upcomingTasks[i]['favourite'] = newFavoriteStatus;
+              break;
+            }
+          }
+
+          // Update in overdue tasks
+          for (int i = 0; i < overdueTasks.length; i++) {
+            if (overdueTasks[i]['event_id'] == eventId) {
+              overdueTasks[i]['favourite'] = newFavoriteStatus;
+              break;
+            }
+          }
         });
+
+        print('✅ Favorite toggled successfully');
+        print('upcomingTasks length: ${upcomingTasks.length}');
+        print('overdueTasks length: ${overdueTasks.length}');
       } else {
-        print('Failed to toggle favorite: ${response.statusCode}');
+        print('❌ Failed to toggle favorite: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error toggling favorite: $e');
+      print('❌ Error toggling favorite: $e');
     }
   }
 

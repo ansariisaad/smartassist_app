@@ -991,11 +991,10 @@ class _CallAnalyticsState extends State<CallAnalytics>
   Widget _buildCombinedLineChart() {
     // Process hourly analysis data to create chart spots
     final List<FlSpot> allCallSpots = [];
-    final List<FlSpot> connectedSpots = [];
-    final List<FlSpot> missedSpots = [];
+    final List<FlSpot> incomingSpots = []; // Renamed from connected
+    final List<FlSpot> outgoingSpots = []; // Added for Outgoing
 
     // Process data to create chart spots
-    // Sort keys to ensure hours are in order
     final List<int> sortedHours =
         hourlyAnalysisData.keys.map((e) => int.parse(e)).toList()..sort();
 
@@ -1004,26 +1003,23 @@ class _CallAnalyticsState extends State<CallAnalytics>
       final data = hourlyAnalysisData[hour];
 
       if (data != null) {
-        final double xValue = i.toDouble() * 2; // Spread out the x values
+        final double xValue = i.toDouble(); // Use index directly for x-value
 
-        // All calls
         if (data['AllCalls'] != null) {
           allCallSpots.add(
             FlSpot(xValue, (data['AllCalls']['calls'] ?? 0).toDouble()),
           );
         }
-
-        // Connected calls
-        if (data['connected'] != null) {
-          connectedSpots.add(
-            FlSpot(xValue, (data['connected']['calls'] ?? 0).toDouble()),
+        if (data['incoming'] != null) {
+          // Updated key
+          incomingSpots.add(
+            FlSpot(xValue, (data['incoming']['calls'] ?? 0).toDouble()),
           );
         }
-
-        // Missed calls
-        if (data['missedCalls'] != null) {
-          missedSpots.add(
-            FlSpot(xValue, (data['missedCalls'] as int).toDouble()),
+        if (data['outgoing'] != null) {
+          // Added key
+          outgoingSpots.add(
+            FlSpot(xValue, (data['outgoing']['calls'] ?? 0).toDouble()),
           );
         }
       }
@@ -1031,31 +1027,32 @@ class _CallAnalyticsState extends State<CallAnalytics>
 
     // If no data points, create default ones
     if (allCallSpots.isEmpty) {
-      allCallSpots.add(const FlSpot(0, 0));
-      allCallSpots.add(const FlSpot(2, 0));
+      for (int hour = 1; hour <= 12; hour++) {
+        allCallSpots.add(FlSpot(hour.toDouble() - 1, 0));
+      }
     }
-    if (connectedSpots.isEmpty) {
-      connectedSpots.add(const FlSpot(0, 0));
-      connectedSpots.add(const FlSpot(2, 0));
+    if (incomingSpots.isEmpty) {
+      for (int hour = 1; hour <= 12; hour++) {
+        incomingSpots.add(FlSpot(hour.toDouble() - 1, 0));
+      }
     }
-    if (missedSpots.isEmpty) {
-      missedSpots.add(const FlSpot(0, 0));
-      missedSpots.add(const FlSpot(2, 0));
+    if (outgoingSpots.isEmpty) {
+      for (int hour = 1; hour <= 12; hour++) {
+        outgoingSpots.add(FlSpot(hour.toDouble() - 1, 0));
+      }
     }
 
     // Find max Y value for the chart
-    double maxY = 0;
-    for (var spot in [...allCallSpots, ...connectedSpots, ...missedSpots]) {
-      if (spot.y > maxY) maxY = spot.y;
-    }
-    maxY = maxY < 5 ? 5 : (maxY.ceil() + 2); // Add some padding to the max Y
+    double maxY = [
+      allCallSpots,
+      incomingSpots,
+      outgoingSpots,
+    ].expand((e) => e).map((e) => e.y).reduce((a, b) => a > b ? a : b);
+    maxY = maxY < 1200 ? 1200 : maxY + 200; // Adjust for 1117 total calls
 
     // Find max X value
-    double maxX = 0;
-    for (var spot in [...allCallSpots, ...connectedSpots, ...missedSpots]) {
-      if (spot.x > maxX) maxX = spot.x;
-    }
-    maxX = maxX < 2 ? 12 : maxX + 2; // Ensure minimum width and add padding
+    double maxX = sortedHours.isEmpty ? 11 : sortedHours.length - 1.toDouble();
+    maxX = maxX < 12 ? 12 : maxX + 1;
 
     return Padding(
       padding: const EdgeInsets.only(top: 10),
@@ -1065,14 +1062,11 @@ class _CallAnalyticsState extends State<CallAnalytics>
             touchTooltipData: LineTouchTooltipData(
               getTooltipItems: (List<LineBarSpot> touchedSpots) {
                 return touchedSpots.map((spot) {
-                  String callType = '';
-                  if (spot.barIndex == 0) {
-                    callType = 'All Calls';
-                  } else if (spot.barIndex == 1) {
-                    callType = 'Connected';
-                  } else {
-                    callType = 'Missed';
-                  }
+                  String callType = [
+                    'All Calls',
+                    'Incoming',
+                    'Outgoing',
+                  ][spot.barIndex];
                   return LineTooltipItem(
                     '$callType: ${spot.y.toInt()} calls',
                     const TextStyle(color: Colors.white),
@@ -1087,56 +1081,21 @@ class _CallAnalyticsState extends State<CallAnalytics>
               sideTitles: SideTitles(
                 showTitles: true,
                 getTitlesWidget: (double value, TitleMeta meta) {
-                  // Use hourly analysis keys for X axis
-                  final int index = value ~/ 2;
-                  final style = TextStyle(color: Colors.grey, fontSize: 10);
-
-                  if (index < sortedHours.length) {
-                    // Convert 24-hour to 12-hour format
-                    int hour = sortedHours[index];
-                    String period = hour >= 12 ? 'PM' : 'AM';
-                    hour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
-                    return SideTitleWidget(
-                      space: 8,
-                      child: Text('$hour$period', style: style),
-                      meta: meta,
-                    );
-                  }
-                  return SideTitleWidget(
-                    space: 8,
-                    child: Text('', style: style),
-                    meta: meta,
-                  );
+                  return _getBottomTitleWidget(value, meta, sortedHours);
                 },
                 reservedSize: 28,
-                interval: 2,
+                interval: 1,
               ),
             ),
             leftTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
                 getTitlesWidget: (double value, TitleMeta meta) {
-                  if (value == 0) {
-                    return const SizedBox();
-                  }
-                  return SideTitleWidget(
-                    space: 8,
-                    child: Text(
-                      value.toInt().toString(),
-                      style: const TextStyle(color: Colors.grey, fontSize: 10),
-                    ),
-                    meta: meta,
-                  );
+                  return _getLeftTitleWidget(value, meta, maxY);
                 },
-                reservedSize: 28,
-                interval: maxY > 10 ? 5 : 1,
+                reservedSize: 60, // Increased to prevent overlap
+                interval: _getYAxisInterval(maxY, selectedTimeRange),
               ),
-            ),
-            topTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            rightTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
             ),
           ),
           borderData: FlBorderData(show: false),
@@ -1144,8 +1103,8 @@ class _CallAnalyticsState extends State<CallAnalytics>
             show: true,
             drawHorizontalLine: true,
             drawVerticalLine: true,
-            horizontalInterval: maxY > 10 ? 5 : 1,
-            verticalInterval: 2,
+            horizontalInterval: _getYAxisInterval(maxY, selectedTimeRange),
+            verticalInterval: 1,
             getDrawingHorizontalLine: (value) {
               return FlLine(color: Colors.grey.shade200, strokeWidth: 1);
             },
@@ -1162,7 +1121,6 @@ class _CallAnalyticsState extends State<CallAnalytics>
           minY: 0,
           maxY: maxY,
           lineBarsData: [
-            // All Calls Line
             LineChartBarData(
               spots: allCallSpots,
               isCurved: true,
@@ -1175,9 +1133,8 @@ class _CallAnalyticsState extends State<CallAnalytics>
                 color: Colors.blue.withOpacity(0.2),
               ),
             ),
-            // Connected Calls Line
             LineChartBarData(
-              spots: connectedSpots,
+              spots: incomingSpots,
               isCurved: true,
               color: Colors.green,
               barWidth: 3,
@@ -1188,9 +1145,8 @@ class _CallAnalyticsState extends State<CallAnalytics>
                 color: Colors.green.withOpacity(0.2),
               ),
             ),
-            // Missed Calls Line (using orange for the outgoing slot)
             LineChartBarData(
-              spots: missedSpots,
+              spots: outgoingSpots,
               isCurved: true,
               color: Colors.orange,
               barWidth: 3,
@@ -1206,6 +1162,400 @@ class _CallAnalyticsState extends State<CallAnalytics>
       ),
     );
   }
+
+  // Updated _getYAxisInterval to handle larger values
+  double _getYAxisInterval(double maxY, String timeRange) {
+    if (maxY > 1000) return 200; // Larger interval for high values
+    switch (timeRange) {
+      case '1D':
+        return maxY > 20 ? 5 : (maxY > 10 ? 2 : 1);
+      case '1W':
+        return maxY > 14 ? 3 : 2;
+      case '1M':
+        return maxY > 16 ? 4 : 2;
+      case '1Q':
+        return maxY > 9 ? 3 : 1;
+      case '1Y':
+        return maxY > 24 ? 6 : 3;
+      default:
+        return maxY > 10 ? 5 : 1;
+    }
+  }
+
+  // Helper method for bottom titles (X-axis)
+  Widget _getBottomTitleWidget(
+    double value,
+    TitleMeta meta,
+    List<int> sortedHours,
+  ) {
+    final int index = value ~/ 2;
+    final style = TextStyle(color: Colors.grey, fontSize: 10);
+
+    if (index < sortedHours.length) {
+      String label = _getXAxisLabel(sortedHours[index], selectedTimeRange);
+      return SideTitleWidget(
+        space: 8,
+        child: Text(label, style: style),
+        meta: meta,
+      );
+    }
+
+    return SideTitleWidget(
+      space: 8,
+      child: Text('', style: style),
+      meta: meta,
+    );
+  }
+
+  // Helper method for left titles (Y-axis)
+  Widget _getLeftTitleWidget(double value, TitleMeta meta, double maxY) {
+    if (value == 0) {
+      return const SizedBox();
+    }
+
+    String label = _getYAxisLabel(value, selectedTimeRange, maxY);
+
+    return SideTitleWidget(
+      space: 8,
+      child: Text(
+        label,
+        style: const TextStyle(color: Colors.grey, fontSize: 9),
+        textAlign: TextAlign.center,
+      ),
+      meta: meta,
+    );
+  }
+
+  // Helper method to get X-axis labels based on time range
+  String _getXAxisLabel(int hour, String timeRange) {
+    switch (timeRange) {
+      case '1D':
+        // Show hours in 12-hour format
+        String period = hour >= 12 ? 'PM' : 'AM';
+        int displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+        return '$displayHour$period';
+
+      case '1W':
+        // Show hours for weekly view
+        String period = hour >= 12 ? 'PM' : 'AM';
+        int displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+        return '$displayHour$period';
+
+      case '1M':
+        // Show hours for monthly view
+        String period = hour >= 12 ? 'PM' : 'AM';
+        int displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+        return '$displayHour$period';
+
+      case '1Q':
+        // Show hours for quarterly view
+        String period = hour >= 12 ? 'PM' : 'AM';
+        int displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+        return '$displayHour$period';
+
+      case '1Y':
+        // Show hours for yearly view
+        String period = hour >= 12 ? 'PM' : 'AM';
+        int displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+        return '$displayHour$period';
+
+      default:
+        return '${hour}H';
+    }
+  }
+
+  // Helper method to get Y-axis labels with contextual information
+  String _getYAxisLabel(double value, String timeRange, double maxY) {
+    int intValue = value.toInt();
+
+    switch (timeRange) {
+      case '1D':
+        return intValue.toString();
+
+      case '1W':
+        // Add day context for weekly view
+        if (intValue > 0) {
+          double ratio = value / maxY;
+          if (ratio >= 0.8) return 'Sun\n$intValue';
+          if (ratio >= 0.7) return 'Sat\n$intValue';
+          if (ratio >= 0.6) return 'Fri\n$intValue';
+          if (ratio >= 0.5) return 'Thu\n$intValue';
+          if (ratio >= 0.4) return 'Wed\n$intValue';
+          if (ratio >= 0.3) return 'Tue\n$intValue';
+          if (ratio >= 0.2) return 'Mon\n$intValue';
+        }
+        return intValue.toString();
+
+      case '1M':
+        // Add week context for monthly view
+        if (intValue > 0) {
+          double ratio = value / maxY;
+          if (ratio >= 0.75) return 'W4\n$intValue';
+          if (ratio >= 0.5) return 'W3\n$intValue';
+          if (ratio >= 0.25) return 'W2\n$intValue';
+          if (ratio > 0) return 'W1\n$intValue';
+        }
+        return intValue.toString();
+
+      case '1Q':
+        // Add month context for quarterly view
+        if (intValue > 0) {
+          double ratio = value / maxY;
+          if (ratio >= 0.67) return 'Mar\n$intValue';
+          if (ratio >= 0.33) return 'Feb\n$intValue';
+          if (ratio > 0) return 'Jan\n$intValue';
+        }
+        return intValue.toString();
+
+      case '1Y':
+        // Add month context for yearly view
+        if (intValue > 0) {
+          double ratio = value / maxY;
+          const months = [
+            'Jan',
+            'Feb',
+            'Mar',
+            'Apr',
+            'May',
+            'Jun',
+            'Jul',
+            'Aug',
+            'Sep',
+            'Oct',
+            'Nov',
+            'Dec',
+          ];
+          int monthIndex = (ratio * 12).floor();
+          if (monthIndex >= 0 && monthIndex < months.length) {
+            return '${months[monthIndex]}\n$intValue';
+          }
+        }
+        return intValue.toString();
+
+      default:
+        return intValue.toString();
+    }
+  }
+
+  // Helper method to get appropriate interval based on time range
+  // Widget _buildCombinedLineChart() {
+  //   // Process hourly analysis data to create chart spots
+  //   final List<FlSpot> allCallSpots = [];
+  //   final List<FlSpot> connectedSpots = [];
+  //   final List<FlSpot> missedSpots = [];
+
+  //   // Process data to create chart spots
+  //   // Sort keys to ensure hours are in order
+  //   final List<int> sortedHours =
+  //       hourlyAnalysisData.keys.map((e) => int.parse(e)).toList()..sort();
+
+  //   for (int i = 0; i < sortedHours.length; i++) {
+  //     final hour = sortedHours[i].toString();
+  //     final data = hourlyAnalysisData[hour];
+
+  //     if (data != null) {
+  //       final double xValue = i.toDouble() * 2; // Spread out the x values
+
+  //       // All calls
+  //       if (data['AllCalls'] != null) {
+  //         allCallSpots.add(
+  //           FlSpot(xValue, (data['AllCalls']['calls'] ?? 0).toDouble()),
+  //         );
+  //       }
+
+  //       // Connected calls
+  //       if (data['connected'] != null) {
+  //         connectedSpots.add(
+  //           FlSpot(xValue, (data['connected']['calls'] ?? 0).toDouble()),
+  //         );
+  //       }
+
+  //       // Missed calls
+  //       if (data['missedCalls'] != null) {
+  //         missedSpots.add(
+  //           FlSpot(xValue, (data['missedCalls'] as int).toDouble()),
+  //         );
+  //       }
+  //     }
+  //   }
+
+  //   // If no data points, create default ones
+  //   if (allCallSpots.isEmpty) {
+  //     allCallSpots.add(const FlSpot(0, 0));
+  //     allCallSpots.add(const FlSpot(2, 0));
+  //   }
+  //   if (connectedSpots.isEmpty) {
+  //     connectedSpots.add(const FlSpot(0, 0));
+  //     connectedSpots.add(const FlSpot(2, 0));
+  //   }
+  //   if (missedSpots.isEmpty) {
+  //     missedSpots.add(const FlSpot(0, 0));
+  //     missedSpots.add(const FlSpot(2, 0));
+  //   }
+
+  //   // Find max Y value for the chart
+  //   double maxY = 0;
+  //   for (var spot in [...allCallSpots, ...connectedSpots, ...missedSpots]) {
+  //     if (spot.y > maxY) maxY = spot.y;
+  //   }
+  //   maxY = maxY < 5 ? 5 : (maxY.ceil() + 2); // Add some padding to the max Y
+
+  //   // Find max X value
+  //   double maxX = 0;
+  //   for (var spot in [...allCallSpots, ...connectedSpots, ...missedSpots]) {
+  //     if (spot.x > maxX) maxX = spot.x;
+  //   }
+  //   maxX = maxX < 2 ? 12 : maxX + 2; // Ensure minimum width and add padding
+
+  //   return Padding(
+  //     padding: const EdgeInsets.only(top: 10),
+  //     child: LineChart(
+  //       LineChartData(
+  //         lineTouchData: LineTouchData(
+  //           touchTooltipData: LineTouchTooltipData(
+  //             getTooltipItems: (List<LineBarSpot> touchedSpots) {
+  //               return touchedSpots.map((spot) {
+  //                 String callType = '';
+  //                 if (spot.barIndex == 0) {
+  //                   callType = 'All Calls';
+  //                 } else if (spot.barIndex == 1) {
+  //                   callType = 'Connected';
+  //                 } else {
+  //                   callType = 'Missed';
+  //                 }
+  //                 return LineTooltipItem(
+  //                   '$callType: ${spot.y.toInt()} calls',
+  //                   const TextStyle(color: Colors.white),
+  //                 );
+  //               }).toList();
+  //             },
+  //           ),
+  //         ),
+  //         titlesData: FlTitlesData(
+  //           show: true,
+  //           bottomTitles: AxisTitles(
+  //             sideTitles: SideTitles(
+  //               showTitles: true,
+  //               getTitlesWidget: (double value, TitleMeta meta) {
+  //                 // Use hourly analysis keys for X axis
+  //                 final int index = value ~/ 2;
+  //                 final style = TextStyle(color: Colors.grey, fontSize: 10);
+
+  //                 if (index < sortedHours.length) {
+  //                   // Convert 24-hour to 12-hour format
+  //                   int hour = sortedHours[index];
+  //                   String period = hour >= 12 ? 'PM' : 'AM';
+  //                   hour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+  //                   return SideTitleWidget(
+  //                     space: 8,
+  //                     child: Text('$hour$period', style: style),
+  //                     meta: meta,
+  //                   );
+  //                 }
+  //                 return SideTitleWidget(
+  //                   space: 8,
+  //                   child: Text('', style: style),
+  //                   meta: meta,
+  //                 );
+  //               },
+  //               reservedSize: 28,
+  //               interval: 2,
+  //             ),
+  //           ),
+  //           leftTitles: AxisTitles(
+  //             sideTitles: SideTitles(
+  //               showTitles: true,
+  //               getTitlesWidget: (double value, TitleMeta meta) {
+  //                 if (value == 0) {
+  //                   return const SizedBox();
+  //                 }
+  //                 return SideTitleWidget(
+  //                   space: 8,
+  //                   child: Text(
+  //                     value.toInt().toString(),
+  //                     style: const TextStyle(color: Colors.grey, fontSize: 10),
+  //                   ),
+  //                   meta: meta,
+  //                 );
+  //               },
+  //               reservedSize: 28,
+  //               interval: maxY > 10 ? 5 : 1,
+  //             ),
+  //           ),
+  //           topTitles: const AxisTitles(
+  //             sideTitles: SideTitles(showTitles: false),
+  //           ),
+  //           rightTitles: const AxisTitles(
+  //             sideTitles: SideTitles(showTitles: false),
+  //           ),
+  //         ),
+  //         borderData: FlBorderData(show: false),
+  //         gridData: FlGridData(
+  //           show: true,
+  //           drawHorizontalLine: true,
+  //           drawVerticalLine: true,
+  //           horizontalInterval: maxY > 10 ? 5 : 1,
+  //           verticalInterval: 2,
+  //           getDrawingHorizontalLine: (value) {
+  //             return FlLine(color: Colors.grey.shade200, strokeWidth: 1);
+  //           },
+  //           getDrawingVerticalLine: (value) {
+  //             return FlLine(
+  //               color: Colors.grey.shade200,
+  //               strokeWidth: 1,
+  //               dashArray: [5, 5],
+  //             );
+  //           },
+  //         ),
+  //         minX: 0,
+  //         maxX: maxX,
+  //         minY: 0,
+  //         maxY: maxY,
+  //         lineBarsData: [
+  //           // All Calls Line
+  //           LineChartBarData(
+  //             spots: allCallSpots,
+  //             isCurved: true,
+  //             color: AppColors.colorsBlue,
+  //             barWidth: 3,
+  //             isStrokeCapRound: true,
+  //             dotData: const FlDotData(show: true),
+  //             belowBarData: BarAreaData(
+  //               show: true,
+  //               color: Colors.blue.withOpacity(0.2),
+  //             ),
+  //           ),
+  //           // Connected Calls Line
+  //           LineChartBarData(
+  //             spots: connectedSpots,
+  //             isCurved: true,
+  //             color: Colors.green,
+  //             barWidth: 3,
+  //             isStrokeCapRound: true,
+  //             dotData: const FlDotData(show: true),
+  //             belowBarData: BarAreaData(
+  //               show: true,
+  //               color: Colors.green.withOpacity(0.2),
+  //             ),
+  //           ),
+  //           // Missed Calls Line (using orange for the outgoing slot)
+  //           LineChartBarData(
+  //             spots: missedSpots,
+  //             isCurved: true,
+  //             color: Colors.orange,
+  //             barWidth: 3,
+  //             isStrokeCapRound: true,
+  //             dotData: const FlDotData(show: true),
+  //             belowBarData: BarAreaData(
+  //               show: true,
+  //               color: Colors.orange.withOpacity(0.2),
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   TableRow _buildTableRow(List<Widget> widgets) {
     return TableRow(

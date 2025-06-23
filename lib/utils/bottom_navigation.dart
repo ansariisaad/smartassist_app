@@ -480,9 +480,9 @@ class BottomNavigation extends StatelessWidget {
                 onTap: () => Get.to(() => const FavoritePage(leadId: '')),
               ),
               ListTile(
-                leading: const Icon(Icons.warning_amber_rounded, size: 28),
+                leading: const Icon(Icons.receipt_outlined, size: 28),
                 title: Text(
-                  'Contact Support',
+                  'Raise a ticket',
                   style: GoogleFonts.poppins(fontSize: 18),
                 ),
                 onTap: () =>

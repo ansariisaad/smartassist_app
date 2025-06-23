@@ -29,7 +29,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
   final _feedbackController = TextEditingController();
   final _titleController = TextEditingController();
 
-  String _selectedCategory = 'General';
+  String _selectedCategory = 'Login';
   double _rating = 3.0;
   bool _isSubmitting = false;
   bool _isAnonymous = false;
@@ -37,13 +37,16 @@ class _FeedbackFormState extends State<FeedbackForm> {
   bool _isPickingFiles = false;
 
   final List<String> _categories = [
-    'General',
-    'Bug Report',
-    'Feature Request',
-    'User Interface',
-    'Performance',
+    'Login',
+    'Dashboard',
+    'Profile',
+    'Enquiries',
+    'Test drives',
+    'Follow-ups',
+    'Appointments',
     'Call Analysis',
-    'Data Issues',
+    'WhatsApp',
+    'Analytics',
     'Other',
   ];
 
@@ -428,7 +431,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
         title: Align(
           alignment: Alignment.centerLeft,
           child: Text(
-            widget.isFromSM ? 'Feedback - ${widget.userName}' : 'Send Feedback',
+            'Raise a ticket',
             style: GoogleFonts.poppins(
               fontSize: _titleFontSize(context),
               fontWeight: FontWeight.w400,
@@ -465,7 +468,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
                 SizedBox(height: _isTablet(context) ? 20 : 16),
 
                 // Rating Section
-                _buildRatingSection(context),
+                // _buildRatingSection(context),
 
                 SizedBox(height: _isTablet(context) ? 20 : 16),
 
@@ -684,81 +687,81 @@ class _FeedbackFormState extends State<FeedbackForm> {
     );
   }
 
-  Widget _buildRatingSection(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(_isTablet(context) ? 20 : 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        //
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'How would you rate your overall experience?',
-            style: GoogleFonts.poppins(
-              fontSize: _bodyFontSize(context),
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[800],
-            ),
-          ),
-          SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              for (int i = 1; i <= 5; i++)
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _rating = i.toDouble();
-                    });
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                    child: Icon(
-                      Icons.star,
-                      size: _isTablet(context)
-                          ? 40
-                          : (_isSmallScreen(context) ? 28 : 32),
-                      color: i <= _rating ? Colors.amber : Colors.grey.shade300,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          SizedBox(height: 8),
-          Center(
-            child: Text(
-              _getRatingText(_rating),
-              style: GoogleFonts.poppins(
-                fontSize: _bodyFontSize(context),
-                fontWeight: FontWeight.w500,
-                color: _getRatingColor(_rating),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget _buildRatingSection(BuildContext context) {
+  //   return Container(
+  //     padding: EdgeInsets.all(_isTablet(context) ? 20 : 16),
+  //     decoration: BoxDecoration(
+  //       color: Colors.white,
+  //       borderRadius: BorderRadius.circular(12),
+  //       //
+  //     ),
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         Text(
+  //           'How would you rate your overall experience?',
+  //           style: GoogleFonts.poppins(
+  //             fontSize: _bodyFontSize(context),
+  //             fontWeight: FontWeight.w600,
+  //             color: Colors.grey[800],
+  //           ),
+  //         ),
+  //         SizedBox(height: 16),
+  //         Row(
+  //           mainAxisAlignment: MainAxisAlignment.center,
+  //           children: [
+  //             for (int i = 1; i <= 5; i++)
+  //               GestureDetector(
+  //                 onTap: () {
+  //                   setState(() {
+  //                     _rating = i.toDouble();
+  //                   });
+  //                 },
+  //                 child: Padding(
+  //                   padding: const EdgeInsets.symmetric(horizontal: 4.0),
+  //                   child: Icon(
+  //                     Icons.star,
+  //                     size: _isTablet(context)
+  //                         ? 40
+  //                         : (_isSmallScreen(context) ? 28 : 32),
+  //                     color: i <= _rating ? Colors.amber : Colors.grey.shade300,
+  //                   ),
+  //                 ),
+  //               ),
+  //           ],
+  //         ),
+  //         SizedBox(height: 8),
+  //         // Center(
+  //         //   child: Text(
+  //         //     _getRatingText(_rating),
+  //         //     style: GoogleFonts.poppins(
+  //         //       fontSize: _bodyFontSize(context),
+  //         //       fontWeight: FontWeight.w500,
+  //         //       color: _getRatingColor(_rating),
+  //         //     ),
+  //         //   ),
+  //         // ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
-  String _getRatingText(double rating) {
-    switch (rating.toInt()) {
-      case 1:
-        return 'Poor';
-      case 2:
-        return 'Fair';
-      case 3:
-        return 'Good';
-      case 4:
-        return 'Very Good';
-      case 5:
-        return 'Excellent';
-      default:
-        return 'Good';
-    }
-  }
+  // String _getRatingText(double rating) {
+  //   switch (rating.toInt()) {
+  //     case 1:
+  //       return 'Poor';
+  //     case 2:
+  //       return 'Fair';
+  //     case 3:
+  //       return 'Good';
+  //     case 4:
+  //       return 'Very Good';
+  //     case 5:
+  //       return 'Excellent';
+  //     default:
+  //       return 'Good';
+  //   }
+  // }
 
   Color _getRatingColor(double rating) {
     switch (rating.toInt()) {
@@ -817,7 +820,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
             maxLines: _isTablet(context) ? 8 : 6,
             decoration: InputDecoration(
               hintText:
-                  'Please share your detailed feedback, suggestions, or report any issues...',
+                  'Please share your detailed feedback on issues faced...',
               hintStyle: TextStyle(
                 color: Colors.grey[500],
                 fontSize: _bodyFontSize(context),
@@ -879,7 +882,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
           ),
           SizedBox(height: 8),
           Text(
-            'Add photos or videos to help explain your feedback (Max 5 files, 10MB each)',
+            'Add photos or videos to help explain your issue (Max 5 files, 10MB each)',
             style: GoogleFonts.poppins(
               fontSize: _smallFontSize(context),
               color: Colors.grey[600],

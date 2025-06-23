@@ -28,7 +28,7 @@ class Testdrive extends StatefulWidget {
 }
 
 // Google Maps API key
-final String _googleApiKey = "AIzaSyA_SWIvFPfChqL33bKtLyZ5YOFSXrsk1Qs";
+final String _googleApiKey = "AIzaSyCaFZ4RXQIy86v9B24wz5l0vgDKbQSP5LE";
 
 class _TestdriveState extends State<Testdrive> {
   Map<String, String> _errors = {};
@@ -132,7 +132,7 @@ class _TestdriveState extends State<Testdrive> {
 
     try {
       final response = await http.get(
-        Uri.parse('https://dev.smartassistapp.in/api/events/${widget.eventId}'),
+        Uri.parse('https://api.smartassistapp.in/api/events/${widget.eventId}'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -228,7 +228,7 @@ class _TestdriveState extends State<Testdrive> {
     try {
       final response = await http.put(
         Uri.parse(
-          'https://dev.smartassistapp.in/api/events/update/${widget.eventId}',
+          'https://api.smartassistapp.in/api/events/update/${widget.eventId}',
         ),
         headers: {
           'Authorization': 'Bearer $token',

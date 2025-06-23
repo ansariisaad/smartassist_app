@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
+import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/appointments.dart';
 import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/followups.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -522,7 +523,8 @@ class _AllFollowupsItemState extends State<allOppointment>
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
-          child: FollowupsEdit(onFormSubmit: () {}, taskId: widget.taskId),
+          // child: FollowupsEdit(onFormSubmit: () {}, taskId: widget.taskId),
+          child: AppointmentsEdit(onFormSubmit: () {}, taskId: widget.taskId),
         );
       },
     );

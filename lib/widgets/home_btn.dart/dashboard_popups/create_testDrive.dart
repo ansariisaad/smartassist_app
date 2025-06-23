@@ -70,7 +70,7 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
   List<dynamic> vehicleName = [];
 
   // Google Maps API key
-  final String _googleApiKey = "AIzaSyA_SWIvFPfChqL33bKtLyZ5YOFSXrsk1Qs";
+  final String _googleApiKey = "AIzaSyCaFZ4RXQIy86v9B24wz5l0vgDKbQSP5LE";
 
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _searchController1 = TextEditingController();
@@ -219,7 +219,7 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://dev.smartassistapp.in/api/search/vehicles?vehicle=${Uri.encodeComponent(query)}',
+          'https://api.smartassistapp.in/api/search/vehicles?vehicle=${Uri.encodeComponent(query)}',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -264,7 +264,7 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
     final encodedName = Uri.encodeComponent(vehicleName);
 
     final url =
-        'https://dev.smartassistapp.in/api/users/vehicles/all?vehicle_name=$encodedName';
+        'https://api.smartassistapp.in/api/users/vehicles/all?vehicle_name=$encodedName';
 
     try {
       final response = await http.get(
@@ -321,7 +321,7 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://dev.smartassistapp.in/api/search/global?query=$query',
+          'https://api.smartassistapp.in/api/search/global?query=$query',
         ),
         headers: {
           'Authorization': 'Bearer $token',

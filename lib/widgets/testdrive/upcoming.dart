@@ -111,7 +111,7 @@ class _TestUpcomingState extends State<TestUpcoming> {
 
   //     final response = await http.put(
   //       Uri.parse(
-  //         'https://dev.smartassistapp.in/api/favourites/mark-fav/event/$eventId',
+  //         'https://api.smartassistapp.in/api/favourites/mark-fav/event/$eventId',
   //       ),
   //       headers: {
   //         'Authorization': 'Bearer $token',
@@ -154,7 +154,7 @@ class _TestUpcomingState extends State<TestUpcoming> {
   // ) async {
   //   try {
   //     final url = Uri.parse(
-  //         'https://dev.smartassistapp.in/api/events/$eventId/send-consent');
+  //         'https://api.smartassistapp.in/api/events/$eventId/send-consent');
   //     final token = await Storage.getToken();
 
   //     final response = await http.post(

@@ -13,6 +13,8 @@ class GlobleSpeechtotext extends StatefulWidget {
   final double iconSize; // Customizable icon size
   final Color activeColor; // Color when listening
   final Color inactiveColor; // Color when not listening
+  final Duration listenDuration; // Add this
+  final Duration pauseDuration;
 
   const GlobleSpeechtotext({
     super.key,
@@ -21,6 +23,8 @@ class GlobleSpeechtotext extends StatefulWidget {
     this.iconSize = 16.0,
     this.activeColor = AppColors.iconGrey,
     this.inactiveColor = AppColors.fontColor,
+    this.listenDuration = const Duration(seconds: 30), // Default
+    this.pauseDuration = const Duration(seconds: 5), // Default
   });
 
   @override
@@ -28,7 +32,7 @@ class GlobleSpeechtotext extends StatefulWidget {
 }
 
 class _GlobleSpeechtotextState extends State<GlobleSpeechtotext>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   final stt.SpeechToText _speech = stt.SpeechToText();
   bool _isListening = false;
   bool _isInitialized = false;
@@ -39,22 +43,69 @@ class _GlobleSpeechtotextState extends State<GlobleSpeechtotext>
   late AnimationController _waveController;
   late Animation<double> _waveAnimation;
   Timer? _timeoutTimer;
+  Timer? _stateCheckTimer;
   Color get _primaryColor => widget.activeColor ?? AppColors.iconGrey;
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this); // Add lifecycle observer
     _initializeAnimations();
     _initializeSpeech();
+    _startStateMonitoring(); // Start state monitoring
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this); // Remove observer
+    _stateCheckTimer?.cancel(); // Cancel state timer
     _waveController.dispose();
     _timeoutTimer?.cancel();
     if (_speech.isListening) {
       _speech.cancel();
     }
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      _syncSpeechState();
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      if (_isListening) {
+        _forceStopListening();
+      }
+    }
+  }
+
+  void _startStateMonitoring() {
+    _stateCheckTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        _syncSpeechState();
+      }
+    });
+  }
+
+  void _syncSpeechState() {
+    if (!mounted || !_isInitialized) return;
+
+    bool actuallyListening = _speech.isListening;
+
+    if (_isListening != actuallyListening) {
+      debugPrint(
+        'State mismatch detected! UI: $_isListening, Engine: $actuallyListening',
+      );
+      if (actuallyListening && !_isListening) {
+        setState(() {
+          _isListening = true;
+        });
+        widget.onListeningStateChanged?.call(true);
+        _startAnimations();
+      } else if (!actuallyListening && _isListening) {
+        _forceStopListening();
+      }
+    }
   }
 
   void _initializeAnimations() {
@@ -117,25 +168,32 @@ class _GlobleSpeechtotextState extends State<GlobleSpeechtotext>
 
   void _onSpeechStatus(String status) {
     if (!mounted) return;
-    debugPrint('Speech status: $status');
+    debugPrint('Speech engine status: $status. UI is listening: $_isListening');
 
     _timeoutTimer?.cancel();
 
     if (status == 'notListening' || status == 'done') {
       if (_isListening) {
+        debugPrint('Engine stopped unexpectedly. Forcing UI to update.');
         _forceStopListening();
       }
     } else if (status == 'listening') {
       if (!_isListening) {
-        setState(() => _isListening = true);
+        setState(() {
+          _isListening = true;
+        });
         widget.onListeningStateChanged?.call(true);
         _startAnimations();
       }
-      _timeoutTimer = Timer(const Duration(seconds: 30), () {
-        if (_isListening) {
-          _forceStopListening(showError: true, error: 'Speech timeout');
-        }
-      });
+      _timeoutTimer = Timer(
+        widget.listenDuration + const Duration(seconds: 5),
+        () {
+          if (_isListening) {
+            debugPrint('Safety timeout triggered');
+            _forceStopListening(showError: true, error: 'Speech timeout');
+          }
+        },
+      );
     }
   }
 
@@ -177,6 +235,7 @@ class _GlobleSpeechtotextState extends State<GlobleSpeechtotext>
     if (!mounted) return;
 
     if (_speech.isListening) {
+      debugPrint('Speech engine already listening, stopping first');
       await _speech.stop();
       await Future.delayed(const Duration(milliseconds: 100));
     }
@@ -191,8 +250,8 @@ class _GlobleSpeechtotextState extends State<GlobleSpeechtotext>
     try {
       await _speech.listen(
         onResult: _onSpeechResult,
-        listenFor: const Duration(seconds: 30),
-        pauseFor: const Duration(seconds: 3),
+        listenFor: widget.listenDuration, // Use custom duration
+        pauseFor: widget.pauseDuration, // Use custom duration
         partialResults: true,
         cancelOnError: true,
         listenMode: stt.ListenMode.dictation,
@@ -262,7 +321,12 @@ class _GlobleSpeechtotextState extends State<GlobleSpeechtotext>
     });
 
     if (result.recognizedWords.isNotEmpty) {
-      widget.onSpeechResult(result.recognizedWords);
+      String formattedWords = result.recognizedWords.trim();
+      if (formattedWords.isNotEmpty) {
+        formattedWords =
+            formattedWords[0].toUpperCase() + formattedWords.substring(1);
+      }
+      widget.onSpeechResult(formattedWords);
     }
 
     if (result.finalResult) {

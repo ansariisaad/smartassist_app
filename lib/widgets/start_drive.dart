@@ -179,7 +179,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
   // Initialize the Socket.IO connection
   void _initializeSocket() {
     try {
-      socket = IO.io('wss://dev.smartassistapp.in', <String, dynamic>{
+      socket = IO.io('wss://api.smartassistapp.in', <String, dynamic>{
         'transports': ['websocket'],
         'autoConnect': true,
         'reconnection': true,
@@ -307,7 +307,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
   Future<void> _startTestDrive(LatLng currentLocation) async {
     try {
       final url = Uri.parse(
-        'https://dev.smartassistapp.in/api/events/${widget.eventId}/start-drive',
+        'https://api.smartassistapp.in/api/events/${widget.eventId}/start-drive',
       );
       final token = await Storage.getToken();
 
@@ -449,12 +449,11 @@ class _StartDriveMapState extends State<StartDriveMap> {
     }
   }
 
- 
   // New method to upload drive summary instead of image
   // Future<void> _uploadDriveSummary() async {
   //   try {
   //     final url = Uri.parse(
-  //         'https://dev.smartassistapp.in/api/events/${widget.eventId}/drive-summary');
+  //         'https://api.smartassistapp.in/api/events/${widget.eventId}/drive-summary');
   //     final token = await Storage.getToken();
 
   //     // Convert route points to a simpler format for the API
@@ -539,7 +538,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
   }
 
   // Improved end drive function with more resilient error handling
-Future<void> _handleEndDrive({bool sendFeedback = false}) async {
+  Future<void> _handleEndDrive({bool sendFeedback = false}) async {
     setState(() {
       isLoading = true;
     });
@@ -679,7 +678,7 @@ Future<void> _handleEndDrive({bool sendFeedback = false}) async {
   //   }
   // }
 
-Future<void> _handleEndDriveNavigatesummary() async {
+  Future<void> _handleEndDriveNavigatesummary() async {
     setState(() {
       isLoading = true;
     });
@@ -751,8 +750,6 @@ Future<void> _handleEndDriveNavigatesummary() async {
     }
   }
 
- 
-
   // Dedicated method for resource cleanup
   void _cleanupResources() {
     try {
@@ -811,11 +808,11 @@ Future<void> _handleEndDriveNavigatesummary() async {
   //     throw e; // Re-throw to be caught by caller
   //   }
   // }
-Future<void> _endTestDrive({bool sendFeedback = false}) async {
+  Future<void> _endTestDrive({bool sendFeedback = false}) async {
     try {
       // Build the URL with query parameter
       final uri = Uri.parse(
-        'https://dev.smartassistapp.in/api/events/${widget.eventId}/end-drive',
+        'https://api.smartassistapp.in/api/events/${widget.eventId}/end-drive',
       );
       final url = uri.replace(
         queryParameters: {'send_feedback': sendFeedback.toString()},
@@ -849,7 +846,6 @@ Future<void> _endTestDrive({bool sendFeedback = false}) async {
     }
   }
 
-
   @override
   void dispose() {
     // Clean up resources
@@ -866,7 +862,6 @@ Future<void> _endTestDrive({bool sendFeedback = false}) async {
 
   ScreenshotController _screenshotController = ScreenshotController();
 
-  
   // Improved screenshot capture function with better error handling
   Future<void> _captureAndUploadImage() async {
     // Longer delay before capture to ensure UI is fully rendered
@@ -896,7 +891,7 @@ Future<void> _endTestDrive({bool sendFeedback = false}) async {
   // Improved upload image function with better error handling
   Future<bool> _uploadImage(File file) async {
     final url = Uri.parse(
-      'https://dev.smartassistapp.in/api/events/${widget.eventId}/upload-map',
+      'https://api.smartassistapp.in/api/events/${widget.eventId}/upload-map',
     );
     final token = await Storage.getToken();
 
@@ -936,8 +931,6 @@ Future<void> _endTestDrive({bool sendFeedback = false}) async {
       return false;
     }
   }
-
- 
 
   @override
   Widget build(BuildContext context) {
@@ -1033,7 +1026,6 @@ Future<void> _endTestDrive({bool sendFeedback = false}) async {
                                     child: Screenshot(
                                       controller: _screenshotController,
 
-                                     
                                       child: GoogleMap(
                                         onMapCreated: _onMapCreated,
                                         initialCameraPosition: CameraPosition(
@@ -1204,7 +1196,6 @@ Future<void> _endTestDrive({bool sendFeedback = false}) async {
                                     }
                                   },
 
-                                
                                   style: ElevatedButton.styleFrom(
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 10,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:external_app_launcher/external_app_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -39,23 +41,6 @@ class Message {
       id: json['id'], // Parse the ID
     );
   }
-}
-
-class WhatsappChat extends StatefulWidget {
-  final String chatId;
-  final String userName;
-  // final String email;
-  // final String sessionId;
-  const WhatsappChat({
-    super.key,
-    required this.chatId,
-    required this.userName,
-    // required this.email,
-    // required this.sessionId,
-  });
-
-  @override
-  State<WhatsappChat> createState() => _WhatsappChatState();
 }
 
 class MessageBubble extends StatefulWidget {
@@ -143,68 +128,182 @@ class _MessageBubbleState extends State<MessageBubble> {
   }
 }
 
-class _WhatsappChatState extends State<WhatsappChat> {
+class WhatsappChat extends StatefulWidget {
+  final String chatId;
+  final String userName;
+
+  const WhatsappChat({super.key, required this.chatId, required this.userName});
+
+  @override
+  State<WhatsappChat> createState() => _WhatsappChatState();
+}
+
+class _WhatsappChatState extends State<WhatsappChat>
+    with WidgetsBindingObserver {
   List<Message> messages = [];
   bool isLoading = false;
   String spId = '';
   String email = '';
+  bool isWhatsAppReady = false;
+  bool isCheckingStatus = true;
+  Timer? _reconnectTimer;
 
-  Future<void> initwhatsappChat(BuildContext context) async {
+  final TextEditingController _messageController = TextEditingController();
+  late IO.Socket socket;
+  bool isConnected = false;
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this); // Observe app lifecycle
+    loadInitialData();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    print('AppLifecycleState: $state');
+    if (state == AppLifecycleState.resumed) {
+      // App is back in foreground, attempt to reconnect socket
+      if (!isConnected) {
+        socket.connect();
+        checkWhatsAppStatus();
+      }
+    } else if (state == AppLifecycleState.paused) {
+      // App is in background, start periodic reconnection attempts
+      _startReconnectTimer();
+    }
+  }
+
+  void _startReconnectTimer() {
+    _reconnectTimer?.cancel();
+    _reconnectTimer = Timer.periodic(Duration(seconds: 5), (timer) {
+      if (!isConnected && mounted) {
+        print('Attempting to reconnect socket...');
+        socket.connect();
+      }
+    });
+  }
+
+  void _stopReconnectTimer() {
+    _reconnectTimer?.cancel();
+    _reconnectTimer = null;
+  }
+
+  Future<void> loadInitialData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    spId = prefs.getString('user_id') ?? '';
+    email = await TokenManager.getUserEmail() ?? '';
+    print('this is spid $spId');
+    initSocket(); // Initialize socket first
+    await checkWhatsAppStatus(); // Check status after socket is initialized
+  }
+
+  Future<void> checkWhatsAppStatus() async {
     setState(() {
-      isLoading = true;
+      isCheckingStatus = true;
     });
     try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      spId = prefs.getString('user_id') ?? '';
-      email = await TokenManager.getUserEmail() ?? '';
-      // String? user_email = prefs.getString('user_email');
-      final url = Uri.parse('https://api.smartassistapp.in/api/init-wa');
+      final url = Uri.parse(
+        'https://dev.smartassistapp.in/api/check-wa-status',
+      );
       final token = await Storage.getToken();
-
-      // Create the request body
-      final requestBody = {'sessionId': spId};
       final response = await http.post(
         url,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-        body: json.encode(requestBody),
+        body: json.encode({'sessionId': spId}),
       );
 
-      // Print the response
-      print('API Response status: ${response.statusCode}');
-      print('API Response body: ${response.body}');
+      print(
+        'Check WA Status Response: ${response.statusCode} - ${response.body}',
+      );
 
       if (response.statusCode == 200) {
-        final errorMessage =
-            json.decode(response.body)['message'] ?? 'Unknown error';
-
-        Get.snackbar(
-          'Success',
-          errorMessage,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
-        await launchWhatsAppScanner();
+        final data = json.decode(response.body);
+        setState(() {
+          isWhatsAppReady = data['isReady'] ?? false;
+          isCheckingStatus = false;
+        });
+        // Remove direct socket.emit; rely on socket's onConnect
       } else {
-        // Error handling
-        final errorMessage =
-            json.decode(response.body)['message'] ?? 'Unknown error';
-        print('Failed to submit feedback');
+        print('Failed to check WhatsApp status: ${response.body}');
+        setState(() {
+          isWhatsAppReady = false;
+          isCheckingStatus = false;
+        });
         Get.snackbar(
           'Error',
-          errorMessage, // Show the backend error message
+          'Failed to check WhatsApp status',
           backgroundColor: Colors.red,
           colorText: Colors.white,
         );
-        Navigator.pop(context); // Dismiss the dialog on error
       }
     } catch (e) {
-      print('Error fetching WhatsApp chat: $e');
+      print('Error checking WhatsApp status: $e');
+      setState(() {
+        isWhatsAppReady = false;
+        isCheckingStatus = false;
+      });
       Get.snackbar(
         'Error',
-        'Failed to fetch WhatsApp chat',
+        'Failed to check WhatsApp status',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
+
+  Future<void> initWhatsAppChat(BuildContext context) async {
+    if (isWhatsAppReady || isLoading) return;
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final url = Uri.parse('https://dev.smartassistapp.in/api/init-wa');
+      final token = await Storage.getToken();
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode({'sessionId': spId, 'email': email}),
+      );
+
+      print('Init WA Response: ${response.statusCode} - ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['isReady'] == true) {
+          setState(() {
+            isWhatsAppReady = true;
+          });
+          socket.emit('get_messages', {
+            'sessionId': spId,
+            'chatId': widget.chatId,
+          });
+        } else {
+          await launchWhatsAppScanner();
+        }
+      } else {
+        final errorMessage =
+            json.decode(response.body)['message'] ?? 'Unknown error';
+        Get.snackbar(
+          'Error',
+          errorMessage,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      print('Error initializing WhatsApp chat: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to initialize WhatsApp chat',
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
@@ -215,60 +314,26 @@ class _WhatsappChatState extends State<WhatsappChat> {
     }
   }
 
-  launchWhatsAppScanner() async {
+  Future<void> launchWhatsAppScanner() async {
     try {
-      // Try to launch WhatsApp directly
       await LaunchApp.openApp(
         androidPackageName: 'com.whatsapp',
         iosUrlScheme: 'whatsapp://',
         appStoreLink:
             'https://play.google.com/store/apps/details?id=com.whatsapp',
       );
-
       print('WhatsApp launched successfully');
     } catch (e) {
       print('Error launching WhatsApp: $e');
-
-      // Handle different error cases
-      if (e.toString().contains('not installed') ||
-          e.toString().contains('not found')) {
-        Get.snackbar(
-          'WhatsApp Not Found',
-          'Please install WhatsApp to continue',
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
-      } else {
-        Get.snackbar(
-          'Error',
-          'Failed to open WhatsApp',
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
-      }
+      Get.snackbar(
+        'Error',
+        e.toString().contains('not installed')
+            ? 'Please install WhatsApp to continue'
+            : 'Failed to open WhatsApp',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     }
-  }
-
-  final TextEditingController _messageController = TextEditingController();
-  late IO.Socket socket;
-  bool isConnected = false;
-  final ScrollController _scrollController = ScrollController();
-
-  @override
-  void initState() {
-    super.initState();
-    loadInitialData();
-    // print(email);
-    print('this is spid $spId ');
-    initSocket();
-  }
-
-  Future<void> loadInitialData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    spId = prefs.getString('user_id') ?? '';
-
-    print('this is spid $spId');
-    initSocket(); // Now spId is available before socket emits
   }
 
   String formatTimestamp(int timestamp) {
@@ -281,7 +346,6 @@ class _WhatsappChatState extends State<WhatsappChat> {
     final messageDate = DateTime(dateTime.year, dateTime.month, dateTime.day);
 
     final timeFormat = DateFormat('HH:mm');
-
     if (messageDate == today) {
       return timeFormat.format(dateTime);
     } else if (messageDate == yesterday) {
@@ -292,48 +356,83 @@ class _WhatsappChatState extends State<WhatsappChat> {
   }
 
   void initSocket() {
-    socket = IO.io('wss://api.smartassistapp.in', <String, dynamic>{
+    socket = IO.io('wss://dev.smartassistapp.in', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': true,
       'reconnection': true,
-      'reconnectionAttempts': 5,
+      'reconnectionAttempts': 10, // Increased attempts
       'reconnectionDelay': 1000,
+      'reconnectionDelayMax': 5000,
+      'timeout': 20000, // Increased timeout
     });
 
     socket.onConnect((_) {
+      print('Socket connected');
+      _stopReconnectTimer();
       socket.emit('register_session', {'sessionId': spId});
       print('Emitted register_session: sessionId=$spId');
-      print('Socket connected');
-      if (mounted) {
-        setState(() {
-          isConnected = true;
+      setState(() {
+        isConnected = true;
+      });
+      if (isWhatsAppReady) {
+        socket.emit('get_messages', {
+          'sessionId': spId,
+          'chatId': widget.chatId,
         });
+        print('Requesting messages for chat ID: ${widget.chatId}');
       }
-
-      // Request initial messages for the specific chat
-      socket.emit('get_messages', {'sessionId': spId, 'chatId': widget.chatId});
-      print('Requesting messages for chat ID: ${widget.chatId}');
     });
 
     socket.onDisconnect((_) {
       print('Socket disconnected');
-      if (mounted) {
-        setState(() {
-          isConnected = false;
-        });
-      }
+      setState(() {
+        isConnected = false;
+      });
+      _startReconnectTimer();
     });
 
     socket.onConnectError((error) {
       print('Connection error: $error');
-      Future.delayed(Duration(seconds: 3), () {
-        if (!isConnected && mounted) {
-          socket.connect();
-        }
+      setState(() {
+        isConnected = false;
       });
+      _startReconnectTimer();
     });
 
-    // Listen for initial messages
+    socket.on('wa_login_success', (data) {
+      print('WA Login Success: $data');
+      setState(() {
+        isWhatsAppReady = true;
+      });
+      socket.emit('get_messages', {'sessionId': spId, 'chatId': widget.chatId});
+    });
+
+    socket.on('wa_auth_failure', (data) {
+      print('WA Auth Failure: $data');
+      setState(() {
+        isWhatsAppReady = false;
+      });
+      Get.snackbar(
+        'Error',
+        data['error'] ?? 'WhatsApp authentication failed',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    });
+
+    socket.on('wa_disconnected', (data) {
+      print('WA Disconnected: $data');
+      setState(() {
+        isWhatsAppReady = false;
+      });
+      Get.snackbar(
+        'Disconnected',
+        data['message'] ?? 'WhatsApp disconnected',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    });
+
     socket.on('chat_messages', (data) {
       print('Received initial messages: $data');
       if (data != null && mounted) {
@@ -341,12 +440,9 @@ class _WhatsappChatState extends State<WhatsappChat> {
           final List<Message> initialMessages = (data['messages'] as List)
               .map((msg) => Message.fromJson(msg))
               .toList();
-
           setState(() {
             messages = initialMessages;
           });
-
-          // Scroll to the bottom after initial messages are loaded
           WidgetsBinding.instance.addPostFrameCallback((_) {
             _scrollToBottom();
           });
@@ -356,7 +452,6 @@ class _WhatsappChatState extends State<WhatsappChat> {
       }
     });
 
-    // Listen for new messages (single listener with duplicate check)
     socket.on('new_message', (data) {
       print('New message received: $data');
       if (data != null && mounted) {
@@ -364,15 +459,11 @@ class _WhatsappChatState extends State<WhatsappChat> {
           final messageData = data['message'];
           if (messageData != null) {
             final newMessage = Message.fromJson(messageData);
-
-            // Check if this message belongs to the current chat and isn't a duplicate
             if (data['chatId'] == widget.chatId &&
                 !messages.any((m) => m.id == newMessage.id)) {
               setState(() {
                 messages.add(newMessage);
               });
-
-              // Scroll to bottom
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 _scrollToBottom();
               });
@@ -384,21 +475,18 @@ class _WhatsappChatState extends State<WhatsappChat> {
       }
     });
 
-    // Listen for message sent confirmation
     socket.on('message_sent', (data) {
       print('Message sent confirmation: $data');
-      // Update message status if needed (e.g., update read receipt)
     });
 
-    // Listen for errors
     socket.on('wa_error', (data) {
       print('WebSocket error: $data');
-      if (mounted) {
-        print(' this is error ${data['error']}');
-        // ScaffoldMessenger.of(context).showSnackBar(
-        //   SnackBar(content: Text('Error: ${data['error'] ?? 'Unknown error'}')),
-        // );
-      }
+      Get.snackbar(
+        'Error',
+        data['error'] ?? 'Unknown error',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     });
   }
 
@@ -414,7 +502,8 @@ class _WhatsappChatState extends State<WhatsappChat> {
 
   @override
   void dispose() {
-    // Remove all event listeners
+    WidgetsBinding.instance.removeObserver(this);
+    _stopReconnectTimer();
     socket.off('connect');
     socket.off('disconnect');
     socket.off('new_message');
@@ -422,34 +511,27 @@ class _WhatsappChatState extends State<WhatsappChat> {
     socket.off('message_sent');
     socket.off('wa_error');
     socket.off('connect_error');
-
-    // Disconnect the socket
+    socket.off('wa_login_success');
+    socket.off('wa_auth_failure');
+    socket.off('wa_disconnected');
     socket.disconnect();
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
-  // Function to handle socket disconnection
   void disconnectSocket() {
-    print('ttttttttttttttttttttttttttttttttttttttttttttttttttttttttt');
-    // Disconnect the socket
+    _stopReconnectTimer();
     socket.disconnect();
-
-    // Optionally update the UI to reflect that the socket is disconnected
-    if (mounted) {
-      setState(() {
-        isConnected = false;
-      });
-    }
-
+    setState(() {
+      isConnected = false;
+    });
     print('Socket manually disconnected');
   }
 
   void sendMessage() {
-    if (_messageController.text.trim().isEmpty) return;
+    if (_messageController.text.trim().isEmpty || !isWhatsAppReady) return;
 
-    // Create message payload matching what the backend expects
     final message = {
       'chatId': widget.chatId,
       'message': _messageController.text,
@@ -457,11 +539,8 @@ class _WhatsappChatState extends State<WhatsappChat> {
     };
 
     print('Sending message: ${jsonEncode(message)}');
-
-    // Emit with the correct structure
     socket.emit('send_message', message);
 
-    // Create a local message object for optimistic UI update
     final localMessage = Message(
       body: _messageController.text,
       fromMe: true,
@@ -470,14 +549,11 @@ class _WhatsappChatState extends State<WhatsappChat> {
       mediaUrl: null,
     );
 
-    // Add to local message list (optimistic update)
     setState(() {
       messages.add(localMessage);
     });
 
     _messageController.clear();
-
-    // Scroll to bottom after sending
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToBottom();
     });
@@ -494,7 +570,6 @@ class _WhatsappChatState extends State<WhatsappChat> {
             Icons.arrow_back_ios_new_rounded,
             color: Colors.white,
           ),
-          // onPressed: () => Navigator.pop(context),
           onPressed: () {
             disconnectSocket();
             Navigator.pop(context);
@@ -515,7 +590,9 @@ class _WhatsappChatState extends State<WhatsappChat> {
                   ),
                 ),
                 Text(
-                  isConnected ? 'Online' : 'Connecting...',
+                  isWhatsAppReady
+                      ? (isConnected ? 'Online' : 'Connecting...')
+                      : 'Not Connected',
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.white.withOpacity(0.8),
@@ -528,189 +605,184 @@ class _WhatsappChatState extends State<WhatsappChat> {
         actions: [
           IconButton(
             icon: Icon(
-              isConnected ? Icons.wifi : Icons.wifi_off,
+              isConnected && isWhatsAppReady ? Icons.wifi : Icons.wifi_off,
               color: Colors.white,
             ),
             onPressed: () {
-              if (!isConnected) {
-                // Try to reconnect if disconnected
+              if (!isConnected || !isWhatsAppReady) {
                 socket.connect();
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: Text('Reconnecting...')));
+                checkWhatsAppStatus();
+                Get.snackbar(
+                  'Info',
+                  'Reconnecting...',
+                  backgroundColor: Colors.blue,
+                  colorText: Colors.white,
+                );
               }
             },
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: messages.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+      body: isCheckingStatus
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                Expanded(
+                  child: isWhatsAppReady
+                      ? messages.isEmpty
+                            ? const Center(child: Text('No messages yet'))
+                            : ListView.builder(
+                                controller: _scrollController,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                  horizontal: 10,
+                                ),
+                                itemCount: messages.length,
+                                itemBuilder: (context, index) {
+                                  final message = messages[index];
+                                  final showDate =
+                                      index == 0 ||
+                                      DateTime.fromMillisecondsSinceEpoch(
+                                            messages[index].timestamp * 1000,
+                                          ).day !=
+                                          DateTime.fromMillisecondsSinceEpoch(
+                                            messages[index - 1].timestamp *
+                                                1000,
+                                          ).day;
+
+                                  return Column(
+                                    children: [
+                                      if (showDate)
+                                        Container(
+                                          margin: const EdgeInsets.symmetric(
+                                            vertical: 10,
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 15,
+                                            vertical: 5,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey[300],
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            DateFormat('EEEE, MMM d').format(
+                                              DateTime.fromMillisecondsSinceEpoch(
+                                                message.timestamp * 1000,
+                                              ),
+                                            ),
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.black54,
+                                            ),
+                                          ),
+                                        ),
+                                      MessageBubble(
+                                        message: message,
+                                        timeString: formatTimestamp(
+                                          message.timestamp,
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              )
+                      : Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              InkWell(
+                                onTap: () {
+                                  initWhatsAppChat(context);
+                                  print('Connect WhatsApp clicked');
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.colorsBlueButton,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Text(
+                                    isLoading
+                                        ? 'Connecting...'
+                                        : 'Connect your WhatsApp',
+                                    style: AppFont.appbarfontWhite(context),
+                                  ),
+                                ),
+                              ),
+                              if (!isConnected && !isLoading)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8.0),
+                                  child: Text(
+                                    'Click to connect',
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                ),
+                if (isWhatsAppReady)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8.0,
+                      vertical: 5.0,
+                    ),
+                    color: Colors.white,
+                    child: Row(
                       children: [
-                        // if (!isConnected)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: InkWell(
-                            child: Text(
-                              'click to connect',
-                              style: AppFont.dropDowmLabel(context),
+                        IconButton(
+                          icon: const Icon(Icons.emoji_emotions_outlined),
+                          color: Colors.grey[600],
+                          onPressed: () {},
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.attach_file),
+                          color: Colors.grey[600],
+                          onPressed: () {},
+                        ),
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 15),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                            child: TextField(
+                              controller: _messageController,
+                              decoration: const InputDecoration(
+                                hintText: 'Type a message',
+                                border: InputBorder.none,
+                              ),
+                              maxLines: null,
                             ),
                           ),
                         ),
-                        SizedBox(height: 10),
-                        InkWell(
-                          onTap: () {
-                            initwhatsappChat(context);
-                            print('clicked');
-                          },
-                          child: Container(
-                            // margin: EdgeInsets.all(10),
-                            padding: EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: AppColors.colorsBlueButton,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              'Connect your whatsapp',
-                              style: AppFont.appbarfontWhite(context),
-                            ),
+                        const SizedBox(width: 8),
+                        Container(
+                          decoration: const BoxDecoration(
+                            color: AppColors.colorsBlue,
+                            shape: BoxShape.circle,
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.send),
+                            color: Colors.white,
+                            onPressed: sendMessage,
                           ),
                         ),
                       ],
                     ),
-                  )
-                // Center(
-                //   child: Column(
-                //     mainAxisAlignment: MainAxisAlignment.center,
-                //     children: [
-                //       Text('No messages yet'),
-                //       if (!isConnected)
-                //         Padding(
-                //           padding: const EdgeInsets.only(top: 8.0),
-                //           child: Text(
-                //             'Waiting for connection...',
-                //             style: TextStyle(
-                //               color: Colors.grey[600],
-                //               fontSize: 12,
-                //             ),
-                //           ),
-                //         ),
-                //     ],
-                //   ),
-                // )
-                : ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 10,
-                      horizontal: 10,
-                    ),
-                    itemCount: messages.length,
-                    itemBuilder: (context, index) {
-                      final message = messages[index];
-                      final showDate =
-                          index == 0 ||
-                          DateTime.fromMillisecondsSinceEpoch(
-                                messages[index].timestamp * 1000,
-                              ).day !=
-                              DateTime.fromMillisecondsSinceEpoch(
-                                messages[index - 1].timestamp * 1000,
-                              ).day;
-
-                      return Column(
-                        children: [
-                          if (showDate)
-                            Container(
-                              margin: const EdgeInsets.symmetric(vertical: 10),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 15,
-                                vertical: 5,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.grey[300],
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Text(
-                                DateFormat('EEEE, MMM d').format(
-                                  DateTime.fromMillisecondsSinceEpoch(
-                                    message.timestamp * 1000,
-                                  ),
-                                ),
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                            ),
-                          MessageBubble(
-                            message: message,
-                            timeString: formatTimestamp(message.timestamp),
-                          ),
-                        ],
-                      );
-                    },
                   ),
-          ),
-          if (!isConnected)
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 8.0,
-                vertical: 5.0,
-              ),
-              color: Colors.white,
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.emoji_emotions_outlined),
-                    color: Colors.grey[600],
-                    onPressed: () {},
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.attach_file),
-                    color: Colors.grey[600],
-                    onPressed: () {},
-                  ),
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 15),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      child: TextField(
-                        controller: _messageController,
-                        decoration: const InputDecoration(
-                          hintText: 'Type a message',
-                          border: InputBorder.none,
-                        ),
-                        maxLines: null,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    decoration: const BoxDecoration(
-                      color: AppColors.colorsBlue,
-                      shape: BoxShape.circle,
-                    ),
-                    child: IconButton(
-                      icon: const Icon(Icons.send),
-                      color: Colors.white,
-                      onPressed: sendMessage,
-                    ),
-                  ),
-                ],
-              ),
+              ],
             ),
-        ],
-      ),
     );
   }
 }
-
 // import 'package:external_app_launcher/external_app_launcher.dart';
 // import 'package:flutter/material.dart';
 // import 'package:get/get.dart';
@@ -872,7 +944,7 @@ class _WhatsappChatState extends State<WhatsappChat> {
 //   Future<void> _checkWhatsAppScanStatus() async {
 //     try {
 //       final url = Uri.parse(
-//         'https://api.smartassistapp.in/api/check-wa-status',
+//         'https://dev.smartassistapp.in/api/check-wa-status',
 //       );
 //       final token = await Storage.getToken();
 //       final response = await http.post(
@@ -901,7 +973,7 @@ class _WhatsappChatState extends State<WhatsappChat> {
 //     setState(() => isLoading = true);
 
 //     try {
-//       final url = Uri.parse('https://api.smartassistapp.in/api/init-wa');
+//       final url = Uri.parse('https://dev.smartassistapp.in/api/init-wa');
 //       final token = await Storage.getToken();
 //       final response = await http.post(
 //         url,
@@ -964,7 +1036,7 @@ class _WhatsappChatState extends State<WhatsappChat> {
 //   }
 
 //   void _initSocket() {
-//     socket = IO.io('wss://api.smartassistapp.in', {
+//     socket = IO.io('wss://dev.smartassistapp.in', {
 //       'transports': ['websocket'],
 //       'autoConnect': true,
 //       'reconnection': true,

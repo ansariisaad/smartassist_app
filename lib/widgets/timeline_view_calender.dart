@@ -130,7 +130,7 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
       // }
 
       final baseUrl = Uri.parse(
-        "https://api.smartassistapp.in/api/calendar/activities/all/asondate",
+        "https://dev.smartassistapp.in/api/calendar/activities/all/asondate",
       );
       final uri = baseUrl.replace(queryParameters: queryParams);
 

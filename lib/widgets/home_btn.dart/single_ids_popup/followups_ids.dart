@@ -149,7 +149,7 @@ class _FollowupsIdsState extends State<FollowupsIds> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://api.smartassistapp.in/api/search/global?query=$query',
+          'https://dev.smartassistapp.in/api/search/global?query=$query',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -456,7 +456,7 @@ class _FollowupsIdsState extends State<FollowupsIds> {
     bool success = await LeadsSrv.submitFollowups(
       newTaskForLead,
       widget.leadId,
-      context
+      context,
     );
 
     // print(s)
@@ -591,6 +591,7 @@ class _FollowupsIdsState extends State<FollowupsIds> {
             //   hint: 'Type or speak...',
             // ),
             EnhancedSpeechTextField(
+              isRequired: false,
               // contentPadding: EdgeInsets.zero,
               label: 'Remarks:',
               controller: descriptionController,

@@ -251,7 +251,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
 
   static Future<Map<String, int>> fetchCallLogs(String mobile) async {
     const String apiUrl =
-        "https://api.smartassistapp.in/api/leads/call-logs/all";
+        "https://dev.smartassistapp.in/api/leads/call-logs/all";
     final token = await Storage.getToken();
 
     try {
@@ -653,6 +653,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
               //   hint: 'Type or speak...',
               // ),
               EnhancedSpeechTextField(
+                isRequired: true,
                 // contentPadding: EdgeInsets.zero,
                 label: 'Remarks:',
                 controller: descriptionController,
@@ -705,7 +706,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? spId = prefs.getString('user_id');
       final url = Uri.parse(
-        'https://api.smartassistapp.in/api/leads/mark-lost/${widget.leadId}',
+        'https://dev.smartassistapp.in/api/leads/mark-lost/${widget.leadId}',
       );
       final token = await Storage.getToken();
 
@@ -926,7 +927,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? spId = prefs.getString('user_id');
       final url = Uri.parse(
-        'https://api.smartassistapp.in/api/leads/convert-to-opp/${widget.leadId}',
+        'https://dev.smartassistapp.in/api/leads/convert-to-opp/${widget.leadId}',
       );
       final token = await Storage.getToken();
 
@@ -1015,7 +1016,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
   //     SharedPreferences prefs = await SharedPreferences.getInstance();
   //     String? spId = prefs.getString('user_id');
   //     // String? user_email = prefs.getString('user_email');
-  //     final url = Uri.parse('https://api.smartassistapp.in/api/init-wa');
+  //     final url = Uri.parse('https://dev.smartassistapp.in/api/init-wa');
   //     final token = await Storage.getToken();
 
   //     // Create the request body

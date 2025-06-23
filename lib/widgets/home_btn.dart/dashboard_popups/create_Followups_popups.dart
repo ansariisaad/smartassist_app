@@ -141,7 +141,7 @@ class _CreateFollowupsPopupsState extends State<CreateFollowupsPopups> {
   //   try {
   //     final response = await http.get(
   //       Uri.parse(
-  //           'https://api.smartassistapp.in/api/search/global?query=$query'),
+  //           'https://dev.smartassistapp.in/api/search/global?query=$query'),
   //       headers: {
   //         'Authorization': 'Bearer $token',
   //         'Content-Type': 'application/json',
@@ -733,6 +733,7 @@ class _CreateFollowupsPopupsState extends State<CreateFollowupsPopups> {
             //   hint: 'Type or speak...',
             // ),
             EnhancedSpeechTextField(
+              isRequired: false,
               // contentPadding: EdgeInsets.zero,
               label: 'Remarks:',
               controller: descriptionController,

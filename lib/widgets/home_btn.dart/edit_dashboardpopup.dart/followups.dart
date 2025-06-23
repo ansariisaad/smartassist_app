@@ -131,7 +131,7 @@
 
 //     try {
 //       final response = await http.get(
-//         Uri.parse('https://api.smartassistapp.in/api/tasks/${widget.taskId}'),
+//         Uri.parse('https://dev.smartassistapp.in/api/tasks/${widget.taskId}'),
 //         headers: {
 //           'Authorization': 'Bearer $token',
 //           'Content-Type': 'application/json',
@@ -194,7 +194,7 @@
 //     try {
 //       final response = await http.put(
 //         Uri.parse(
-//           'https://api.smartassistapp.in/api/tasks/${widget.taskId}/update',
+//           'https://dev.smartassistapp.in/api/tasks/${widget.taskId}/update',
 //         ),
 //         headers: {
 //           'Authorization': 'Bearer $token',
@@ -630,7 +630,7 @@ class _FollowupsEditState extends State<FollowupsEdit> {
 
     try {
       final response = await http.get(
-        Uri.parse('https://api.smartassistapp.in/api/tasks/${widget.taskId}'),
+        Uri.parse('https://dev.smartassistapp.in/api/tasks/${widget.taskId}'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -697,7 +697,7 @@ class _FollowupsEditState extends State<FollowupsEdit> {
     try {
       final response = await http.put(
         Uri.parse(
-          'https://api.smartassistapp.in/api/tasks/${widget.taskId}/update',
+          'https://dev.smartassistapp.in/api/tasks/${widget.taskId}/update',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -920,8 +920,9 @@ class _FollowupsEditState extends State<FollowupsEdit> {
                   ),
                 ],
               ),
-              const SizedBox(height: 10), 
+              const SizedBox(height: 10),
               EnhancedSpeechTextField(
+                isRequired: false,
                 // contentPadding: EdgeInsets.zero,
                 label: 'Remarks:',
                 controller: descriptionController,

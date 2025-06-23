@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:external_app_launcher/external_app_launcher.dart';
 import 'package:flutter/material.dart';
@@ -165,23 +166,63 @@ class _WhatsappChatState extends State<WhatsappChat>
     super.didChangeAppLifecycleState(state);
     print('AppLifecycleState: $state');
     if (state == AppLifecycleState.resumed) {
-      // App is back in foreground, attempt to reconnect socket
+      // App is back in foreground, attempt to reconnect socket immediately
+      _stopReconnectTimer();
       if (!isConnected) {
+        print('App resumed, forcing socket reconnect');
         socket.connect();
-        checkWhatsAppStatus();
+        // Delay status check to allow socket connection
+        Future.delayed(Duration(seconds: 1), () {
+          if (mounted && !isWhatsAppReady) {
+            checkWhatsAppStatus();
+          }
+        });
       }
-    } else if (state == AppLifecycleState.paused) {
-      // App is in background, start periodic reconnection attempts
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
+      // App is in background or hidden, start reconnection attempts
+      print('App paused or hidden, starting reconnect timer');
       _startReconnectTimer();
     }
   }
 
   void _startReconnectTimer() {
     _reconnectTimer?.cancel();
-    _reconnectTimer = Timer.periodic(Duration(seconds: 5), (timer) {
-      if (!isConnected && mounted) {
-        print('Attempting to reconnect socket...');
+    int attempt = 0;
+    const maxAttempts = 10;
+    const baseDelay = 2000; // Start with 2 seconds
+    const maxDelay = 10000; // Cap at 10 seconds
+
+    _reconnectTimer = Timer.periodic(Duration(milliseconds: baseDelay), (
+      timer,
+    ) async {
+      if (!isConnected && mounted && attempt < maxAttempts) {
+        print(
+          'Attempting to reconnect socket... (Attempt ${attempt + 1}/$maxAttempts)',
+        );
         socket.connect();
+        attempt++;
+        // Increase delay with exponential backoff
+        final delay = (baseDelay * pow(1.5, attempt)).toInt().clamp(
+          baseDelay,
+          maxDelay,
+        );
+        if (delay > baseDelay) {
+          timer.cancel();
+          _reconnectTimer = Timer.periodic(Duration(milliseconds: delay), (t) {
+            if (!isConnected && mounted && attempt < maxAttempts) {
+              print(
+                'Attempting to reconnect socket... (Attempt ${attempt + 1}/$maxAttempts)',
+              );
+              socket.connect();
+              attempt++;
+            } else {
+              t.cancel();
+            }
+          });
+        }
+      } else {
+        timer.cancel();
       }
     });
   }
@@ -360,10 +401,10 @@ class _WhatsappChatState extends State<WhatsappChat>
       'transports': ['websocket'],
       'autoConnect': true,
       'reconnection': true,
-      'reconnectionAttempts': 10, // Increased attempts
+      'reconnectionAttempts': 10,
       'reconnectionDelay': 1000,
       'reconnectionDelayMax': 5000,
-      'timeout': 20000, // Increased timeout
+      'timeout': 20000,
     });
 
     socket.onConnect((_) {
@@ -431,6 +472,15 @@ class _WhatsappChatState extends State<WhatsappChat>
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
+    });
+
+    // Add wa_logout handler
+    socket.on('wa_logout', (data) {
+      print('WA Logout: $data');
+      setState(() {
+        isWhatsAppReady = false;
+      });
+      // No snackbar to avoid error popup
     });
 
     socket.on('chat_messages', (data) {

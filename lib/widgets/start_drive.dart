@@ -449,6 +449,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
     }
   }
 
+ 
   // New method to upload drive summary instead of image
   // Future<void> _uploadDriveSummary() async {
   //   try {
@@ -538,7 +539,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
   }
 
   // Improved end drive function with more resilient error handling
-  Future<void> _handleEndDrive() async {
+Future<void> _handleEndDrive({bool sendFeedback = false}) async {
     setState(() {
       isLoading = true;
     });
@@ -563,8 +564,8 @@ class _StartDriveMapState extends State<StartDriveMap> {
         // Continue with the process
       }
 
-      // Finally end the drive with API call
-      await _endTestDrive();
+      // Finally end the drive with API call - pass sendFeedback parameter
+      await _endTestDrive(sendFeedback: sendFeedback);
 
       // Clean up resources
       _cleanupResources();
@@ -608,7 +609,77 @@ class _StartDriveMapState extends State<StartDriveMap> {
     }
   }
 
-  Future<void> _handleEndDriveNavigatesummary() async {
+  // Future<void> _handleEndDrive() async {
+  //   setState(() {
+  //     isLoading = true;
+  //   });
+
+  //   try {
+  //     // First upload the drive summary - most reliable method
+  //     // await _uploadDriveSummary();
+
+  //     // Then try the screenshot but don't block on failure
+  //     bool screenshotSuccess = false;
+  //     try {
+  //       await _captureAndUploadImage().timeout(
+  //         const Duration(seconds: 10),
+  //         onTimeout: () {
+  //           print("Screenshot operation timed out");
+  //           return;
+  //         },
+  //       );
+  //       screenshotSuccess = true;
+  //     } catch (e) {
+  //       print("Screenshot process failed: $e");
+  //       // Continue with the process
+  //     }
+
+  //     // Finally end the drive with API call
+  //     await _endTestDrive();
+
+  //     // Clean up resources
+  //     _cleanupResources();
+
+  //     // Show feedback to user about screenshot if it failed
+  //     if (!screenshotSuccess && mounted) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(
+  //           content: Text(
+  //             'Map image could not be captured, but drive data was saved successfully',
+  //           ),
+  //         ),
+  //       );
+  //     }
+
+  //     // Navigate to feedback screen
+  //     if (mounted) {
+  //       // Add a small delay to let any UI updates complete
+  //       await Future.delayed(Duration(milliseconds: 300));
+
+  //       Navigator.of(context).pushReplacement(
+  //         MaterialPageRoute(
+  //           builder: (context) =>
+  //               Feedbackscreen(leadId: widget.leadId, eventId: widget.eventId),
+  //         ),
+  //       );
+  //     }
+  //   } catch (e) {
+  //     print("Error in end drive process: $e");
+
+  //     if (mounted) {
+  //       ScaffoldMessenger.of(
+  //         context,
+  //       ).showSnackBar(SnackBar(content: Text('Error ending test drive: $e')));
+  //       setState(() {
+  //         isLoading = false;
+  //       });
+  //     }
+
+  //     _cleanupResources();
+  //   }
+  // }
+
+Future<void> _handleEndDriveNavigatesummary() async {
     setState(() {
       isLoading = true;
     });
@@ -633,8 +704,8 @@ class _StartDriveMapState extends State<StartDriveMap> {
         // Continue with the process
       }
 
-      // Finally end the drive with API call
-      await _endTestDrive();
+      // Finally end the drive with API call - pass sendFeedback as false
+      await _endTestDrive(sendFeedback: true);
 
       // Clean up resources
       _cleanupResources();
@@ -650,7 +721,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
         );
       }
 
-      // Navigate to feedback screen
+      // Navigate to TestdriveOverview screen
       if (mounted) {
         // Add a small delay to let any UI updates complete
         await Future.delayed(Duration(milliseconds: 300));
@@ -680,61 +751,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
     }
   }
 
-  // Future<void> _handleEndDrive() async {
-  //   setState(() {
-  //     isLoading = true;
-  //   });
-
-  //   try {
-  //     // Try screenshot but don't let failure block the process
-  //     try {
-  //       await _captureAndUploadImage().timeout(
-  //         const Duration(seconds: 5),
-  //         onTimeout: () {
-  //           print("Screenshot operation timed out");
-  //           throw TimeoutException("Screenshot timed out");
-  //         },
-  //       );
-  //     } catch (e) {
-  //       print("Screenshot failed: $e");
-  //       // Continue with the process regardless of screenshot failure
-  //     }
-
-  //     // End the drive with API call - the most important part
-  //     await _endTestDrive();
-
-  //     // Clean up resources
-  //     _cleanupResources();
-
-  //     // Navigate to feedback screen
-  //     if (mounted) {
-  //       // Add a small delay to let any UI updates complete
-  //       await Future.delayed(Duration(milliseconds: 200));
-
-  //       Navigator.of(context).pushReplacement(
-  //         MaterialPageRoute(
-  //           builder: (context) => Feedbackscreen(
-  //             leadId: widget.leadId,
-  //             eventId: widget.eventId,
-  //           ),
-  //         ),
-  //       );
-  //     }
-  //   } catch (e) {
-  //     print("Error in end drive process: $e");
-
-  //     if (mounted) {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(content: Text('Error ending test drive: $e')),
-  //       );
-  //       setState(() {
-  //         isLoading = false;
-  //       });
-  //     }
-
-  //     _cleanupResources();
-  //   }
-  // }
+ 
 
   // Dedicated method for resource cleanup
   void _cleanupResources() {
@@ -763,11 +780,47 @@ class _StartDriveMapState extends State<StartDriveMap> {
   // End the test drive with API call
 
   // Modify your _endTestDrive function
-  Future<void> _endTestDrive() async {
+  // Future<void> _endTestDrive() async {
+  //   try {
+  //     final url = Uri.parse(
+  //       'https://api.smartassistapp.in/api/events/${widget.eventId}/end-drive',
+  //     );
+  //     final token = await Storage.getToken();
+
+  //     final response = await http.post(
+  //       url,
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'Authorization': 'Bearer $token',
+  //       },
+  //       body: json.encode({
+  //         'totalDistance': totalDistance,
+  //         'duration': _calculateDuration(),
+  //       }),
+  //     );
+
+  //     if (response.statusCode == 200) {
+  //       print('Test drive ended successfully');
+  //       print('Duration: ${_calculateDuration()}');
+  //       _handleDriveEnded(totalDistance, _calculateDuration());
+  //     } else {
+  //       throw Exception('Failed to end drive: ${response.statusCode}');
+  //     }
+  //   } catch (e) {
+  //     print('Error ending drive: $e');
+  //     throw e; // Re-throw to be caught by caller
+  //   }
+  // }
+Future<void> _endTestDrive({bool sendFeedback = false}) async {
     try {
-      final url = Uri.parse(
+      // Build the URL with query parameter
+      final uri = Uri.parse(
         'https://dev.smartassistapp.in/api/events/${widget.eventId}/end-drive',
       );
+      final url = uri.replace(
+        queryParameters: {'send_feedback': sendFeedback.toString()},
+      );
+
       final token = await Storage.getToken();
 
       final response = await http.post(
@@ -785,6 +838,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
       if (response.statusCode == 200) {
         print('Test drive ended successfully');
         print('Duration: ${_calculateDuration()}');
+        print('Send feedback: $sendFeedback');
         _handleDriveEnded(totalDistance, _calculateDuration());
       } else {
         throw Exception('Failed to end drive: ${response.statusCode}');
@@ -794,6 +848,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
       throw e; // Re-throw to be caught by caller
     }
   }
+
 
   @override
   void dispose() {
@@ -811,28 +866,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
 
   ScreenshotController _screenshotController = ScreenshotController();
 
-  // Update your screenshot capture function
-  // Future<void> _captureAndUploadImage() async {
-  //   // Small delay before capture to let the UI stabilize
-  //   await Future.delayed(Duration(milliseconds: 100));
-
-  //   try {
-  //     final image = await _screenshotController.capture();
-  //     if (image == null) {
-  //       throw Exception("Screenshot capture returned null");
-  //     }
-
-  //     final directory = await getTemporaryDirectory();
-  //     final filePath = '${directory.path}/map_image.png';
-  //     final file = File(filePath)..writeAsBytesSync(image);
-
-  //     await _uploadImage(file);
-  //   } catch (e) {
-  //     print("Error capturing or uploading screenshot: $e");
-  //     throw e; // Re-throw to be caught by caller
-  //   }
-  // }
-
+  
   // Improved screenshot capture function with better error handling
   Future<void> _captureAndUploadImage() async {
     // Longer delay before capture to ensure UI is fully rendered
@@ -903,36 +937,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
     }
   }
 
-  // Future<void> _uploadImage(File file) async {
-  //   final url = Uri.parse(
-  //       'https://dev.smartassistapp.in/api/events/${widget.eventId}/upload-map');
-  //   final token = await Storage.getToken();
-  //   try {
-  //     var request = http.MultipartRequest('POST', url)
-  //       ..headers['Authorization'] = 'Bearer $token'
-  //       ..files.add(await http.MultipartFile.fromPath(
-  //         'file', // This should be the field name expected by the API (e.g., 'file' or 'image')
-  //         file.path,
-  //         contentType: MediaType('image', 'jpeg'), // Set the correct MIME type
-  //       ));
-
-  //     // Send the request
-  //     var streamedResponse = await request.send();
-
-  //     // Get the response
-  //     final response = await http.Response.fromStream(streamedResponse);
-
-  //     if (response.statusCode == 200) {
-  //       print('Image uploaded successfully');
-  //       print('Response: ${response.body}');
-  //     } else {
-  //       print('Failed to upload image: ${response.statusCode}');
-  //       print('Response: ${response.body}');
-  //     }
-  //   } catch (e) {
-  //     print('Error uploading image: $e');
-  //   }
-  // }
+ 
 
   @override
   Widget build(BuildContext context) {
@@ -1028,26 +1033,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
                                     child: Screenshot(
                                       controller: _screenshotController,
 
-                                      // child: GoogleMap(
-                                      //   onMapCreated: _onMapCreated,
-                                      //   initialCameraPosition: CameraPosition(
-                                      //     target: startMarker?.position ??
-                                      //         const LatLng(0, 0),
-                                      //     zoom: 16,
-                                      //   ),
-                                      //   myLocationEnabled: true,
-                                      //   myLocationButtonEnabled: true,
-                                      //   zoomControlsEnabled: true,
-                                      //   markers: {
-                                      //     if (startMarker != null)
-                                      //       startMarker!,
-                                      //     if (userMarker != null) userMarker!,
-                                      //     if (isDriveEnded &&
-                                      //         endMarker != null)
-                                      //       endMarker!,
-                                      //   },
-                                      //   polylines: {routePolyline},
-                                      // ),
+                                     
                                       child: GoogleMap(
                                         onMapCreated: _onMapCreated,
                                         initialCameraPosition: CameraPosition(
@@ -1218,18 +1204,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
                                     }
                                   },
 
-                                  // onPressed: () {
-                                  //   Navigator.push(
-                                  //     context,
-                                  //     MaterialPageRoute(
-                                  //       builder: (context) =>
-                                  //           TestdriveOverview(
-                                  //         eventId: widget.eventId,
-                                  //         leadId: widget.leadId,
-                                  //       ),
-                                  //     ),
-                                  //   );
-                                  // },
+                                
                                   style: ElevatedButton.styleFrom(
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 10,

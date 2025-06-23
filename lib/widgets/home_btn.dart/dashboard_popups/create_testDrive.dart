@@ -169,10 +169,10 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
         isValid = false;
       }
 
-      // if (_selectedSubject == null || _selectedSubject!.isEmpty) {
-      //   _errors['subject'] = 'Please select an action';
-      //   isValid = false;
-      // }
+      if (selectedVehicleName == null || selectedVehicleName!.isEmpty) {
+        _errors['select_vehicle'] = 'Please select an action';
+        isValid = false;
+      }
 
       if (startDateController == null || startDateController.text!.isEmpty) {
         _errors['date'] = 'Please select an action';
@@ -627,8 +627,14 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
               //   },
               // ),
               VehiclesearchTextfield(
+                errorText: _errors['select_vehicle'],
                 onVehicleSelected: (selectedVehicle) {
                   setState(() {
+                    if (_errors.containsKey('select vehicle ')) {
+                      setState(() {
+                        _errors.remove('select vehicle');
+                      });
+                    }
                     selectedVehicleData = selectedVehicle;
                     selectedVehicleName = selectedVehicle['vehicle_name'];
                     selectedBrand =
@@ -638,6 +644,7 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
                   print("Selected Vehicle: $selectedVehicleName");
                   print("Selected Brand: ${selectedBrand ?? 'No Brand'}");
                 },
+                //  errorText: _errors['select lead name'],
               ),
               // const SizedBox(height: 20),
               // Row(

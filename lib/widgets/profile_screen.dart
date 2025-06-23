@@ -381,6 +381,76 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  // Replace your existing _shareEvaluationSection method with this:
+  Future<void> _shareFullBodyScreenshot() async {
+    try {
+      // Show loading indicator
+      Get.dialog(
+        const Center(child: CircularProgressIndicator()),
+        barrierDismissible: false,
+      );
+
+      // Capture the full body screenshot
+      final Uint8List? image = await _screenshotController.capture();
+
+      // Dismiss loading
+      Get.back();
+
+      if (image != null) {
+        // Save image to temporary directory
+        final directory = await getTemporaryDirectory();
+        final filePath =
+            '${directory.path}/profile_${DateTime.now().millisecondsSinceEpoch}.png';
+        final file = File(filePath);
+        await file.writeAsBytes(image);
+
+        // Create XFile for sharing
+        final XFile xFile = XFile(filePath);
+
+        // Share the image with text
+        await Share.shareXFiles(
+          [xFile],
+          text:
+              'Check out my SmartAssist profile! 🚀\n\n'
+              '👤 ${name ?? "User"}\n'
+              '📧 ${email ?? ""}\n'
+              '📍 ${location ?? ""}\n'
+              '⭐ Rating: ${rating.toStringAsFixed(1)}/5\n\n'
+              '📊 My Performance Evaluation:\n'
+              '• Professionalism: ${(professionalism * 100).toStringAsFixed(0)}%\n'
+              '• Efficiency: ${(efficiency * 100).toStringAsFixed(0)}%\n'
+              '• Response Time: ${(responseTime * 100).toStringAsFixed(0)}%\n'
+              '• Product Knowledge: ${(productKnowledge * 100).toStringAsFixed(0)}%\n\n'
+              '#SmartAssist #Profile #Performance',
+          subject: '${name ?? "User"}\'s SmartAssist Profile',
+        );
+
+        // Clean up temporary file after a delay
+        Future.delayed(const Duration(seconds: 5), () {
+          if (file.existsSync()) {
+            file.deleteSync();
+          }
+        });
+      } else {
+        Get.snackbar(
+          'Error',
+          'Failed to capture profile screenshot',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      Get.back(); // Dismiss loading if still showing
+      print("Error sharing profile: $e");
+      Get.snackbar(
+        'Error',
+        'Failed to share profile: ${e.toString()}',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -402,12 +472,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Your Profile', style: AppFont.appbarfontWhite(context)),
-              // InkWell(
-              //   onTap: () {
-              //     print('share profile is clicked');
-              //   },
-              //   child: Text('Share', style: AppFont.mediumText14white(context)),
-              // ),
+              InkWell(
+                onTap: () => _shareFullBodyScreenshot(), // Updated method call
+                child: Text('Share', style: AppFont.mediumText14white(context)),
+              ),
             ],
           ),
         ),
@@ -416,136 +484,151 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    GestureDetector(
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          // Avatar (from file, network, or default)
-                          _profileImage != null
-                              ? CircleAvatar(
-                                  radius: 60,
-                                  backgroundImage: FileImage(_profileImage!),
-                                )
-                              : (profilePic != null && profilePic!.isNotEmpty
-                                    ? CircleAvatar(
-                                        radius: 60,
-                                        backgroundImage: NetworkImage(
-                                          profilePic!,
-                                        ),
-                                      )
-                                    : CircleAvatar(
-                                        radius: 60,
-                                        backgroundColor: AppColors.containerBg,
-                                        child: Text(
-                                          (name?.isNotEmpty ?? false)
-                                              ? name![0].toUpperCase()
-                                              : '?',
-                                          style: TextStyle(
-                                            fontSize: 70,
-                                            color: Colors.grey[700],
-                                            fontWeight: FontWeight.normal,
-                                          ),
-                                        ),
-                                      )),
-
-                          // Optional uploading indicator
-                          if (_isUploading) const CircularProgressIndicator(),
-
-                          // Show either add or delete icon based on image existence
-                          if (_profileImage != null ||
-                              (profilePic != null && profilePic!.isNotEmpty))
-                            Positioned(
-                              bottom: -8,
-                              left: 80,
-                              child: IconButton(
-                                onPressed: _removeImage,
-                                icon: const Icon(
-                                  Icons.delete,
-                                  color: Colors.red,
-                                ),
-                              ),
-                            )
-                          else if (!_isUploading)
-                            Positioned(
-                              bottom: -8,
-                              left: 80,
-                              child: IconButton(
-                                onPressed: _pickImage,
-                                icon: const Icon(
-                                  Icons.add_a_photo,
-                                  color: AppColors.fontColor,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 10),
-                    Text(name ?? '', style: AppFont.popupTitleBlack(context)),
-                    Text(
-                      userRole ?? 'User',
-                      style: AppFont.mediumText14(context),
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: List.generate(5, (index) {
-                        return Icon(
-                          index < rating
-                              ? Icons.star_rounded
-                              : Icons.star_outline_rounded,
-                          color: index < rating
-                              ? AppColors.starColorsYellow
-                              : Colors.grey,
-                          size: 38,
-                        );
-                      }),
-                    ),
-                    const SizedBox(height: 10),
-                    Text('(0 reviews)', style: AppFont.mediumText14(context)),
-                    const SizedBox(height: 10),
-                    // Profile details (Email, Location, Mobile)
-                    Container(
-                      decoration: BoxDecoration(
-                        color: AppColors.backgroundLightGrey,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20.0,
-                          vertical: 15,
-                        ),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
+          : Screenshot(
+              // Wrap the entire body with Screenshot
+              controller: _screenshotController,
+              child: Container(
+                color:
+                    Colors.white, // Add background color for better screenshot
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        // Your existing profile content
+                        GestureDetector(
+                          child: Stack(
+                            alignment: Alignment.center,
                             children: [
-                              _buildProfileItem('Email', email ?? ''),
-                              const SizedBox(height: 10),
-                              _buildProfileItem('Location', location ?? ''),
-                              const SizedBox(height: 10),
-                              _buildProfileItem('Mobile', mobile ?? ''),
+                              // Avatar (from file, network, or default)
+                              _profileImage != null
+                                  ? CircleAvatar(
+                                      radius: 60,
+                                      backgroundImage: FileImage(
+                                        _profileImage!,
+                                      ),
+                                    )
+                                  : (profilePic != null &&
+                                            profilePic!.isNotEmpty
+                                        ? CircleAvatar(
+                                            radius: 60,
+                                            backgroundImage: NetworkImage(
+                                              profilePic!,
+                                            ),
+                                          )
+                                        : CircleAvatar(
+                                            radius: 60,
+                                            backgroundColor:
+                                                AppColors.containerBg,
+                                            child: Text(
+                                              (name?.isNotEmpty ?? false)
+                                                  ? name![0].toUpperCase()
+                                                  : '?',
+                                              style: TextStyle(
+                                                fontSize: 70,
+                                                color: Colors.grey[700],
+                                                fontWeight: FontWeight.normal,
+                                              ),
+                                            ),
+                                          )),
+
+                              // Optional uploading indicator
+                              if (_isUploading)
+                                const CircularProgressIndicator(),
+
+                              // Show either add or delete icon based on image existence
+                              if (_profileImage != null ||
+                                  (profilePic != null &&
+                                      profilePic!.isNotEmpty))
+                                Positioned(
+                                  bottom: -8,
+                                  left: 80,
+                                  child: IconButton(
+                                    onPressed: _removeImage,
+                                    icon: const Icon(
+                                      Icons.delete,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                )
+                              else if (!_isUploading)
+                                Positioned(
+                                  bottom: -8,
+                                  left: 80,
+                                  child: IconButton(
+                                    onPressed: _pickImage,
+                                    icon: const Icon(
+                                      Icons.add_a_photo,
+                                      color: AppColors.fontColor,
+                                    ),
+                                  ),
+                                ),
                             ],
                           ),
                         ),
-                      ),
-                    ),
 
-                    // Evaluation Progress Bars with Screenshot capability
-                    const SizedBox(height: 20),
-                    // Wrap evaluation section with RepaintBoundary for screenshot
-                    RepaintBoundary(
-                      key: _evaluationKey,
-                      child: Screenshot(
-                        controller: _evaluationScreenshotController,
-                        child: Container(
+                        const SizedBox(height: 10),
+                        Text(
+                          name ?? '',
+                          style: AppFont.popupTitleBlack(context),
+                        ),
+                        Text(
+                          userRole ?? 'User',
+                          style: AppFont.mediumText14(context),
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: List.generate(5, (index) {
+                            return Icon(
+                              index < rating
+                                  ? Icons.star_rounded
+                                  : Icons.star_outline_rounded,
+                              color: index < rating
+                                  ? AppColors.starColorsYellow
+                                  : Colors.grey,
+                              size: 38,
+                            );
+                          }),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          '(0 reviews)',
+                          style: AppFont.mediumText14(context),
+                        ),
+                        const SizedBox(height: 10),
+
+                        // Profile details (Email, Location, Mobile)
+                        Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.backgroundLightGrey,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20.0,
+                              vertical: 15,
+                            ),
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildProfileItem('Email', email ?? ''),
+                                  const SizedBox(height: 10),
+                                  _buildProfileItem('Location', location ?? ''),
+                                  const SizedBox(height: 10),
+                                  _buildProfileItem('Mobile', mobile ?? ''),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // Evaluation Progress Bars
+                        const SizedBox(height: 20),
+                        Container(
                           decoration: BoxDecoration(
                             color: AppColors.backgroundLightGrey,
                             borderRadius: BorderRadius.circular(10),
@@ -567,41 +650,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         'Evaluation',
                                         style: AppFont.popupTitleBlack16(
                                           context,
-                                        ),
-                                      ),
-                                      // Share button for evaluation
-                                      GestureDetector(
-                                        onTap: _shareEvaluationSection,
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 12,
-                                            vertical: 6,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: AppColors.colorsBlue,
-                                            borderRadius: BorderRadius.circular(
-                                              20,
-                                            ),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              const Icon(
-                                                Icons.share,
-                                                color: Colors.white,
-                                                size: 16,
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                'Share',
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
                                         ),
                                       ),
                                     ],
@@ -631,9 +679,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                           ),
                         ),
-                      ),
+
+                        // Add some bottom padding for better screenshot appearance
+                        const SizedBox(height: 20),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),

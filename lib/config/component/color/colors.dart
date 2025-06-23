@@ -13,6 +13,7 @@ class AppColors {
   static const Color homeContainerLeads = Color(0xffE1EFFF);
   static const Color colorsBlue = Color(0xFF1380FE);
   static const Color colorsBlueButton = Color.fromRGBO(19, 128, 254, 1);
+  static final Color colorsBlueBar = Color(0xFF1380FE).withOpacity(0.6);
   static final Color borderGreen = Color(0xFF51DF79).withOpacity(0.29);
   static final Color borderRed = Color.fromRGBO(
     236,

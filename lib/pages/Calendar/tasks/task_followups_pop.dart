@@ -301,6 +301,7 @@ class _TaskFollowupsPopState extends State<TaskFollowupsPop> {
     bool success = await LeadsSrv.submitFollowups(
       newTaskForLead,
       widget.leadId,
+      context
     );
 
     if (success) {
@@ -311,9 +312,23 @@ class _TaskFollowupsPopState extends State<TaskFollowupsPop> {
         Navigator.pop(context);
       }
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Form Submit Successful.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Follow up updated successfully for $date',
+            style: GoogleFonts.poppins(),
+          ),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+          behavior:
+              SnackBarBehavior.floating, // Optional: Makes it float above UI
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(
+              10,
+            ), // Optional: rounded corners
+          ),
+        ),
+      );
     } else {
       print('Failed to submit lead.');
     }

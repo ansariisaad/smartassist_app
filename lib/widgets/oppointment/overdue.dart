@@ -45,69 +45,43 @@ class _OppOverdueState extends State<OppOverdue> {
     print('this is widget.overdue appointmnet');
     print(widget.overdueeOpp);
   }
+ 
+  // void _handleCall(dynamic item) {
+  //   print("Call action triggered for ${item['name']}");
 
-  void _onHorizontalDragUpdate(DragUpdateDetails details, String eventId) {
-    setState(() {
-      _swipeOffsets[eventId] =
-          (_swipeOffsets[eventId] ?? 0) + (details.primaryDelta ?? 0);
-    });
-  }
+  //   String mobile = item['mobile'] ?? '';
 
-  void _onHorizontalDragEnd(DragEndDetails details, dynamic item, int index) {
-    String eventId = item['event_id'];
+  //   if (mobile.isNotEmpty) {
+  //     try {
+  //       // Simple approach without canLaunchUrl check
+  //       final phoneNumber = 'tel:$mobile';
+  //       launchUrl(
+  //         Uri.parse(phoneNumber),
+  //         mode: LaunchMode.externalNonBrowserApplication,
+  //       );
+  //     } catch (e) {
+  //       print('Error launching phone app: $e');
+  //       // Show error message to user
+  //       if (context.mounted) {
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           SnackBar(content: Text('Could not launch phone dialer')),
+  //         );
+  //       }
+  //     }
+  //   } else {
+  //     if (context.mounted) {
+  //       ScaffoldMessenger.of(
+  //         context,
+  //       ).showSnackBar(SnackBar(content: Text('No phone number available')));
+  //     }
+  //   }
+  // }
 
-    double swipeOffset = _swipeOffsets[eventId] ?? 0;
-
-    if (swipeOffset > 100) {
-      // Right Swipe (Favorite)
-      _toggleFavorite(eventId, index);
-    } else if (swipeOffset < -100) {
-      // Left Swipe (Call)
-      _handleCall(item);
-    }
-
-    // Reset animation
-    setState(() {
-      _swipeOffsets[eventId] = 0.0;
-    });
-  }
-
-  void _handleCall(dynamic item) {
-    print("Call action triggered for ${item['name']}");
-
-    String mobile = item['mobile'] ?? '';
-
-    if (mobile.isNotEmpty) {
-      try {
-        // Simple approach without canLaunchUrl check
-        final phoneNumber = 'tel:$mobile';
-        launchUrl(
-          Uri.parse(phoneNumber),
-          mode: LaunchMode.externalNonBrowserApplication,
-        );
-      } catch (e) {
-        print('Error launching phone app: $e');
-        // Show error message to user
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Could not launch phone dialer')),
-          );
-        }
-      }
-    } else {
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('No phone number available')));
-      }
-    }
-  }
-
-  Future<void> _toggleFavorite(String eventId, int index) async {
+  Future<void> _toggleFavorite(String taskId, int index) async {
     bool currentStatus = widget.overdueeOpp[index]['favourite'] ?? false;
     bool newFavoriteStatus = !currentStatus;
 
-    final success = await LeadsSrv.favoriteEvent(eventId: eventId);
+    final success = await LeadsSrv.favoriteEvent(taskId: taskId);
 
     if (success) {
       setState(() {
@@ -115,7 +89,7 @@ class _OppOverdueState extends State<OppOverdue> {
       });
 
       if (widget.onFavoriteToggle != null) {
-        widget.onFavoriteToggle!(eventId, newFavoriteStatus);
+        widget.onFavoriteToggle!(taskId, newFavoriteStatus);
       }
     }
   }
@@ -142,12 +116,12 @@ class _OppOverdueState extends State<OppOverdue> {
       itemBuilder: (context, index) {
         var item = widget.overdueeOpp[index];
 
-        String eventId = item['task_id'];
-        double swipeOffset = _swipeOffsets[eventId] ?? 0;
+        String taskId = item['task_id'];
+        double swipeOffset = _swipeOffsets[taskId] ?? 0;
 
         return GestureDetector(
           child: overdueeOppItem(
-            key: ValueKey(eventId),
+            key: ValueKey(taskId),
             name: item['name'],
             subject: item['subject'] ?? 'Meeting',
             date: item['due_date'] ?? '',
@@ -155,13 +129,13 @@ class _OppOverdueState extends State<OppOverdue> {
             leadId: item['lead_id'],
             mobile: item['mobile'] ?? '',
             time: item['time'] ?? '',
-            eventId: eventId,
+            taskId: item['task_id'] ?? '',
             refreshDashboard: widget.refreshDashboard,
             isFavorite: item['favourite'] ?? false,
             // swipeOffset: swipeOffset,
             fetchDashboardData: () {},
             onToggleFavorite: () {
-              _toggleFavorite(eventId, index);
+              _toggleFavorite(taskId, index);
             },
           ),
         );
@@ -171,7 +145,7 @@ class _OppOverdueState extends State<OppOverdue> {
 }
 
 class overdueeOppItem extends StatefulWidget {
-  final String name, date, vehicle, mobile, leadId, eventId, time, subject;
+  final String name, date, vehicle, mobile, leadId, taskId, time, subject;
   // final double swipeOffset;
   final bool isFavorite;
   final VoidCallback fetchDashboardData;
@@ -186,7 +160,7 @@ class overdueeOppItem extends StatefulWidget {
     required this.leadId,
     required this.isFavorite,
     required this.fetchDashboardData,
-    required this.eventId,
+    required this.taskId,
     required this.time,
     // required this.swipeOffset,
     required this.subject,
@@ -418,7 +392,7 @@ class _overdueeOppItemState extends State<overdueeOppItem>
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
-          child: AppointmentsEdit(onFormSubmit: () {}, eventId: widget.eventId),
+          child: AppointmentsEdit(onFormSubmit: () {}, taskId: widget.taskId),
         );
       },
     );

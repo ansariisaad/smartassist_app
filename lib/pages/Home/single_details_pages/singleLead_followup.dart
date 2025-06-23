@@ -14,13 +14,13 @@ import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/bottom_navigation.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
-import 'package:smartassist/utils/token_manager.dart';
 import 'package:smartassist/widgets/call_history.dart';
 import 'package:smartassist/widgets/home_btn.dart/single_ids_popup/appointment_ids.dart';
 import 'package:smartassist/widgets/home_btn.dart/single_ids_popup/followups_ids.dart';
 import 'package:smartassist/widgets/home_btn.dart/single_ids_popup/testdrive_ids.dart';
 import 'package:smartassist/widgets/leads_details_popup/create_appointment.dart';
 import 'package:smartassist/widgets/leads_details_popup/create_followups.dart';
+import 'package:smartassist/widgets/remarks_field.dart';
 import 'package:smartassist/widgets/timeline/timeline_overdue.dart';
 import 'package:smartassist/widgets/timeline/timeline_tasks.dart';
 import 'package:smartassist/widgets/timeline/timeline_completed.dart';
@@ -646,10 +646,20 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                 ),
               ),
               const SizedBox(height: 30),
-              _buildTextField(
-                // label: 'resion:',
+
+              // _buildTextField(
+              //   // label: 'resion:',
+              //   controller: descriptionController,
+              //   hint: 'Type or speak...',
+              // ),
+              EnhancedSpeechTextField(
+                // contentPadding: EdgeInsets.zero,
+                label: 'Remarks:',
                 controller: descriptionController,
-                hint: 'Type or speak...',
+                hint: 'Type or speak... ',
+                onChanged: (text) {
+                  print('Text changed: $text');
+                },
               ),
             ],
           ),
@@ -1169,18 +1179,6 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
             ],
           ),
         ),
-        // actions: [
-        // Align(
-        //   alignment: Alignment.centerLeft,
-        //   child: Column(
-        //     mainAxisAlignment: MainAxisAlignment.start,
-        //     children: [
-        //       Text('Enquiry', style: AppFont.appbarfontWhite(context)),
-        //       Text('data', style: AppFont.mediumText14white(context))
-        //     ],
-        //   ),
-        // ),
-        // ],
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back_ios_new_outlined,
@@ -1245,7 +1243,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                                     child: const Icon(
                                       Icons.receipt_long_rounded,
                                       size: 40,
-                                      color: Color.fromRGBO(2, 118, 254, 1),
+                                      color: AppColors.colorsBlue,
                                     ),
                                   ),
                                   const SizedBox(width: 10),

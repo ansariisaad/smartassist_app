@@ -6,7 +6,7 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
 import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/followups.dart';
-import 'package:url_launcher/url_launcher.dart'; 
+import 'package:url_launcher/url_launcher.dart';
 
 class AllFollowupItem extends StatefulWidget {
   final String name, mobile, taskId;
@@ -172,7 +172,7 @@ class _AllFollowupsItemState extends State<AllFollowupItem>
                     width: 8.0,
                     color: widget.isFavorite
                         ? Colors.yellow
-                        : Colors.blueAccent,
+                        : AppColors.colorsBlueBar,
                   ),
                 ),
               ),

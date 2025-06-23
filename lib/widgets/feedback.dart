@@ -1,174 +1,4 @@
-// import 'package:flutter/material.dart';
-// import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-// import 'package:get/get.dart';
-// import 'package:smartassist/config/component/color/colors.dart';
-// import 'package:smartassist/config/component/font/font.dart';
-// import 'package:smartassist/pages/Leads/single_id_screens/single_leads.dart';
-
-// class Feedbackscreen extends StatefulWidget {
-//   // final String eventId;
-//   const Feedbackscreen({super.key, v});
-
-//   @override
-//   State<Feedbackscreen> createState() => _FeedbackscreenState();
-// }
-
-// class _FeedbackscreenState extends State<Feedbackscreen> {
-//   String _selectedType = '';
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         leading: IconButton(
-//           onPressed: () => Get.back(),
-//           icon: const Icon(
-//             FontAwesomeIcons.angleLeft,
-//             color: Colors.white,
-//           ),
-//         ),
-//         title: Text('Feedback form', style: AppFont.appbarfontWhite(context)),
-//         backgroundColor: Colors.blue,
-//         automaticallyImplyLeading: false,
-//       ),
-//       body: SingleChildScrollView(
-//         child: Column(
-//           children: [
-//             Column(
-//               children: [
-
-//               ],
-//             ),
-
-//             Row(
-//               children: [
-//                 Expanded(
-//                   child: _buildButtons(
-//                     label: 'Potential of purchase',
-//                     options: {
-//                       "Definitely": "Definitely",
-//                       "Very Likely": "Very Likely",
-//                       "Likely": "Likely",
-//                       "Not Likely": "Not Likely"
-//                     },
-//                     groupValue: _selectedType,
-//                     onChanged: (value) {
-//                       setState(() {
-//                         _selectedType = value;
-//                       });
-//                     },
-//                   ),
-//                 ),
-//               ],
-//             ),
-//             Padding(
-//               padding: const EdgeInsets.symmetric(horizontal: 10.0),
-//               child: Row(
-//                 children: [
-//                   Expanded(
-//                     child: ElevatedButton(
-//                         style: ElevatedButton.styleFrom(
-//                             elevation: 0,
-//                             backgroundColor:
-//                                 const Color.fromRGBO(217, 217, 217, 1),
-//                             shape: RoundedRectangleBorder(
-//                                 borderRadius: BorderRadius.circular(5))),
-//                         onPressed: () => Navigator.pop(context),
-//                         child: Text("Cancel", style: AppFont.buttons(context))),
-//                   ),
-//                   const SizedBox(width: 10),
-//                   Expanded(
-//                     child: ElevatedButton(
-//                       style: ElevatedButton.styleFrom(
-//                           backgroundColor: AppColors.colorsBlue,
-//                           shape: RoundedRectangleBorder(
-//                               borderRadius: BorderRadius.circular(5))),
-//                       onPressed: () {
-//                         Navigator.push(
-//                             context,
-//                             MaterialPageRoute(
-//                                 builder: (context) =>
-//                                     SingleLeadsById(leadId: '')));
-//                       },
-//                       child: Text("Submit", style: AppFont.buttons(context)),
-//                     ),
-//                   ),
-//                 ],
-//               ),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-
-//   Widget _buildButtons({
-//     required Map<String, String> options, // ✅ Short display & actual value
-//     required String groupValue,
-//     required String label,
-//     required ValueChanged<String> onChanged,
-//   }) {
-//     return Column(
-//       crossAxisAlignment: CrossAxisAlignment.start,
-//       children: [
-//         Align(
-//           alignment: Alignment.centerLeft,
-//           child: Padding(
-//             padding: const EdgeInsets.fromLTRB(10, 5, 0, 5),
-//             child: Text(label, style: AppFont.dropDowmLabel(context)),
-//           ),
-//         ),
-//         const SizedBox(height: 5),
-
-//         // ✅ Wrap ensures buttons move to next line when needed
-//         Padding(
-//           padding: const EdgeInsets.symmetric(horizontal: 10.0),
-//           child: Wrap(
-//             spacing: 5, // Space between buttons
-//             runSpacing: 10, // Space between lines
-//             children: options.keys.map((shortText) {
-//               bool isSelected =
-//                   groupValue == options[shortText]; // ✅ Compare actual value
-
-//               return GestureDetector(
-//                 onTap: () {
-//                   onChanged(
-//                       options[shortText]!); // ✅ Pass actual value on selection
-//                 },
-//                 child: Container(
-//                   padding:
-//                       const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-//                   decoration: BoxDecoration(
-//                     border: Border.all(
-//                       color: isSelected ? Colors.blue : Colors.black,
-//                       width: .5,
-//                     ),
-//                     borderRadius: BorderRadius.circular(15),
-//                     // color: isSelected
-//                     //     ? Colors.blue.withOpacity(0.2)
-//                     //     : AppColors.innerContainerBg,
-//                   ),
-//                   child: Text(
-//                     shortText, // ✅ Only show short text
-//                     style: TextStyle(
-//                       color: isSelected ? Colors.blue : Colors.black,
-//                       fontSize: 14,
-//                       fontWeight: FontWeight.w400,
-//                     ),
-//                   ),
-//                 ),
-//               );
-//             }).toList(),
-//           ),
-//         ),
-
-//         const SizedBox(height: 5),
-//       ],
-//     );
-//   }
-// }
-
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
@@ -179,6 +9,7 @@ import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:smartassist/widgets/remarks_field.dart';
 import 'package:smartassist/widgets/testdrive_overview.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
@@ -334,16 +165,7 @@ class _FeedbackscreenState extends State<Feedbackscreen> {
             ),
           ),
         );
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (context) => TestdriveOverview(
-        //         leadId: widget.leadId, eventId: widget.eventId),
-        //   ),
-        // );
       } else {
-        // Error handling
-        // print('Failed to submit feedback');
         Get.snackbar(
           'Error',
           'Failed to submit feedback',
@@ -352,7 +174,6 @@ class _FeedbackscreenState extends State<Feedbackscreen> {
         );
       }
     } catch (e) {
-      // Exception handling
       print('Exception occurred: ${e.toString()}');
       Get.snackbar(
         'Error',
@@ -521,17 +342,6 @@ class _FeedbackscreenState extends State<Feedbackscreen> {
                 ),
               ],
             ),
-            // const SizedBox(
-            //   height: 10,
-            // ),
-
-            // Padding(
-            //   padding: const EdgeInsets.only(left: 16.0, bottom: 8.0),
-            //   child: Text(
-            //     'Time frame',
-            //     style: AppFont.mediumText14Black(context),
-            //   ),
-            // ),
             Row(
               children: [
                 Expanded(
@@ -555,14 +365,26 @@ class _FeedbackscreenState extends State<Feedbackscreen> {
             ),
 
             const SizedBox(height: 0),
+            // Padding(
+            //   padding: const EdgeInsets.symmetric(horizontal: 10.0),
+            //   child: _buildTextField(
+            //     label: 'Remarks:',
+            //     controller: descriptionController,
+            //     hint: 'Type or speak...',
+            //   ),
+            // ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: _buildTextField(
-                label: 'Comments:',
+              child: EnhancedSpeechTextField(
+                label: 'Remarks:',
                 controller: descriptionController,
-                hint: 'Type or speak...',
+                hint: 'Type or speak... ',
+                onChanged: (text) {
+                  print('Text changed: $text');
+                },
               ),
             ),
+
             const SizedBox(height: 10),
 
             Padding(

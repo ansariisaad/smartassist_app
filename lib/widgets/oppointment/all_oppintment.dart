@@ -172,7 +172,7 @@ class _AllFollowupsItemState extends State<allOppointment>
                     width: 8.0,
                     color: widget.isFavorite
                         ? Colors.yellow
-                        : Colors.blueAccent,
+                        : AppColors.colorsBlueBar,
                   ),
                 ),
               ),

@@ -2124,24 +2124,33 @@ class _MyTeamsState extends State<MyTeams> {
           children: [
             for (int j = i; j < i + 2 && j < metrics.length; j++) ...[
               Expanded(
-                child: InkWell(
-                  onTap: () {
-                    setState(() {
-                      _metricIndex = j;
-                    });
-                    _fetchTeamDetails(); // Refresh with selected metric
-                  },
-                  child: _buildMetricCard(
-                    metrics[j].containsKey('value')
-                        ? metrics[j]['value'].toString()
-                        : getTotalForKey(
-                            metrics[j]['key'] as String,
-                          ).toString(),
-                    metrics[j]['label'] as String,
-                    AppColors.colorsBlue,
-                    isSelected: _metricIndex == j,
-                    isUserSelected: _selectedType != 'All',
-                  ),
+                // child: InkWell(
+                //   onTap: () {
+                //     setState(() {
+                //       _metricIndex = j;
+                //     });
+                //     _fetchTeamDetails(); // Refresh with selected metric
+                //   },
+                //   child: _buildMetricCard(
+                //     metrics[j].containsKey('value')
+                //         ? metrics[j]['value'].toString()
+                //         : getTotalForKey(
+                //             metrics[j]['key'] as String,
+                //           ).toString(),
+                //     metrics[j]['label'] as String,
+                //     AppColors.colorsBlue,
+                //     isSelected: _metricIndex == j,
+                //     isUserSelected: _selectedType != 'All',
+                //   ),
+                // ), with button
+                child: _buildMetricCard(
+                  metrics[j].containsKey('value')
+                      ? metrics[j]['value'].toString()
+                      : getTotalForKey(metrics[j]['key'] as String).toString(),
+                  metrics[j]['label'] as String,
+                  AppColors.colorsBlue,
+                  isSelected: _metricIndex == j,
+                  isUserSelected: _selectedType != 'All',
                 ),
               ),
               if (j % 2 == 0 && j + 1 < metrics.length)
@@ -3247,9 +3256,9 @@ class _MyTeamsState extends State<MyTeams> {
         color: backgroundColor,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: (isSelected && !isUserSelected)
-              ? Colors.blue
-              : Colors.transparent,
+          color: (isSelected && !isUserSelected && _selectedType == 'All')
+              ? Colors.transparent
+              : Colors.transparent, // change the condition if u want color
           width: 2,
         ),
 
@@ -3364,7 +3373,7 @@ class _MyTeamsState extends State<MyTeams> {
                   height: 30,
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: const Color(0xFF767676),
+                      color: AppColors.arrowContainerColor,
                       width: .5,
                     ),
                     borderRadius: BorderRadius.circular(30),

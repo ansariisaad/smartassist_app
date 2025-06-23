@@ -77,23 +77,6 @@ class _HomeScreenState extends State<HomeScreen> {
   // Initialize the controller
   final FabController fabController = Get.put(FabController());
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   _tabController = TabControllerNew();
-  //   _tabController.addListener(_onTabChanged);
-  //   fetchDashboardData();
-  //   _searchController.addListener(_onSearchChanged);
-  //   _loadDashboardAnalytics();
-  //   _loadTeamRole();
-  //   print(_loadTeamRole());
-  //   // uploadCallLogsAfterLogin();
-
-  //   // Or this alternative:
-  //   WidgetsBinding.instance.addPostFrameCallback((_) {
-  //     uploadCallLogsAfterLogin();
-  //   });
-  // }
   @override
   void initState() {
     super.initState();
@@ -825,17 +808,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ? _buildPopupMenu(context)
                         : const SizedBox.shrink(),
                   ),
-
-                  // Positioned( rpujari@modimotorsjlr.com Rakesh@01
-                  //   bottom: 26,
-                  //   right: 18,
-                  //   child: _buildFloatingActionButton(context),
-                  // ),
-
-                  // // Popup Menu (Conditionally Rendered)
-                  // Obx(() => fabController.isFabExpanded.value
-                  //     ? _buildPopupMenu(context)
-                  //     : const SizedBox.shrink()),
                 ],
               ),
             ),

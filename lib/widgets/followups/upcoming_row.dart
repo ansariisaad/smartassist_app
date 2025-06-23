@@ -30,32 +30,6 @@ class FollowupsUpcoming extends StatefulWidget {
 class _FollowupsUpcomingState extends State<FollowupsUpcoming> {
   final Map<String, double> _swipeOffsets = {};
   late bool isFav;
-
-  void _onHorizontalDragUpdate(DragUpdateDetails details, String taskId) {
-    setState(() {
-      _swipeOffsets[taskId] =
-          (_swipeOffsets[taskId] ?? 0) + (details.primaryDelta ?? 0);
-    });
-  }
-
-  void _onHorizontalDragEnd(DragEndDetails details, dynamic item, int index) {
-    String taskId = item['task_id'];
-    double swipeOffset = _swipeOffsets[taskId] ?? 0;
-
-    if (swipeOffset > 100) {
-      // Right Swipe (Favorite)
-      _toggleFavorite(taskId, index);
-    } else if (swipeOffset < -100) {
-      // Left Swipe (Call)
-      _handleCall(item);
-    }
-
-    // Reset animation
-    setState(() {
-      _swipeOffsets[taskId] = 0.0;
-    });
-  }
-
   Future<void> _toggleFavorite(String taskId, int index) async {
     bool currentStatus = widget.upcomingFollowups[index]['favourite'] ?? false;
     bool newFavoriteStatus = !currentStatus;
@@ -72,63 +46,6 @@ class _FollowupsUpcomingState extends State<FollowupsUpcoming> {
       }
     }
   }
-
-  void _handleCall(dynamic item) {
-    print("Call action triggered for ${item['name']}");
-
-    String mobile = item['mobile'] ?? '';
-
-    if (mobile.isNotEmpty) {
-      try {
-        launchUrl(Uri.parse('tel:$mobile'));
-        print('Phone dialer launched');
-      } catch (e) {
-        print('Error launching phone app: $e');
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Could not launch phone dialer')),
-          );
-        }
-      }
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No phone number available')),
-        );
-      }
-    }
-  }
-
-  // void _handleCall(dynamic item) {
-  //   print("Call action triggered for ${item['name']}");
-
-  //   String mobile = item['mobile'] ?? '';
-
-  //   if (mobile.isNotEmpty) {
-  //     try {
-  //       // Simple approach without canLaunchUrl check
-  //       final phoneNumber = 'tel:$mobile';
-  //       launchUrl(
-  //         Uri.parse(phoneNumber),
-  //         mode: LaunchMode.externalNonBrowserApplication,
-  //       );
-  //     } catch (e) {
-  //       print('Error launching phone app: $e');
-  //       // Show error message to user
-  //       if (context.mounted) {
-  //         ScaffoldMessenger.of(context).showSnackBar(
-  //           SnackBar(content: Text('Could not launch phone dialer')),
-  //         );
-  //       }
-  //     }
-  //   } else {
-  //     if (context.mounted) {
-  //       ScaffoldMessenger.of(
-  //         context,
-  //       ).showSnackBar(SnackBar(content: Text('No phone number available')));
-  //     }
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -164,10 +81,6 @@ class _FollowupsUpcomingState extends State<FollowupsUpcoming> {
         double swipeOffset = _swipeOffsets[taskId] ?? 0;
 
         return GestureDetector(
-          onHorizontalDragUpdate: (details) =>
-              _onHorizontalDragUpdate(details, taskId),
-          onHorizontalDragEnd: (details) =>
-              _onHorizontalDragEnd(details, item, index),
           child: UpcomingFollowupItem(
             key: ValueKey(item['task_id']),
             name: item['name'],
@@ -183,9 +96,6 @@ class _FollowupsUpcomingState extends State<FollowupsUpcoming> {
             onToggleFavorite: () {
               _toggleFavorite(taskId, index);
             },
-            // fetchDashboardData:
-            //     () {},
-            // Placeholder, replace with actual method
           ),
         );
       },
@@ -226,22 +136,18 @@ class UpcomingFollowupItem extends StatefulWidget {
 class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
     with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   bool _wasCallingPhone = false;
-
-  // void Function()? _openSlidable;
   late SlidableController _slidableController;
-  //  final GlobalKey<SlidableState> _slidableKey = GlobalKey<SlidableState>();
+  bool _isActionPaneOpen = false;
 
   @override
   void initState() {
     super.initState();
-    // Register this class as an observer to track app lifecycle changes
     WidgetsBinding.instance.addObserver(this);
     _slidableController = SlidableController(this);
   }
 
   @override
   void dispose() {
-    // Remove observer when widget is disposed
     WidgetsBinding.instance.removeObserver(this);
     _slidableController.dispose();
     super.dispose();
@@ -249,11 +155,8 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // This gets called when app lifecycle state changes
     if (state == AppLifecycleState.resumed && _wasCallingPhone) {
-      // App is resumed and we marked that user was making a call
       _wasCallingPhone = false;
-      // Show the mail action dialog after a short delay to ensure app is fully resumed
       Future.delayed(const Duration(milliseconds: 300), () {
         if (mounted) {
           _mailAction();
@@ -293,12 +196,10 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
   Widget _buildOverdueCard(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final isTablet = screenSize.width > 600;
-    bool isFavoriteSwipe = widget.swipeOffset > 50;
-    bool isCallSwipe = widget.swipeOffset < -50;
-
     return Slidable(
       key: ValueKey(widget.leadId), // Always good to set keys
       controller: _slidableController,
+
       startActionPane: ActionPane(
         extentRatio: 0.2,
         motion: const ScrollMotion(),
@@ -343,60 +244,51 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
       ),
       child: Stack(
         children: [
-          // Favorite Swipe Overlay
-          // if (isFavoriteSwipe) Positioned.fill(child: _buildFavoriteOverlay()),
-
-          // // Call Swipe Overlay
-          // if (isCallSwipe) Positioned.fill(child: _buildCallOverlay()),
-
           // Main Card
-          Opacity(
-            opacity: (isFavoriteSwipe || isCallSwipe) ? 0 : 1.0,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-              decoration: BoxDecoration(
-                color: AppColors.containerBg,
-                borderRadius: BorderRadius.circular(5),
-                border: Border(
-                  left: BorderSide(
-                    width: 8.0,
-                    color: widget.isFavorite
-                        ? Colors.yellow
-                        : AppColors.sideGreen,
-                  ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+            decoration: BoxDecoration(
+              color: AppColors.containerBg,
+              borderRadius: BorderRadius.circular(5),
+              border: Border(
+                left: BorderSide(
+                  width: 8.0,
+                  color: widget.isFavorite
+                      ? Colors.yellow
+                      : AppColors.sideGreen,
                 ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      const SizedBox(width: 8),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              _buildUserDetails(context),
-                              _buildVerticalDivider(15),
-                              _buildCarModel(context),
-                            ],
-                          ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const SizedBox(width: 8),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            _buildUserDetails(context),
+                            _buildVerticalDivider(15),
+                            _buildCarModel(context),
+                          ],
+                        ),
 
-                          const SizedBox(height: 2),
-                          Row(
-                            children: [
-                              _buildSubjectDetails(context),
-                              _date(context),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  _buildNavigationButton(context),
-                ],
-              ),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            _buildSubjectDetails(context),
+                            _date(context),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                _buildNavigationButton(context),
+              ],
             ),
           ),
         ],
@@ -404,65 +296,38 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
     );
   }
 
-  Widget _buildFavoriteOverlay() {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Colors.yellow.withOpacity(0.2),
-            Colors.yellow.withOpacity(0.8),
-          ],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
+  Widget _buildNavigationButton(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        if (_isActionPaneOpen) {
+          _slidableController.close();
+          setState(() {
+            _isActionPaneOpen = false;
+          });
+        } else {
+          _slidableController.close();
+          Future.delayed(Duration(milliseconds: 100), () {
+            _slidableController.openEndActionPane();
+            setState(() {
+              _isActionPaneOpen = true;
+            });
+          });
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(3),
+        decoration: BoxDecoration(
+          color: AppColors.arrowContainerColor,
+          borderRadius: BorderRadius.circular(30),
         ),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        children: [
-          const SizedBox(width: 15),
-          Icon(
-            widget.isFavorite ? Icons.star_outline_rounded : Icons.star_rounded,
-            color: const Color.fromRGBO(226, 195, 34, 1),
-            size: 40,
-          ),
-          const SizedBox(width: 10),
-          Text(
-            widget.isFavorite ? 'Unfavorite' : 'Favorite',
-            style: GoogleFonts.poppins(
-              color: const Color.fromRGBO(187, 158, 0, 1),
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCallOverlay() {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.green, Colors.green],
-          begin: Alignment.centerRight,
-          end: Alignment.centerLeft,
+        child: Icon(
+          _isActionPaneOpen
+              ? Icons.arrow_forward_ios_rounded
+              : Icons
+                    .arrow_back_ios_rounded, // When closed, show back arrow (to open)
+          size: 25,
+          color: Colors.white,
         ),
-        borderRadius: BorderRadius.all(Radius.circular(10)),
-      ),
-      child: Row(
-        children: [
-          const SizedBox(width: 10),
-          const Icon(Icons.phone_in_talk, color: Colors.white, size: 30),
-          const SizedBox(width: 10),
-          Text(
-            'Call',
-            style: GoogleFonts.poppins(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -505,16 +370,6 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
       ],
     );
   }
-
-  // Widget _buildSubjectDetails(BuildContext context) {
-  //   return Row(
-  //     children: [
-  //       const Icon(Icons.phone_in_talk, color: Colors.blue, size: 18),
-  //       const SizedBox(width: 5),
-  //       Text('${widget.subject},', style: AppFont.smallText(context)),
-  //     ],
-  //   );
-  // }
 
   Widget _buildVerticalDivider(double height) {
     return Container(
@@ -582,72 +437,6 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
     );
   }
 
-  bool _isActionPaneOpen = false; // Declare this in your StatefulWidget
-
-  Widget _buildNavigationButton(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        if (_isActionPaneOpen) {
-          _slidableController.close();
-          setState(() {
-            _isActionPaneOpen = false;
-          });
-        } else {
-          _slidableController.close();
-          Future.delayed(Duration(milliseconds: 100), () {
-            _slidableController.openEndActionPane();
-            setState(() {
-              _isActionPaneOpen = true;
-            });
-          });
-        }
-      },
-
-      child: Container(
-        padding: const EdgeInsets.all(3),
-        decoration: BoxDecoration(
-          color: AppColors.arrowContainerColor,
-          borderRadius: BorderRadius.circular(30),
-        ),
-
-        child: Icon(
-          _isActionPaneOpen
-              ? Icons.arrow_forward_ios_rounded
-              : Icons.arrow_back_ios_rounded,
-
-          size: 25,
-          color: Colors.white,
-        ),
-      ),
-    );
-  }
-  // Widget _buildNavigationButton(BuildContext context) {
-  //   return GestureDetector(
-  //     onTap: () {
-  //       // Simple toggle: close first, then open if it was closed
-  //       _slidableController.close();
-  //       // Use a small delay to ensure close completes, then open
-  //       Future.delayed(Duration(milliseconds: 100), () {
-  //         if (_slidableController.actionPaneType != ActionPaneType.end) {
-  //           _slidableController.openEndActionPane();
-  //         }
-  //       });
-  //     },
-  //     child: Container(
-  //       padding: const EdgeInsets.all(3),
-  //       decoration: BoxDecoration(
-  //         color: AppColors.arrowContainerColor,
-  //         borderRadius: BorderRadius.circular(30),
-  //       ),
-  //       child: const Icon(
-  //         Icons.arrow_back_ios_rounded,
-  //         size: 25,
-  //         color: Colors.white,
-  //       ),
-  //     ),
-  //   );
-  // }
-
   void _phoneAction() {
     print("Call action triggered for ${widget.mobile}");
 
@@ -680,8 +469,6 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
       }
     }
   }
-
- 
 
   void _messageAction() {
     print("Message action triggered");

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 
@@ -286,6 +287,87 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
     );
   }
 
+  // Widget _buildUserStatsCard() {
+  //   return Container(
+  //     margin: const EdgeInsets.symmetric(horizontal: 10),
+  //     padding: const EdgeInsets.all(10),
+  //     decoration: BoxDecoration(
+  //       color: Colors.white,
+  //       borderRadius: BorderRadius.circular(8),
+  //       boxShadow: [
+  //         BoxShadow(
+  //           color: Colors.grey.shade200,
+  //           blurRadius: 5,
+  //           spreadRadius: 1,
+  //         ),
+  //       ],
+  //     ),
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         Row(
+  //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //           children: [
+  //             _buildStatBox(
+  //               currentTabData['totalConnected']?.toString() ?? '0',
+  //               'Total\nConnected',
+  //               Colors.green,
+  //               Icons.call,
+  //             ),
+  //             _buildVerticalDivider(50),
+  //             _buildStatBox(
+  //               currentTabData['conversationTime']?.toString() ?? '0',
+  //               'Conversation\ntime',
+  //               Colors.blue,
+  //               Icons.access_time,
+  //             ),
+  //             _buildVerticalDivider(50),
+  //             _buildStatBox(
+  //               currentTabData['notConnected']?.toString() ?? '0',
+  //               'Not\nConnected',
+  //               Colors.red,
+  //               Icons.call_missed,
+  //             ),
+  //           ],
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
+
+  // Widget _buildStatBox(String value, String label, Color color, IconData icon) {
+  //   return Column(
+  //     children: [
+  //       Row(
+  //         crossAxisAlignment: CrossAxisAlignment.center,
+  //         mainAxisAlignment: MainAxisAlignment.start,
+  //         children: [
+  //           Align(
+  //             alignment: Alignment.centerLeft,
+  //             child: Text(
+  //               value,
+  //               style: GoogleFonts.poppins(
+  //                 fontSize: 24,
+  //                 fontWeight: FontWeight.w600,
+  //                 color: color,
+  //               ),
+  //               textAlign: TextAlign.start,
+  //             ),
+  //           ),
+  //           const SizedBox(width: 3),
+  //           Icon(icon, color: color, size: 20),
+  //         ],
+  //       ),
+  //       const SizedBox(height: 10),
+  //       Text(
+  //         label,
+  //         style: AppFont.smallText12(context),
+  //         textAlign: TextAlign.start,
+  //       ),
+  //     ],
+  //   );
+  // }
+
   Widget _buildUserStatsCard() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 10),
@@ -307,25 +389,31 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildStatBox(
-                currentTabData['totalConnected']?.toString() ?? '0',
-                'Total\nConnected',
-                Colors.green,
-                Icons.call,
+              Expanded(
+                child: _buildStatBox(
+                  currentTabData['totalConnected']?.toString() ?? '0',
+                  'Total\nConnected',
+                  Colors.green,
+                  Icons.call,
+                ),
               ),
               _buildVerticalDivider(50),
-              _buildStatBox(
-                currentTabData['conversationTime']?.toString() ?? '0',
-                'Conversation\ntime',
-                Colors.blue,
-                Icons.access_time,
+              Expanded(
+                child: _buildStatBox(
+                  currentTabData['conversationTime']?.toString() ?? '0',
+                  'Conversation\ntime',
+                  Colors.blue,
+                  Icons.access_time,
+                ),
               ),
               _buildVerticalDivider(50),
-              _buildStatBox(
-                currentTabData['notConnected']?.toString() ?? '0',
-                'Not\nConnected',
-                Colors.red,
-                Icons.call_missed,
+              Expanded(
+                child: _buildStatBox(
+                  currentTabData['notConnected']?.toString() ?? '0',
+                  'Not\nConnected',
+                  Colors.red,
+                  Icons.call_missed,
+                ),
               ),
             ],
           ),
@@ -335,22 +423,31 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
   }
 
   Widget _buildStatBox(String value, String label, Color color, IconData icon) {
+    // Format large numbers (e.g., 123456 → "123.5K")
+    String formattedValue = _formatNumber(value);
+    // Determine font size based on digit count of original value
+    double fontSize = _getFontSize(value);
+
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                value,
-                style: GoogleFonts.poppins(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
-                  color: color,
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  formattedValue,
+                  style: GoogleFonts.poppins(
+                    fontSize: fontSize,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
+                  textAlign: TextAlign.start,
                 ),
-                textAlign: TextAlign.start,
               ),
             ),
             const SizedBox(width: 3),
@@ -365,6 +462,43 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
         ),
       ],
     );
+  }
+
+  // Helper function to format large numbers
+  String _formatNumber(String value) {
+    try {
+      int num = int.parse(value.replaceAll(',', ''));
+      if (num >= 1000000) {
+        return '${(num / 1000000).toStringAsFixed(1)}M';
+      } else if (num >= 100000) {
+        return '${(num / 1000).toStringAsFixed(1)}K';
+      } else if (num >= 1000) {
+        // Add comma for thousands (e.g., 1234 → 1,234)
+        return NumberFormat('#,###').format(num);
+      }
+      return value;
+    } catch (e) {
+      return value; // Fallback to original value if parsing fails
+    }
+  }
+
+  // Helper function to determine font size based on digit count
+  double _getFontSize(String value) {
+    try {
+      // Count digits, ignoring commas or other formatting
+      int digitCount = value.replaceAll(RegExp(r'[^0-9]'), '').length;
+      if (digitCount <= 4) {
+        return 24.0;
+      } else if (digitCount <= 6) {
+        return 20.0;
+      } else if (digitCount <= 8) {
+        return 16.0;
+      } else {
+        return 14.0;
+      }
+    } catch (e) {
+      return 24.0; // Default font size if parsing fails
+    }
   }
 
   Widget _buildVerticalDivider(double height) {
@@ -536,9 +670,9 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
       }
 
       // Connected calls (treating as incoming for now)
-      if (data['connected'] != null) {
-        incomingCalls += (data['connected']['calls'] as num?)?.toInt() ?? 0;
-        incomingDuration = data['connected']['duration']?.toString() ?? "0m";
+      if (data['Connected'] != null) {
+        incomingCalls += (data['Connected']['calls'] as num?)?.toInt() ?? 0;
+        incomingDuration = data['Connected']['duration']?.toString() ?? "0m";
       }
 
       // Missed calls

@@ -16,6 +16,7 @@ import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/google_location.dart';
 import 'package:smartassist/widgets/popups_widget/vehicleSearch_textfield.dart';
+import 'package:smartassist/widgets/reusable/vehicle_colors.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class CreateLeads extends StatefulWidget {
@@ -496,9 +497,20 @@ class _CreateLeadsState extends State<CreateLeads> {
       //   isValid = false;
       // }
 
+      if (selectedVehicleData == null || selectedVehicleName!.isEmpty) {
+        _errors['vehicleName'] = 'Please select a vehicle';
+        isValid = false;
+      }
+
+      // if (selectedColorName == null || selectedColorName!.isEmpty) {
+      //   _errors['vehicleColors'] = 'Please select a vehicle color';
+      //   isValid = false;
+      // }
+
       // Validate purchase type
       if (_selectedPurchaseType.isEmpty) {
         _errors['purchaseType'] = 'Please select a purchase type';
+
         isValid = false;
       }
 
@@ -587,12 +599,13 @@ class _CreateLeadsState extends State<CreateLeads> {
         // No need for PageController navigation with IndexedStack
       } else {
         String errorMessage = _errors.values.join('\n');
-        Get.snackbar(
-          'Error',
-          errorMessage,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
+        print(errorMessage.toString());
+        // Get.snackbar(
+        //   'Error',
+        //   errorMessage,
+        //   backgroundColor: Colors.red,
+        //   colorText: Colors.white,
+        // );
       }
     } else if (_currentStep == 1) {
       if (_validatePage2()) {
@@ -600,24 +613,26 @@ class _CreateLeadsState extends State<CreateLeads> {
         // No need for PageController navigation with IndexedStack
       } else {
         String errorMessage = _errors.values.join('\n');
-        Get.snackbar(
-          'Error',
-          errorMessage,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
+        print(errorMessage.toString());
+        // Get.snackbar(
+        //   'Error',
+        //   errorMessage,
+        //   backgroundColor: Colors.red,
+        //   colorText: Colors.white,
+        // );
       }
     } else {
       if (_validatePage3()) {
         _submitForm(); // ✅ API will hit now
       } else {
         String errorMessage = _errors.values.join('\n');
-        Get.snackbar(
-          'Error',
-          errorMessage,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
+        print(errorMessage.toString());
+        // Get.snackbar(
+        //   'Error',
+        //   errorMessage,
+        //   backgroundColor: Colors.red,
+        //   colorText: Colors.white,
+        // );
       }
     }
   }
@@ -899,7 +914,6 @@ class _CreateLeadsState extends State<CreateLeads> {
                           print("mobile: $value");
                         },
                       ),
-                      //////////////////////////////////////////////////////////////
                       _buildTextField(
                         isRequired: true,
                         label: 'Email',
@@ -956,14 +970,16 @@ class _CreateLeadsState extends State<CreateLeads> {
                     children: [
                       _buildAmountRange(isRequired: true),
                       VehiclesearchTextfield(
+                        errorText: _errors['vehicleName'],
                         onVehicleSelected: (selectedVehicle) {
                           setState(() {
                             selectedVehicleData = selectedVehicle;
                             selectedVehicleName =
                                 selectedVehicle['vehicle_name'];
-                            selectedBrand =
-                                selectedVehicle['brand'] ??
-                                ''; // Handle null brand
+                            selectedBrand = selectedVehicle['brand'];
+                            if (_errors.containsKey('vehicleName')) {
+                              _errors.remove('vehicleName');
+                            }
                           });
 
                           print("Selected Vehicle: $selectedVehicleName");
@@ -972,69 +988,23 @@ class _CreateLeadsState extends State<CreateLeads> {
                           );
                         },
                       ),
-                      // _buildSearchField(
-                      //   errorText: _errors['model'],
-                      //   onChanged: (value) {
-                      //     if (_errors.containsKey('model')) {
-                      //       setState(() {
-                      //         _errors.remove('model');
-                      //       });
-                      //     }
-                      //   },
-                      //   // onChanged: (value) {
-                      //   //   setState(() {
-                      //   //     modelInterestController = value;
-                      //   //     if (_errors.containsKey('model')) {
-                      //   //       _errors.remove('model');
-                      //   //     }
-                      //   //   });
-                      //   // },
-                      // ),
                       const SizedBox(height: 10),
-                      _buildVehicleColorSearch(),
-                      const SizedBox(height: 10),
-                      // _buildButtonsFloat(
-                      //   isRequired: true,
-                      //   options: {
-                      //     "Jaguar": "Jaguar",
-                      //     "Land Rover": "Land Rover",
-                      //   },
-                      //   groupValue: _selectedBrand,
-                      //   label: 'Brand',
-                      //   errorText: _errors['brand'],
-                      //   onChanged: (value) {
-                      //     setState(() {
-                      //       _selectedBrand = value;
-                      //       if (_errors.containsKey('brand')) {
-                      //         _errors.remove('brand');
-                      //       }
-                      //     });
-                      //   },
-                      // ),
-                      const SizedBox(height: 10),
-                      // const SizedBox(
-                      //   height: 10,
-                      // ),
+                      VehicleColors(
+                        errorText: _errors['vehicleColors'], // Add comma here
+                        onVehicleColorSelected: (selectedColorData) {
+                          setState(() {
+                            selectedColorName = selectedColorData['color_name'];
+                            if (_errors.containsKey('vehicleColors')) {
+                              _errors.remove('vehicleColors');
+                            }
+                          });
 
-                      // _buildButtonsFloat(
-                      //     isRequired: true,
-                      //     options: {
-                      //       // "EV": "EV",
-                      //       "Petrol": "Petrol",
-                      //       "Diesel": "Diesel",
-                      //     },
-                      //     groupValue: _selectedFuel,
-                      //     label: 'Fuel Type',
-                      //     errorText: _errors['fuel'],
-                      //     onChanged: (value) {
-                      //       setState(() {
-                      //         if (_errors.containsKey('fuel')) {
-                      //           _errors.remove('fuel');
-                      //         }
-                      //         _selectedFuel = value;
-                      //       });
-                      //     }),
-                      // const SizedBox(height: 10),
+                          print("Selected Color Name: $selectedColorName");
+                        },
+                      ),
+
+                      const SizedBox(height: 5),
+
                       _buildButtonsFloat(
                         isRequired: true,
                         options: {
@@ -1617,18 +1587,7 @@ class _CreateLeadsState extends State<CreateLeads> {
                     fontWeight: FontWeight.w500,
                     color: Colors.black,
                   ),
-                  onTap: () {
-                    // If there is a selected lead, populate the text field with its name
-                    // if (selectedColorName != null &&
-                    //     _searchControllerVehicleColor.text.isEmpty) {
-                    //   _searchControllerVehicleColor.text = selectedColorName!;
-                    //   _searchControllerVehicleColor.selection =
-                    //       TextSelection.fromPosition(
-                    //     TextPosition(
-                    //         offset: _searchControllerVehicleColor.text.length),
-                    //   );
-                    // }
-                  },
+                  onTap: () {},
                   onChanged: (value) {
                     if (value.isEmpty && selectedColorName != null) {
                       setState(() {
@@ -2693,7 +2652,7 @@ class _CreateLeadsState extends State<CreateLeads> {
           }
 
           String successMessage =
-              response['message'] ?? 'Form submitted successfully';
+              response['message'] ?? 'Enquiry created successfully';
           Get.snackbar(
             'Success',
             successMessage,

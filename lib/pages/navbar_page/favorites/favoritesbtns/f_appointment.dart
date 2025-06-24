@@ -178,10 +178,7 @@ class _FAppointmentState extends State<FAppointment> {
         child: Center(
           child: Text(
             'No data found',
-            style: TextStyle(
-              fontSize: isTablet ? 18 : 16,
-              color: AppColors.iconGrey,
-            ),
+            style: AppFont.dropDowmLabel(context),
             textAlign: TextAlign.center,
           ),
         ),

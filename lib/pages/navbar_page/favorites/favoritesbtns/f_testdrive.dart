@@ -103,6 +103,7 @@ class _FTestdriveState extends State<FTestdrive> {
         print('✅ Favorite toggled successfully');
         print('upcomingTasks length: ${upcomingTasks.length}');
         print('overdueTasks length: ${overdueTasks.length}');
+        await fetchTasksData();
       } else {
         print('❌ Failed to toggle favorite: ${response.statusCode}');
       }
@@ -173,9 +174,11 @@ class _FTestdriveState extends State<FTestdrive> {
     }
 
     if (upcomingTasks.isEmpty && overdueTasks.isEmpty) {
-      return const Padding(
+      return Padding(
         padding: EdgeInsets.only(top: 10.0),
-        child: Center(child: Text('No data found')),
+        child: Center(
+          child: Text('No data found', style: AppFont.dropDowmLabel(context)),
+        ),
       );
     }
 
@@ -191,8 +194,22 @@ class _FTestdriveState extends State<FTestdrive> {
   }
 
   Widget _buildTasksList(List<dynamic> tasks, {required bool isUpcoming}) {
+    // if (upcomingTasks.isEmpty && overdueTasks.isEmpty) {
+    //   return const Center(child: Text('No data found'));
+    // }
+
     if (upcomingTasks.isEmpty && overdueTasks.isEmpty) {
-      return const Center(child: Text('No data found'));
+      return Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(horizontal: 0.15, vertical: 20),
+        child: Center(
+          child: Text(
+            'No data found',
+            style: AppFont.dropDowmLabel(context),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
     }
 
     return ListView.builder(

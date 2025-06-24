@@ -171,11 +171,15 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
 
       if (_speechAvailable) {
         var locales = await _speech.locales();
-        var englishLocale = locales.firstWhere(
-          (locale) => locale.localeId.startsWith('en'),
-          orElse: () => stt.LocaleName('en_US', 'English'),
-        );
-        _currentLocaleId = englishLocale.localeId;
+        // var englishLocale = locales.firstWhere(
+        //   (locale) => locale.localeId.startsWith('en'),
+        //   orElse: () => stt.LocaleName('en_US', 'English'),
+        // );
+        // _currentLocaleId = englishLocale.localeId;
+        // var locales = await _speech.locales();
+        for (var locale in locales) {
+          debugPrint('Available locale: ${locale.localeId} - ${locale.name}');
+        }
       }
 
       if (mounted) {
@@ -231,9 +235,16 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
     }
   }
 
+  // void _onSpeechError(dynamic error) {
+  //   debugPrint('Speech error received: $error');
+  //   if (!mounted) return;
+  //   _forceStopListening(showError: true, error: error.toString());
+  // }
+
   void _onSpeechError(dynamic error) {
     debugPrint('Speech error received: $error');
     if (!mounted) return;
+
     _forceStopListening(showError: true, error: error.toString());
   }
 
@@ -339,6 +350,36 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
   }
 
   // NEW: Force stop method for emergency situations
+  // Future<void> _forceStopListening({
+  //   bool showError = false,
+  //   String? error,
+  // }) async {
+  //   if (!mounted) return;
+
+  //   debugPrint("Force Stop Listening Called. Error: $showError");
+
+  //   setState(() {
+  //     _isListening = false;
+  //   });
+
+  //   _stopAnimations();
+  //   _timeoutTimer?.cancel();
+
+  //   // Force cancel instead of graceful stop
+  //   if (_speech.isListening) {
+  //     try {
+  //       await _speech.cancel();
+  //     } catch (e) {
+  //       debugPrint('Error canceling speech: $e');
+  //     }
+  //   }
+
+  //   if (showError && error != null) {
+  //     String errorMessage = _getErrorMessage(error);
+  //     _showFeedback(errorMessage, isError: true);
+  //   }
+  // }
+
   Future<void> _forceStopListening({
     bool showError = false,
     String? error,
@@ -347,14 +388,15 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
 
     debugPrint("Force Stop Listening Called. Error: $showError");
 
-    setState(() {
-      _isListening = false;
-    });
+    if (mounted) {
+      setState(() {
+        _isListening = false;
+      });
+    }
 
     _stopAnimations();
     _timeoutTimer?.cancel();
 
-    // Force cancel instead of graceful stop
     if (_speech.isListening) {
       try {
         await _speech.cancel();
@@ -363,7 +405,7 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
       }
     }
 
-    if (showError && error != null) {
+    if (showError && error != null && mounted) {
       String errorMessage = _getErrorMessage(error);
       _showFeedback(errorMessage, isError: true);
     }
@@ -422,7 +464,7 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
   }
 
   void _showFeedback(String message, {required bool isError}) {
-    if (!mounted) return;
+    if (!mounted) return; // 🔒 safe
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -431,6 +473,17 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
       ),
     );
   }
+
+  // void _showFeedback(String message, {required bool isError}) {
+  //   if (!mounted) return;
+  //   ScaffoldMessenger.of(context).hideCurrentSnackBar();
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     SnackBar(
+  //       content: Text(message, style: const TextStyle(color: Colors.white)),
+  //       backgroundColor: isError ? _errorColor : Colors.green,
+  //     ),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {

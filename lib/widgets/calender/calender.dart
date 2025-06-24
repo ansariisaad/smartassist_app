@@ -60,15 +60,6 @@ class _CalenderWidgetState extends State<CalenderWidget> {
         calendarFormat: widget.calendarFormat,
         availableGestures: AvailableGestures.all,
 
-        // hide the month
-        // headerStyle: const HeaderStyle(
-        //   formatButtonVisible: false,
-        //   titleCentered: false,
-        //   leftChevronVisible: false,
-        //   rightChevronVisible: false,
-        //   headerPadding: EdgeInsets.zero,
-        //   titleTextStyle: TextStyle(fontSize: 0, color: Colors.transparent),
-        // ),
         headerStyle: HeaderStyle(
           headerMargin: EdgeInsets.fromLTRB(10, 0, 0, 10),
           formatButtonVisible: false,

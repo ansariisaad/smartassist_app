@@ -33,6 +33,7 @@ class _VehiclesearchTextfieldState extends State<VehiclesearchTextfield> {
   Map<String, dynamic>? selectedVehicle; // Store entire vehicle object
   String? selectedVehicleName;
   String? vehicleBrand;
+  String? vehicleId;
 
   @override
   void initState() {
@@ -108,6 +109,7 @@ class _VehiclesearchTextfieldState extends State<VehiclesearchTextfield> {
         final assetName = vehicle['asset_name']?.toString().toLowerCase() ?? '';
         final vin = vehicle['VIN']?.toString().toLowerCase() ?? '';
         final brand = vehicle['brand']?.toString().toLowerCase() ?? '';
+        final vehicleId = vehicle['vehicle_id']?.toString().toLowerCase() ?? '';
         final searchQuery = query.toLowerCase();
 
         return vehicleName.contains(searchQuery) ||
@@ -257,6 +259,7 @@ class _VehiclesearchTextfieldState extends State<VehiclesearchTextfield> {
                             vehicle; // Store entire vehicle object
                         selectedVehicleName = vehicle['vehicle_name'];
                         vehicleBrand = vehicle['brand'];
+                        vehicleId = vehicle['vehicle_id'];
                         _searchController1.clear();
                         _filteredVehicles.clear();
                       });

@@ -95,6 +95,7 @@ class _FLeadsState extends State<FLeads> {
         setState(() {
           upcomingTasks[index]['favourite'] = newFavoriteStatus;
         });
+        await fetchTasksData();
       } else {
         print('Failed to toggle favorite: ${response.statusCode}');
       }
@@ -159,10 +160,24 @@ class _FLeadsState extends State<FLeads> {
   }
 
   Widget _buildTasksList(List<dynamic> tasks) {
+    // if (tasks.isEmpty) {
+    //   return const Padding(
+    //     padding: EdgeInsets.only(bottom: 10.0),
+    //     child: Center(child: Text('No Leads available')),
+    //   );
+    // }
+
     if (tasks.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.only(bottom: 10.0),
-        child: Center(child: Text('No Leads available')),
+      return Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(horizontal: 0.15, vertical: 20),
+        child: Center(
+          child: Text(
+            'No data found',
+            style: AppFont.dropDowmLabel(context),
+            textAlign: TextAlign.center,
+          ),
+        ),
       );
     }
 

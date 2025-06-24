@@ -84,7 +84,7 @@ class _CalenderWidgetState extends State<CalenderWidget> {
           holidayTextStyle: TextStyle(color: AppColors.sideRed, fontSize: 20),
           isTodayHighlighted: true,
           selectedDecoration: const BoxDecoration(
-            color: Colors.blue,
+            color: AppColors.colorsBlue,
             shape: BoxShape.circle,
           ),
           todayDecoration: BoxDecoration(

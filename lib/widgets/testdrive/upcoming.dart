@@ -101,42 +101,7 @@ class _TestUpcomingState extends State<TestUpcoming> {
     }
   }
 
-  // Future<void> _toggleFavorite(String eventId, int index) async {
-  //   final token = await Storage.getToken();
-  //   try {
-  //     // Get the current favorite status before toggling
-  //     bool currentStatus =
-  //         widget.upcomingTestDrive[index]['favourite'] ?? false;
-  //     bool newFavoriteStatus = !currentStatus;
-
-  //     final response = await http.put(
-  //       Uri.parse(
-  //         'https://api.smartassistapp.in/api/favourites/mark-fav/event/$eventId',
-  //       ),
-  //       headers: {
-  //         'Authorization': 'Bearer $token',
-  //         'Content-Type': 'application/json',
-  //       },
-  //       // No need to send in body since taskId is already in the URL
-  //     );
-
-  //     if (response.statusCode == 200) {
-  //       setState(() {
-  //         widget.upcomingTestDrive[index]['favourite'] = newFavoriteStatus;
-  //       });
-
-  //       // Notify the parent if the callback is provided
-  //       if (widget.onFavoriteToggle != null) {
-  //         widget.onFavoriteToggle!(eventId, newFavoriteStatus);
-  //       }
-  //     } else {
-  //       print('Failed to toggle favorite: ${response.statusCode}');
-  //     }
-  //   } catch (e) {
-  //     print('Error toggling favorite: $e');
-  //   }
-  // }
-
+  
   Future<void> _getOtp(String eventId) async {
     final success = await LeadsSrv.getOtp(eventId: eventId);
 
@@ -149,36 +114,6 @@ class _TestUpcomingState extends State<TestUpcoming> {
     if (mounted) setState(() {});
   }
 
-  // Future<void> _getOtp(
-  //   String eventId,
-  // ) async {
-  //   try {
-  //     final url = Uri.parse(
-  //         'https://api.smartassistapp.in/api/events/$eventId/send-consent');
-  //     final token = await Storage.getToken();
-
-  //     final response = await http.post(
-  //       url,
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         'Authorization': 'Bearer $token',
-  //       },
-  //     );
-
-  //     print('Starting test drive for event: ${eventId}');
-  //     print('this is the get orp api hit');
-  //     print(response.statusCode);
-
-  //     if (response.statusCode == 200) {
-  //       print('Test drive started successfully');
-  //     } else {}
-  //   } catch (e) {
-  //     print('Error starting test drive: $e');
-  //     if (mounted) {
-  //       setState(() {});
-  //     }
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -483,11 +418,11 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
             borderRadius: BorderRadius.circular(10),
           ),
           title: Text(
-            'Are You Sure?',
+            'Ready to start test drive?',
             style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
           ),
           content: Text(
-            'Are you sure you want to start a testdrive?',
+            'Please make sure you have all the necessary documents(license) and permissions(OTP) ready before starting test drive.',
             style: GoogleFonts.poppins(),
           ),
           actions: [
@@ -519,46 +454,7 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
           ],
         );
 
-        // return AlertDialog(
-        //   shape: RoundedRectangleBorder(
-        //     borderRadius: BorderRadius.circular(15),
-        //   ),
-        //   backgroundColor: Colors.white,
-        //   insetPadding: const EdgeInsets.all(10),
-        //   contentPadding: EdgeInsets.zero,
-        //   title: Column(
-        //     crossAxisAlignment: CrossAxisAlignment.start,
-        //     children: [
-        //       Align(
-        //         alignment: Alignment.bottomLeft,
-        //         child: Text(
-        //           textAlign: TextAlign.center,
-        //           'Share your gmail?',
-        //           style: AppFont.mediumText14(context),
-        //         ),
-        //       ),
-        //       const SizedBox(height: 10),
-        //     ],
-        //   ),
-        //   actions: [
-        //     TextButton(
-        //       onPressed: () {
-        //         Navigator.pop(context);
-        //       },
-        //       child: Text(
-        //         'Cancel',
-        //         // style: TextStyle(color: AppColors.colorsBlue),
-        //         style: AppFont.mediumText14blue(context),
-        //       ),
-        //     ),
-        //     TextButton(
-        //       onPressed: () {
-        //         whatsappChat(context); // Pass context to submit
-        //       },
-        //       child: Text('Submit', style: AppFont.mediumText14blue(context)),
-        //     ),
-        //   ],
-        // );
+
       },
     );
   }

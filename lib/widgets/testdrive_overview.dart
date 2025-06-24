@@ -123,7 +123,7 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
     String formattedTime = formatTime(startTime);
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blue,
+        backgroundColor: AppColors.colorsBlue,
         title: Align(
           alignment: Alignment.centerLeft,
           child: Text(

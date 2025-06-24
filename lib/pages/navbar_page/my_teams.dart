@@ -774,20 +774,6 @@ class _MyTeamsState extends State<MyTeams> {
         ),
       );
 
-      // Add visual separator before members
-      // if (letterMembers.isNotEmpty) {
-      //   widgets.add(
-      //     Container(
-      //       width: 2,
-      //       height: 40,
-      //       margin: const EdgeInsets.symmetric(horizontal: 4),
-      //       decoration: BoxDecoration(
-      //         color: AppColors.colorsBlue.withOpacity(0.4),
-      //         borderRadius: BorderRadius.circular(1),
-      //       ),
-      //     ),
-      //   );
-      // }
 
       // Add member avatars
       for (int i = 0; i < letterMembers.length; i++) {
@@ -802,20 +788,7 @@ class _MyTeamsState extends State<MyTeams> {
         );
       }
 
-      // Add visual separator after members if there are more letters coming
-      // if (letterMembers.isNotEmpty) {
-      //   widgets.add(
-      //     Container(
-      //       width: 2,
-      //       height: 40,
-      //       margin: const EdgeInsets.symmetric(horizontal: 4),
-      //       decoration: BoxDecoration(
-      //         color: Colors.blue.withOpacity(0.4),
-      //         borderRadius: BorderRadius.circular(1),
-      //       ),
-      //     ),
-      //   );
-      // }
+   
     }
 
     return widgets;
@@ -1220,9 +1193,11 @@ class _MyTeamsState extends State<MyTeams> {
 
   // Helper method to determine border style based on selection state
   Border? _getBorderStyle(bool isSelectedForComparison, int index) {
-    if (isSelectedForComparison) {
-      return Border.all(color: AppColors.colorsBlue, width: 3);
-    } else if (_selectedProfileIndex == index) {
+    // if (isSelectedForComparison) {
+    //   return Border.all(color: AppColors.colorsBlue, width: 3);
+    // } else 
+    
+    if (_selectedProfileIndex == index) {
       return Border.all(color: AppColors.backgroundLightGrey, width: 3);
     }
     return Border.all(color: AppColors.colorsBlue.withOpacity(0.1), width: 1);
@@ -1242,8 +1217,8 @@ class _MyTeamsState extends State<MyTeams> {
       return Container(
         width: 50,
         height: 50,
-        decoration: const BoxDecoration(
-          color: AppColors.colorsBlue,
+        decoration:  BoxDecoration(
+          color: AppColors.sideGreen,
           shape: BoxShape.circle,
         ),
         child: const Icon(Icons.check, color: Colors.white, size: 30),
@@ -1467,17 +1442,6 @@ class _MyTeamsState extends State<MyTeams> {
       ],
     );
   }
-  // Widget _buildTeamComparisonTab(BuildContext context, double screenWidth) {
-  //   return Column(
-  //     children: [
-  //       // _buildPeriodFilter(screenWidth),
-  //       // _buildMetricButtons(),
-  //       // _buildTeamComparisonChart(context),
-  //       if (_isComparing) _buildTeamComparisonChart(context),
-  //       if (!_isComparing) _callAnalyticAll(context),
-  //     ],
-  //   );
-  // }
 
   // Period filter (ALL, MTD, QTD, YTD)
   Widget _buildPeriodFilter(double screenWidth) {

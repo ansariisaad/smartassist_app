@@ -1634,6 +1634,35 @@ class LeadsSrv {
     }
   }
 
+
+   static Future<Map<String, dynamic>> getVehicle(String query) async {
+    try {
+      final token = await Storage.getToken();
+
+      final response = await http.get(
+        Uri.parse('${baseUrl}search/global?query=$query'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        return {'success': true, 'data': data['data']['suggestions'] ?? []};
+      } else {
+        return {
+          'success': false,
+          'error': 'HTTP ${response.statusCode}: ${response.reasonPhrase}',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+
+   
+
   static Future<bool> getOtp({required String eventId}) async {
     try {
       final token = await Storage.getToken();

@@ -311,12 +311,6 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
         overdueTasks = List<Map<String, dynamic>>.from(data['overdueTasks']);
         overdueEvents = List<Map<String, dynamic>>.from(data['overdueEvents']);
         upcomingTasks = List<Map<String, dynamic>>.from(data['upcomingTasks']);
-        // count = data['overdueWeekTasks']['count'] ?? 0;
-        // count =
-        //     (data['overdueWeekTasks'] != null &&
-        //         data['overdueWeekTasks']['count'] != null)
-        //     ? data['overdueWeekTasks']['count']
-        //     : 0;
 
         overdueCount = overdueTasks.length + overdueEvents.length;
 
@@ -398,6 +392,70 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
     );
   }
 
+  // Widget _buildSubTabButton(String title, int index, {bool showCount = false}) {
+  //   final isActive = _childButtonIndex == index;
+  //   final overdueCount = _getOverdueCount();
+
+  //   return Expanded(
+  //     child: TextButton(
+  //       onPressed: () => _toggleTasks(index),
+  //       style: TextButton.styleFrom(
+  //         backgroundColor: isActive
+  //             ? (index == 0 ? AppColors.borderGreen : const Color(0xFFFFF5F4))
+  //             : Colors.transparent,
+  //         foregroundColor: isActive ? Colors.white : Colors.black,
+  //         padding: EdgeInsets.symmetric(
+  //           vertical: 5.0 * _getResponsiveScale(),
+  //           horizontal: 8.0 * _getResponsiveScale(),
+  //         ),
+  //         side: BorderSide(
+  //           color: isActive
+  //               ? (index == 0 ? AppColors.borderGreen : AppColors.borderRed)
+  //               : Colors.transparent,
+  //           width: 1,
+  //         ),
+  //         shape: RoundedRectangleBorder(
+  //           borderRadius: BorderRadius.circular(30),
+  //         ),
+  //       ),
+  //       child: FittedBox(
+  //         fit: BoxFit.scaleDown,
+  //         child: Row(
+  //           mainAxisAlignment: MainAxisAlignment.center,
+  //           mainAxisSize: MainAxisSize.min,
+  //           children: [
+  //             Text(
+  //               title,
+  //               style: GoogleFonts.poppins(
+  //                 fontSize: _getSubTabFontSize(),
+  //                 fontWeight: FontWeight.w400,
+  //                 color: isActive
+  //                     ? (index == 0
+  //                           ? AppColors.containerGreen
+  //                           : AppColors.containerRed)
+  //                     : const Color(0xff000000).withOpacity(0.56),
+  //               ),
+  //             ),
+
+  //             if (showCount) ...[
+  //               SizedBox(width: 4.0 * _getResponsiveScale()),
+  //               Text(
+  //                 '($overdueCount)',
+  //                 style: GoogleFonts.poppins(
+  //                   fontSize: _getSubTabFontSize(),
+  //                   fontWeight: FontWeight.w400,
+  //                   color: isActive
+  //                       ? AppColors.containerRed
+  //                       : const Color(0xff000000).withOpacity(0.56),
+  //                 ),
+  //               ),
+  //             ],
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
   // Toggle switch to toggle between 'Upcoming' and 'Completed'
   Widget _buildToggleSwitch() {
     return Row(
@@ -629,7 +687,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
       builder: (BuildContext context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(10),
           ),
           backgroundColor: Colors.white,
           insetPadding: const EdgeInsets.all(10),

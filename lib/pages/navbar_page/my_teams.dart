@@ -264,8 +264,8 @@ class _MyTeamsState extends State<MyTeams> {
 
       // ✅ Fixed: Use the correct base URL without concatenating userId
       final baseUri = Uri.parse(
-        'https://api.smartassistapp.in/api/users/ps/dashboard/call-analytics',
-        // 'https://api.smartassistapp.in/api/users/sm/dashboard/call-analytics'
+        'https://dev.smartassistapp.in/api/users/ps/dashboard/call-analytics',
+        // 'https://dev.smartassistapp.in/api/users/sm/dashboard/call-analytics'
       );
 
       final uri = baseUri.replace(queryParameters: queryParams);
@@ -356,7 +356,7 @@ class _MyTeamsState extends State<MyTeams> {
       }
 
       final baseUri = Uri.parse(
-        'https://api.smartassistapp.in/api/users/sm/dashboard/call-analytics',
+        'https://dev.smartassistapp.in/api/users/sm/dashboard/call-analytics',
       );
 
       final uri = baseUri.replace(queryParameters: queryParams);
@@ -492,7 +492,7 @@ class _MyTeamsState extends State<MyTeams> {
       // ✅ If "All" is selected (_selectedProfileIndex == 0), no user parameters are added
 
       final baseUri = Uri.parse(
-        'https://api.smartassistapp.in/api/users/sm/dashboard/team-dashboard',
+        'https://dev.smartassistapp.in/api/users/sm/dashboard/team-dashboard',
       );
 
       final uri = baseUri.replace(queryParameters: queryParams);
@@ -858,8 +858,7 @@ class _MyTeamsState extends State<MyTeams> {
                     _selectedType = 'All';
                     _selectedProfileIndex = 0; // Back to "All"
                   }
-                } 
-                else {
+                } else {
                   // Add this letter to selection (don't clear existing)
                   _selectedLetters.add(letter);
                   _selectedType = 'Letter';
@@ -1011,7 +1010,7 @@ class _MyTeamsState extends State<MyTeams> {
                       ),
                       color: _isMultiSelectMode
                           ? Colors.white
-                          : (isSelected ? Colors.white: Colors.grey),
+                          : (isSelected ? Colors.white : Colors.grey),
                       size: isSelected ? 34 : 32,
                     ),
                   ),

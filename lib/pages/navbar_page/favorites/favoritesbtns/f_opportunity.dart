@@ -26,7 +26,7 @@
 //     try {
 //       final response = await http.get(
 //         Uri.parse(
-//           'https://api.smartassistapp.in/api/favourites/events/appointments/all',
+//           'https://dev.smartassistapp.in/api/favourites/events/appointments/all',
 //         ),
 //         headers: {
 //           'Authorization': 'Bearer $token',
@@ -45,7 +45,7 @@
 //         print("Failed to load data: ${response.statusCode}");
 //         setState(() => isLoading = false);
 //       }
-      
+
 //     } catch (e) {
 //       print("Error fetching data: $e");
 //       setState(() => isLoading = false);
@@ -146,7 +146,7 @@
 //     try {
 //       final response = await http.put(
 //         Uri.parse(
-//           'https://api.smartassistapp.in/api/favourites/mark-fav/task/${widget.taskId}',
+//           'https://dev.smartassistapp.in/api/favourites/mark-fav/task/${widget.taskId}',
 //         ),
 //         headers: {
 //           'Authorization': 'Bearer $token',

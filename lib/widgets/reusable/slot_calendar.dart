@@ -60,7 +60,7 @@ class _SlotCalendarState extends State<SlotCalendar> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://dev.smartassistapp.in/api/slots/${widget.vehicleId}/slots/all',
+          'https://api.smartassistapp.in/api/slots/${widget.vehicleId}/slots/all',
         ),
       );
       if (response.statusCode == 200) {
@@ -440,7 +440,7 @@ class _CalenderWidgetState extends State<CalenderWidget> {
 //   // Fetch available slots from API
 //   Future<void> _fetchAvailableSlots() async {
 //     try {
-//       final response = await http.get(Uri.parse('https://dev.smartassistapp.in/api/slots/${vehicleId}/slots/all'
+//       final response = await http.get(Uri.parse('https://api.smartassistapp.in/api/slots/${vehicleId}/slots/all'
 // ));
 //       if (response.statusCode == 200) {
 //         final data = jsonDecode(response.body);

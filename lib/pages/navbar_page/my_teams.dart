@@ -1328,13 +1328,14 @@ class _MyTeamsState extends State<MyTeams> {
                   color: AppColors.backgroundLightGrey,
                   width: 1,
                 ),
-                color: AppColors.white,
+                color: Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(10),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05), // soft shadow
-                    blurRadius: 8,
-                    offset: Offset(0, 0), // x, y offset
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 0,
+                    spreadRadius: 0.2,
+                    offset: Offset(1, 1), // Equal shadow on all sides
                   ),
                 ],
               ),
@@ -1347,7 +1348,11 @@ class _MyTeamsState extends State<MyTeams> {
                         margin: const EdgeInsets.only(left: 10, bottom: 0),
                         child: Text(
                           'Activities',
-                          style: AppFont.dropDowmLabel(context),
+                          style: AppFont.dropDowmLabel(context).copyWith(
+                            color: AppColors.iconGrey,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                       IconButton(
@@ -1389,13 +1394,14 @@ class _MyTeamsState extends State<MyTeams> {
                   color: AppColors.backgroundLightGrey,
                   width: 1,
                 ),
-                color: AppColors.white,
+                color: Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(10),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05), // soft shadow
-                    blurRadius: 8,
-                    offset: Offset(0, 0), // x, y offset
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 0,
+                    spreadRadius: 0.2,
+                    offset: Offset(1, 1), // Equal shadow on all sides
                   ),
                 ],
               ),
@@ -1408,7 +1414,11 @@ class _MyTeamsState extends State<MyTeams> {
                         margin: const EdgeInsets.only(left: 10, bottom: 0),
                         child: Text(
                           'Call logs',
-                          style: AppFont.dropDowmLabel(context),
+                          style: AppFont.dropDowmLabel(context).copyWith(
+                            color: AppColors.iconGrey,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                       IconButton(
@@ -1667,13 +1677,14 @@ class _MyTeamsState extends State<MyTeams> {
                     color: AppColors.backgroundLightGrey,
                     width: 1,
                   ),
-                  color: AppColors.white,
+                  color: Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05), // soft shadow
-                      blurRadius: 8,
-                      offset: Offset(0, 0), // x, y offset
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 0,
+                      spreadRadius: 0.2,
+                      offset: Offset(1, 1), // Equal shadow on all sides
                     ),
                   ],
                 ),
@@ -1702,7 +1713,11 @@ class _MyTeamsState extends State<MyTeams> {
                       margin: const EdgeInsets.only(left: 10),
                       child: Text(
                         'Team Comparison',
-                        style: AppFont.dropDowmLabel(context),
+                        style: AppFont.dropDowmLabel(context).copyWith(
+                          color: AppColors.iconGrey,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 16,
+                        ),
                       ),
                     ),
                   ],
@@ -1899,13 +1914,14 @@ class _MyTeamsState extends State<MyTeams> {
                     color: AppColors.backgroundLightGrey,
                     width: 1,
                   ),
-                  color: AppColors.white,
+                  color: Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05), // soft shadow
-                      blurRadius: 8,
-                      offset: Offset(0, 0), // x, y offset
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 0,
+                      spreadRadius: 0.2,
+                      offset: Offset(1, 1), // Equal shadow on all sides
                     ),
                   ],
                 ),
@@ -1933,7 +1949,11 @@ class _MyTeamsState extends State<MyTeams> {
                           margin: const EdgeInsets.only(left: 10, bottom: 0),
                           child: Text(
                             'Call Analysis',
-                            style: AppFont.dropDowmLabel(context),
+                            style: AppFont.dropDowmLabel(context).copyWith(
+                              color: AppColors.iconGrey,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 16,
+                            ),
                           ),
                         ),
                       ],
@@ -2748,10 +2768,6 @@ class _MyTeamsState extends State<MyTeams> {
           width: 2,
         ),
 
-        // border: Border.all(
-        //   color: isSelected ? Colors.blue : Colors.transparent,
-        //   width: 2,
-        // ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),

@@ -774,7 +774,6 @@ class _MyTeamsState extends State<MyTeams> {
         ),
       );
 
-
       // Add member avatars
       for (int i = 0; i < letterMembers.length; i++) {
         widgets.add(
@@ -787,8 +786,6 @@ class _MyTeamsState extends State<MyTeams> {
           ),
         );
       }
-
-   
     }
 
     return widgets;
@@ -1194,8 +1191,8 @@ class _MyTeamsState extends State<MyTeams> {
   Border? _getBorderStyle(bool isSelectedForComparison, int index) {
     // if (isSelectedForComparison) {
     //   return Border.all(color: AppColors.colorsBlue, width: 3);
-    // } else 
-    
+    // } else
+
     if (_selectedProfileIndex == index) {
       return Border.all(color: AppColors.backgroundLightGrey, width: 3);
     }
@@ -1216,7 +1213,7 @@ class _MyTeamsState extends State<MyTeams> {
       return Container(
         width: 50,
         height: 50,
-        decoration:  BoxDecoration(
+        decoration: BoxDecoration(
           color: AppColors.sideGreen,
           shape: BoxShape.circle,
         ),
@@ -1312,7 +1309,7 @@ class _MyTeamsState extends State<MyTeams> {
           Container(
             decoration: BoxDecoration(
               color: AppColors.backgroundLightGrey,
-              borderRadius: BorderRadius.circular(5),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Column(
               children: [
@@ -1327,8 +1324,20 @@ class _MyTeamsState extends State<MyTeams> {
             Container(
               margin: const EdgeInsets.only(top: 10),
               decoration: BoxDecoration(
-                color: AppColors.backgroundLightGrey,
+                border: Border.all(
+                  color: AppColors.backgroundLightGrey,
+                  width: 1,
+                ),
+                color: Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 0,
+                    spreadRadius: 0.2,
+                    offset: Offset(1, 1), // Equal shadow on all sides
+                  ),
+                ],
               ),
               child: Column(
                 children: [
@@ -1339,7 +1348,11 @@ class _MyTeamsState extends State<MyTeams> {
                         margin: const EdgeInsets.only(left: 10, bottom: 0),
                         child: Text(
                           'Activities',
-                          style: AppFont.dropDowmLabel(context),
+                          style: AppFont.dropDowmLabel(context).copyWith(
+                            color: AppColors.iconGrey,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                       IconButton(
@@ -1377,8 +1390,20 @@ class _MyTeamsState extends State<MyTeams> {
             Container(
               margin: const EdgeInsets.only(top: 10),
               decoration: BoxDecoration(
-                color: AppColors.backgroundLightGrey,
+                border: Border.all(
+                  color: AppColors.backgroundLightGrey,
+                  width: 1,
+                ),
+                color: Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 0,
+                    spreadRadius: 0.2,
+                    offset: Offset(1, 1), // Equal shadow on all sides
+                  ),
+                ],
               ),
               child: Column(
                 children: [
@@ -1389,7 +1414,11 @@ class _MyTeamsState extends State<MyTeams> {
                         margin: const EdgeInsets.only(left: 10, bottom: 0),
                         child: Text(
                           'Call logs',
-                          style: AppFont.dropDowmLabel(context),
+                          style: AppFont.dropDowmLabel(context).copyWith(
+                            color: AppColors.iconGrey,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                       IconButton(
@@ -1452,6 +1481,7 @@ class _MyTeamsState extends State<MyTeams> {
           Container(
             margin: const EdgeInsets.only(top: 10),
             decoration: BoxDecoration(
+              color: AppColors.white,
               border: Border.all(color: Colors.grey.shade300, width: 1),
               borderRadius: BorderRadius.circular(30),
             ),
@@ -1479,17 +1509,24 @@ class _MyTeamsState extends State<MyTeams> {
         });
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
         decoration: BoxDecoration(
+          color: _periodIndex == index
+              ? AppColors.colorsBlue.withOpacity(0.1)
+              : Colors.transparent,
           border: Border.all(
-            color: _periodIndex == index ? Colors.blue : Colors.transparent,
+            color: _periodIndex == index
+                ? AppColors.colorsBlue
+                : Colors.transparent,
           ),
           borderRadius: BorderRadius.circular(30),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: _periodIndex == index ? Colors.blue : Colors.black,
+            color: _periodIndex == index
+                ? AppColors.colorsBlue
+                : AppColors.iconGrey,
             fontWeight: FontWeight.w500,
             fontSize: 14,
           ),
@@ -1636,8 +1673,20 @@ class _MyTeamsState extends State<MyTeams> {
               },
               child: Container(
                 decoration: BoxDecoration(
-                  color: AppColors.backgroundLightGrey,
+                  border: Border.all(
+                    color: AppColors.backgroundLightGrey,
+                    width: 1,
+                  ),
+                  color: Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 0,
+                      spreadRadius: 0.2,
+                      offset: Offset(1, 1), // Equal shadow on all sides
+                    ),
+                  ],
                 ),
                 child: Row(
                   children: [
@@ -1664,7 +1713,11 @@ class _MyTeamsState extends State<MyTeams> {
                       margin: const EdgeInsets.only(left: 10),
                       child: Text(
                         'Team Comparison',
-                        style: AppFont.dropDowmLabel(context),
+                        style: AppFont.dropDowmLabel(context).copyWith(
+                          color: AppColors.iconGrey,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 16,
+                        ),
                       ),
                     ),
                   ],
@@ -1857,8 +1910,20 @@ class _MyTeamsState extends State<MyTeams> {
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 0),
                 decoration: BoxDecoration(
-                  color: AppColors.backgroundLightGrey,
+                  border: Border.all(
+                    color: AppColors.backgroundLightGrey,
+                    width: 1,
+                  ),
+                  color: Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 0,
+                      spreadRadius: 0.2,
+                      offset: Offset(1, 1), // Equal shadow on all sides
+                    ),
+                  ],
                 ),
 
                 child: Column(
@@ -1884,7 +1949,11 @@ class _MyTeamsState extends State<MyTeams> {
                           margin: const EdgeInsets.only(left: 10, bottom: 0),
                           child: Text(
                             'Call Analysis',
-                            style: AppFont.dropDowmLabel(context),
+                            style: AppFont.dropDowmLabel(context).copyWith(
+                              color: AppColors.iconGrey,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 16,
+                            ),
                           ),
                         ),
                       ],
@@ -2699,10 +2768,6 @@ class _MyTeamsState extends State<MyTeams> {
           width: 2,
         ),
 
-        // border: Border.all(
-        //   color: isSelected ? Colors.blue : Colors.transparent,
-        //   width: 2,
-        // ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -2896,15 +2961,13 @@ class _MyTeamsState extends State<MyTeams> {
         style: TextButton.styleFrom(
           backgroundColor: _upcommingButtonIndex == index
               ? activeColor.withOpacity(0.29)
-              : null,
+              : Colors.white,
           foregroundColor: _upcommingButtonIndex == index
               ? activeColor
               : Colors.black,
           padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 5),
           side: BorderSide(
-            color: _upcommingButtonIndex == index
-                ? activeColor
-                : Colors.transparent,
+            color: _upcommingButtonIndex == index ? activeColor : Colors.white,
             width: .5,
           ),
           shape: RoundedRectangleBorder(

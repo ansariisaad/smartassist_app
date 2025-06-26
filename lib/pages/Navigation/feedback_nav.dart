@@ -234,7 +234,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
       final token = await Storage.getToken();
 
       // Create multipart request for file upload
-      var uri = Uri.parse('https://api.smartassistapp.in/api/users/feedback');
+      var uri = Uri.parse('https://dev.smartassistapp.in/api/users/feedback');
       var request = http.MultipartRequest('POST', uri);
 
       // Add headers

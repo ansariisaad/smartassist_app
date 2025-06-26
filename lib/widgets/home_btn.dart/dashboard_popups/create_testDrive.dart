@@ -35,6 +35,7 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
   bool isSubmitting = false;
   String? selectedVehicleName;
   String? selectedBrand;
+  String? vehicleId;
   Map<String, dynamic>? selectedVehicleData;
   // final PageController _pageController = PageController();
   List<Map<String, String>> dropdownItems = [];
@@ -288,6 +289,7 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
                   setState(() {
                     selectedVehicleData = selectedVehicle;
                     selectedVehicleName = selectedVehicle['vehicle_name'];
+                    vehicleId = selectedVehicle['vehicle_id'];
                     selectedBrand =
                         selectedVehicle['brand'] ?? ''; // Handle null brand
                   });
@@ -339,8 +341,23 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
               //   onTimeTap: _pickStartTime,
               //   onChanged: (String value) {},
               // ),
-              // SlotCalendar(label: 'Select Slot', onChanged: (value) {}, onTextFieldTap: () {  }, vehicleId: '',),
-
+              // SlotCalendar(
+              //   label: 'Select Date & Time Slot',
+              //   isRequired: true,
+              //   controller: startDateController, // Pass the controller
+              //   vehicleId: '', // Replace with actual vehicle ID
+              //   onChanged: (value) {
+              //     setState(() {
+              //       // startDateController = value;
+              //     });
+              //     print('Slot changed: $value');
+              //   },
+              //   onTextFieldTap: () {
+              //     print('Calendar container tapped');
+              //   },
+              //   // errorText: 'This field is required', // Show error if needed
+              // ),
+              const SizedBox(height: 10),
               DateButton(
                 errorText: _errors['date'],
                 isRequired: true,

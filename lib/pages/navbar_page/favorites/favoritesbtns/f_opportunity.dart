@@ -26,7 +26,7 @@
 //     try {
 //       final response = await http.get(
 //         Uri.parse(
-//           'https://dev.smartassistapp.in/api/favourites/events/appointments/all',
+//           'https://api.smartassistapp.in/api/favourites/events/appointments/all',
 //         ),
 //         headers: {
 //           'Authorization': 'Bearer $token',
@@ -146,7 +146,7 @@
 //     try {
 //       final response = await http.put(
 //         Uri.parse(
-//           'https://dev.smartassistapp.in/api/favourites/mark-fav/task/${widget.taskId}',
+//           'https://api.smartassistapp.in/api/favourites/mark-fav/task/${widget.taskId}',
 //         ),
 //         headers: {
 //           'Authorization': 'Bearer $token',

@@ -947,7 +947,6 @@ class _CallAnalyticsState extends State<CallAnalytics>
   Widget _buildCombinedBarChart() {
     return Column(
       children: [
-        // Legend for the chart
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0),
           child: Row(
@@ -962,97 +961,158 @@ class _CallAnalyticsState extends State<CallAnalytics>
           ),
         ),
         const SizedBox(height: 8),
-        // Combined chart
         Expanded(child: _buildCombinedLineChart()),
       ],
     );
   }
 
-  Widget _buildLegendItem(String label, Color color) {
-    return Row(
-      children: [
-        Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(2),
-          ),
-        ),
-        const SizedBox(width: 4),
-        Text(
-          label,
-          style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
-        ),
-      ],
-    );
+  double getIncoming(Map data) {
+    if (data['incoming'] != null && data['incoming']['calls'] != null) {
+      return (data['incoming']['calls'] as num).toDouble();
+    }
+    if (data['Connected'] != null && data['Connected']['calls'] != null) {
+      return (data['Connected']['calls'] as num).toDouble();
+    }
+    if (data['answered'] != null && data['answered']['calls'] != null) {
+      return (data['answered']['calls'] as num).toDouble();
+    }
+    return 0.0;
+  }
+
+  double _getYAxisInterval(double maxY) {
+    if (maxY <= 50) return 10;
+    if (maxY <= 100) return 20;
+    if (maxY <= 200) return 50;
+    if (maxY <= 500) return 100;
+    return 200;
+  }
+
+  String _formatYAxisLabel(double value) {
+    if (value >= 1000) {
+      return '${(value / 1000).toStringAsFixed(1)}K';
+    }
+    return value.toInt().toString();
   }
 
   Widget _buildCombinedLineChart() {
-    // Process hourly analysis data to create chart spots
-    final List<FlSpot> allCallSpots = [];
-    final List<FlSpot> incomingSpots = []; // Renamed from connected
-    final List<FlSpot> outgoingSpots = []; // Added for Outgoing
+    List<FlSpot> allCallSpots = [];
+    List<FlSpot> incomingSpots = [];
+    List<FlSpot> outgoingSpots = [];
+    List<String> xLabels = [];
 
-    // Process data to create chart spots
-    final List<int> sortedHours =
-        hourlyAnalysisData.keys.map((e) => int.parse(e)).toList()..sort();
+    if (hourlyAnalysisData.isEmpty) {
+      allCallSpots = [const FlSpot(0, 0)];
+      incomingSpots = [const FlSpot(0, 0)];
+      outgoingSpots = [const FlSpot(0, 0)];
+      xLabels = ["-"];
+    } else if (selectedTimeRange == "1D") {
+      for (int bin = 0; bin < 12; bin++) {
+        int start = bin * 2;
+        int end = start + 1;
+        String label =
+            "${start.toString().padLeft(2, '0')}-${(end + 1).toString().padLeft(2, '0')}";
+        xLabels.add(label);
 
-    for (int i = 0; i < sortedHours.length; i++) {
-      final hour = sortedHours[i].toString();
-      final data = hourlyAnalysisData[hour];
-
-      if (data != null) {
-        final double xValue = i.toDouble(); // Use index directly for x-value
-
-        if (data['AllCalls'] != null) {
-          allCallSpots.add(
-            FlSpot(xValue, (data['AllCalls']['calls'] ?? 0).toDouble()),
-          );
+        double all = 0, incoming = 0, outgoing = 0;
+        for (int h = start; h <= end; h++) {
+          var data = hourlyAnalysisData[h.toString()] ?? {};
+          all += (data['AllCalls']?['calls'] ?? 0).toDouble();
+          incoming += getIncoming(data);
+          outgoing += (data['outgoing']?['calls'] ?? 0).toDouble();
         }
-        if (data['incoming'] != null) {
-          // Updated key
-          incomingSpots.add(
-            FlSpot(xValue, (data['incoming']['calls'] ?? 0).toDouble()),
-          );
-        }
-        if (data['outgoing'] != null) {
-          // Added key
-          outgoingSpots.add(
-            FlSpot(xValue, (data['outgoing']['calls'] ?? 0).toDouble()),
-          );
-        }
+        allCallSpots.add(FlSpot(bin.toDouble(), all));
+        incomingSpots.add(FlSpot(bin.toDouble(), incoming));
+        outgoingSpots.add(FlSpot(bin.toDouble(), outgoing));
+      }
+    } else if (selectedTimeRange == "1M") {
+      xLabels = ["1", "5", "10", "15", "20", "25", "31"];
+      List<double> allSums = List.filled(7, 0),
+          inSums = List.filled(7, 0),
+          outSums = List.filled(7, 0);
+      hourlyAnalysisData.forEach((key, data) {
+        int day = int.tryParse(key) ?? 1;
+        double all = (data['AllCalls']?['calls'] ?? 0).toDouble();
+        double incoming = getIncoming(data);
+        double outgoing = (data['outgoing']?['calls'] ?? 0).toDouble();
+        int idx = 0;
+        if (day >= 1 && day <= 4)
+          idx = 0;
+        else if (day >= 5 && day <= 9)
+          idx = 1;
+        else if (day >= 10 && day <= 14)
+          idx = 2;
+        else if (day >= 15 && day <= 19)
+          idx = 3;
+        else if (day >= 20 && day <= 24)
+          idx = 4;
+        else if (day >= 25 && day <= 30)
+          idx = 5;
+        else if (day == 31)
+          idx = 6;
+        allSums[idx] += all;
+        inSums[idx] += incoming;
+        outSums[idx] += outgoing;
+      });
+      for (int i = 0; i < 7; i++) {
+        allCallSpots.add(FlSpot(i.toDouble(), allSums[i]));
+        incomingSpots.add(FlSpot(i.toDouble(), inSums[i]));
+        outgoingSpots.add(FlSpot(i.toDouble(), outSums[i]));
+      }
+    } else if (selectedTimeRange == "1Q" || selectedTimeRange == "1Y") {
+      DateTime now = DateTime.now();
+      List<DateTime> lastMonths = List.generate(3, (i) {
+        return DateTime(now.year, now.month - 2 + i);
+      });
+      xLabels = [];
+      for (int i = 0; i < lastMonths.length; i++) {
+        final m = lastMonths[i];
+        String label = "${m.year}-${m.month.toString().padLeft(2, '0')}";
+        xLabels.add(label);
+        var data =
+            hourlyAnalysisData[m.month.toString()] ??
+            hourlyAnalysisData[label] ??
+            {};
+        allCallSpots.add(
+          FlSpot(i.toDouble(), (data['AllCalls']?['calls'] ?? 0).toDouble()),
+        );
+        incomingSpots.add(FlSpot(i.toDouble(), getIncoming(data)));
+        outgoingSpots.add(
+          FlSpot(i.toDouble(), (data['outgoing']?['calls'] ?? 0).toDouble()),
+        );
+      }
+    } else if (selectedTimeRange == "1W") {
+      List<String> days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      for (int i = 1; i <= 7; i++) {
+        var data = hourlyAnalysisData[i.toString()] ?? {};
+        double incoming = getIncoming(data);
+        xLabels.add(days[i - 1]);
+        allCallSpots.add(
+          FlSpot(
+            (i - 1).toDouble(),
+            (data['AllCalls']?['calls'] ?? 0).toDouble(),
+          ),
+        );
+        incomingSpots.add(FlSpot((i - 1).toDouble(), incoming));
+        outgoingSpots.add(
+          FlSpot(
+            (i - 1).toDouble(),
+            (data['outgoing']?['calls'] ?? 0).toDouble(),
+          ),
+        );
       }
     }
 
-    // If no data points, create default ones
-    if (allCallSpots.isEmpty) {
-      for (int hour = 1; hour <= 12; hour++) {
-        allCallSpots.add(FlSpot(hour.toDouble() - 1, 0));
-      }
-    }
-    if (incomingSpots.isEmpty) {
-      for (int hour = 1; hour <= 12; hour++) {
-        incomingSpots.add(FlSpot(hour.toDouble() - 1, 0));
-      }
-    }
-    if (outgoingSpots.isEmpty) {
-      for (int hour = 1; hour <= 12; hour++) {
-        outgoingSpots.add(FlSpot(hour.toDouble() - 1, 0));
-      }
-    }
+    double maxY =
+        ([
+              ...allCallSpots,
+              ...incomingSpots,
+              ...outgoingSpots,
+            ].map((e) => e.y).fold<double>(0, (prev, e) => e > prev ? e : prev))
+            .ceilToDouble();
+    if (maxY < 5) maxY = 5;
 
-    // Find max Y value for the chart
-    double maxY = [
-      allCallSpots,
-      incomingSpots,
-      outgoingSpots,
-    ].expand((e) => e).map((e) => e.y).reduce((a, b) => a > b ? a : b);
-    maxY = maxY < 1200 ? 1200 : maxY + 200; // Adjust for 1117 total calls
-
-    // Find max X value
-    double maxX = sortedHours.isEmpty ? 11 : sortedHours.length - 1.toDouble();
-    maxX = maxX < 12 ? 12 : maxX + 1;
+    final double yInterval = _getYAxisInterval(maxY);
+    maxY += yInterval;
 
     return Padding(
       padding: const EdgeInsets.only(top: 10),
@@ -1060,15 +1120,20 @@ class _CallAnalyticsState extends State<CallAnalytics>
         LineChartData(
           lineTouchData: LineTouchData(
             touchTooltipData: LineTouchTooltipData(
-              getTooltipItems: (List<LineBarSpot> touchedSpots) {
+              getTooltipItems: (touchedSpots) {
                 return touchedSpots.map((spot) {
-                  String callType = [
-                    'All Calls',
-                    'Incoming',
-                    'Outgoing',
-                  ][spot.barIndex];
+                  String callType = '';
+                  if (spot.barIndex == 0)
+                    callType = 'All Calls';
+                  else if (spot.barIndex == 1)
+                    callType = 'Incoming';
+                  else
+                    callType = 'Outgoing';
+                  String xLabel = spot.x < xLabels.length
+                      ? xLabels[spot.x.toInt()]
+                      : '';
                   return LineTooltipItem(
-                    '$callType: ${spot.y.toInt()} calls',
+                    '$callType\n$xLabel: ${spot.y.toInt()} calls',
                     const TextStyle(color: Colors.white),
                   );
                 }).toList();
@@ -1080,22 +1145,51 @@ class _CallAnalyticsState extends State<CallAnalytics>
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
-                getTitlesWidget: (double value, TitleMeta meta) {
-                  return _getBottomTitleWidget(value, meta, sortedHours);
-                },
-                reservedSize: 28,
                 interval: 1,
+                reservedSize: 36,
+                getTitlesWidget: (double value, TitleMeta meta) {
+                  int idx = value.round();
+                  if (idx >= 0 && idx < xLabels.length) {
+                    return SideTitleWidget(
+                      meta: meta,
+                      space: 8,
+                      child: Text(
+                        xLabels[idx],
+                        style: TextStyle(fontSize: 10),
+                        textAlign: TextAlign.center,
+                      ),
+                    );
+                  } else {
+                    return const SizedBox.shrink();
+                  }
+                },
               ),
             ),
             leftTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
+                interval: yInterval,
+                reservedSize: 48,
                 getTitlesWidget: (double value, TitleMeta meta) {
-                  return _getLeftTitleWidget(value, meta, maxY);
+                  if (value == 0) return const SizedBox();
+                  // Only show Y labels that are clean multiples of yInterval (e.g. 50, 100, 150)
+                  if (value % yInterval != 0) return const SizedBox();
+                  return SideTitleWidget(
+                    meta: meta,
+                    space: 8,
+                    child: Text(
+                      _formatYAxisLabel(value),
+                      style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                  );
                 },
-                reservedSize: 60, // Increased to prevent overlap
-                interval: _getYAxisInterval(maxY, selectedTimeRange),
               ),
+            ),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
             ),
           ),
           borderData: FlBorderData(show: false),
@@ -1103,28 +1197,25 @@ class _CallAnalyticsState extends State<CallAnalytics>
             show: true,
             drawHorizontalLine: true,
             drawVerticalLine: true,
-            horizontalInterval: _getYAxisInterval(maxY, selectedTimeRange),
+            horizontalInterval: yInterval,
             verticalInterval: 1,
-            getDrawingHorizontalLine: (value) {
-              return FlLine(color: Colors.grey.shade200, strokeWidth: 1);
-            },
-            getDrawingVerticalLine: (value) {
-              return FlLine(
-                color: Colors.grey.shade200,
-                strokeWidth: 1,
-                dashArray: [5, 5],
-              );
-            },
+            getDrawingHorizontalLine: (value) =>
+                FlLine(color: Colors.grey.shade200, strokeWidth: 1),
+            getDrawingVerticalLine: (value) => FlLine(
+              color: Colors.grey.shade200,
+              strokeWidth: 1,
+              dashArray: [5, 5],
+            ),
           ),
           minX: 0,
-          maxX: maxX,
+          maxX: xLabels.length > 0 ? (xLabels.length - 1).toDouble() : 1,
           minY: 0,
           maxY: maxY,
           lineBarsData: [
             LineChartBarData(
               spots: allCallSpots,
               isCurved: true,
-              color: AppColors.colorsBlue,
+              color: const Color(0xFF1380FE),
               barWidth: 3,
               isStrokeCapRound: true,
               dotData: const FlDotData(show: true),
@@ -1163,178 +1254,24 @@ class _CallAnalyticsState extends State<CallAnalytics>
     );
   }
 
-  // Updated _getYAxisInterval to handle larger values
-  double _getYAxisInterval(double maxY, String timeRange) {
-    if (maxY > 1000) return 200; // Larger interval for high values
-    switch (timeRange) {
-      case '1D':
-        return maxY > 20 ? 5 : (maxY > 10 ? 2 : 1);
-      case '1W':
-        return maxY > 14 ? 3 : 2;
-      case '1M':
-        return maxY > 16 ? 4 : 2;
-      case '1Q':
-        return maxY > 9 ? 3 : 1;
-      case '1Y':
-        return maxY > 24 ? 6 : 3;
-      default:
-        return maxY > 10 ? 5 : 1;
-    }
-  }
-
-  // Helper method for bottom titles (X-axis)
-  Widget _getBottomTitleWidget(
-    double value,
-    TitleMeta meta,
-    List<int> sortedHours,
-  ) {
-    final int index = value ~/ 2;
-    final style = TextStyle(color: Colors.grey, fontSize: 10);
-
-    if (index < sortedHours.length) {
-      String label = _getXAxisLabel(sortedHours[index], selectedTimeRange);
-      return SideTitleWidget(
-        space: 8,
-        child: Text(label, style: style),
-        meta: meta,
-      );
-    }
-
-    return SideTitleWidget(
-      space: 8,
-      child: Text('', style: style),
-      meta: meta,
+  Widget _buildLegendItem(String label, Color color) {
+    return Row(
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+        ),
+      ],
     );
-  }
-
-  // Helper method for left titles (Y-axis)
-  Widget _getLeftTitleWidget(double value, TitleMeta meta, double maxY) {
-    if (value == 0) {
-      return const SizedBox();
-    }
-
-    String label = _getYAxisLabel(value, selectedTimeRange, maxY);
-
-    return SideTitleWidget(
-      space: 8,
-      child: Text(
-        label,
-        style: const TextStyle(color: Colors.grey, fontSize: 9),
-        textAlign: TextAlign.center,
-      ),
-      meta: meta,
-    );
-  }
-
-  // Helper method to get X-axis labels based on time range
-  String _getXAxisLabel(int hour, String timeRange) {
-    switch (timeRange) {
-      case '1D':
-        // Show hours in 12-hour format
-        String period = hour >= 12 ? 'PM' : 'AM';
-        int displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
-        return '$displayHour$period';
-
-      case '1W':
-        // Show hours for weekly view
-        String period = hour >= 12 ? 'PM' : 'AM';
-        int displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
-        return '$displayHour$period';
-
-      case '1M':
-        // Show hours for monthly view
-        String period = hour >= 12 ? 'PM' : 'AM';
-        int displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
-        return '$displayHour$period';
-
-      case '1Q':
-        // Show hours for quarterly view
-        String period = hour >= 12 ? 'PM' : 'AM';
-        int displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
-        return '$displayHour$period';
-
-      case '1Y':
-        // Show hours for yearly view
-        String period = hour >= 12 ? 'PM' : 'AM';
-        int displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
-        return '$displayHour$period';
-
-      default:
-        return '${hour}H';
-    }
-  }
-
-  // Helper method to get Y-axis labels with contextual information
-  String _getYAxisLabel(double value, String timeRange, double maxY) {
-    int intValue = value.toInt();
-
-    switch (timeRange) {
-      case '1D':
-        return intValue.toString();
-
-      case '1W':
-        // Add day context for weekly view
-        if (intValue > 0) {
-          double ratio = value / maxY;
-          if (ratio >= 0.8) return 'Sun\n$intValue';
-          if (ratio >= 0.7) return 'Sat\n$intValue';
-          if (ratio >= 0.6) return 'Fri\n$intValue';
-          if (ratio >= 0.5) return 'Thu\n$intValue';
-          if (ratio >= 0.4) return 'Wed\n$intValue';
-          if (ratio >= 0.3) return 'Tue\n$intValue';
-          if (ratio >= 0.2) return 'Mon\n$intValue';
-        }
-        return intValue.toString();
-
-      case '1M':
-        // Add week context for monthly view
-        if (intValue > 0) {
-          double ratio = value / maxY;
-          if (ratio >= 0.75) return 'W4\n$intValue';
-          if (ratio >= 0.5) return 'W3\n$intValue';
-          if (ratio >= 0.25) return 'W2\n$intValue';
-          if (ratio > 0) return 'W1\n$intValue';
-        }
-        return intValue.toString();
-
-      case '1Q':
-        // Add month context for quarterly view
-        if (intValue > 0) {
-          double ratio = value / maxY;
-          if (ratio >= 0.67) return 'Mar\n$intValue';
-          if (ratio >= 0.33) return 'Feb\n$intValue';
-          if (ratio > 0) return 'Jan\n$intValue';
-        }
-        return intValue.toString();
-
-      case '1Y':
-        // Add month context for yearly view
-        if (intValue > 0) {
-          double ratio = value / maxY;
-          const months = [
-            'Jan',
-            'Feb',
-            'Mar',
-            'Apr',
-            'May',
-            'Jun',
-            'Jul',
-            'Aug',
-            'Sep',
-            'Oct',
-            'Nov',
-            'Dec',
-          ];
-          int monthIndex = (ratio * 12).floor();
-          if (monthIndex >= 0 && monthIndex < months.length) {
-            return '${months[monthIndex]}\n$intValue';
-          }
-        }
-        return intValue.toString();
-
-      default:
-        return intValue.toString();
-    }
   }
 
   // Helper method to get appropriate interval based on time range

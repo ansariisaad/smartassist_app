@@ -341,22 +341,23 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
               //   onTimeTap: _pickStartTime,
               //   onChanged: (String value) {},
               // ),
-              // SlotCalendar(
-              //   label: 'Select Date & Time Slot',
-              //   isRequired: true,
-              //   controller: startDateController, // Pass the controller
-              //   vehicleId: '', // Replace with actual vehicle ID
-              //   onChanged: (value) {
-              //     setState(() {
-              //       // startDateController = value;
-              //     });
-              //     print('Slot changed: $value');
-              //   },
-              //   onTextFieldTap: () {
-              //     print('Calendar container tapped');
-              //   },
-              //   // errorText: 'This field is required', // Show error if needed
-              // ),
+              SlotCalendar(
+                label: 'Select Date & Time Slot',
+                isRequired: true,
+                controller: startDateController,  
+                vehicleId: vehicleId
+                    .toString(),  
+                onChanged: (value) {
+                  setState(() {
+                    // startDateController = value;
+                  });
+                  print('Slot changed: $value');
+                },
+                onTextFieldTap: () {
+                  print('Calendar container tapped');
+                },
+                // errorText: 'This field is required', // Show error if needed
+              ),
               const SizedBox(height: 10),
               DateButton(
                 errorText: _errors['date'],

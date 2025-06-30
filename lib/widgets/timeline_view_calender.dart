@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -17,8 +16,7 @@ import 'package:google_fonts/google_fonts.dart';
 class CalendarWithTimeline extends StatefulWidget {
   final String leadName;
 
-  const CalendarWithTimeline({Key? key, required this.leadName})
-    : super(key: key);
+  const CalendarWithTimeline({Key? key, required this.leadName}) : super(key: key);
 
   @override
   State<CalendarWithTimeline> createState() => _CalendarWithTimelineState();
@@ -29,32 +27,26 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
   CalendarFormat _calendarFormat = CalendarFormat.week;
   bool _isMonthView = false;
   List<dynamic> appointments = [];
-  // List<dynamic> tasks = [];
   List<dynamic> tasks = [];
   List<dynamic> events = [];
   DateTime? _selectedDay;
   bool _isLoading = false;
   ScrollController _timelineScrollController = ScrollController();
+   Map<String, bool> _expandedSlots = {};
 
-  // Track all hours (0-23) for a complete timeline
   List<int> _allHours = List.generate(24, (index) => index);
-
-  // Track active hours (hours with data)
   Set<int> _activeHours = {};
-
-  // Map to track expanded hour slots
   Map<int, int> _expandedHours = {};
-
-  // Map to track items by exact time (hour:minute)
   Map<String, List<dynamic>> _timeSlotItems = {};
+
+  // For "Show More" per time slot (key = time string, value = bool)
+  Map<String, bool> _showMoreExpanded = {};
 
   @override
   void initState() {
     super.initState();
     _selectedDay = _focusedDay;
     _fetchActivitiesData();
-
-    // Scroll to current hour when view loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToCurrentHour();
     });
@@ -68,16 +60,9 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
 
   void _scrollToCurrentHour() {
     if (!_timelineScrollController.hasClients) return;
-
-    // Get current hour
     final currentHour = DateTime.now().hour;
-
-    // Calculate scroll position - 60 pixels per hour
     double scrollPosition = currentHour * 60.0;
-
-    // Subtract a small offset for better visibility
     scrollPosition = scrollPosition > 60 ? scrollPosition - 60 : 0;
-
     _timelineScrollController.animateTo(
       scrollPosition,
       duration: Duration(milliseconds: 300),
@@ -85,56 +70,17 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
     );
   }
 
-  // Future<void> _fetchInitialData() async {
-  //   if (mounted) {
-  //     setState(() {
-  //       _isLoading = true;
-  //     });
-  //   }
-
-  //   try {
-  //     await _fetchAppointments(_selectedDay ?? _focusedDay);
-  //     await _fetchTasks(_selectedDay ?? _focusedDay);
-  //     _processTimeSlots();
-  //   } catch (e) {
-  //     print("Error fetching initial data: $e");
-  //   } finally {
-  //     if (mounted) {
-  //       setState(() {
-  //         _isLoading = false;
-  //       });
-  //     }
-  //   }
-  // }
-
   Future<void> _fetchActivitiesData() async {
-    if (mounted) {
-      setState(() {
-        _isLoading = true;
-      });
-    }
+    if (mounted) setState(() => _isLoading = true);
 
     try {
       final token = await Storage.getToken();
-      // Format the selected date
-      String formattedDate = DateFormat(
-        'dd-MM-yyyy',
-      ).format(_selectedDay ?? _focusedDay);
+      String formattedDate = DateFormat('dd-MM-yyyy').format(_selectedDay ?? _focusedDay);
 
-      // Build query parameters
       final Map<String, String> queryParams = {'date': formattedDate};
-
-      // Add user_id only if team member is selected (not for 'your' option)
-      // if (_selectedType == 'team' && _selectedUserId.isNotEmpty) {
-      //   queryParams['user_id'] = _selectedUserId;
-      // }
-
-      final baseUrl = Uri.parse(
-        "https://api.smartassistapp.in/api/calendar/activities/all/asondate",
-      );
+      final baseUrl = Uri.parse("https://api.smartassistapp.in/api/calendar/activities/all/asondate");
       final uri = baseUrl.replace(queryParameters: queryParams);
 
-      print('📤 Fetching activities from: $uri');
       final response = await http.get(
         uri,
         headers: {
@@ -143,9 +89,6 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
         },
       );
 
-      print('📥 Activities Status Code: ${response.statusCode}');
-      print('📥 Activities Response: ${response.body}');
-
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
         setState(() {
@@ -153,43 +96,28 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
           events = data['data']['events'] ?? [];
           _isLoading = false;
         });
-
-        // Process the time slots after fetching data
         _processTimeSlots();
       } else {
         setState(() => _isLoading = false);
-        print('Failed to fetch activities: ${response.statusCode}');
       }
     } catch (e) {
-      print("Error fetching activities data: $e");
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  // New method to process all items into time slots
   void _processTimeSlots() {
     _activeHours.clear();
     _expandedHours.clear();
     _timeSlotItems.clear();
 
-    // Process events (appointments)
     for (var event in events) {
       final startTime = _parseTimeString(event['start_time'] ?? '00:00');
       final endTime = startTime.add(Duration(hours: 1));
-
       for (int hour = startTime.hour; hour <= endTime.hour; hour++) {
         _activeHours.add(hour);
       }
-
-      final timeKey =
-          '${startTime.hour}:${startTime.minute.toString().padLeft(2, '0')}';
-      if (!_timeSlotItems.containsKey(timeKey)) {
-        _timeSlotItems[timeKey] = [];
-      }
+      final timeKey = '${startTime.hour}:${startTime.minute.toString().padLeft(2, '0')}';
+      if (!_timeSlotItems.containsKey(timeKey)) _timeSlotItems[timeKey] = [];
       _timeSlotItems[timeKey]!.add({
         'item': event,
         'type': 'event',
@@ -198,22 +126,17 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
       });
     }
 
-    // Process tasks
     for (var task in tasks) {
       DateTime taskTime;
       if (task['time'] != null && task['time'].toString().isNotEmpty) {
         taskTime = _parseTimeString(task['time']);
       } else {
-        taskTime = DateTime(2022, 1, 1, 9, 0); // Default to 9 AM
+        taskTime = DateTime(2022, 1, 1, 9, 0);
       }
-
       _activeHours.add(taskTime.hour);
 
-      final timeKey =
-          '${taskTime.hour}:${taskTime.minute.toString().padLeft(2, '0')}';
-      if (!_timeSlotItems.containsKey(timeKey)) {
-        _timeSlotItems[timeKey] = [];
-      }
+      final timeKey = '${taskTime.hour}:${taskTime.minute.toString().padLeft(2, '0')}';
+      if (!_timeSlotItems.containsKey(timeKey)) _timeSlotItems[timeKey] = [];
       _timeSlotItems[timeKey]!.add({
         'item': task,
         'type': 'task',
@@ -229,67 +152,36 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
         _activeHours.add(9);
       }
     }
-
     _calculateExpandedHours();
-    print("Active hours: $_activeHours");
-    print("Time slots: ${_timeSlotItems.keys.length}");
+    setState(() {
+      // Reset "Show More" state per time slot
+      _showMoreExpanded.clear();
+      _timeSlotItems.keys.forEach((k) {
+        _showMoreExpanded[k] = false;
+      });
+    });
   }
 
-  // Check if two dates are the same day
   bool _isSameDay(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
   void _calculateExpandedHours() {
     _expandedHours.clear();
-
-    // Count items per hour
     Map<int, int> itemsPerHour = {};
-
     _timeSlotItems.forEach((timeKey, items) {
       final hour = int.parse(timeKey.split(':')[0]);
       itemsPerHour[hour] = (itemsPerHour[hour] ?? 0) + items.length;
     });
-
-    // Calculate expanded height for each hour
     itemsPerHour.forEach((hour, count) {
       if (count > 1) {
-        // Each hour gets height based on number of items (with some minimum)
         _expandedHours[hour] = count;
       }
     });
   }
 
-  // Get the appropriate height for an hour based on whether it's expanded
   double _getHourHeight(int hour) {
-    // Default height is 60
-    return _expandedHours.containsKey(hour)
-        ? 60.0 *
-              (_expandedHours[hour] ??
-                  1) // Expanded height based on number of items
-        : 60.0; // Default height
-  }
-
-  Future<void> _fetchAppointments(DateTime selectedDate) async {
-    final data = await LeadsSrv.fetchAppointments(selectedDate);
-    if (!mounted) return;
-    setState(() {
-      appointments = data;
-      _isLoading = false;
-    });
-    print("Appointments Fetched: $appointments");
-    _processTimeSlots();
-  }
-
-  Future<void> _fetchTasks(DateTime selectedDate) async {
-    final data = await LeadsSrv.fetchtasks(selectedDate);
-    if (!mounted) return;
-    setState(() {
-      tasks = data;
-      _isLoading = false;
-    });
-    print("Tasks Fetched: $tasks");
-    _processTimeSlots();
+    return _expandedHours.containsKey(hour) ? 60.0 * (_expandedHours[hour] ?? 1) : 60.0;
   }
 
   void _handleDateSelected(DateTime selectedDate) {
@@ -303,16 +195,9 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
       _timeSlotItems.clear();
       _isLoading = true;
     });
-
-    String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
-    print('Selected Date State: ${_selectedDay}');
-    print('Fetching data for date: $formattedDate');
-
-    _fetchAppointments(selectedDate);
-    _fetchTasks(selectedDate);
+    _fetchActivitiesData();
   }
 
-  // Initialize the controller
   final FabController fabController = Get.put(FabController());
 
   @override
@@ -337,9 +222,7 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
           IconButton(
             onPressed: () {
               setState(() {
-                _calendarFormat = _isMonthView
-                    ? CalendarFormat.week
-                    : CalendarFormat.month;
+                _calendarFormat = _isMonthView ? CalendarFormat.week : CalendarFormat.month;
                 _isMonthView = !_isMonthView;
               });
             },
@@ -363,35 +246,23 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
         children: [
           Column(
             children: [
-              // Calendar at the top
               CalenderWidget(
                 key: ValueKey(_calendarFormat),
                 calendarFormat: _calendarFormat,
                 onDateSelected: _handleDateSelected,
               ),
-              // Date header
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 width: double.infinity,
                 child: Text(
-                  DateFormat(
-                    'EEEE, MMMM d',
-                  ).format(_selectedDay ?? _focusedDay),
+                  DateFormat('EEEE, MMMM d').format(_selectedDay ?? _focusedDay),
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
-              // Timeline view
-              _isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(color: Colors.blue),
-                    )
-                  : Expanded(child: _buildImprovedTimelineView()),
+              _buildTabbedTimelineView(),
             ],
           ),
         ],
@@ -399,13 +270,13 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
     );
   }
 
-  Widget _buildImprovedTimelineView() {
+  Widget _buildTabbedTimelineView() {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator(color: Colors.blue));
     }
-
-    final combinedItems = [...appointments, ...tasks];
-    if (combinedItems.isEmpty) {
+    // Only show hours with actual appointments/tasks
+    final List<int> displayHours = _getDisplayHours();
+    if (_timeSlotItems.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -425,30 +296,209 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
         ),
       );
     }
+      final activeTimeSlots = _timeSlotItems.keys.toList()..sort();
 
-    // Only show hours with actual appointments/tasks
-    final List<int> displayHours = _getDisplayHours();
+       if (activeTimeSlots.isEmpty) {
+      return _emptyState('No scheduled activities for this date');
+    }
+    // Timeline view (vertical tabbed)
+  return ListView.separated(
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      itemCount: activeTimeSlots.length,
+      separatorBuilder: (_, __) => Divider(
+        height: 1,
+        color: Colors.grey.shade300,
+        thickness: 1,
+        indent: 8,
+        endIndent: 8,
+      ),
+      itemBuilder: (context, index) {
+        final timeKey = activeTimeSlots[index];
+        final items = _timeSlotItems[timeKey] ?? [];
 
-    return SingleChildScrollView(
-      controller: _timelineScrollController,
-      child: Row(
+        // Group by type, but merge for display (show all event/task types)
+        final events = items.where((item) => item['start_time'] != null).toList();
+        final tasks = items.where((item) => item['start_time'] == null).toList();
+
+        List<dynamic> allItems = [];
+        allItems.addAll(events);
+        allItems.addAll(tasks);
+
+        bool isExpanded = _expandedSlots[timeKey] ?? false;
+        int showCount = isExpanded ? allItems.length : 2;
+        bool showMore = allItems.length > 2;
+
+        List<dynamic> displayItems = allItems.take(showCount).toList();
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 64,
+                    child: Text(
+                      timeKey,
+                      style: TextStyle(
+                        color: Colors.grey.shade700,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ...displayItems.map(
+                          (item) {
+                            if (item['start_time'] != null) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 8.0),
+                                child: _buildEventTab(item),
+                              );
+                            } else {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 8.0),
+                                child: _buildTaskTab(item),
+                              );
+                            }
+                          },
+                        ).toList(),
+                        if (showMore && !isExpanded)
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _expandedSlots[timeKey] = true;
+                                });
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 3.0),
+                                child: Text(
+                                  "Show More (${allItems.length - 2} more) ▼",
+                                  style: TextStyle(
+                                    color:  const Color.fromRGBO(117, 117, 117, 1),
+                                    fontSize: 13.5,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        if (showMore && isExpanded)
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _expandedSlots[timeKey] = false;
+                                });
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 3.0),
+                                child: Text(
+                                  "Show Less ▲",
+                                  style: TextStyle(
+                                    color: const Color.fromRGBO(117, 117, 117, 1),
+                                    fontSize: 13.5,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+
+   DateTime _parseTimeString(String timeStr) {
+    if (timeStr.isEmpty) {
+      return DateTime(2022, 1, 1, 0, 0);
+    }
+    bool isPM = timeStr.toLowerCase().contains('pm');
+    bool isAM = timeStr.toLowerCase().contains('am');
+    String cleanTime = timeStr
+        .toLowerCase()
+        .replaceAll('am', '')
+        .replaceAll('pm', '')
+        .replaceAll(' ', '')
+        .trim();
+    final parts = cleanTime.split(':');
+    if (parts.length < 2) return DateTime(2022, 1, 1, 0, 0);
+    try {
+      int hour = int.parse(parts[0]);
+      final minute = int.parse(parts[1]);
+      if (isPM && hour < 12) {
+        hour += 12;
+      } else if (isAM && hour == 12) {
+        hour = 0;
+      }
+      return DateTime(2022, 1, 1, hour, minute);
+    } catch (e) {
+      return DateTime(2022, 1, 1, 0, 0);
+    }
+  }
+
+  String _formatTimeFor12Hour(String timeStr) {
+    if (timeStr.isEmpty || !timeStr.contains(':')) {
+      return timeStr;
+    }
+    DateTime parsedTime = _parseTimeString(timeStr);
+    String period = parsedTime.hour >= 12 ? 'PM' : 'AM';
+    int hour12 = parsedTime.hour > 12
+        ? parsedTime.hour - 12
+        : (parsedTime.hour == 0 ? 12 : parsedTime.hour);
+    return '${hour12}:${parsedTime.minute.toString().padLeft(2, '0')} $period';
+  }
+
+
+  List<int> _getDisplayHours() {
+    Set<int> hours = Set<int>.from(_activeHours);
+    if (hours.isNotEmpty) {
+      int minHour = hours.reduce((a, b) => a < b ? a : b);
+      int maxHour = hours.reduce((a, b) => a > b ? a : b);
+      if (minHour > 0) hours.add(minHour - 1);
+      if (maxHour < 23) hours.add(maxHour + 1);
+    }
+    List<int> sortedHours = hours.toList()..sort();
+    return sortedHours.isEmpty ? [DateTime.now().hour] : sortedHours;
+  }
+
+
+    Widget _emptyState(String msg) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 40),
+      child: Column(
         children: [
-          // Left time column
-          _buildTimeColumn(displayHours),
-
-          // Divider line
-          Container(width: 1, color: Colors.grey.shade300),
-
-          // Main content area
-          Expanded(
-            child: Stack(
-              children: [
-                // Time grid lines
-                _buildTimeGridLines(displayHours),
-
-                // Build all items from time slots
-                ..._buildAllTimeSlotItems(displayHours),
-              ],
+          Image.asset(
+            'assets/calendar.png',
+            width: 50,
+            height: 50,
+            color: const Color.fromRGBO(117, 117, 117, 1),
+          ),
+          SizedBox(height: 12),
+          Text(
+            msg,
+            style: TextStyle(
+              color: Colors.grey.shade600,
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -456,743 +506,213 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
     );
   }
 
-  // Modified to only return hours with actual content
-  List<int> _getDisplayHours() {
-    // Start with active hours that have content
-    Set<int> hours = Set<int>.from(_activeHours);
+  // ---- Card/tab UI for event/task ----
 
-    // If we have appointments or tasks spanning several hours, add buffer hours
-    if (hours.isNotEmpty) {
-      int minHour = hours.reduce((a, b) => a < b ? a : b);
-      int maxHour = hours.reduce((a, b) => a > b ? a : b);
+  Widget _buildEventTab(dynamic item) {
+    String leadId = item['lead_id']?.toString() ?? '';
+    String name = item['name'] ?? 'No Name';
+    String category = item['category'] ?? 'Appointment';
+    String timeRange =
+        '${_formatTimeFor12Hour(item['start_time'] ?? '00:00')} - ${_formatTimeFor12Hour(item['end_time'] ?? '00:00')}';
 
-      // Add one hour before and after for context, but only if they exist
-      if (minHour > 0) hours.add(minHour - 1);
-      if (maxHour < 23) hours.add(maxHour + 1);
-    }
-
-    // Sort hours
-    List<int> sortedHours = hours.toList()..sort();
-    return sortedHours.isEmpty ? [DateTime.now().hour] : sortedHours;
-  }
-
-  Widget _buildTimeColumn(List<int> displayHours) {
-    return Container(
-      width: 50,
-      child: Column(
-        children: displayHours.map((hour) {
-          // Get appropriate height for this hour slot
-          final hourHeight = _getHourHeight(hour);
-
-          return Container(
-            height: hourHeight,
-            padding: EdgeInsets.only(right: 8),
-            alignment: Alignment.topRight,
-            child: Text(
-              '${hour.toString().padLeft(2, '0')}:00',
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildTimeGridLines(List<int> displayHours) {
-    return Column(
-      children: displayHours.map((hour) {
-        // Get appropriate height for this hour slot
-        final hourHeight = _getHourHeight(hour);
-
-        return Container(
-          height: hourHeight,
-          decoration: BoxDecoration(
-            border: Border(
-              top: BorderSide(color: Colors.grey.shade200, width: 1),
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => FollowupsDetails(
+              leadId: leadId,
+              isFromFreshlead: false,
+              isFromManager: false,
+              isFromTestdriveOverview: false,
+              refreshDashboard: () async {},
             ),
           ),
         );
-      }).toList(),
-    );
-  }
-
-  List<Widget> _buildAllTimeSlotItems(List<int> displayHours) {
-    List<Widget> allWidgets = [];
-    final screenWidth = MediaQuery.of(context).size.width;
-    final baseItemWidth = screenWidth * 0.75 - 24; // Subtract padding/margins
-
-    // Calculate hour positions first
-    Map<int, double> hourPositions = {};
-    double currentPosition = 0.0;
-
-    for (int hour in displayHours) {
-      hourPositions[hour] = currentPosition;
-      currentPosition += _getHourHeight(hour);
-    }
-
-    // Sort time slots by time for consistent processing
-    List<String> sortedTimeKeys = _timeSlotItems.keys.toList()..sort();
-
-    // Process each time slot
-    for (String timeKey in sortedTimeKeys) {
-      final items = _timeSlotItems[timeKey]!;
-      final parts = timeKey.split(':');
-      final hour = int.parse(parts[0]);
-      final minute = int.parse(parts[1]);
-
-      // Skip if hour isn't in display hours
-      if (!hourPositions.containsKey(hour)) continue;
-
-      // Base position for this time slot
-      final basePosition =
-          hourPositions[hour]! + (minute / 60.0) * _getHourHeight(hour);
-
-      // Process items in this time slot
-      for (int i = 0; i < items.length; i++) {
-        final itemData = items[i];
-        final itemType = itemData['type'];
-        final item = itemData['item'];
-
-        // Position vertically to avoid overlaps
-        double verticalOffset = 0.0;
-        if (items.length > 1) {
-          // If multiple items at same time, stack them with vertical offset
-          verticalOffset = i * 60.0;
-        }
-
-        // Calculate the top position for this item (stack vertically with proper spacing)
-        final itemTopPosition =
-            basePosition + (i * 70.0); // 55px item + 10px spacing
-
-        // Add widget based on type
-        if (itemType == 'event') {
-          allWidgets.add(
-            _buildEventItem(
-              item,
-              basePosition: itemTopPosition,
-              width: baseItemWidth,
-              height: 65.0, // Fixed height
-              leftOffset: 0.0,
-            ),
-          );
-        } else if (itemType == 'task') {
-          allWidgets.add(
-            _buildTaskItem(
-              item,
-              basePosition: itemTopPosition,
-              width: baseItemWidth,
-              height: 65.0, // Fixed height
-              leftOffset: 0.0,
-            ),
-          );
-        }
-      }
-    }
-
-    return allWidgets;
-  }
-
-  Widget _buildEventItem(
-    dynamic item, {
-    double basePosition = 0.0,
-    double width = 200.0,
-    double height = 55.0,
-    double widthFactor = 1.0,
-    double leftOffset = 0.0,
-  }) {
-    String leadId = item['lead_id']?.toString() ?? '';
-    String formattedStartTime = _formatTimeFor12Hour(
-      item['start_time'] ?? '00:00',
-    );
-    String formattedEndTime = _formatTimeFor12Hour(item['end_time'] ?? '00:00');
-
-    String name = item['name'] ?? 'No Name';
-    String category = item['category'] ?? 'Appointment';
-    String timeRange = '$formattedStartTime - $formattedEndTime';
-
-    return Positioned(
-      top: basePosition,
-      left: 12 + (leftOffset * (MediaQuery.of(context).size.width * 0.75 - 24)),
+      },
       child: Container(
-        width: width * widthFactor,
-        height: height,
-        margin: const EdgeInsets.only(bottom: 5, right: 8),
+        width: double.infinity,
+        padding: EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: AppColors.colorsBlue.withOpacity(.09),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-          borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: AppColors.colorsBlue.withOpacity(0.2),
-            width: 0.5,
+            color: AppColors.colorsBlue.withOpacity(0.4),
+            width: 1,
           ),
-        ),
-        child: InkWell(
-          onTap: () {
-            print('Navigating with leadId: $leadId');
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => FollowupsDetails(
-                  leadId: leadId,
-                  isFromFreshlead: false,
-                  isFromManager: false,
-                  isFromTestdriveOverview: false,
-                  refreshDashboard: () async {},
-                ),
-              ),
-            );
-          },
           borderRadius: BorderRadius.circular(8),
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 12.0,
-              vertical: 8.0,
-            ),
-            decoration: BoxDecoration(
-              border: Border(
-                left: BorderSide(color: AppColors.colorsBlue, width: 4),
-              ),
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(8),
-                bottomLeft: Radius.circular(8),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Text(
-                  name,
-                  style: AppFont.dropDowmLabel(context),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        category,
-                        style: AppFont.dashboardCarName(context),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    Text(
-                      timeRange,
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: Colors.grey.shade600,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
+                Icon(Icons.event, size: 16, color: AppColors.colorsBlue),
+                SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    name,
+                    style: AppFont.dropDowmLabel(context),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTaskItem(
-    dynamic item, {
-    double basePosition = 0.0,
-    double width = 200.0,
-    double height = 55.0,
-    double widthFactor = 1.0,
-    double leftOffset = 0.0,
-  }) {
-    String leadId = item['lead_id']?.toString() ?? '';
-    String formattedDueTime = _formatTimeFor12Hour(item['due_date'] ?? '00:00');
-    String title = 'Task: ${item['subject'] ?? 'No Subject'}';
-    String status = item['status'] ?? 'Unknown';
-    String category = item['category'] ?? 'Normal';
-    String timeInfo = formattedDueTime.isNotEmpty ? formattedDueTime : '';
-
-    return Positioned(
-      top: basePosition,
-      left: 12 + (leftOffset * (MediaQuery.of(context).size.width * 0.75 - 24)),
-      child: Container(
-        width: width * widthFactor,
-        height: height,
-        margin: const EdgeInsets.only(bottom: 5, right: 8),
-        decoration: BoxDecoration(
-          color: Colors.purple.withOpacity(.09),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
+            const SizedBox(height: 3),
+            Text(
+              category,
+              style: AppFont.dashboardCarName(context),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 3),
+            Text(
+              timeRange,
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.grey.shade600,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ],
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.purple.withOpacity(0.2), width: 0.5),
-        ),
-        child: InkWell(
-          onTap: () {
-            print('Navigating with leadId: $leadId');
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => FollowupsDetails(
-                  leadId: leadId,
-                  isFromFreshlead: false,
-                  isFromManager: true,
-                  isFromTestdriveOverview: false,
-                  refreshDashboard: () async {},
-                ),
-              ),
-            );
-          },
-          borderRadius: BorderRadius.circular(8),
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 12.0,
-              vertical: 8.0,
-            ),
-            decoration: BoxDecoration(
-              border: Border(left: BorderSide(color: Colors.purple, width: 4)),
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(8),
-                bottomLeft: Radius.circular(8),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  title,
-                  style: AppFont.dropDowmLabel(context),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        category,
-                        style: AppFont.dashboardCarName(context),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    if (timeInfo.isNotEmpty)
-                      Text(
-                        timeInfo,
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.grey.shade600,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                  ],
-                ),
-              ],
-            ),
-          ),
         ),
       ),
     );
   }
 
-  // Widget _buildAppointmentItem(
-  //   dynamic item, {
-  //   double basePosition = 0.0,
-  //   double width = 200.0,
-  //   double height = 60.0,
-  //   double widthFactor = 1.0,
-  //   double leftOffset = 0.0,
-  // }) {
-  //   // Determine color and title for appointment
-  //   Color cardColor = _getAppointmentColor(item);
+  Widget _buildTaskTab(dynamic item) {
+    String leadId = item['lead_id']?.toString() ?? '';
+    String subject = item['subject'] ?? 'No Subject';
+    String category = item['category'] ?? 'Task';
+    String due = _formatTimeFor12Hour(
+      item['due_date'] ?? item['time'] ?? '00:00',
+    );
 
-  //   // Get the lead_id from the item
-  //   String leadId = item['lead_id']?.toString() ?? '';
+    // Determine task type and icon
+    IconData taskIcon = Icons.task_alt;
+    Color taskColor = Colors.purple;
+    String taskType = 'Task';
 
-  //   // Format the time in 12-hour format with AM/PM
-  //   String formattedStartTime = _formatTimeFor12Hour(
-  //     item['start_time'] ?? '00:00',
-  //   );
-  //   String formattedEndTime = _formatTimeFor12Hour(item['end_time'] ?? '00:00');
+    if (category.toLowerCase().contains('call')) {
+      taskIcon = Icons.phone;
+      taskColor = Colors.green;
+      taskType = 'Call';
+    } else if (category.toLowerCase().contains('quotation')) {
+      taskIcon = Icons.description;
+      taskColor = Colors.orange;
+      taskType = 'Quotation';
+    } else if (category.toLowerCase().contains('test drive')) {
+      taskIcon = Icons.directions_car;
+      taskColor = Colors.blue;
+      taskType = 'Test Drive';
+    } else if (category.toLowerCase().contains('meeting')) {
+      taskIcon = Icons.people;
+      taskColor = Colors.teal;
+      taskType = 'Meeting';
+    }
+    // You can add more types as needed.
 
-  //   String title = 'Appointment: ${item['name'] ?? 'No Name'}';
-  //   String time = '$formattedStartTime - $formattedEndTime';
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => FollowupsDetails(
+              leadId: leadId,
+              isFromFreshlead: false,
+              isFromManager: true,
+              isFromTestdriveOverview: false,
+              refreshDashboard: () async {},
+            ),
+          ),
+        );
+      },
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: taskColor.withOpacity(.08),
+          border: Border.all(color: taskColor.withOpacity(0.2), width: 1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(taskIcon, size: 16, color: taskColor),
+                SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    '$taskType: $subject',
+                    style: AppFont.dropDowmLabel(context),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 3),
+            Text(
+              category,
+              style: AppFont.dashboardCarName(context),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 3),
+            Text(
+              'Due: $due',
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.grey.shade600,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-  //   return Positioned(
-  //     top: basePosition,
-  //     left: 8 + (width * leftOffset),
-  //     width: (width * widthFactor) - 8, // Account for right margin
-  //     height: height,
-  //     child: Card(
-  //       margin: EdgeInsets.only(bottom: 4, right: 4),
-  //       color: cardColor,
-  //       elevation: 2,
-  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-  //       child: InkWell(
-  //         onTap: () {
-  //           print('Navigating with leadId: $leadId');
-  //           Navigator.push(
-  //             context,
-  //             MaterialPageRoute(
-  //               builder: (context) => FollowupsDetails(
-  //                 leadId: leadId,
-  //                 isFromFreshlead: false,
-  //                 isFromManager: false,
-  //                 refreshDashboard: () async {},
-  //                 isFromTestdriveOverview: false,
-  //               ),
-  //             ),
-  //           );
-  //         },
-  //         child: Padding(
-  //           padding: const EdgeInsets.all(8.0),
-  //           child: Column(
-  //             crossAxisAlignment: CrossAxisAlignment.start,
-  //             children: [
-  //               Row(
-  //                 children: [
-  //                   const Icon(Icons.event, size: 14, color: Colors.white),
-  //                   const SizedBox(width: 4),
-  //                   Expanded(
-  //                     child: Text(
-  //                       title,
-  //                       style: const TextStyle(
-  //                         fontWeight: FontWeight.bold,
-  //                         color: Colors.white,
-  //                         fontSize: 13,
-  //                       ),
-  //                       maxLines: 1,
-  //                       overflow: TextOverflow.ellipsis,
-  //                     ),
-  //                   ),
-  //                 ],
-  //               ),
-  //               const SizedBox(height: 2),
-  //               if (height >= 55)
-  //                 Row(
-  //                   children: [
-  //                     const Icon(
-  //                       Icons.access_time,
-  //                       size: 12,
-  //                       color: Colors.white70,
-  //                     ),
-  //                     const SizedBox(width: 4),
-  //                     Text(
-  //                       time,
-  //                       style: TextStyle(fontSize: 12, color: Colors.white70),
-  //                     ),
-  //                   ],
-  //                 ),
-  //             ],
-  //           ),
-  //         ),
-  //       ),
-  //     ),
-  //   );
+  // --- Helper functions ---
+  
+  // DateTime _parseTimeString(String timeStr) {
+  //   if (timeStr.isEmpty) {
+  //     return DateTime(2022, 1, 1, 0, 0);
+  //   }
+  //   bool isPM = timeStr.toLowerCase().contains('pm');
+  //   bool isAM = timeStr.toLowerCase().contains('am');
+  //   String cleanTime = timeStr
+  //       .toLowerCase()
+  //       .replaceAll('am', '')
+  //       .replaceAll('pm', '')
+  //       .replaceAll(' ', '')
+  //       .trim();
+  //   final parts = cleanTime.split(':');
+  //   if (parts.length < 2) return DateTime(2022, 1, 1, 0, 0);
+  //   try {
+  //     int hour = int.parse(parts[0]);
+  //     final minute = int.parse(parts[1]);
+  //     if (isPM && hour < 12) {
+  //       hour += 12;
+  //     } else if (isAM && hour == 12) {
+  //       hour = 0;
+  //     }
+  //     return DateTime(2022, 1, 1, hour, minute);
+  //   } catch (e) {
+  //     return DateTime(2022, 1, 1, 0, 0);
+  //   }
   // }
 
-  // Widget _buildTaskItem(
-  //   dynamic item, {
-  //   double basePosition = 0.0,
-  //   double width = 200.0,
-  //   double height = 55.0,
-  //   double widthFactor = 1.0,
-  //   double leftOffset = 0.0,
-  // }) {
-  //   String leadId = item['lead_id']?.toString() ?? '';
-  //   String formattedDueTime = _formatTimeFor12Hour(item['due_date'] ?? '00:00');
-  //   String title = 'Task: ${item['subject'] ?? 'No Subject'}';
-  //   String status = item['status'] ?? 'Unknown';
-  //   String category = item['category'] ?? 'Normal';
-  //   String timeInfo = formattedDueTime.isNotEmpty ? formattedDueTime : '';
-
-  //   return Positioned(
-  //     top: basePosition,
-  //     left: 12 + (leftOffset * (MediaQuery.of(context).size.width * 0.75 - 24)),
-  //     child: Container(
-  //       width: width * widthFactor,
-  //       height: height,
-  //       margin: const EdgeInsets.only(bottom: 5, right: 8),
-  //       decoration: BoxDecoration(
-  //         color: Colors.purple.withOpacity(.09),
-  //         boxShadow: [
-  //           BoxShadow(
-  //             color: Colors.black.withOpacity(0.08),
-  //             blurRadius: 4,
-  //             offset: const Offset(0, 2),
-  //           ),
-  //         ],
-  //         borderRadius: BorderRadius.circular(8),
-  //         border: Border.all(color: Colors.purple.withOpacity(0.2), width: 0.5),
-  //       ),
-  //       child: InkWell(
-  //         onTap: () {
-  //           print('Navigating with leadId: $leadId');
-  //           Navigator.push(
-  //             context,
-  //             MaterialPageRoute(
-  //               builder: (context) => FollowupsDetails(
-  //                 leadId: leadId,
-  //                 isFromFreshlead: false,
-  //                 isFromManager: true,
-  //                 isFromTestdriveOverview: false,
-  //                 refreshDashboard: () async {},
-  //               ),
-  //             ),
-  //           );
-  //         },
-  //         borderRadius: BorderRadius.circular(8),
-  //         child: Container(
-  //           padding: const EdgeInsets.symmetric(
-  //             horizontal: 12.0,
-  //             vertical: 8.0,
-  //           ),
-  //           decoration: BoxDecoration(
-  //             border: Border(left: BorderSide(color: Colors.purple, width: 4)),
-  //             borderRadius: BorderRadius.only(
-  //               topLeft: Radius.circular(8),
-  //               bottomLeft: Radius.circular(8),
-  //             ),
-  //           ),
-  //           child: Column(
-  //             crossAxisAlignment: CrossAxisAlignment.start,
-  //             mainAxisAlignment: MainAxisAlignment.center,
-  //             children: [
-  //               Text(
-  //                 title,
-  //                 style: AppFont.dropDowmLabel(context),
-  //                 maxLines: 1,
-  //                 overflow: TextOverflow.ellipsis,
-  //               ),
-  //               const SizedBox(height: 4),
-  //               Row(
-  //                 children: [
-  //                   Expanded(
-  //                     child: Text(
-  //                       category,
-  //                       style: AppFont.dashboardCarName(context),
-  //                       maxLines: 1,
-  //                       overflow: TextOverflow.ellipsis,
-  //                     ),
-  //                   ),
-  //                   if (timeInfo.isNotEmpty)
-  //                     Text(
-  //                       timeInfo,
-  //                       style: TextStyle(
-  //                         fontSize: 10,
-  //                         color: Colors.grey.shade600,
-  //                         fontWeight: FontWeight.w500,
-  //                       ),
-  //                     ),
-  //                 ],
-  //               ),
-  //             ],
-  //           ),
-  //         ),
-  //       ),
-  //     ),
-  //   );
+  // String _formatTimeFor12Hour(String timeStr) {
+  //   if (timeStr.isEmpty || !timeStr.contains(':')) {
+  //     return timeStr;
+  //   }
+  //   DateTime parsedTime = _parseTimeString(timeStr);
+  //   String period = parsedTime.hour >= 12 ? 'PM' : 'AM';
+  //   int hour12 = parsedTime.hour > 12
+  //       ? parsedTime.hour - 12
+  //       : (parsedTime.hour == 0 ? 12 : parsedTime.hour);
+  //   return '${hour12}:${parsedTime.minute.toString().padLeft(2, '0')} $period';
   // }
-
-  // Widget _buildTaskItem(
-  //   dynamic item, {
-  //   double basePosition = 0.0,
-  //   double width = 200.0,
-  //   double height = 60.0,
-  //   double widthFactor = 1.0,
-  //   double leftOffset = 0.0,
-  // }) {
-  //   // Get the lead_id from the item
-  //   String leadId = item['lead_id']?.toString() ?? '';
-
-  //   // Format the time in 12-hour format with AM/PM
-  //   String formattedDueTime = _formatTimeFor12Hour(item['due_date'] ?? '00:00');
-
-  //   // Determine color and title for task
-  //   Color cardColor = _getTaskColor(item);
-  //   String title = 'Task: ${item['subject'] ?? 'No Subject'}';
-  //   String status = item['status'] ?? 'Unknown';
-  //   String priority = item['priority'] ?? 'Normal';
-
-  //   // Add due time to status display if available
-  //   String timeInfo = formattedDueTime.isNotEmpty ? ' • $formattedDueTime' : '';
-
-  //   return Positioned(
-  //     top: basePosition,
-  //     left: 8 + (width * leftOffset),
-  //     width: (width * widthFactor) - 8, // Account for right margin
-  //     height: height,
-  //     child: Card(
-  //       margin: const EdgeInsets.only(bottom: 4, right: 4),
-  //       color: cardColor,
-  //       elevation: 2,
-  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-  //       child: InkWell(
-  //         onTap: () {
-  //           print('Navigating with task leadId: $leadId');
-  //           Navigator.push(
-  //             context,
-  //             MaterialPageRoute(
-  //               builder: (context) => FollowupsDetails(
-  //                 leadId: leadId,
-  //                 isFromFreshlead: false,
-  //                 isFromManager: false,
-  //                 refreshDashboard: () async {},
-  //                 isFromTestdriveOverview: false,
-  //               ),
-  //             ),
-  //           );
-  //         },
-  //         child: Padding(
-  //           padding: const EdgeInsets.all(8.0),
-  //           child: Column(
-  //             crossAxisAlignment: CrossAxisAlignment.start,
-  //             children: [
-  //               Row(
-  //                 children: [
-  //                   Icon(Icons.task, size: 14, color: Colors.white),
-  //                   SizedBox(width: 4),
-  //                   Expanded(
-  //                     child: Text(
-  //                       title,
-  //                       style: TextStyle(
-  //                         fontWeight: FontWeight.bold,
-  //                         color: Colors.white,
-  //                         fontSize: 13,
-  //                       ),
-  //                       maxLines: 1,
-  //                       overflow: TextOverflow.ellipsis,
-  //                     ),
-  //                   ),
-  //                 ],
-  //               ),
-  //               const SizedBox(height: 2),
-  //               Row(
-  //                 children: [
-  //                   const Icon(Icons.flag, size: 12, color: Colors.white70),
-  //                   const SizedBox(width: 4),
-  //                   Text(
-  //                     priority,
-  //                     style: const TextStyle(
-  //                       fontSize: 12,
-  //                       color: Colors.white70,
-  //                     ),
-  //                   ),
-  //                   const SizedBox(width: 8),
-  //                   const Icon(
-  //                     Icons.info_outline,
-  //                     size: 12,
-  //                     color: Colors.white70,
-  //                   ),
-  //                   const SizedBox(width: 4),
-  //                   Text(
-  //                     '$status$timeInfo',
-  //                     style: const TextStyle(
-  //                       fontSize: 12,
-  //                       color: Colors.white70,
-  //                     ),
-  //                   ),
-  //                 ],
-  //               ),
-  //             ],
-  //           ),
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  DateTime _parseTimeString(String timeStr) {
-    // If timeStr is null or empty, return a default time
-    if (timeStr.isEmpty) {
-      return DateTime(2022, 1, 1, 0, 0); // Default time (midnight)
-    }
-
-    // Handle both 12-hour and 24-hour time formats
-    bool isPM = timeStr.toLowerCase().contains('pm');
-    bool isAM = timeStr.toLowerCase().contains('am');
-
-    // Remove AM/PM indicator for parsing
-    String cleanTime = timeStr
-        .toLowerCase()
-        .replaceAll('am', '')
-        .replaceAll('pm', '')
-        .replaceAll(' ', '')
-        .trim();
-
-    final parts = cleanTime.split(':');
-    if (parts.length < 2)
-      return DateTime(2022, 1, 1, 0, 0); // Invalid time format fallback
-
-    try {
-      int hour = int.parse(parts[0]);
-      final minute = int.parse(parts[1]);
-
-      // Convert 12-hour format to 24-hour if needed
-      if (isPM && hour < 12) {
-        hour += 12; // Add 12 to PM hours except 12 PM
-      } else if (isAM && hour == 12) {
-        hour = 0; // 12 AM is 0 in 24-hour format
-      }
-
-      return DateTime(2022, 1, 1, hour, minute);
-    } catch (e) {
-      print("Error parsing time: $timeStr - $e");
-      return DateTime(2022, 1, 1, 0, 0); // Default to midnight if parsing fails
-    }
-  }
-
-  // Format time to 12-hour format with AM/PM for display consistency
-  String _formatTimeFor12Hour(String timeStr) {
-    if (timeStr.isEmpty || !timeStr.contains(':')) {
-      return timeStr; // Return unchanged if not in time format
-    }
-
-    // Parse the time first to normalize it
-    DateTime parsedTime = _parseTimeString(timeStr);
-
-    // Format to 12-hour time
-    String period = parsedTime.hour >= 12 ? 'PM' : 'AM';
-    int hour12 = parsedTime.hour > 12
-        ? parsedTime.hour - 12
-        : (parsedTime.hour == 0 ? 12 : parsedTime.hour);
-
-    return '${hour12}:${parsedTime.minute.toString().padLeft(2, '0')} $period';
-  }
-
-  Color _getTaskColor(dynamic task) {
-    final type = task['taskType']?.toString().toLowerCase() ?? '';
-    if (type == 'follow-up' || type == 'followup') {
-      return AppColors.colorsBlue; // Blue for follow-up tasks
-    } else if (type == 'urgent') {
-      return Colors.red; // Red for urgent tasks
-    } else if (type == 'reminder') {
-      return Colors.green; // Green for reminders
-    } else {
-      return AppColors.colorsBlue; // Default color for tasks
-    }
-  }
-
-  Color _getAppointmentColor(dynamic appointment) {
-    final type = appointment['type']?.toString().toLowerCase() ?? '';
-    if (type == 'meeting') {
-      return Colors.blue; // Blue for meetings
-    } else if (type == 'call') {
-      return Colors.purple; // Purple for calls
-    } else if (type == 'urgent') {
-      return Colors.red; // Red for urgent appointments
-    } else {
-      return Colors.teal; // Teal for default appointments
-    }
-  }
 }

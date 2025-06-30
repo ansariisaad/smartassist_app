@@ -234,19 +234,19 @@ class _FeedbackFormState extends State<FeedbackForm> {
       final token = await Storage.getToken();
 
       // Create multipart request for file upload
-      var uri = Uri.parse('https://api.smartassistapp.in/api/users/feedback');
+
+      var uri = Uri.parse('https://api.smartassistapp.in/api/bugs/raise-new');
       var request = http.MultipartRequest('POST', uri);
 
       // Add headers
       request.headers['Authorization'] = 'Bearer $token';
+      request.headers['Content-Type'] = 'application/json';
 
       // Add text fields
       request.fields['userId'] = widget.userId;
-      request.fields['title'] = _titleController.text.trim();
+      request.fields['subject'] = _titleController.text.trim();
       request.fields['category'] = _selectedCategory;
-      request.fields['feedback'] = _feedbackController.text.trim();
-      request.fields['rating'] = _rating.toInt().toString();
-      request.fields['isAnonymous'] = _isAnonymous.toString();
+      request.fields['description'] = _feedbackController.text.trim();
       request.fields['timestamp'] = DateTime.now().toIso8601String();
 
       // Add files

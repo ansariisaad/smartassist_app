@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -9,10 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/widgets/google_location.dart';
-import 'package:smartassist/widgets/popups_widget/leadSearch_textfield.dart';
-import 'package:smartassist/widgets/popups_widget/vehicleSearch_textfield.dart';
 import 'package:smartassist/widgets/remarks_field.dart';
-import 'package:smartassist/widgets/reusable/date_button.dart';
 import 'package:smartassist/widgets/reusable/leadsearch_testdrive.dart';
 import 'package:smartassist/widgets/reusable/slot_calendar.dart';
 
@@ -41,14 +40,13 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
   List<Map<String, String>> dropdownItems = [];
   bool isLoading = false;
   Map<String, String> _errors = {};
+  Map<String, dynamic>? slotData;
 
   String? selectedLeads;
   String? selectedLeadsName;
   String? selectedPriority;
   List<dynamic> vehicleList = [];
   List<String> uniqueVehicleNames = [];
-  // String? selectedVehicleName;
-  // List<dynamic> _searchResults = [];
   List<String> colorOptions = [];
   String? selectedColor;
   String? selectedExteriorColor;
@@ -94,12 +92,17 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
       }
 
       if (selectedVehicleName == null || selectedVehicleName!.isEmpty) {
-        _errors['select_vehicle'] = 'Please select an action';
+        _errors['select_vehicle'] = 'Please select a vehicle';
         isValid = false;
       }
 
-      if (startDateController == null || startDateController.text!.isEmpty) {
-        _errors['date'] = 'Please select an action';
+      if (slotData == null) {
+        _errors['select_slot'] = 'Please select a date and time slot';
+        isValid = false;
+      }
+
+      if (_locationController.text.trim().isEmpty) {
+        _errors['location'] = 'Please enter a location';
         isValid = false;
       }
     });
@@ -107,12 +110,23 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
     // 💡 Check validity before calling the API
     if (!isValid) {
       setState(() => isSubmitting = false);
+
+      // Show error message to user
+      String errorMessages = _errors.values.join('\n');
+      Get.snackbar(
+        'Validation Error',
+        errorMessages,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
       return;
     }
 
     try {
+      print('Submitting form with slotData: $slotData'); // Debug log
       await submitForm(); // ✅ Only call if valid
     } catch (e) {
+      print('Submission error: $e'); // Debug log
       Get.snackbar(
         'Error',
         'Submission failed: ${e.toString()}',
@@ -124,101 +138,53 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
     }
   }
 
-  Future<void> _pickStartDate() async {
-    FocusScope.of(context).unfocus();
+  // void _submit() async {
+  //   if (isSubmitting) return;
 
-    // Get current start date or use today
-    DateTime initialDate;
-    try {
-      if (startDateController.text.isNotEmpty) {
-        initialDate = DateFormat('dd MMM yyyy').parse(startDateController.text);
-      } else {
-        initialDate = DateTime.now();
-      }
-    } catch (e) {
-      initialDate = DateTime.now();
-    }
+  //   bool isValid = true;
 
-    DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: initialDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-    );
+  //   setState(() {
+  //     isSubmitting = true;
+  //     _errors = {};
 
-    if (pickedDate != null) {
-      String formattedDate = DateFormat('dd MMM yyyy').format(pickedDate);
+  //     if (_leadId == null || _leadId!.isEmpty) {
+  //       _errors['select lead name'] = 'Please select a lead name';
+  //       isValid = false;
+  //     }
 
-      setState(() {
-        // Set start date
-        startDateController.text = formattedDate;
+  //     if (selectedVehicleName == null || selectedVehicleName!.isEmpty) {
+  //       _errors['select_vehicle'] = 'Please select an action';
+  //       isValid = false;
+  //     }
 
-        // Set end date to the same as start date but not visible in the UI
-        // (Only passed to API)
-        endDateController.text = formattedDate;
-      });
-    }
-  }
+  //     if (slotData == null) {
+  //       _errors['select_slot'] = 'Please select a date and time slot';
+  //       isValid = false;
+  //     }
+  //   });
 
-  Future<void> _pickStartTime() async {
-    FocusScope.of(context).unfocus();
+  //   // 💡 Check validity before calling the API
+  //   if (!isValid) {
+  //     setState(() => isSubmitting = false);
+  //     return;
+  //   }
 
-    // Get current time from startTimeController or use current time
-    TimeOfDay initialTime;
-    try {
-      if (startTimeController.text.isNotEmpty) {
-        final parsedTime = DateFormat(
-          'hh:mm a',
-        ).parse(startTimeController.text);
-        initialTime = TimeOfDay(
-          hour: parsedTime.hour,
-          minute: parsedTime.minute,
-        );
-      } else {
-        initialTime = TimeOfDay.now();
-      }
-    } catch (e) {
-      initialTime = TimeOfDay.now();
-    }
-
-    TimeOfDay? pickedTime = await showTimePicker(
-      context: context,
-      initialTime: initialTime,
-    );
-
-    if (pickedTime != null) {
-      // Create a temporary DateTime to format the time
-      final now = DateTime.now();
-      final time = DateTime(
-        now.year,
-        now.month,
-        now.day,
-        pickedTime.hour,
-        pickedTime.minute,
-      );
-      String formattedTime = DateFormat('hh:mm a').format(time);
-
-      // Calculate end time (1 hour later)
-      final endHour = (pickedTime.hour + 1) % 24;
-      final endTime = DateTime(
-        now.year,
-        now.month,
-        now.day,
-        endHour,
-        pickedTime.minute,
-      );
-      String formattedEndTime = DateFormat('hh:mm a').format(endTime);
-
-      setState(() {
-        // Set start time
-        startTimeController.text = formattedTime;
-
-        // Set end time to 1 hour later but not visible in the UI
-        // (Only passed to API)
-        endTimeController.text = formattedEndTime;
-      });
-    }
-  }
+  //   try {
+  //     // if (slotData != null) {
+  //     //   await _bookSlot(slotData!);
+  //     // }
+  //     await submitForm(); // ✅ Only call if valid
+  //   } catch (e) {
+  //     Get.snackbar(
+  //       'Error',
+  //       'Submission failed: ${e.toString()}',
+  //       backgroundColor: Colors.red,
+  //       colorText: Colors.white,
+  //     );
+  //   } finally {
+  //     setState(() => isSubmitting = false);
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -241,24 +207,6 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // LeadTextfield(
-              //   isRequired: true,
-              //   onChanged: (value) {
-              //     if (_errors.containsKey('select lead name')) {
-              //       setState(() {
-              //         _errors.remove('select lead name');
-              //       });
-              //     }
-              //     print("select lead name : $value");
-              //   },
-              //   errorText: _errors['select lead name'],
-              //   onLeadSelected: (leadId, leadName) {
-              //     setState(() {
-              //       _leadId = leadId;
-              //       _leadName = leadName;
-              //     });
-              //   },
-              // ),
               LeadsearchTestdrive(
                 errorText: '', // Empty error text as provided
                 onChanged: (String value) {
@@ -295,86 +243,73 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
                   });
                 },
               ),
-
-              // VehiclesearchTextfield(
-              //   errorText: _errors['select_vehicle'],
-              //   onVehicleSelected: (selectedVehicle) {
-              //     setState(() {
-              //       if (_errors.containsKey('select vehicle ')) {
-              //         setState(() {
-              //           _errors.remove('select vehicle');
-              //         });
-              //       }
-              //       selectedVehicleData = selectedVehicle;
-              //       selectedVehicleName = selectedVehicle['vehicle_name'];
-              //       selectedBrand =
-              //           selectedVehicle['brand'] ?? ''; // Handle null brand
-              //     });
-
-              //     print("Selected Vehicle: $selectedVehicleName");
-              //     print("Selected Brand: ${selectedBrand ?? 'No Brand'}");
-              //   },
-              //   //  errorText: _errors['select lead name'],
-              // ),
               const SizedBox(height: 5),
               CustomGooglePlacesField(
                 controller: _locationController,
                 hintText: 'Enter location',
                 label: 'Location',
-                onChanged: (value) {
-                  // if (_locationErrorText != null) {
-                  //   _validateLocation();
-                  // }
-                },
+                onChanged: (value) {},
                 googleApiKey: _googleApiKey,
                 isRequired: true,
               ),
               const SizedBox(height: 15),
-
-              // DateButton(
-              //   errorText: _errors['date'],
-              //   isRequired: true,
-              //   label: 'Start',
-              //   dateController: startDateController,
-              //   timeController: startTimeController,
-              //   onDateTap: _pickStartDate,
-              //   onTimeTap: _pickStartTime,
-              //   onChanged: (String value) {},
-              // ),
               SlotCalendar(
                 label: 'Select Date & Time Slot',
                 isRequired: true,
-                controller: startDateController,  
-                vehicleId: vehicleId
-                    .toString(),  
+                controller: startDateController,
+                vehicleId: vehicleId.toString(),
                 onChanged: (value) {
-                  setState(() {
-                    // startDateController = value;
-                  });
-                  print('Slot changed: $value');
+                  try {
+                    final parsedSlotData = jsonDecode(value);
+                    print('Slot data received: $parsedSlotData');
+
+                    // 🔥 THE ACTUAL FIX: Store the slot data in the CLASS VARIABLE
+                    setState(() {
+                      slotData =
+                          parsedSlotData; // This updates the class-level variable
+                      // Clear the error if it exists
+                      if (_errors.containsKey('select_slot')) {
+                        _errors.remove('select_slot');
+                      }
+                    });
+
+                    print('slotData variable set to: $slotData'); // Debug log
+                  } catch (e) {
+                    // If it's not JSON (like initial date selection), just print
+                    print('Slot changed: $value');
+                  }
                 },
                 onTextFieldTap: () {
                   print('Calendar container tapped');
                 },
-                // errorText: 'This field is required', // Show error if needed
               ),
-              const SizedBox(height: 10),
-              DateButton(
-                errorText: _errors['date'],
-                isRequired: true,
-                label: 'Start',
-                dateController: startDateController,
-                timeController: startTimeController,
-                onDateTap: _pickStartDate,
-                onTimeTap: _pickStartTime,
-                onChanged: (String value) {},
-              ),
-              const SizedBox(height: 10),
-              // _buildTextField(
-              //   label: 'Remarks :',
-              //   controller: descriptionController,
-              //   hint: 'Type or speak...',
+              // SlotCalendar(
+              //   label: 'Select Date & Time Slot',
+              //   isRequired: true,
+              //   controller: startDateController,
+              //   vehicleId: vehicleId.toString(),
+              //   onChanged: (value) {
+              //     // setState(() {
+              //     //   // startDateController = value;
+              //     // });
+              //     // print('Slot changed: $value');
+              //     try {
+              //       final slotData = jsonDecode(value);
+              //       print('Slot data received: $slotData');
+
+              //       // Call the booking API immediately when slot is selected
+              //     } catch (e) {
+              //       // If it's not JSON (like initial date selection), just print
+              //       print('Slot changed: $value');
+              //     }
+              //   },
+              //   onTextFieldTap: () {
+              //     print('Calendar container tapped');
+              //   },
               // ),
+              const SizedBox(height: 10),
+
+              const SizedBox(height: 10),
               EnhancedSpeechTextField(
                 isRequired: false,
                 // contentPadding: EdgeInsets.zero,
@@ -424,61 +359,170 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
   }
 
   Future<void> submitForm() async {
-    // Retrieve sp_id from SharedPreferences.
-    final prefs = await SharedPreferences.getInstance();
-    final spId = prefs.getString('user_id');
+    try {
+      // Retrieve sp_id from SharedPreferences.
+      final prefs = await SharedPreferences.getInstance();
+      final spId = prefs.getString('user_id');
 
-    // Parse and format the selected dates/times.
-    final rawStartDate = DateFormat(
-      'dd MMM yyyy',
-    ).parse(startDateController.text);
-    final rawEndDate = DateFormat(
-      'dd MMM yyyy',
-    ).parse(endDateController.text); // Automatically set
-
-    final rawStartTime = DateFormat('hh:mm a').parse(startTimeController.text);
-    final rawEndTime = DateFormat(
-      'hh:mm a',
-    ).parse(endTimeController.text); // Automatically set
-
-    // Format for API
-    final formattedStartDate = DateFormat('dd/MM/yyyy').format(rawStartDate);
-    final formattedEndDate = DateFormat(
-      'dd/MM/yyyy',
-    ).format(rawEndDate); // Automatically set
-
-    // final formattedStartTime = DateFormat('HH:mm:ss').format(rawStartTime);
-    final formattedStartTime = DateFormat('hh:mm a').format(rawStartTime);
-    final formattedEndTime = DateFormat(
-      'HH:mm:ss',
-    ).format(rawEndTime); // Automatically set
-
-    // Prepare the appointment data.
-    final testdriveData = {
-      'start_date': formattedStartDate,
-      'end_date': formattedEndDate,
-      'start_time': formattedStartTime,
-      'end_time': formattedEndTime,
-      'PMI': selectedVehicleName,
-      'location': _locationController.text,
-      'sp_id': spId,
-      'remarks': descriptionController.text,
-    };
-
-    // Call the service to submit the appointment.
-    final success = await LeadsSrv.submitTestDrive(testdriveData, _leadId!);
-
-    if (success) {
-      if (context.mounted) {
-        Navigator.pop(context, true); // Close the modal on success.
+      if (spId == null) {
+        throw Exception('User ID not found. Please login again.');
       }
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Form Submit Successful.')));
-      widget.onFormSubmit?.call(); // Refresh dashboard data
-      widget.onTabChange?.call(2);
-    } else {
-      showErrorMessage(context, message: 'Failed to submit appointment.');
+
+      // Prepare the appointment data.
+      final testdriveData = {
+        'vehicleId': vehicleId,
+        'start_date': slotData!['date'],
+        'end_date': slotData!['date'],
+        'start_time': slotData!['start_time_slot'],
+        'end_time': slotData!['end_time_slot'],
+        'date_of_booking': slotData!['date'],
+        'start_time_slot': slotData!['start_time_slot'],
+        'end_time_slot': slotData!['end_time_slot'],
+        'PMI': selectedVehicleName,
+        'location': _locationController.text.trim(),
+        'sp_id': spId,
+        'remarks': descriptionController.text.trim(),
+      };
+
+      print('Submitting testdrive data: $testdriveData'); // Debug log
+
+      // Call the service to submit the appointment.
+      final success = await LeadsSrv.submitTestDrive(testdriveData, _leadId!);
+
+      if (success) {
+        if (context.mounted) {
+          Navigator.pop(context, true); // Close the modal on success.
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Test Drive created successfully!')),
+        );
+        widget.onFormSubmit?.call(); // Refresh dashboard data
+        widget.onTabChange?.call(2);
+      } else {
+        throw Exception('Failed to submit test drive. Please try again.');
+      }
+    } catch (e) {
+      print('submitForm error: $e'); // Debug log
+      if (context.mounted) {
+        showErrorMessage(
+          context,
+          message: 'Failed to submit test drive: ${e.toString()}',
+        );
+      }
+      rethrow; // Re-throw to be caught by _submit()
     }
   }
+
+  // Future<void> submitForm() async {
+  //   // Retrieve sp_id from SharedPreferences.
+  //   final prefs = await SharedPreferences.getInstance();
+  //   final spId = prefs.getString('user_id');
+
+  //   // Parse and format the selected dates/times.
+  //   final rawStartDate = DateFormat(
+  //     'dd MMM yyyy',
+  //   ).parse(startDateController.text);
+  //   final rawEndDate = DateFormat(
+  //     'dd MMM yyyy',
+  //   ).parse(endDateController.text); // Automatically set
+  //   // Format for API
+  //   final formattedStartDate = DateFormat('dd/MM/yyyy').format(rawStartDate);
+  //   final formattedEndDate = DateFormat(
+  //     'dd/MM/yyyy',
+  //   ).format(rawEndDate); // Automatically set
+
+  //   // Automatically set
+
+  //   // Prepare the appointment data.
+  //   final testdriveData = {
+  //     'vehicleId': vehicleId,
+  //     'start_date': slotData!['date'],
+  //     'end_date': slotData!['date'],
+  //     'start_time': slotData!['start_time_slot'],
+  //     'end_time': slotData!['end_time_slot'],
+  //     'date_of_booking': slotData!['date'],
+  //     'start_time_slot': slotData!['start_time_slot'],
+  //     'end_time_slot': slotData!['end_time_slot'],
+  //     'PMI': selectedVehicleName,
+  //     'location': _locationController.text,
+  //     'sp_id': spId,
+  //     'remarks': descriptionController.text,
+  //   };
+
+  //   // Call the service to submit the appointment.
+  //   final success = await LeadsSrv.submitTestDrive(testdriveData, _leadId!);
+
+  //   if (success) {
+  //     if (context.mounted) {
+  //       Navigator.pop(context, true); // Close the modal on success.
+  //     }
+  //     ScaffoldMessenger.of(
+  //       context,
+  //     ).showSnackBar(const SnackBar(content: Text('Form Submit Successful.')));
+  //     widget.onFormSubmit?.call(); // Refresh dashboard data
+  //     widget.onTabChange?.call(2);
+  //   } else {
+  //     showErrorMessage(context, message: 'Failed to submit appointment.');
+  //   }
+  // }
 }
+
+
+
+  // Future<void> _bookSlot(Map<String, dynamic> slotData) async {
+  //   try {
+  //     final token = await Storage.getToken();
+  //     final rawStartTime = DateFormat(
+  //       'hh:mm a',
+  //     ).parse(slotData['start_time_slot']);
+
+  //     final rawEndTime = DateFormat('hh:mm a').parse(slotData['end_time_slot']);
+
+  //     final response = await http.post(
+  //       Uri.parse(
+  //         'https://api.smartassistapp.in/api/slots/$vehicleId/slots/book',
+  //       ),
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+
+  //       // body: jsonEncode({
+  //       //   'start_time_slot': rawStartTime.toString(),
+  //       //   'end_time_slot': rawEndTime.toString(),
+  //       //   'date': slotData['date'],
+  //       // }),
+  //       body: jsonEncode({
+  //         'start_time_slot': slotData['start_time_slot'], // Already "10:00:00"
+  //         'end_time_slot': slotData['end_time_slot'], // Already "12:00:00"
+  //         'date_of_booking': slotData['date'],
+  //       }),
+  //     );
+
+  //     if (response.statusCode == 201) {
+  //       final responseData = jsonDecode(response.body);
+  //       print('Booking successful: ${responseData['message']}');
+
+  //       // Show success message
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(
+  //           content: Text('Slot booked successfully!'),
+  //           backgroundColor: Colors.green,
+  //         ),
+  //       );
+
+  //       // Optionally refresh the slots to update disabled status
+  //       setState(() {});
+  //     } else {
+  //       throw Exception('Failed to book slot');
+  //     }
+  //   } catch (e) {
+  //     print('Error booking slot: $e');
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('Failed to book slot. Please try again.'),
+  //         backgroundColor: Colors.red,
+  //       ),
+  //     );
+  //   }
+  // }

@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_recognition_result.dart' as stt;
 import 'package:speech_to_text/speech_to_text.dart' as stt;
@@ -66,11 +66,32 @@ class _GlobleSpeechtotextState extends State<GlobleSpeechtotext>
     super.dispose();
   }
 
+  // @override
+  // void didChangeAppLifecycleState(AppLifecycleState state) {
+  //   super.didChangeAppLifecycleState(state);
+  //   if (state == AppLifecycleState.resumed) {
+  //     _syncSpeechState();
+  //   } else if (state == AppLifecycleState.paused ||
+  //       state == AppLifecycleState.inactive) {
+  //     if (_isListening) {
+  //       _forceStopListening();
+  //     }
+  //   }
+  // }
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed) {
-      _syncSpeechState();
+      // Reset all states to force re-initialization
+      setState(() {
+        _isInitialized = false;
+        _speechAvailable = false;
+        _isListening = false;
+      });
+      _initializeSpeech();
+      debugPrint(
+        'App resumed, re-initializing speech and checking permissions',
+      );
     } else if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
       if (_isListening) {
@@ -120,32 +141,57 @@ class _GlobleSpeechtotextState extends State<GlobleSpeechtotext>
 
   Future<void> _initializeSpeech() async {
     try {
+      debugPrint('Starting speech initialization');
       bool hasPermission = await _checkMicrophonePermission();
       if (!mounted) return;
 
       if (!hasPermission) {
         setState(() => _isInitialized = true);
-        _showFeedback('Microphone permission denied.', isError: true);
+        debugPrint('Microphone permissions not granted');
+        _showFeedback(
+          'Please grant microphone and speech permissions in Settings.',
+          isError: true,
+        );
         return;
       }
 
+      debugPrint('Initializing speech_to_text plugin');
       _speechAvailable = await _speech.initialize(
-        onStatus: _onSpeechStatus,
-        onError: _onSpeechError,
-        debugLogging: false,
+        onStatus: (status) => _onSpeechStatus(status),
+        onError: (error) => _onSpeechError(error),
+        debugLogging: true, // Enable detailed logging
       );
 
       if (_speechAvailable) {
         var locales = await _speech.locales();
+        debugPrint(
+          'Available locales: ${locales.map((l) => l.localeId).join(', ')}',
+        );
+
         var englishLocale = locales.firstWhere(
-          (locale) => locale.localeId.startsWith('en'),
-          orElse: () => stt.LocaleName('en_US', 'English'),
+          (locale) => locale.localeId == 'en_US',
+          orElse: () => locales.firstWhere(
+            (locale) => locale.localeId.startsWith('en'),
+            orElse: () => locales.isNotEmpty
+                ? locales.first
+                : stt.LocaleName('en_US', 'English'),
+          ),
         );
         _currentLocaleId = englishLocale.localeId;
+        debugPrint('Selected locale: $_currentLocaleId');
+      } else {
+        debugPrint('Speech initialization failed');
+        _showFeedback(
+          'Speech recognition not available. Check your connection or permissions.',
+          isError: true,
+        );
       }
 
       if (mounted) {
         setState(() => _isInitialized = true);
+        debugPrint(
+          'Speech initialization complete, _speechAvailable: $_speechAvailable',
+        );
       }
     } catch (e) {
       debugPrint('Speech initialization error: $e');
@@ -155,15 +201,11 @@ class _GlobleSpeechtotextState extends State<GlobleSpeechtotext>
           _speechAvailable = false;
         });
         _showFeedback(
-          'Failed to initialize speech recognition.',
+          'Failed to initialize speech recognition: $e',
           isError: true,
         );
       }
     }
-  }
-
-  Future<bool> _checkMicrophonePermission() async {
-    return await Permission.microphone.request().isGranted;
   }
 
   void _onSpeechStatus(String status) {
@@ -195,6 +237,114 @@ class _GlobleSpeechtotextState extends State<GlobleSpeechtotext>
         },
       );
     }
+  }
+
+  Future<bool> _checkMicrophonePermission() async {
+    try {
+      if (Platform.isIOS) {
+        // Check current status
+        PermissionStatus micStatus = await Permission.microphone.status;
+        PermissionStatus speechStatus = await Permission.speech.status;
+        debugPrint('Initial microphone status: $micStatus');
+        debugPrint('Initial speech status: $speechStatus');
+
+        // If both are granted, return true
+        if (micStatus.isGranted && speechStatus.isGranted) {
+          debugPrint('Both permissions granted');
+          return true;
+        }
+
+        // If permanently denied, show dialog and return false
+        if (micStatus.isPermanentlyDenied || speechStatus.isPermanentlyDenied) {
+          debugPrint('One or both permissions permanently denied');
+          _showPermissionDialog();
+          // Attempt to re-check status after a delay to ensure Settings changes are detected
+          await Future.delayed(const Duration(milliseconds: 500));
+          micStatus = await Permission.microphone.status;
+          speechStatus = await Permission.speech.status;
+          debugPrint('Re-checked microphone status: $micStatus');
+          debugPrint('Re-checked speech status: $speechStatus');
+          if (micStatus.isGranted && speechStatus.isGranted) {
+            return true;
+          }
+          if (micStatus.isPermanentlyDenied ||
+              speechStatus.isPermanentlyDenied) {
+            return false;
+          }
+        }
+
+        // Request permissions sequentially
+        if (!micStatus.isGranted) {
+          micStatus = await Permission.microphone.request();
+          debugPrint('Microphone permission after request: $micStatus');
+        }
+
+        if (micStatus.isGranted && !speechStatus.isGranted) {
+          speechStatus = await Permission.speech.request();
+          debugPrint('Speech permission after request: $speechStatus');
+        }
+
+        bool finalResult = micStatus.isGranted && speechStatus.isGranted;
+        debugPrint('Final permission result: $finalResult');
+
+        if (!finalResult &&
+            (micStatus.isPermanentlyDenied ||
+                speechStatus.isPermanentlyDenied)) {
+          debugPrint('Permissions denied after request, showing dialog');
+          _showPermissionDialog();
+        }
+
+        return finalResult;
+      } else {
+        // Android
+        PermissionStatus status = await Permission.microphone.status;
+        debugPrint('Initial microphone status (Android): $status');
+        if (status.isGranted) {
+          return true;
+        }
+        if (status.isPermanentlyDenied) {
+          debugPrint('Microphone permission permanently denied (Android)');
+          _showPermissionDialog();
+          return false;
+        }
+        status = await Permission.microphone.request();
+        debugPrint('Microphone permission after request (Android): $status');
+        return status.isGranted;
+      }
+    } catch (e) {
+      debugPrint('Permission check error: $e');
+      return false;
+    }
+  }
+
+  void _showPermissionDialog() {
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Permissions Required'),
+            content: const Text(
+              'This app needs microphone and speech recognition permissions to function properly. Please enable them in Settings.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  openAppSettings();
+                },
+                child: const Text('Open Settings'),
+              ),
+            ],
+          );
+        },
+      );
+    });
   }
 
   void _onSpeechError(dynamic error) {

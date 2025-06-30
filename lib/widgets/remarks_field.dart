@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
@@ -177,9 +178,21 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
         // );
         // _currentLocaleId = englishLocale.localeId;
         // var locales = await _speech.locales();
-        for (var locale in locales) {
-          debugPrint('Available locale: ${locale.localeId} - ${locale.name}');
-        }
+        // for (var locale in locales) {
+        //   debugPrint('Available locale: ${locale.localeId} - ${locale.name}');
+        // }
+
+        var englishLocale = locales.firstWhere(
+          (locale) => locale.localeId == 'en_US',
+          orElse: () => locales.firstWhere(
+            (locale) => locale.localeId.startsWith('en'),
+            orElse: () => locales.isNotEmpty
+                ? locales.first
+                : stt.LocaleName('en_US', 'English'),
+          ),
+        );
+        _currentLocaleId = englishLocale.localeId;
+        debugPrint('Selected locale: $_currentLocaleId');
       }
 
       if (mounted) {
@@ -198,8 +211,65 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
     }
   }
 
+  // Future<bool> _checkMicrophonePermission() async {
+  //   return await Permission.microphone.request().isGranted;
+  // }
+
   Future<bool> _checkMicrophonePermission() async {
-    return await Permission.microphone.request().isGranted;
+    try {
+      if (Platform.isIOS) {
+        // iOS needs both microphone and speech recognition permissions
+        Map<Permission, PermissionStatus> statuses = await [
+          Permission.microphone,
+          Permission.speech,
+        ].request();
+
+        bool micGranted = statuses[Permission.microphone]?.isGranted ?? false;
+        bool speechGranted = statuses[Permission.speech]?.isGranted ?? false;
+
+        debugPrint('Microphone permission: $micGranted');
+        debugPrint('Speech recognition permission: $speechGranted');
+
+        if (!micGranted || !speechGranted) {
+          _showPermissionDialog();
+          return false;
+        }
+
+        return true;
+      } else {
+        // Android only needs microphone
+        return await Permission.microphone.request().isGranted;
+      }
+    } catch (e) {
+      debugPrint('Permission check error: $e');
+      return false;
+    }
+  }
+
+  void _showPermissionDialog() {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Permissions Required'),
+        content: const Text(
+          'This app needs microphone and speech recognition permissions to work properly. Please enable them in Settings.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              openAppSettings();
+            },
+            child: const Text('Open Settings'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _onSpeechStatus(String status) {

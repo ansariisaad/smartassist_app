@@ -237,8 +237,18 @@ class _CalendarSmState extends State<CalendarSm> {
               });
             },
             icon: _isMonthView
-                ? Icon(Icons.view_week, color: Colors.white)
-                : Icon(Icons.calendar_today, color: Colors.white),
+                ? Image.asset(
+                    'assets/week.png',
+                    width: 24,
+                    height: 24,
+                    color: Colors.white,
+                  )
+                : Image.asset(
+                    'assets/calendar.png',
+                    width: 24,
+                    height: 24,
+                    color: Colors.white,
+                  ),
           ),
         ],
       ),
@@ -368,7 +378,12 @@ class _CalendarSmState extends State<CalendarSm> {
       padding: const EdgeInsets.symmetric(vertical: 40),
       child: Column(
         children: [
-          Icon(Icons.calendar_today, size: 50, color: Colors.grey.shade300),
+          Image.asset(
+            'assets/calendar.png',
+            width: 50,
+            height: 50,
+            color: Colors.grey.shade600,
+          ),
           SizedBox(height: 12),
           Text(
             msg,

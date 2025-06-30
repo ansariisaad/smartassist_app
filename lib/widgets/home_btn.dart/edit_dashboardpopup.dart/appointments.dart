@@ -651,6 +651,7 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
               //   ],
               // ),
               EnhancedSpeechTextField(
+                isRequired: false,
                 // contentPadding: EdgeInsets.zero,
                 label: 'Remarks:',
                 controller: descriptionController,

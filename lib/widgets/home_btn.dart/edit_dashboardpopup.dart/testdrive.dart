@@ -28,7 +28,7 @@ class Testdrive extends StatefulWidget {
 }
 
 // Google Maps API key
-final String _googleApiKey = "AIzaSyA_SWIvFPfChqL33bKtLyZ5YOFSXrsk1Qs";
+final String _googleApiKey = "AIzaSyCaFZ4RXQIy86v9B24wz5l0vgDKbQSP5LE";
 
 class _TestdriveState extends State<Testdrive> {
   Map<String, String> _errors = {};
@@ -614,6 +614,7 @@ class _TestdriveState extends State<Testdrive> {
                 Expanded(
                   flex: 3,
                   child: EnhancedSpeechTextField(
+                    isRequired: false,
                     // contentPadding: EdgeInsets.zero,
                     label: 'Remarks:',
                     controller: descriptionController,

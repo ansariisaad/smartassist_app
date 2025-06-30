@@ -376,6 +376,7 @@ class _FeedbackscreenState extends State<Feedbackscreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10.0),
               child: EnhancedSpeechTextField(
+                isRequired: false,
                 label: 'Remarks:',
                 controller: descriptionController,
                 hint: 'Type or speak... ',

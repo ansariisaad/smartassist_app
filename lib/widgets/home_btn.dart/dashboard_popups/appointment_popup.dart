@@ -583,6 +583,7 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
               //   hint: 'Type or speak...',
               // ),
               EnhancedSpeechTextField(
+                isRequired: false,
                 // contentPadding: EdgeInsets.zero,
                 label: 'Remarks:',
                 controller: descriptionController,

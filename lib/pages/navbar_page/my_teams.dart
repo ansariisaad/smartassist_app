@@ -710,285 +710,6 @@ class _MyTeamsState extends State<MyTeams> {
     );
   }
 
-  // Widget _buildFloatingActionButton(BuildContext context) {
-  //   return Obx(
-  //     () => GestureDetector(
-  //       onTap: fabController.toggleFab,
-  //       child: AnimatedContainer(
-  //         duration: const Duration(milliseconds: 300),
-  //         width: MediaQuery.of(context).size.width * .15,
-  //         height: MediaQuery.of(context).size.height * .08,
-  //         decoration: BoxDecoration(
-  //           color: fabController.isFabExpanded.value
-  //               ? Colors.red
-  //               : AppColors.colorsBlue,
-  //           shape: BoxShape.circle,
-  //         ),
-  //         child: Center(
-  //           child: AnimatedRotation(
-  //             turns: fabController.isFabExpanded.value ? 0.25 : 0.0,
-  //             duration: const Duration(milliseconds: 300),
-  //             child: Icon(
-  //               fabController.isFabExpanded.value ? Icons.close : Icons.add,
-  //               color: Colors.white,
-  //               size: 30,
-  //             ),
-  //           ),
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  // Popup Item Builder
-  Widget _buildPopupItem(
-    IconData icon,
-    String label,
-    double offsetY, {
-    required Function() onTap,
-  }) {
-    return Obx(
-      () => TweenAnimationBuilder(
-        tween: Tween<double>(
-          begin: 0,
-          end: fabController.isFabExpanded.value ? 1 : 0,
-        ),
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOutBack,
-        builder: (context, double value, child) {
-          return Transform.translate(
-            offset: Offset(0, offsetY * (1 - value)),
-            child: Opacity(
-              opacity: value.clamp(0.0, 1.0),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      label,
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    GestureDetector(
-                      onTap: onTap,
-                      behavior: HitTestBehavior.opaque,
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.colorsBlue,
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        child: Icon(icon, color: Colors.white, size: 24),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  void _showAppointmentPopup(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: EdgeInsets.zero, // Remove default padding
-          child: Container(
-            width: MediaQuery.of(context).size.width,
-            margin: const EdgeInsets.symmetric(
-              horizontal: 16,
-            ), // Add margin for better UX
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: AppointmentTeams(onFormSubmit: () {}), // Appointment modal
-          ),
-        );
-      },
-    );
-  }
-
-  void _showCreateteamPopup(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: EdgeInsets.zero, // Remove default padding
-          child: Container(
-            width: MediaQuery.of(context).size.width,
-            margin: const EdgeInsets.symmetric(
-              horizontal: 16,
-            ), // Add margin for better UX
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Createteam(
-              // onFormSubmit: () {},
-            ), // Appointment modal
-          ),
-        );
-      },
-    );
-  }
-
-  void _showTestdrivePopup(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: EdgeInsets.zero, // Remove default padding
-          child: Container(
-            width: MediaQuery.of(context).size.width,
-            margin: const EdgeInsets.symmetric(
-              horizontal: 16,
-            ), // Add margin for better UX
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: TestdriveTeams(onFormSubmit: () {}), // Appointment modal
-          ),
-        );
-      },
-    );
-  }
-
-  void _showLeadPopup(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: EdgeInsets.zero,
-          child: Container(
-            width: MediaQuery.of(context).size.width,
-            margin: const EdgeInsets.symmetric(
-              horizontal: 16,
-            ), // Add some margin for better UX
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: LeadTeams(onFormSubmit: () {}),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showFollowupPopup(BuildContext context) async {
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: EdgeInsets.zero,
-          child: Container(
-            width: MediaQuery.of(context).size.width,
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: FollowupsTeams(
-              onFormSubmit: () {}, // Pass the function here
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildPopupMenu(BuildContext context) {
-    return GestureDetector(
-      onTap: fabController.closeFab,
-      child: Stack(
-        children: [
-          // Background overlay
-          Positioned.fill(
-            child: Container(color: Colors.black.withOpacity(0.7)),
-          ),
-
-          // Popup Items Container aligned bottom right
-          Positioned(
-            bottom: 80,
-            right: 18,
-            child: SizedBox(
-              width: 200,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  _buildPopupItem(
-                    Icons.calendar_month_outlined,
-                    "Appointment",
-                    -80,
-                    onTap: () {
-                      fabController.closeFab();
-                      _showAppointmentPopup(context);
-                    },
-                  ),
-                  // _buildPopupItem(Icons.people, "My teams", -60, onTap: () {
-                  //   fabController.closeFab();
-                  //   _showCreateteamPopup(context);
-                  // }),
-                  _buildPopupItem(
-                    Icons.receipt_long_rounded,
-                    "Enquiry",
-                    -60,
-                    onTap: () {
-                      fabController.closeFab();
-                      _showLeadPopup(context);
-                    },
-                  ),
-                  _buildPopupItem(
-                    Icons.call,
-                    "Followup",
-                    -40,
-                    onTap: () {
-                      fabController.closeFab();
-                      _showFollowupPopup(context);
-                    },
-                  ),
-                  _buildPopupItem(
-                    Icons.directions_car,
-                    "Test Drive",
-                    -20,
-                    onTap: () {
-                      fabController.closeFab();
-                      _showTestdrivePopup(context);
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // ✅ FAB positioned above the overlay
-          // Positioned(
-          //   bottom: 20,
-          //   right: 15,
-          //   child: _buildFloatingActionButton(context),
-          // ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildProfileAvatars() {
     List<Map<String, dynamic>> sortedTeamMembers = List.from(_teamMembers);
     sortedTeamMembers.sort(
@@ -1053,21 +774,6 @@ class _MyTeamsState extends State<MyTeams> {
         ),
       );
 
-      // Add visual separator before members
-      if (letterMembers.isNotEmpty) {
-        widgets.add(
-          Container(
-            width: 2,
-            height: 40,
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            decoration: BoxDecoration(
-              color: AppColors.colorsBlue.withOpacity(0.4),
-              borderRadius: BorderRadius.circular(1),
-            ),
-          ),
-        );
-      }
-
       // Add member avatars
       for (int i = 0; i < letterMembers.length; i++) {
         widgets.add(
@@ -1077,21 +783,6 @@ class _MyTeamsState extends State<MyTeams> {
             letterMembers[i]['user_id'] ?? '',
             letterMembers[i]['profile'],
             letterMembers[i]['initials'] ?? '',
-          ),
-        );
-      }
-
-      // Add visual separator after members if there are more letters coming
-      if (letterMembers.isNotEmpty) {
-        widgets.add(
-          Container(
-            width: 2,
-            height: 40,
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.4),
-              borderRadius: BorderRadius.circular(1),
-            ),
           ),
         );
       }
@@ -1161,10 +852,10 @@ class _MyTeamsState extends State<MyTeams> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: isSelected
-                      ? Colors.blue.withOpacity(0.15)
+                      ? AppColors.colorsBlue
                       : AppColors.backgroundLightGrey,
                   border: isSelected
-                      ? Border.all(color: Colors.blue, width: 2.5)
+                      ? Border.all(color: AppColors.colorsBlue, width: 2.5)
                       : Border.all(
                           color: Colors.grey.withOpacity(0.3),
                           width: 1,
@@ -1175,53 +866,25 @@ class _MyTeamsState extends State<MyTeams> {
                     duration: const Duration(milliseconds: 200),
                     style: TextStyle(
                       fontSize: isSelected ? 22 : 20,
-                      fontWeight: FontWeight.bold,
-                      color: isSelected ? Colors.blue : Colors.grey.shade600,
+                      fontWeight: FontWeight.w500,
+                      color: isSelected ? Colors.white : Colors.grey.shade600,
                     ),
                     child: Text(letter),
                   ),
                 ),
               ),
-
-              // Multi-select indicator with animation
-              // if (_isMultiSelectMode && isSelected)
-              //   Positioned(
-              //     top: -2,
-              //     right: 3,
-              //     child: AnimatedScale(
-              //       scale: 1.0,
-              //       duration: const Duration(milliseconds: 200),
-              //       child: Container(
-              //         width: 18,
-              //         height: 18,
-              //         decoration: BoxDecoration(
-              //           color: Colors.blue,
-              //           shape: BoxShape.circle,
-              //           border: Border.all(color: Colors.white, width: 2),
-              //           boxShadow: [
-              //             BoxShadow(
-              //               color: Colors.blue.withOpacity(0.3),
-              //               blurRadius: 4,
-              //               offset: const Offset(0, 1),
-              //             ),
-              //           ],
-              //         ),
-              //         // child: Icon(Icons.check, color: Colors.white, size: 12),
-              //       ),
-              //     ),
-              //   ),
             ],
           ),
         ),
-        const SizedBox(height: 8),
-        AnimatedDefaultTextStyle(
-          duration: const Duration(milliseconds: 200),
-          style: AppFont.mediumText14(context).copyWith(
-            color: isSelected ? AppColors.colorsBlue : null,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-          ),
-          child: Text(letter),
-        ),
+        const SizedBox(height: 24),
+        // AnimatedDefaultTextStyle(
+        //   duration: const Duration(milliseconds: 200),
+        //   style: AppFont.mediumText14(context).copyWith(
+        //     color: isSelected ? AppColors.colorsBlue : null,
+        //     fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+        //   ),
+        //   child: Text(letter),
+        // ),
       ],
     );
   }
@@ -1246,18 +909,7 @@ class _MyTeamsState extends State<MyTeams> {
               selectedUserIds.clear(); // Clear selected users
               _teamComparisonData = []; // Clear comparison data
             });
-            // setState(() {
-            //   _selectedProfileIndex = index;
-            //   _selectedType = 'All';
-            //   _selectedLetters.clear(); // Clear all letter selections
-            //   _isMultiSelectMode = false; // Exit multi-select mode
-            //   _isComparing = false; // Exit comparison mode when selecting "All"
 
-            //   if (!_isComparing) {
-            //     _clearAllSelections();
-            //   }
-            // }
-            // );
             await _fetchTeamDetails();
           },
           onLongPress: () {
@@ -1303,7 +955,7 @@ class _MyTeamsState extends State<MyTeams> {
                   color: _isMultiSelectMode
                       ? AppColors.sideRed
                       : (isSelected
-                            ? AppColors.colorsBlue.withOpacity(0.15)
+                            ? AppColors.colorsBlue
                             : AppColors.backgroundLightGrey),
                   border: isSelected
                       ? Border.all(color: AppColors.colorsBlue, width: 2.5)
@@ -1318,7 +970,9 @@ class _MyTeamsState extends State<MyTeams> {
                     child: Icon(
                       _isMultiSelectMode
                           ? Icons.close_rounded
-                          : (isSelected ? Icons.groups : Icons.people),
+                          : (isSelected
+                                ? Icons.people_rounded
+                                : Icons.people_rounded),
                       key: ValueKey(
                         _isMultiSelectMode
                             ? 'clear'
@@ -1326,7 +980,7 @@ class _MyTeamsState extends State<MyTeams> {
                       ),
                       color: _isMultiSelectMode
                           ? Colors.white
-                          : (isSelected ? AppColors.colorsBlue : Colors.grey),
+                          : (isSelected ? Colors.white : Colors.grey),
                       size: isSelected ? 34 : 32,
                     ),
                   ),
@@ -1340,27 +994,6 @@ class _MyTeamsState extends State<MyTeams> {
                   child: AnimatedScale(
                     scale: 1.0,
                     duration: const Duration(milliseconds: 200),
-                    child: Container(
-                      width: 18,
-                      height: 18,
-                      decoration: BoxDecoration(
-                        color: Colors.orange,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.orange.withOpacity(0.3),
-                            blurRadius: 4,
-                            offset: const Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                      child: Icon(
-                        Icons.touch_app,
-                        color: Colors.white,
-                        size: 10,
-                      ),
-                    ),
                   ),
                 ),
             ],
@@ -1396,7 +1029,7 @@ class _MyTeamsState extends State<MyTeams> {
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
             ),
             child: Text(
-              _isMultiSelectMode ? 'Reset' : 'All',
+              _isMultiSelectMode ? 'Clear' : 'All',
               style: AppFont.mediumText14(context),
             ),
           ),
@@ -1413,6 +1046,8 @@ class _MyTeamsState extends State<MyTeams> {
     String initials,
   ) {
     bool isSelectedForComparison = selectedUserIds.contains(userId);
+    bool isCurrentlySelected =
+        _selectedProfileIndex == index && _selectedUserId == userId;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -1482,15 +1117,7 @@ class _MyTeamsState extends State<MyTeams> {
                   height: 50,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    // Enhanced shadow for depth
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                    // Border styling based on selection state
+
                     border: _getBorderStyle(isSelectedForComparison, index),
                   ),
                   child: ClipOval(
@@ -1503,60 +1130,6 @@ class _MyTeamsState extends State<MyTeams> {
                     ),
                   ),
                 ),
-
-                // Selection indicator for multi-select mode
-                // if (isSelectedForComparison)
-                //   Positioned(
-                //     right: 0,
-                //     bottom: 0,
-                //     child: Container(
-                //       width: 20,
-                //       height: 20,
-                //       decoration: BoxDecoration(
-                //         color: Colors.white,
-                //         shape: BoxShape.circle,
-                //         border: Border.all(
-                //           color: AppColors.colorsBlue,
-                //           width: 2,
-                //         ),
-                //         boxShadow: [
-                //           BoxShadow(
-                //             color: Colors.black.withOpacity(0.2),
-                //             blurRadius: 4,
-                //             offset: const Offset(0, 1),
-                //           ),
-                //         ],
-                //       ),
-                //       // child: const Icon(
-                //       //   Icons.check,
-                //       //   color: Color(0xFF1380FE),
-                //       //   size: 12,
-                //       // ),
-                //     ),
-                //   ),
-
-                // Active selection indicator
-                // if (!isSelectedForComparison && _selectedProfileIndex == index)
-                //   Positioned(
-                //     right: 0,
-                //     bottom: 0,
-                //     child: Container(
-                //       width: 16,
-                //       height: 16,
-                //       decoration: BoxDecoration(
-                //         color: AppColors.colorsBlue,
-                //         shape: BoxShape.circle,
-                //         border: Border.all(color: Colors.white, width: 2),
-                //         boxShadow: [
-                //           BoxShadow(
-                //             color: AppColors.colorsBlue.withOpacity(0.3),
-                //             blurRadius: 4,
-                //             offset: const Offset(0, 1),
-                //           ),
-                //         ],
-                //       ),
-                //     ),
-                //   ),
               ],
             ),
           ),
@@ -1564,136 +1137,70 @@ class _MyTeamsState extends State<MyTeams> {
         const SizedBox(height: 6),
         Container(
           constraints: const BoxConstraints(maxWidth: 70),
-          child: Text(
-            firstName,
-            style: AppFont.mediumText14(context),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+          child: AnimatedDefaultTextStyle(
+            duration: const Duration(milliseconds: 200),
+            style: AppFont.mediumText14(context).copyWith(
+              color: _getNameTextColor(
+                isSelectedForComparison,
+                isCurrentlySelected,
+              ),
+              fontWeight: (isSelectedForComparison || isCurrentlySelected)
+                  ? FontWeight.w600
+                  : FontWeight.normal,
+            ),
+            child: Text(
+              firstName,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ),
         const SizedBox(height: 4),
       ],
     );
-    // return Column(
-    //   mainAxisSize: MainAxisSize.min,
-    //   children: [
-    //     GestureDetector(
-    //       onLongPress: () {
-    //         // Strong haptic feedback on long press
-    //         HapticFeedback.heavyImpact();
+  }
 
-    //         setState(() {
-    //           // Activate multi-select mode
-    //           _isMultiSelectMode = true;
-
-    //           // Toggle the current item's selection
-    //           if (isSelectedForComparison) {
-    //             selectedUserIds.remove(userId);
-    //           } else {
-    //             selectedUserIds.add(userId);
-    //           }
-    //         });
-    //       },
-
-    //       // Your onTap implementation (combining your existing logic with multi-select)
-    //       onTap: () async {
-    //         // Light haptic feedback on tap
-    //         HapticFeedback.lightImpact();
-
-    //         if (_isMultiSelectMode) {
-    //           // Multi-select mode: toggle selection for comparison
-    //           setState(() {
-    //             if (isSelectedForComparison) {
-    //               selectedUserIds.remove(userId);
-    //               // If no items selected, exit multi-select mode
-    //               if (selectedUserIds.isEmpty) {
-    //                 _isMultiSelectMode = false;
-    //               }
-    //             } else {
-    //               selectedUserIds.add(userId);
-    //             }
-    //           });
-    //         } else if (!_isComparing) {
-    //           // Single select mode: your existing logic
-    //           setState(() {
-    //             if (_selectedUserId == userId) {
-    //               _clearAllSelections();
-    //             } else {
-    //               _selectedProfileIndex = index;
-    //               _selectedUserId = userId;
-    //               _selectedType = 'dynamic';
-    //             }
-    //           });
-    //           // ✅ This ensures _fetchTeamDetails runs AFTER setState completes
-    //           WidgetsBinding.instance.addPostFrameCallback((_) {
-    //             _fetchTeamDetails();
-    //             _fetchSingleCalllog();
-    //           });
-    //           // await _fetchTeamDetails();
-    //         }
-    //       },
-
-    //       child: Container(
-    //         margin: const EdgeInsets.fromLTRB(10, 0, 5, 0),
-    //         width: 50,
-    //         height: 50,
-    //         decoration: BoxDecoration(
-    //           shape: BoxShape.circle,
-    //           color: isSelectedForComparison
-    //               ? AppColors.colorsBlue
-    //               : AppColors.backgroundLightGrey,
-    //           border: isSelectedForComparison
-    //               ? Border.all(color: Colors.white, width: 2)
-    //               : _selectedProfileIndex == index
-    //               ? Border.all(color: Colors.blue, width: 2)
-    //               : null,
-    //         ),
-    //         child: ClipOval(
-    //           child: isSelectedForComparison
-    //               ? const Icon(Icons.check, color: Colors.white)
-    //               : (profileUrl != null && profileUrl.isNotEmpty)
-    //               ? Image.network(
-    //                   profileUrl,
-    //                   width: 50,
-    //                   height: 50,
-    //                   fit: BoxFit.cover,
-    //                   errorBuilder: (context, error, stackTrace) {
-    //                     return Center(
-    //                       child: Text(
-    //                         initials.toUpperCase(),
-    //                         style: AppFont.appbarfontblack(context),
-    //                       ),
-    //                     );
-    //                   },
-    //                 )
-    //               : Center(
-    //                   child: Text(
-    //                     initials.toUpperCase(),
-    //                     style: AppFont.appbarfontblack(context),
-    //                   ),
-    //                 ),
-    //         ),
-    //       ),
-    //     ),
-    //     const SizedBox(height: 8),
-    //     Text(firstName, style: AppFont.mediumText14(context)),
-    //     const SizedBox(height: 8),
-    //   ],
-    // );
+  // Helper method to get the appropriate text color for names
+  Color _getNameTextColor(
+    bool isSelectedForComparison,
+    bool isCurrentlySelected,
+  ) {
+    if (_isMultiSelectMode) {
+      // In multi-select mode
+      if (isSelectedForComparison) {
+        return AppColors.fontColor; // Highlight selected items
+      } else {
+        return Colors.grey.shade500; // Dim unselected items
+      }
+    } else {
+      // In single-select mode
+      if (isCurrentlySelected) {
+        return AppColors.fontColor; // Highlight currently selected item
+      } else if (_selectedUserId != null) {
+        return Colors
+            .grey
+            .shade500; // Dim unselected items when something is selected
+      } else {
+        return AppColors.fontColor; // Default color when nothing is selected
+      }
+    }
   }
 
   // Helper method to determine border style based on selection state
   Border? _getBorderStyle(bool isSelectedForComparison, int index) {
-    if (isSelectedForComparison) {
-      return Border.all(color: AppColors.colorsBlue, width: 3);
-    } else if (_selectedProfileIndex == index) {
-      return Border.all(color: AppColors.colorsBlue, width: 2);
+    // if (isSelectedForComparison) {
+    //   return Border.all(color: AppColors.colorsBlue, width: 3);
+    // } else
+
+    if (_selectedProfileIndex == index) {
+      return Border.all(color: AppColors.backgroundLightGrey, width: 3);
     }
     return Border.all(color: AppColors.colorsBlue.withOpacity(0.1), width: 1);
   }
 
   // Helper method to build profile content with modern styling
+
   Widget _buildProfileContent(
     bool isSelectedForComparison,
     String? profileUrl,
@@ -1702,110 +1209,52 @@ class _MyTeamsState extends State<MyTeams> {
     BuildContext context,
   ) {
     if (isSelectedForComparison) {
-      // Multi-select mode: show gradient background with check icon overlay
+      // Multi-select mode: show simple circle with check icon
       return Container(
         width: 50,
         height: 50,
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              AppColors.colorsBlue,
-              AppColors.colorsBlue.withOpacity(0.8),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: AppColors.sideGreen,
+          shape: BoxShape.circle,
         ),
-        child: Stack(
-          children: [
-            // Show profile image with reduced opacity
-            if (profileUrl != null && profileUrl.isNotEmpty)
-              Opacity(
-                opacity: 0.3,
-                child: Image.network(
-                  profileUrl,
-                  width: 50,
-                  height: 50,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return _buildInitialAvatar(initials, firstName, 0.3);
-                  },
-                ),
-              )
-            else
-              _buildInitialAvatar(initials, firstName, 0.3),
-
-            // Check icon overlay
-            Center(
-              child: Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 2,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.check,
-                  color: Color(0xFF1380FE),
-                  size: 16,
-                ),
-              ),
-            ),
-          ],
-        ),
+        child: const Icon(Icons.check, color: Colors.white, size: 30),
       );
     } else {
       // Normal mode: show profile image or initials
       if (profileUrl != null && profileUrl.isNotEmpty) {
-        return Image.network(
-          profileUrl,
-          width: 50,
-          height: 50,
-          fit: BoxFit.cover,
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) return child;
-            return _buildInitialAvatar(
-              initials,
-              firstName,
-              1.0,
-              showLoader: true,
-            );
-          },
-          errorBuilder: (context, error, stackTrace) {
-            return _buildInitialAvatar(initials, firstName, 1.0);
-          },
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(25),
+          child: Image.network(
+            profileUrl,
+            width: 50,
+            height: 50,
+            fit: BoxFit.cover,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return _buildInitialAvatar(initials, firstName, showLoader: true);
+            },
+            errorBuilder: (context, error, stackTrace) {
+              return _buildInitialAvatar(initials, firstName);
+            },
+          ),
         );
       } else {
-        return _buildInitialAvatar(initials, firstName, 1.0);
+        return _buildInitialAvatar(initials, firstName);
       }
     }
   }
 
   Widget _buildInitialAvatar(
     String initials,
-    String firstName,
-    double opacity, {
+    String firstName, {
     bool showLoader = false,
   }) {
     return Container(
       width: 50,
       height: 50,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            const Color.fromARGB(255, 255, 255, 255).withOpacity(opacity),
-            const Color.fromARGB(255, 255, 255, 255).withOpacity(opacity * 0.8),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: _getConsistentColor(firstName + initials),
+        shape: BoxShape.circle,
       ),
       child: showLoader
           ? const Center(
@@ -1824,13 +1273,28 @@ class _MyTeamsState extends State<MyTeams> {
                     ? initials.toUpperCase()
                     : (firstName.isNotEmpty ? firstName[0].toUpperCase() : 'U'),
                 style: const TextStyle(
-                  color: AppColors.colorsBlue,
+                  color: Colors.white,
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
                 ),
               ),
             ),
     );
+  }
+
+  Color _getConsistentColor(String seed) {
+    // Create a hash from the seed string
+    int hash = seed.hashCode;
+
+    // Use the hash to generate consistent RGB values
+    final math.Random random = math.Random(hash);
+
+    // Generate colors that are vibrant but not too light/dark
+    int red = 80 + random.nextInt(150); // 80-230 range
+    int green = 80 + random.nextInt(150); // 80-230 range
+    int blue = 80 + random.nextInt(150); // 80-230 range
+
+    return Color.fromARGB(255, red, green, blue);
   }
 
   // Individual Performance Tab Content
@@ -1845,7 +1309,7 @@ class _MyTeamsState extends State<MyTeams> {
           Container(
             decoration: BoxDecoration(
               color: AppColors.backgroundLightGrey,
-              borderRadius: BorderRadius.circular(5),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Column(
               children: [
@@ -1860,8 +1324,20 @@ class _MyTeamsState extends State<MyTeams> {
             Container(
               margin: const EdgeInsets.only(top: 10),
               decoration: BoxDecoration(
-                color: AppColors.backgroundLightGrey,
+                border: Border.all(
+                  color: AppColors.backgroundLightGrey,
+                  width: 1,
+                ),
+                color: Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 0,
+                    spreadRadius: 0.2,
+                    offset: Offset(1, 1), // Equal shadow on all sides
+                  ),
+                ],
               ),
               child: Column(
                 children: [
@@ -1872,7 +1348,11 @@ class _MyTeamsState extends State<MyTeams> {
                         margin: const EdgeInsets.only(left: 10, bottom: 0),
                         child: Text(
                           'Activities',
-                          style: AppFont.dropDowmLabel(context),
+                          style: AppFont.dropDowmLabel(context).copyWith(
+                            color: AppColors.iconGrey,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                       IconButton(
@@ -1910,8 +1390,20 @@ class _MyTeamsState extends State<MyTeams> {
             Container(
               margin: const EdgeInsets.only(top: 10),
               decoration: BoxDecoration(
-                color: AppColors.backgroundLightGrey,
+                border: Border.all(
+                  color: AppColors.backgroundLightGrey,
+                  width: 1,
+                ),
+                color: Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 0,
+                    spreadRadius: 0.2,
+                    offset: Offset(1, 1), // Equal shadow on all sides
+                  ),
+                ],
               ),
               child: Column(
                 children: [
@@ -1922,7 +1414,11 @@ class _MyTeamsState extends State<MyTeams> {
                         margin: const EdgeInsets.only(left: 10, bottom: 0),
                         child: Text(
                           'Call logs',
-                          style: AppFont.dropDowmLabel(context),
+                          style: AppFont.dropDowmLabel(context).copyWith(
+                            color: AppColors.iconGrey,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                       IconButton(
@@ -1974,17 +1470,6 @@ class _MyTeamsState extends State<MyTeams> {
       ],
     );
   }
-  // Widget _buildTeamComparisonTab(BuildContext context, double screenWidth) {
-  //   return Column(
-  //     children: [
-  //       // _buildPeriodFilter(screenWidth),
-  //       // _buildMetricButtons(),
-  //       // _buildTeamComparisonChart(context),
-  //       if (_isComparing) _buildTeamComparisonChart(context),
-  //       if (!_isComparing) _callAnalyticAll(context),
-  //     ],
-  //   );
-  // }
 
   // Period filter (ALL, MTD, QTD, YTD)
   Widget _buildPeriodFilter(double screenWidth) {
@@ -1996,6 +1481,7 @@ class _MyTeamsState extends State<MyTeams> {
           Container(
             margin: const EdgeInsets.only(top: 10),
             decoration: BoxDecoration(
+              color: AppColors.white,
               border: Border.all(color: Colors.grey.shade300, width: 1),
               borderRadius: BorderRadius.circular(30),
             ),
@@ -2023,17 +1509,24 @@ class _MyTeamsState extends State<MyTeams> {
         });
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
         decoration: BoxDecoration(
+          color: _periodIndex == index
+              ? AppColors.colorsBlue.withOpacity(0.1)
+              : Colors.transparent,
           border: Border.all(
-            color: _periodIndex == index ? Colors.blue : Colors.transparent,
+            color: _periodIndex == index
+                ? AppColors.colorsBlue
+                : Colors.transparent,
           ),
           borderRadius: BorderRadius.circular(30),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: _periodIndex == index ? Colors.blue : Colors.black,
+            color: _periodIndex == index
+                ? AppColors.colorsBlue
+                : AppColors.iconGrey,
             fontWeight: FontWeight.w500,
             fontSize: 14,
           ),
@@ -2124,25 +1617,6 @@ class _MyTeamsState extends State<MyTeams> {
           children: [
             for (int j = i; j < i + 2 && j < metrics.length; j++) ...[
               Expanded(
-                // child: InkWell(
-                //   onTap: () {
-                //     setState(() {
-                //       _metricIndex = j;
-                //     });
-                //     _fetchTeamDetails(); // Refresh with selected metric
-                //   },
-                //   child: _buildMetricCard(
-                //     metrics[j].containsKey('value')
-                //         ? metrics[j]['value'].toString()
-                //         : getTotalForKey(
-                //             metrics[j]['key'] as String,
-                //           ).toString(),
-                //     metrics[j]['label'] as String,
-                //     AppColors.colorsBlue,
-                //     isSelected: _metricIndex == j,
-                //     isUserSelected: _selectedType != 'All',
-                //   ),
-                // ), with button
                 child: _buildMetricCard(
                   metrics[j].containsKey('value')
                       ? metrics[j]['value'].toString()
@@ -2199,8 +1673,20 @@ class _MyTeamsState extends State<MyTeams> {
               },
               child: Container(
                 decoration: BoxDecoration(
-                  color: AppColors.backgroundLightGrey,
+                  border: Border.all(
+                    color: AppColors.backgroundLightGrey,
+                    width: 1,
+                  ),
+                  color: Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 0,
+                      spreadRadius: 0.2,
+                      offset: Offset(1, 1), // Equal shadow on all sides
+                    ),
+                  ],
                 ),
                 child: Row(
                   children: [
@@ -2227,7 +1713,11 @@ class _MyTeamsState extends State<MyTeams> {
                       margin: const EdgeInsets.only(left: 10),
                       child: Text(
                         'Team Comparison',
-                        style: AppFont.dropDowmLabel(context),
+                        style: AppFont.dropDowmLabel(context).copyWith(
+                          color: AppColors.iconGrey,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 16,
+                        ),
                       ),
                     ),
                   ],
@@ -2420,8 +1910,20 @@ class _MyTeamsState extends State<MyTeams> {
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 0),
                 decoration: BoxDecoration(
-                  color: AppColors.backgroundLightGrey,
+                  border: Border.all(
+                    color: AppColors.backgroundLightGrey,
+                    width: 1,
+                  ),
+                  color: Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 0,
+                      spreadRadius: 0.2,
+                      offset: Offset(1, 1), // Equal shadow on all sides
+                    ),
+                  ],
                 ),
 
                 child: Column(
@@ -2447,7 +1949,11 @@ class _MyTeamsState extends State<MyTeams> {
                           margin: const EdgeInsets.only(left: 10, bottom: 0),
                           child: Text(
                             'Call Analysis',
-                            style: AppFont.dropDowmLabel(context),
+                            style: AppFont.dropDowmLabel(context).copyWith(
+                              color: AppColors.iconGrey,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 16,
+                            ),
                           ),
                         ),
                       ],
@@ -3262,10 +2768,6 @@ class _MyTeamsState extends State<MyTeams> {
           width: 2,
         ),
 
-        // border: Border.all(
-        //   color: isSelected ? Colors.blue : Colors.transparent,
-        //   width: 2,
-        // ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -3459,15 +2961,13 @@ class _MyTeamsState extends State<MyTeams> {
         style: TextButton.styleFrom(
           backgroundColor: _upcommingButtonIndex == index
               ? activeColor.withOpacity(0.29)
-              : null,
+              : Colors.white,
           foregroundColor: _upcommingButtonIndex == index
               ? activeColor
               : Colors.black,
           padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 5),
           side: BorderSide(
-            color: _upcommingButtonIndex == index
-                ? activeColor
-                : Colors.transparent,
+            color: _upcommingButtonIndex == index ? activeColor : Colors.white,
             width: .5,
           ),
           shape: RoundedRectangleBorder(

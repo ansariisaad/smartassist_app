@@ -320,7 +320,7 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.blue,
+        backgroundColor: AppColors.colorsBlue,
         automaticallyImplyLeading: false,
         title: Align(
           alignment: Alignment.centerLeft,
@@ -343,10 +343,19 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
                 _isMonthView = !_isMonthView;
               });
             },
-            icon: Icon(
-              _isMonthView ? Icons.calendar_view_week : Icons.calendar_month,
-              color: Colors.white,
-            ),
+            icon: _isMonthView
+                ? Image.asset(
+                    'assets/week.png',
+                    width: 24,
+                    height: 24,
+                    color: Colors.white,
+                  )
+                : Image.asset(
+                    'assets/calendar.png',
+                    width: 24,
+                    height: 24,
+                    color: Colors.white,
+                  ),
           ),
         ],
       ),
@@ -397,11 +406,16 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
 
     final combinedItems = [...appointments, ...tasks];
     if (combinedItems.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.event_busy, size: 48, color: Colors.grey),
+            Image.asset(
+              "assets/calendar.png",
+              width: 48.0 * MediaQuery.of(context).textScaleFactor,
+              height: 48.0 * MediaQuery.of(context).textScaleFactor,
+              color: Colors.grey,
+            ),
             SizedBox(height: 16),
             Text(
               'No activities scheduled for this day',

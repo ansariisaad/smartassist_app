@@ -543,6 +543,7 @@ class _TestdriveIdsState extends State<TestdriveIds> {
               //   hint: 'Type or speak...',
               // ),
               EnhancedSpeechTextField(
+                isRequired: false,
                 // contentPadding: EdgeInsets.zero,
                 label: 'Remarks:',
                 controller: descriptionController,

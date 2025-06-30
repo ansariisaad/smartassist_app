@@ -920,8 +920,9 @@ class _FollowupsEditState extends State<FollowupsEdit> {
                   ),
                 ],
               ),
-              const SizedBox(height: 10), 
+              const SizedBox(height: 10),
               EnhancedSpeechTextField(
+                isRequired: false,
                 // contentPadding: EdgeInsets.zero,
                 label: 'Remarks:',
                 controller: descriptionController,

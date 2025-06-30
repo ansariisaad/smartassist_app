@@ -5,7 +5,9 @@ import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
+import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/testdrive.dart';
+import 'package:smartassist/widgets/testdrive_verifyotp.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AllTestrive extends StatefulWidget {
@@ -17,9 +19,9 @@ class AllTestrive extends StatefulWidget {
   final double swipeOffset;
   final bool isFavorite;
   final VoidCallback onToggleFavorite;
-  // final VoidCallback handleTestDrive;
+  final VoidCallback handleTestDrive;
   // final dynamic item;
-  // final VoidCallback otpTrigger;
+  final VoidCallback otpTrigger;
 
   const AllTestrive({
     super.key,
@@ -35,9 +37,9 @@ class AllTestrive extends StatefulWidget {
     required this.taskId,
     required this.startTime,
     required this.eventId,
-    // required this.handleTestDrive,
+    required this.handleTestDrive,
     // this.item,
-    // required this.otpTrigger,
+    required this.otpTrigger,
   });
 
   @override
@@ -60,7 +62,38 @@ class _AllFollowupsItemState extends State<AllTestrive>
     _slidableController.dispose();
     super.dispose();
   }
+  void _handleTestDrive(dynamic item) {
+    String email = item['updated_by'] ?? '';
+    String mobile = item['mobile'] ?? '';
+    String eventId = item['event_id'] ?? '';
+    String leadId = item['lead_id'] ?? '';
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TestdriveVerifyotp(
+          email: email,
+          mobile: mobile,
+          leadId: leadId,
+          eventId: eventId,
+        ),
+      ),
+    );
+    print("Call action triggered for ${item['name']}");
+  }
 
+
+    Future<void> _getOtp(String eventId) async {
+    final success = await LeadsSrv.getOtp(eventId: eventId);
+
+    if (success) {
+      print('✅ Test drive started successfully');
+    } else {
+      print('❌ Failed to start test drive');
+    }
+
+    if (mounted) setState(() {});
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -106,7 +139,7 @@ class _AllFollowupsItemState extends State<AllTestrive>
             icon: widget.isFavorite
                 ? Icons.star_rounded
                 : Icons.star_border_rounded,
-            foregroundColor: Colors.white,
+            foregroundColor: Colors.white, handleTestDrive: '', otpTrigger: '',
           ),
         ],
       ),
@@ -119,22 +152,22 @@ class _AllFollowupsItemState extends State<AllTestrive>
             ReusableSlidableAction(
               onPressed: _showAleart,
               backgroundColor: Colors.blue,
-              icon: Icons.phone,
-              foregroundColor: Colors.white,
+              icon: Icons.directions_car,
+              foregroundColor: Colors.white, handleTestDrive: '', otpTrigger: '',
             ),
           if (widget.subject == 'Send SMS')
             ReusableSlidableAction(
               onPressed: _messageAction,
               backgroundColor: Colors.blueGrey,
               icon: Icons.message_rounded,
-              foregroundColor: Colors.white,
+              foregroundColor: Colors.white, handleTestDrive: '', otpTrigger: '',
             ),
           // Edit is always shown
           ReusableSlidableAction(
             onPressed: _mailAction,
             backgroundColor: const Color.fromARGB(255, 231, 225, 225),
             icon: Icons.edit,
-            foregroundColor: Colors.white,
+            foregroundColor: Colors.white, handleTestDrive: '', otpTrigger: '',
           ),
         ],
       ),
@@ -211,11 +244,11 @@ class _AllFollowupsItemState extends State<AllTestrive>
             borderRadius: BorderRadius.circular(10),
           ),
           title: Text(
-            'Are You Sure?',
+            'Ready to start test drive?',
             style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
           ),
           content: Text(
-            'Are you sure you want to start a testdrive?',
+            'Please make sure you have all the necessary documents(license) and permissions(OTP) ready before starting test drive.',
             style: GoogleFonts.poppins(),
           ),
           actions: [
@@ -247,46 +280,7 @@ class _AllFollowupsItemState extends State<AllTestrive>
           ],
         );
 
-        // return AlertDialog(
-        //   shape: RoundedRectangleBorder(
-        //     borderRadius: BorderRadius.circular(15),
-        //   ),
-        //   backgroundColor: Colors.white,
-        //   insetPadding: const EdgeInsets.all(10),
-        //   contentPadding: EdgeInsets.zero,
-        //   title: Column(
-        //     crossAxisAlignment: CrossAxisAlignment.start,
-        //     children: [
-        //       Align(
-        //         alignment: Alignment.bottomLeft,
-        //         child: Text(
-        //           textAlign: TextAlign.center,
-        //           'Share your gmail?',
-        //           style: AppFont.mediumText14(context),
-        //         ),
-        //       ),
-        //       const SizedBox(height: 10),
-        //     ],
-        //   ),
-        //   actions: [
-        //     TextButton(
-        //       onPressed: () {
-        //         Navigator.pop(context);
-        //       },
-        //       child: Text(
-        //         'Cancel',
-        //         // style: TextStyle(color: AppColors.colorsBlue),
-        //         style: AppFont.mediumText14blue(context),
-        //       ),
-        //     ),
-        //     TextButton(
-        //       onPressed: () {
-        //         whatsappChat(context); // Pass context to submit
-        //       },
-        //       child: Text('Submit', style: AppFont.mediumText14blue(context)),
-        //     ),
-        //   ],
-        // );
+       
       },
     );
   }
@@ -591,12 +585,16 @@ class ReusableSlidableAction extends StatelessWidget {
   final IconData icon;
   final Color? foregroundColor;
   final double iconSize;
+  final String handleTestDrive;
+  final String otpTrigger;
 
   const ReusableSlidableAction({
     Key? key,
     required this.onPressed,
     required this.backgroundColor,
     required this.icon,
+    required this.handleTestDrive,
+    required this.otpTrigger,
     this.foregroundColor,
     this.iconSize = 40.0,
   }) : super(key: key);
@@ -641,6 +639,37 @@ class _AllTestDriveState extends State<AllTestDrive> {
     if (widget.allTestDrive != oldWidget.allTestDrive) {
       _initializeFavorites();
     }
+  }
+
+   void _handleTestDrive(dynamic item) {
+    String email = item['updated_by'] ?? '';
+    String mobile = item['mobile'] ?? '';
+    String eventId = item['event_id'] ?? '';
+    String leadId = item['lead_id'] ?? '';
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TestdriveVerifyotp(
+          email: email,
+          mobile: mobile,
+          leadId: leadId,
+          eventId: eventId,
+        ),
+      ),
+    );
+    print("Call action triggered for ${item['name']}");
+  }
+
+  Future<void> _getOtp(String eventId) async {
+    final success = await LeadsSrv.getOtp(eventId: eventId);
+
+    if (success) {
+      print('✅ Test drive started successfully');
+    } else {
+      print('❌ Failed to start test drive');
+    }
+
+    if (mounted) setState(() {});
   }
 
   void _initializeFavorites() {
@@ -700,12 +729,12 @@ class _AllTestDriveState extends State<AllTestDrive> {
               eventId: item['event_id'],
               isFavorite: _favorites[index],
               onToggleFavorite: () => _toggleFavorite(index),
-              // handleTestDrive: () {
-              //   _handleTestDrive(item);
-              // },
-              //  otpTrigger: () {
-              //   _getOtp(eventId);
-              // },
+              handleTestDrive: () {
+                _handleTestDrive(item);
+              },
+               otpTrigger: () {
+                _getOtp(item['event_id'] ?? '');
+              },
             );
           },
         ),

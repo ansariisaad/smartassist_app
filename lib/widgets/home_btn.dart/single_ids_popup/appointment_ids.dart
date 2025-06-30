@@ -504,6 +504,7 @@ class _AppointmentIdsState extends State<AppointmentIds> {
               //   hint: 'Type or speak...',
               // ),
               EnhancedSpeechTextField(
+                isRequired: false,
                 // contentPadding: EdgeInsets.zero,
                 label: 'Remarks:',
                 controller: descriptionController,

@@ -192,9 +192,16 @@ class _FUpcomingState extends State<FUpcoming> {
     }
 
     if (upcomingTasks.isEmpty && overdueTasks.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.only(top: 10.0),
-        child: Center(child: Text('No data found')),
+      return Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(horizontal: 0.15, vertical: 20),
+        child: Center(
+          child: Text(
+            'No data found',
+            style: AppFont.dropDowmLabel(context),
+            textAlign: TextAlign.center,
+          ),
+        ),
       );
     }
 

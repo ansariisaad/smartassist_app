@@ -24,6 +24,7 @@ class _FAppointmentState extends State<FAppointment> {
   final Map<String, double> _swipeOffsets = {};
   List<dynamic> upcomingTasks = [];
   List<dynamic> overdueTasks = [];
+  // String get taskId => null;
 
   void _onHorizontalDragUpdate(DragUpdateDetails details, String eventId) {
     setState(() {
@@ -50,15 +51,15 @@ class _FAppointmentState extends State<FAppointment> {
     });
   }
 
-  Future<void> _toggleFavorite(String eventId, int index) async {
+  Future<void> _toggleFavorite(String taskId, int index) async {
     final token = await Storage.getToken();
-     try {
+    try {
       // Find the current favorite status by searching for the event
       bool currentStatus = false;
 
       // Search in both lists to find the current status
       for (var task in [...upcomingTasks, ...overdueTasks]) {
-        if (task['task_id'] == eventId) {
+        if (task['task_id'] == taskId) {
           currentStatus = task['favourite'] ?? false;
           break;
         }
@@ -68,7 +69,7 @@ class _FAppointmentState extends State<FAppointment> {
 
       final response = await http.put(
         Uri.parse(
-          'https://api.smartassistapp.in/api/favourites/mark-fav/event/$eventId',
+          'https://api.smartassistapp.in/api/favourites/mark-fav/task/$taskId',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -84,7 +85,7 @@ class _FAppointmentState extends State<FAppointment> {
         setState(() {
           // Update in upcoming tasks
           for (int i = 0; i < upcomingTasks.length; i++) {
-            if (upcomingTasks[i]['task_id'] == eventId) {
+            if (upcomingTasks[i]['task_id'] == taskId) {
               upcomingTasks[i]['favourite'] = newFavoriteStatus;
               break;
             }
@@ -92,7 +93,7 @@ class _FAppointmentState extends State<FAppointment> {
 
           // Update in overdue tasks
           for (int i = 0; i < overdueTasks.length; i++) {
-            if (overdueTasks[i]['task_id'] == eventId) {
+            if (overdueTasks[i]['task_id'] == taskId) {
               overdueTasks[i]['favourite'] = newFavoriteStatus;
               break;
             }
@@ -105,39 +106,10 @@ class _FAppointmentState extends State<FAppointment> {
       } else {
         print('❌ Failed to toggle favorite: ${response.statusCode}');
       }
+      await fetchTasksData();
     } catch (e) {
       print('❌ Error toggling favorite: $e');
     }
-    // try {
-    //   // Get the current favorite status before toggling
-    //   bool currentStatus = upcomingTasks[index]['favourite'] ?? false;
-    //   bool newFavoriteStatus = !currentStatus;
-
-    //   final response = await http.put(
-    //     Uri.parse(
-    //       'https://api.smartassistapp.in/api/favourites/mark-fav/event/$eventId',
-    //     ),
-    //     headers: {
-    //       'Authorization': 'Bearer $token',
-    //       'Content-Type': 'application/json',
-    //     },
-    //   );
-
-    //   if (response.statusCode == 200) {
-    //     // Parse the response to get the updated favorite status
-    //     final responseData = json.decode(response.body);
-
-    //     // Update only the specific item in the list
-    //     setState(() {
-    //       upcomingTasks[index]['favourite'] = newFavoriteStatus;
-    //       overdueTasks[index]['favourite'] = newFavoriteStatus;
-    //     });
-    //   } else {
-    //     print('Failed to toggle favorite: ${response.statusCode}');
-    //   }
-    // } catch (e) {
-    //   print('Error toggling favorite: $e');
-    // }
   }
 
   void _handleCall(dynamic item) {
@@ -167,14 +139,17 @@ class _FAppointmentState extends State<FAppointment> {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
-          upcomingTasks = data['data']['upcomingAppointments']['rows'] ?? [];
-          overdueTasks = data['data']['overdueAppointments']['rows'] ?? [];
+          // upcomingTasks = data['data']['upcomingAppointments']['rows'] ?? [];
+          // overdueTasks = data['data']['overdueAppointments']['rows'] ?? [];
+          overdueTasks = data['data']['allAppointments']['rows'] ?? [];
+
           isLoading = false;
-          print('this is from FOppointment ${Uri.parse}');
+          print(
+            'Fetched tasks: upcoming=${upcomingTasks.length}, overdue=${overdueTasks.length}',
+          );
         });
       } else {
         print("Failed to load data: ${response.statusCode}");
-        print('this is the api appoinment${Uri}');
         setState(() => isLoading = false);
       }
     } catch (e) {
@@ -202,11 +177,8 @@ class _FAppointmentState extends State<FAppointment> {
         ),
         child: Center(
           child: Text(
-            'Nothing to see here...',
-            style: TextStyle(
-              fontSize: isTablet ? 18 : 16,
-              color: AppColors.iconGrey,
-            ),
+            'No data found',
+            style: AppFont.dropDowmLabel(context),
             textAlign: TextAlign.center,
           ),
         ),
@@ -218,13 +190,16 @@ class _FAppointmentState extends State<FAppointment> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildTasksList(upcomingTasks, isUpcoming: true),
-          _buildTasksList(overdueTasks, isUpcoming: false),
+          _buildTasksList(overdueTasks, isUpcoming: true),
         ],
       ),
     );
   }
 
   Widget _buildTasksList(List<dynamic> tasks, {required bool isUpcoming}) {
+    if (upcomingTasks.isEmpty && overdueTasks.isEmpty) {
+      return const Center(child: Text('No data found'));
+    }
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -232,38 +207,41 @@ class _FAppointmentState extends State<FAppointment> {
       itemBuilder: (context, index) {
         var item = tasks[index];
 
-        if (!(item.containsKey('assigned_to') &&
-            item.containsKey('start_date') &&
-            item.containsKey('lead_id') &&
-            item.containsKey('event_id'))) {
-          return ListTile(title: Text('Invalid data at index $index'));
+        // Validate required fields based on API response
+        if (!item.containsKey('task_id') ||
+            item['task_id'] == null ||
+            !item.containsKey('name') ||
+            !item.containsKey('due_date') ||
+            !item.containsKey('time') ||
+            !item.containsKey('lead_id')) {
+          return ListTile(title: Text('Invalid task data at index $index'));
         }
 
-        String eventId = item['event_id'];
-        double swipeOffset = _swipeOffsets[eventId] ?? 0;
+        String taskId = item['task_id'];
+        double swipeOffset = _swipeOffsets[taskId] ?? 0;
 
         return GestureDetector(
           onHorizontalDragUpdate: (details) =>
-              _onHorizontalDragUpdate(details, eventId),
+              _onHorizontalDragUpdate(details, taskId),
           onHorizontalDragEnd: (details) =>
               _onHorizontalDragEnd(details, item, index),
           child: TaskItem(
-            key: ValueKey(item['task_id']),
-            name: item['name'],
-            subject: item['subject'] ?? 'Meeting',
-            date: item['start_date'],
-            vehicle: item['PMI'] ?? 'Discovery Sport',
-            leadId: item['lead_id'],
-            time: item['start_time'],
-            taskId: item['task_id'],
-            mobile: item['mobile'] ?? '',
-            isFavorite: item['favourite'] ?? false,
-            swipeOffset: swipeOffset,
+            key: ValueKey(taskId),
+            name: item['name']?.toString() ?? 'Unknown',
+            subject: item['subject']?.toString() ?? 'Meeting',
+            date: item['due_date']?.toString() ?? '',
+            vehicle: item['PMI']?.toString() ?? 'Unknown Vehicle',
+            leadId: item['lead_id']?.toString() ?? '',
+            time: item['time']?.toString() ?? '',
+            taskId: taskId,
+            mobile: item['mobile']?.toString() ?? '',
+            isFavorite: item['favourite'] == true,
+            isUpcoming: isUpcoming,
+            // swipeOffset: swipeOffset,
             fetchDashboardData: () {},
             onFavoriteToggled: () {},
-            isUpcoming: isUpcoming, // Placeholder, replace with actual method
             onToggleFavorite: () {
-              _toggleFavorite(eventId, index);
+              _toggleFavorite(taskId, index);
             },
           ),
         );
@@ -282,7 +260,7 @@ class TaskItem extends StatefulWidget {
   final bool isUpcoming;
   final String time;
   final VoidCallback onFavoriteToggled;
-  final double swipeOffset;
+  // final double swipeOffset;
   final VoidCallback fetchDashboardData;
 
   final VoidCallback onToggleFavorite;
@@ -298,7 +276,7 @@ class TaskItem extends StatefulWidget {
     required this.isUpcoming,
     required this.onFavoriteToggled,
     required this.time,
-    required this.swipeOffset,
+    // required this.swipeOffset,
     required this.fetchDashboardData,
     required this.subject,
     required this.onToggleFavorite,
@@ -376,202 +354,21 @@ class _TaskItemState extends State<TaskItem>
     );
   }
 
-  // Widget _buildFollowupCard(BuildContext context) {
-  //   bool isFavoriteSwipe = widget.swipeOffset > 50;
-  //   bool isCallSwipe = widget.swipeOffset < -50;
-  //   // Gradient background for swipe
-  //   LinearGradient _buildSwipeGradient() {
-  //     if (isFavoriteSwipe) {
-  //       return const LinearGradient(
-  //         colors: [
-  //           Color.fromRGBO(239, 206, 29, 0.67),
-  //           // Colors.yellow.withOpacity(0.2),
-  //           // Colors.yellow.withOpacity(0.8)
-  //           Color.fromRGBO(239, 206, 29, 0.67),
-  //         ],
-  //         begin: Alignment.centerLeft,
-  //         end: Alignment.centerRight,
-  //       );
-  //     } else if (isCallSwipe) {
-  //       return LinearGradient(
-  //         colors: [
-  //           Colors.green.withOpacity(0.2),
-  //           Colors.green.withOpacity(0.8),
-  //         ],
-  //         begin: Alignment.centerRight,
-  //         end: Alignment.centerLeft,
-  //       );
-  //     }
-  //     return const LinearGradient(
-  //       colors: [AppColors.containerBg, AppColors.containerBg],
-  //       begin: Alignment.centerLeft,
-  //       end: Alignment.centerRight,
-  //     );
-  //   }
-
-  //   return Stack(
-  //     children: [
-  //       // Favorite Swipe Overlay
-  //       if (isFavoriteSwipe)
-  //         Positioned.fill(
-  //           child: Container(
-  //             decoration: BoxDecoration(
-  //               gradient: LinearGradient(
-  //                 colors: [
-  //                   Colors.yellow.withOpacity(0.2),
-  //                   Colors.yellow.withOpacity(0.8),
-  //                 ],
-  //                 begin: Alignment.centerLeft,
-  //                 end: Alignment.centerRight,
-  //               ),
-  //               borderRadius: BorderRadius.circular(10),
-  //             ),
-  //             child: Center(
-  //               child: Row(
-  //                 mainAxisAlignment: MainAxisAlignment.start,
-  //                 children: [
-  //                   const SizedBox(width: 15),
-  //                   Icon(
-  //                     widget.isFavorite
-  //                         ? Icons.star_outline_rounded
-  //                         : Icons.star_rounded,
-  //                     color: const Color.fromRGBO(226, 195, 34, 1),
-  //                     size: 40,
-  //                   ),
-  //                   const SizedBox(width: 10),
-  //                   Text(
-  //                     widget.isFavorite ? 'Unfavorite' : 'Favorite',
-  //                     style: GoogleFonts.poppins(
-  //                       color: Color.fromRGBO(187, 158, 0, 1),
-  //                       fontSize: 18,
-  //                       fontWeight: FontWeight.bold,
-  //                     ),
-  //                   ),
-  //                 ],
-  //               ),
-  //             ),
-  //           ),
-  //         ),
-
-  //       // Call Swipe Overlay
-  //       if (isCallSwipe)
-  //         Positioned.fill(
-  //           child: Container(
-  //             decoration: BoxDecoration(
-  //               gradient: LinearGradient(
-  //                 colors: [
-  //                   Colors.green.withOpacity(0.2),
-  //                   Colors.green.withOpacity(0.8),
-  //                 ],
-  //                 begin: Alignment.centerRight,
-  //                 end: Alignment.centerLeft,
-  //               ),
-  //               borderRadius: BorderRadius.circular(10),
-  //             ),
-  //             child: Center(
-  //               child: Row(
-  //                 mainAxisAlignment: MainAxisAlignment.start,
-  //                 children: [
-  //                   const SizedBox(width: 10),
-  //                   const Icon(
-  //                     Icons.phone_in_talk,
-  //                     color: Colors.white,
-  //                     size: 30,
-  //                   ),
-  //                   const SizedBox(width: 10),
-  //                   Text(
-  //                     'Call',
-  //                     style: GoogleFonts.poppins(
-  //                       color: Colors.white,
-  //                       fontSize: 18,
-  //                       fontWeight: FontWeight.bold,
-  //                     ),
-  //                   ),
-  //                   const SizedBox(width: 5),
-  //                 ],
-  //               ),
-  //             ),
-  //           ),
-  //         ),
-
-  //       // Main Container
-  //       Container(
-  //         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-  //         decoration: BoxDecoration(
-  //           gradient: _buildSwipeGradient(),
-  //           borderRadius: BorderRadius.circular(5),
-  //           border: Border(
-  //             left: BorderSide(
-  //               width: 8.0,
-  //               color: widget.isFavorite
-  //                   ? (isCallSwipe
-  //                         ? Colors.green.withOpacity(
-  //                             0.9,
-  //                           ) // Green when swiping for a call
-  //                         : Colors.yellow.withOpacity(
-  //                             isFavoriteSwipe ? 0.1 : 0.9,
-  //                           )) // Keep yellow when favorite
-  //                   : (isFavoriteSwipe
-  //                         ? Colors.yellow.withOpacity(0.1)
-  //                         : (isCallSwipe
-  //                               ? AppColors.sideGreen.withOpacity(0.5)
-  //                               : AppColors.sideGreen)),
-  //             ),
-  //           ),
-  //         ),
-  //         child: Opacity(
-  //           opacity: (isFavoriteSwipe || isCallSwipe) ? 0 : 1.0,
-  //           child: Row(
-  //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //             crossAxisAlignment: CrossAxisAlignment.center,
-  //             children: [
-  //               Row(
-  //                 children: [
-  //                   const SizedBox(width: 8),
-  //                   Column(
-  //                     crossAxisAlignment: CrossAxisAlignment.start,
-  //                     children: [
-  //                       Row(
-  //                         children: [
-  //                           _buildUserDetails(context),
-  //                           _buildVerticalDivider(15),
-  //                           _buildCarModel(context),
-  //                         ],
-  //                       ),
-  //                       const SizedBox(height: 4),
-  //                       Row(
-  //                         children: [
-  //                           _buildSubjectDetails(context),
-  //                           _date(context),
-  //                           _time(),
-  //                         ],
-  //                       ),
-  //                     ],
-  //                   ),
-  //                 ],
-  //               ),
-  //               _buildNavigationButton(context),
-  //             ],
-  //           ),
-  //         ),
-  //       ),
-  //     ],
-  //   );
-  // }
-
   Widget _buildFollowupCard(BuildContext context) {
-    bool isFavoriteSwipe = widget.swipeOffset > 50;
-    bool isCallSwipe = widget.swipeOffset < -50;
+    final screenSize = MediaQuery.of(context).size;
+    final isTablet = screenSize.width > 600;
+    // bool isFavoriteSwipe = widget.swipeOffset > 50;
+    // bool isCallSwipe = widget.swipeOffset < -50;
 
     return Slidable(
-      key: ValueKey(widget.taskId), // Always good to set keys
+      key: ValueKey(widget.taskId),
       controller: _slidableController,
       startActionPane: ActionPane(
         extentRatio: 0.2,
         motion: const ScrollMotion(),
         children: [
           ReusableSlidableAction(
-            onPressed: widget.onToggleFavorite, // handle fav toggle
+            onPressed: widget.onToggleFavorite,
             backgroundColor: Colors.amber,
             icon: widget.isFavorite
                 ? Icons.star_rounded
@@ -580,26 +377,24 @@ class _TaskItemState extends State<TaskItem>
           ),
         ],
       ),
-
       endActionPane: ActionPane(
         extentRatio: 0.4,
         motion: const StretchMotion(),
         children: [
-          // if (widget.subject == 'Meeting')
-          ReusableSlidableAction(
-            onPressed: _phoneAction,
-            backgroundColor: Colors.blue,
-            icon: Icons.phone,
-            foregroundColor: Colors.white,
-          ),
-          if (widget.subject == 'Quetations')
+          if (widget.subject == 'Showroom appointment')
+            ReusableSlidableAction(
+              onPressed: _phoneAction,
+              backgroundColor: Colors.blue,
+              icon: Icons.phone,
+              foregroundColor: Colors.white,
+            ),
+          if (widget.subject == 'Provide Quotation')
             ReusableSlidableAction(
               onPressed: _messageAction,
               backgroundColor: Colors.blueGrey,
               icon: Icons.message_rounded,
               foregroundColor: Colors.white,
             ),
-          // Edit is always shown
           ReusableSlidableAction(
             onPressed: _mailAction,
             backgroundColor: const Color.fromARGB(255, 231, 225, 225),
@@ -608,75 +403,148 @@ class _TaskItemState extends State<TaskItem>
           ),
         ],
       ),
-
       child: Stack(
         children: [
-          // Main Container
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
             decoration: BoxDecoration(
-              color: AppColors.backgroundLightGrey,
-              // gradient: _buildSwipeGradient(),
+              color: AppColors.containerBg,
               borderRadius: BorderRadius.circular(5),
               border: Border(
                 left: BorderSide(
                   width: 8.0,
                   color: widget.isFavorite
-                      ? (isCallSwipe
-                            ? Colors.green.withOpacity(
-                                0.9,
-                              ) // Green when swiping for a call
-                            : Colors.yellow.withOpacity(
-                                isFavoriteSwipe ? 0.1 : 0.9,
-                              )) // Keep yellow when favorite
-                      : (isFavoriteSwipe
-                            ? Colors.yellow.withOpacity(0.1)
-                            : (isCallSwipe
-                                  ? Colors.green
-                                  : AppColors.sideGreen)),
+                      ? Colors.yellow
+                      : AppColors.sideGreen,
                 ),
               ),
             ),
-            child: Opacity(
-              opacity: (isFavoriteSwipe || isCallSwipe) ? 0 : 1.0,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Row(
-                    children: [
-                      const SizedBox(width: 8),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              _buildUserDetails(context),
-                              _buildVerticalDivider(15),
-                              _buildCarModel(context),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              _buildSubjectDetails(context),
-                              _date(context),
-                              _time(),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  _buildNavigationButton(context),
-                ],
-              ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const SizedBox(width: 8),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            _buildUserDetails(context),
+                            _buildVerticalDivider(15),
+                            _buildCarModel(context),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            _buildSubjectDetails(context),
+                            _date(context),
+                            _time(),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                _buildNavigationButton(context),
+              ],
             ),
           ),
         ],
       ),
     );
   }
+
+  // Widget _buildFollowupCard(BuildContext context) {
+  //   // bool isFavoriteSwipe = widget.swipeOffset > 50;
+  //   // bool isCallSwipe = widget.swipeOffset < -50;
+
+  //   return Slidable(
+  //     key: ValueKey(widget.taskId), // Always good to set keys
+  //     controller: _slidableController,
+  //     startActionPane: ActionPane(
+  //       extentRatio: 0.2,
+  //       motion: const ScrollMotion(),
+  //       children: [
+  //         ReusableSlidableAction(
+  //           onPressed: widget.onToggleFavorite, // handle fav toggle
+  //           backgroundColor: Colors.amber,
+  //           icon: widget.isFavorite
+  //               ? Icons.star_rounded
+  //               : Icons.star_border_rounded,
+  //           foregroundColor: Colors.white,
+  //         ),
+  //       ],
+  //     ),
+
+  //     endActionPane: ActionPane(
+  //       extentRatio: 0.4,
+  //       motion: const StretchMotion(),
+  //       children: [
+  //         // if (widget.subject == 'Meeting')
+  //         ReusableSlidableAction(
+  //           onPressed: _phoneAction,
+  //           backgroundColor: Colors.blue,
+  //           icon: Icons.phone,
+  //           foregroundColor: Colors.white,
+  //         ),
+  //         if (widget.subject == 'Quetations')
+  //           ReusableSlidableAction(
+  //             onPressed: _messageAction,
+  //             backgroundColor: Colors.blueGrey,
+  //             icon: Icons.message_rounded,
+  //             foregroundColor: Colors.white,
+  //           ),
+  //         // Edit is always shown
+  //         ReusableSlidableAction(
+  //           onPressed: _mailAction,
+  //           backgroundColor: const Color.fromARGB(255, 231, 225, 225),
+  //           icon: Icons.edit,
+  //           foregroundColor: Colors.white,
+  //         ),
+  //       ],
+  //     ),
+
+  //     child: Stack(
+  //       children: [
+  //         // Main Container
+  //         Row(
+  //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //           crossAxisAlignment: CrossAxisAlignment.center,
+  //           children: [
+  //             Row(
+  //               children: [
+  //                 const SizedBox(width: 8),
+  //                 Column(
+  //                   crossAxisAlignment: CrossAxisAlignment.start,
+  //                   children: [
+  //                     Row(
+  //                       children: [
+  //                         _buildUserDetails(context),
+  //                         _buildVerticalDivider(15),
+  //                         _buildCarModel(context),
+  //                       ],
+  //                     ),
+  //                     const SizedBox(height: 4),
+  //                     Row(
+  //                       children: [
+  //                         _buildSubjectDetails(context),
+  //                         _date(context),
+  //                         _time(),
+  //                       ],
+  //                     ),
+  //                   ],
+  //                 ),
+  //               ],
+  //             ),
+  //             _buildNavigationButton(context),
+  //           ],
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget _buildUserDetails(BuildContext context) {
     return ConstrainedBox(

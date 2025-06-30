@@ -456,7 +456,7 @@ class _FollowupsIdsState extends State<FollowupsIds> {
     bool success = await LeadsSrv.submitFollowups(
       newTaskForLead,
       widget.leadId,
-      context
+      context,
     );
 
     // print(s)
@@ -591,6 +591,7 @@ class _FollowupsIdsState extends State<FollowupsIds> {
             //   hint: 'Type or speak...',
             // ),
             EnhancedSpeechTextField(
+              isRequired: false,
               // contentPadding: EdgeInsets.zero,
               label: 'Remarks:',
               controller: descriptionController,

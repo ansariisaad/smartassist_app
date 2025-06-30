@@ -30,6 +30,7 @@ class CreateLeads extends StatefulWidget {
 class _CreateLeadsState extends State<CreateLeads> {
   String? selectedVehicleName;
   String? selectedBrand;
+  String? vehicleId;
   Map<String, dynamic>? selectedVehicleData;
   final PageController _pageController = PageController();
   List<Map<String, String>> dropdownItems = [];
@@ -81,7 +82,7 @@ class _CreateLeadsState extends State<CreateLeads> {
   String? _locationErrorText;
 
   // Google Maps API key
-  final String _googleApiKey = "AIzaSyA_SWIvFPfChqL33bKtLyZ5YOFSXrsk1Qs";
+  final String _googleApiKey = "AIzaSyCaFZ4RXQIy86v9B24wz5l0vgDKbQSP5LE";
 
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _searchControllerVehicleColor =
@@ -977,6 +978,8 @@ class _CreateLeadsState extends State<CreateLeads> {
                             selectedVehicleName =
                                 selectedVehicle['vehicle_name'];
                             selectedBrand = selectedVehicle['brand'];
+                            vehicleId = selectedVehicle['vehicle_id'];
+
                             if (_errors.containsKey('vehicleName')) {
                               _errors.remove('vehicleName');
                             }
@@ -2601,6 +2604,7 @@ class _CreateLeadsState extends State<CreateLeads> {
         'mobile': mobileNumber,
         'purchase_type': _selectedPurchaseType,
         'brand': selectedBrand ?? '',
+        'vehicle_id': vehicleId ?? '',
         'type': 'Product',
         'sub_type': selectedSubType,
         // 'sp_id': spId,

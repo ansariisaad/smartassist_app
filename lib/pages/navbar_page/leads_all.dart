@@ -130,6 +130,7 @@ class _AllLeadsState extends State<AllLeads> {
           upcomingTasks[index]['favourite'] = newFavoriteStatus;
           _updateFilteredResults();
         });
+        await fetchTasksData();
       } else {
         print('Failed to toggle favorite: ${response.statusCode}');
       }

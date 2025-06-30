@@ -1177,12 +1177,12 @@ class _WhatsappChatState extends State<WhatsappChat>
           isWhatsAppReady = false;
           isCheckingStatus = false;
         });
-        Get.snackbar(
-          'Error',
-          'Failed to check WhatsApp status',
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
+        // Get.snackbar(
+        //   'Error',
+        //   'Failed to check WhatsApp status',
+        //   backgroundColor: Colors.red,
+        //   colorText: Colors.white,
+        // );
       }
     } catch (e) {
       print('Error checking WhatsApp status: $e');

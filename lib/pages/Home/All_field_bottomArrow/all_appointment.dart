@@ -14,7 +14,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:smartassist/widgets/oppointment/all_oppintment.dart';
 import 'package:smartassist/widgets/oppointment/overdue.dart';
 import 'package:smartassist/widgets/oppointment/upcoming.dart';
-import 'package:smartassist/widgets/reusable/globle_speechtotext.dart'; // Import GlobleSpeechtotext
+import 'package:smartassist/widgets/reusable/globle_speechtotext.dart';
+import 'package:speech_to_text/speech_to_text.dart'
+    as stt; // Import GlobleSpeechtotext
 
 class AllAppointment extends StatefulWidget {
   final Future<void> Function() refreshDashboard;
@@ -40,6 +42,7 @@ class _AllAppointmentState extends State<AllAppointment>
   String _query = '';
   int _upcomingButtonIndex = 0; // Fixed typo
   int count = 0;
+  late stt.SpeechToText _speech;
 
   final TextEditingController _searchController = TextEditingController();
   Timer? _searchDebounceTimer;
@@ -49,6 +52,8 @@ class _AllAppointmentState extends State<AllAppointment>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     fetchTasks();
+    _speech = stt.SpeechToText();
+    _initSpeech();
   }
 
   @override
@@ -57,6 +62,61 @@ class _AllAppointmentState extends State<AllAppointment>
     _searchDebounceTimer?.cancel();
     _searchController.dispose();
     super.dispose();
+  }
+
+  // Initialize speech recognition
+  void _initSpeech() async {
+    bool available = await _speech.initialize(
+      onStatus: (status) {
+        if (status == 'done') {
+          setState(() {
+            _isListening = false;
+          });
+        }
+      },
+      onError: (errorNotification) {
+        setState(() {
+          _isListening = false;
+        });
+        showErrorMessage(
+          context,
+          message: 'Speech recognition error: ${errorNotification.errorMsg}',
+        );
+      },
+    );
+    if (!available) {
+      showErrorMessage(
+        context,
+        message: 'Speech recognition not available on this device',
+      );
+    }
+  }
+
+  // Toggle listening
+  void _toggleListening(TextEditingController controller) async {
+    if (_isListening) {
+      _speech.stop();
+      setState(() {
+        _isListening = false;
+      });
+    } else {
+      setState(() {
+        _isListening = true;
+      });
+      await _speech.listen(
+        onResult: (result) {
+          setState(() {
+            controller.text = result.recognizedWords;
+            _onSearchChanged(); // Trigger search filtering
+          });
+        },
+        listenFor: Duration(seconds: 30),
+        pauseFor: Duration(seconds: 5),
+        partialResults: true,
+        cancelOnError: true,
+        listenMode: stt.ListenMode.confirmation,
+      );
+    }
   }
 
   // Responsive methods
@@ -246,6 +306,8 @@ class _AllAppointmentState extends State<AllAppointment>
     });
   }
 
+  
+
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
@@ -365,23 +427,48 @@ class _AllAppointmentState extends State<AllAppointment>
                               isTablet,
                             ),
                             child: Center(
-                              child: GlobleSpeechtotext(
-                                onSpeechResult: (result) {
-                                  _searchController.text = result;
-                                  _onSearchChanged();
-                                },
-                                onListeningStateChanged: (isListening) {
-                                  setState(() => _isListening = isListening);
-                                },
-                                iconSize: _getResponsiveIconSize(
-                                  context,
-                                  isTablet,
+                              child: IconButton(
+                                icon: Icon(
+                                  _isListening
+                                      ? FontAwesomeIcons.microphone
+                                      : FontAwesomeIcons.microphoneSlash,
+                                  color: _isListening
+                                      ? AppColors.fontColor
+                                      : AppColors.fontColor,
+                                  size: _getResponsiveIconSize(
+                                    context,
+                                    isTablet,
+                                  ),
                                 ),
-                                activeColor: AppColors.iconGrey,
-                                inactiveColor: AppColors.fontColor,
+                                onPressed: () =>
+                                    _toggleListening(_searchController),
                               ),
                             ),
                           ),
+
+                          // suffixIcon: Container(
+                          //   width: _getResponsiveIconContainerWidth(
+                          //     context,
+                          //     isTablet,
+                          //   ),
+                          //   child: Center(
+                          //     child: GlobleSpeechtotext(
+                          //       onSpeechResult: (result) {
+                          //         _searchController.text = result;
+                          //         _onSearchChanged();
+                          //       },
+                          //       onListeningStateChanged: (isListening) {
+                          //         setState(() => _isListening = isListening);
+                          //       },
+                          //       iconSize: _getResponsiveIconSize(
+                          //         context,
+                          //         isTablet,
+                          //       ),
+                          //       activeColor: AppColors.iconGrey,
+                          //       inactiveColor: AppColors.fontColor,
+                          //     ),
+                          //   ),
+                          // ),
                           prefixIcon: Container(
                             width: _getResponsiveIconContainerWidth(
                               context,

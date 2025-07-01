@@ -16,7 +16,8 @@ import 'package:google_fonts/google_fonts.dart';
 class CalendarWithTimeline extends StatefulWidget {
   final String leadName;
 
-  const CalendarWithTimeline({Key? key, required this.leadName}) : super(key: key);
+  const CalendarWithTimeline({Key? key, required this.leadName})
+    : super(key: key);
 
   @override
   State<CalendarWithTimeline> createState() => _CalendarWithTimelineState();
@@ -32,7 +33,7 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
   DateTime? _selectedDay;
   bool _isLoading = false;
   ScrollController _timelineScrollController = ScrollController();
-   Map<String, bool> _expandedSlots = {};
+  Map<String, bool> _expandedSlots = {};
 
   List<int> _allHours = List.generate(24, (index) => index);
   Set<int> _activeHours = {};
@@ -75,10 +76,14 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
 
     try {
       final token = await Storage.getToken();
-      String formattedDate = DateFormat('dd-MM-yyyy').format(_selectedDay ?? _focusedDay);
+      String formattedDate = DateFormat(
+        'dd-MM-yyyy',
+      ).format(_selectedDay ?? _focusedDay);
 
       final Map<String, String> queryParams = {'date': formattedDate};
-      final baseUrl = Uri.parse("https://api.smartassistapp.in/api/calendar/activities/all/asondate");
+      final baseUrl = Uri.parse(
+        "https://api.smartassistapp.in/api/calendar/activities/all/asondate",
+      );
       final uri = baseUrl.replace(queryParameters: queryParams);
 
       final response = await http.get(
@@ -116,7 +121,8 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
       for (int hour = startTime.hour; hour <= endTime.hour; hour++) {
         _activeHours.add(hour);
       }
-      final timeKey = '${startTime.hour}:${startTime.minute.toString().padLeft(2, '0')}';
+      final timeKey =
+          '${startTime.hour}:${startTime.minute.toString().padLeft(2, '0')}';
       if (!_timeSlotItems.containsKey(timeKey)) _timeSlotItems[timeKey] = [];
       _timeSlotItems[timeKey]!.add({
         'item': event,
@@ -135,7 +141,8 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
       }
       _activeHours.add(taskTime.hour);
 
-      final timeKey = '${taskTime.hour}:${taskTime.minute.toString().padLeft(2, '0')}';
+      final timeKey =
+          '${taskTime.hour}:${taskTime.minute.toString().padLeft(2, '0')}';
       if (!_timeSlotItems.containsKey(timeKey)) _timeSlotItems[timeKey] = [];
       _timeSlotItems[timeKey]!.add({
         'item': task,
@@ -181,7 +188,9 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
   }
 
   double _getHourHeight(int hour) {
-    return _expandedHours.containsKey(hour) ? 60.0 * (_expandedHours[hour] ?? 1) : 60.0;
+    return _expandedHours.containsKey(hour)
+        ? 60.0 * (_expandedHours[hour] ?? 1)
+        : 60.0;
   }
 
   void _handleDateSelected(DateTime selectedDate) {
@@ -222,7 +231,9 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
           IconButton(
             onPressed: () {
               setState(() {
-                _calendarFormat = _isMonthView ? CalendarFormat.week : CalendarFormat.month;
+                _calendarFormat = _isMonthView
+                    ? CalendarFormat.week
+                    : CalendarFormat.month;
                 _isMonthView = !_isMonthView;
               });
             },
@@ -252,10 +263,15 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
                 onDateSelected: _handleDateSelected,
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 width: double.infinity,
                 child: Text(
-                  DateFormat('EEEE, MMMM d').format(_selectedDay ?? _focusedDay),
+                  DateFormat(
+                    'EEEE, MMMM d',
+                  ).format(_selectedDay ?? _focusedDay),
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -296,13 +312,13 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
         ),
       );
     }
-      final activeTimeSlots = _timeSlotItems.keys.toList()..sort();
+    final activeTimeSlots = _timeSlotItems.keys.toList()..sort();
 
-       if (activeTimeSlots.isEmpty) {
+    if (activeTimeSlots.isEmpty) {
       return _emptyState('No scheduled activities for this date');
     }
     // Timeline view (vertical tabbed)
-  return ListView.separated(
+    return ListView.separated(
       shrinkWrap: true,
       physics: NeverScrollableScrollPhysics(),
       itemCount: activeTimeSlots.length,
@@ -318,8 +334,12 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
         final items = _timeSlotItems[timeKey] ?? [];
 
         // Group by type, but merge for display (show all event/task types)
-        final events = items.where((item) => item['start_time'] != null).toList();
-        final tasks = items.where((item) => item['start_time'] == null).toList();
+        final events = items
+            .where((item) => item['start_time'] != null)
+            .toList();
+        final tasks = items
+            .where((item) => item['start_time'] == null)
+            .toList();
 
         List<dynamic> allItems = [];
         allItems.addAll(events);
@@ -355,21 +375,19 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ...displayItems.map(
-                          (item) {
-                            if (item['start_time'] != null) {
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 8.0),
-                                child: _buildEventTab(item),
-                              );
-                            } else {
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 8.0),
-                                child: _buildTaskTab(item),
-                              );
-                            }
-                          },
-                        ).toList(),
+                        ...displayItems.map((item) {
+                          if (item['start_time'] != null) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 8.0),
+                              child: _buildEventTab(item),
+                            );
+                          } else {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 8.0),
+                              child: _buildTaskTab(item),
+                            );
+                          }
+                        }).toList(),
                         if (showMore && !isExpanded)
                           Align(
                             alignment: Alignment.centerRight,
@@ -380,11 +398,18 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
                                 });
                               },
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 3.0),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 3.0,
+                                ),
                                 child: Text(
                                   "Show More (${allItems.length - 2} more) ▼",
                                   style: TextStyle(
-                                    color:  const Color.fromRGBO(117, 117, 117, 1),
+                                    color: const Color.fromRGBO(
+                                      117,
+                                      117,
+                                      117,
+                                      1,
+                                    ),
                                     fontSize: 13.5,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -402,11 +427,18 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
                                 });
                               },
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 3.0),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 3.0,
+                                ),
                                 child: Text(
                                   "Show Less ▲",
                                   style: TextStyle(
-                                    color: const Color.fromRGBO(117, 117, 117, 1),
+                                    color: const Color.fromRGBO(
+                                      117,
+                                      117,
+                                      117,
+                                      1,
+                                    ),
                                     fontSize: 13.5,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -426,8 +458,7 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
     );
   }
 
-
-   DateTime _parseTimeString(String timeStr) {
+  DateTime _parseTimeString(String timeStr) {
     if (timeStr.isEmpty) {
       return DateTime(2022, 1, 1, 0, 0);
     }
@@ -467,7 +498,6 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
     return '${hour12}:${parsedTime.minute.toString().padLeft(2, '0')} $period';
   }
 
-
   List<int> _getDisplayHours() {
     Set<int> hours = Set<int>.from(_activeHours);
     if (hours.isNotEmpty) {
@@ -480,8 +510,7 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
     return sortedHours.isEmpty ? [DateTime.now().hour] : sortedHours;
   }
 
-
-    Widget _emptyState(String msg) {
+  Widget _emptyState(String msg) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 40),
       child: Column(
@@ -675,7 +704,7 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
   }
 
   // --- Helper functions ---
-  
+
   // DateTime _parseTimeString(String timeStr) {
   //   if (timeStr.isEmpty) {
   //     return DateTime(2022, 1, 1, 0, 0);

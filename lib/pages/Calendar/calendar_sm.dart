@@ -322,8 +322,12 @@ class _CalendarSmState extends State<CalendarSm> {
         final items = _timeSlotItems[timeKey] ?? [];
 
         // Group by type, but merge for display (show all event/task types)
-        final events = items.where((item) => item['start_time'] != null).toList();
-        final tasks = items.where((item) => item['start_time'] == null).toList();
+        final events = items
+            .where((item) => item['start_time'] != null)
+            .toList();
+        final tasks = items
+            .where((item) => item['start_time'] == null)
+            .toList();
 
         List<dynamic> allItems = [];
         allItems.addAll(events);
@@ -359,21 +363,19 @@ class _CalendarSmState extends State<CalendarSm> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ...displayItems.map(
-                          (item) {
-                            if (item['start_time'] != null) {
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 8.0),
-                                child: _buildEventTab(item),
-                              );
-                            } else {
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 8.0),
-                                child: _buildTaskTab(item),
-                              );
-                            }
-                          },
-                        ).toList(),
+                        ...displayItems.map((item) {
+                          if (item['start_time'] != null) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 8.0),
+                              child: _buildEventTab(item),
+                            );
+                          } else {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 8.0),
+                              child: _buildTaskTab(item),
+                            );
+                          }
+                        }).toList(),
                         if (showMore && !isExpanded)
                           Align(
                             alignment: Alignment.centerRight,
@@ -384,11 +386,18 @@ class _CalendarSmState extends State<CalendarSm> {
                                 });
                               },
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 3.0),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 3.0,
+                                ),
                                 child: Text(
                                   "Show More (${allItems.length - 2} more) ▼",
                                   style: TextStyle(
-                                    color:  const Color.fromRGBO(117, 117, 117, 1),
+                                    color: const Color.fromRGBO(
+                                      117,
+                                      117,
+                                      117,
+                                      1,
+                                    ),
                                     fontSize: 13.5,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -406,11 +415,18 @@ class _CalendarSmState extends State<CalendarSm> {
                                 });
                               },
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 3.0),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 3.0,
+                                ),
                                 child: Text(
                                   "Show Less ▲",
                                   style: TextStyle(
-                                    color: const Color.fromRGBO(117, 117, 117, 1),
+                                    color: const Color.fromRGBO(
+                                      117,
+                                      117,
+                                      117,
+                                      1,
+                                    ),
                                     fontSize: 13.5,
                                     fontWeight: FontWeight.w500,
                                   ),

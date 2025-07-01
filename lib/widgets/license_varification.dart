@@ -157,28 +157,20 @@ class _LicenseVarificationState extends State<LicenseVarification> {
     setState(() {
       _isUploading = true;
     });
-
     try {
+      print('Event ID: ${widget.eventId}');
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? spId = prefs.getString('user_id');
       final url = Uri.parse(
         'https://api.smartassistapp.in/api/events/update/${widget.eventId}',
       );
       final token = await Storage.getToken();
-
-      // Update the skip reason
       skip['Overall Ambience'] = skipReason;
-
-      // Create the request body
       final requestBody = {
         'sp_id': spId,
         'skip_license': skip['Overall Ambience'],
       };
-
-      // Print the data to console for debugging
-      print('Submitting feedback data:');
       print(requestBody);
-
       final response = await http.put(
         url,
         headers: {
@@ -187,22 +179,13 @@ class _LicenseVarificationState extends State<LicenseVarification> {
         },
         body: json.encode(requestBody),
       );
-
-      // Print the response
+      final responseData = jsonDecode(response.body);
       print('API Response status: ${response.statusCode}');
       print('API Response body: ${response.body}');
-
+      print(url.toString());
       if (response.statusCode == 200) {
-        // Success handling
         print('Feedback submitted successfully');
-        Get.snackbar(
-          'Success',
-          'License verification skipped successfully',
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
-
-        // Navigate to FollowupsDetails screen
+        Get.snackbar('Success', 'License verification skipped successfully');
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -211,30 +194,106 @@ class _LicenseVarificationState extends State<LicenseVarification> {
           ),
         );
       } else {
-        // Error handling
-        print('Failed to submit feedback');
-        Get.snackbar(
-          'Error',
-          'Failed to skip license verification',
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
+        print(
+          'Failed to submit feedback : ${responseData['message'].toString()}',
         );
+        Get.snackbar('Error', 'error due to ${responseData['message']}');
       }
     } catch (e) {
-      // Exception handling
       print('Exception occurred: ${e.toString()}');
-      Get.snackbar(
-        'Error',
-        'An error occurred: ${e.toString()}',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      Get.snackbar('Error', 'An error occurred: ${e.toString()}');
     } finally {
       setState(() {
         _isUploading = false;
       });
     }
   }
+
+  // Future<void> submitFeedback(String skipReason) async {
+  //   setState(() {
+  //     _isUploading = true;
+  //   });
+
+  //   try {
+  //     print('Event ID: ${widget.eventId}');
+  //     SharedPreferences prefs = await SharedPreferences.getInstance();
+  //     String? spId = prefs.getString('user_id');
+  //     final url = Uri.parse(
+  //       'https://api.smartassistapp.in/api/events/update/${widget.eventId}',
+  //     );
+  //     final token = await Storage.getToken();
+
+  //     // Update the skip reason
+  //     skip['Overall Ambience'] = skipReason;
+
+  //     // Create the request body
+  //     final requestBody = {
+  //       'sp_id': spId,
+  //       'skip_license': skip['Overall Ambience'],
+  //     };
+
+  //     print(requestBody);
+
+  //     final response = await http.put(
+  //       url,
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'Authorization': 'Bearer $token',
+  //       },
+  //       body: json.encode(requestBody),
+  //     );
+
+  //     final responseData = jsonDecode(response.body);
+
+  //     // Print the response
+  //     print('API Response status: ${response.statusCode}');
+  //     print('API Response body: ${response.body}');
+  //     print(url.toString());
+  //     if (response.statusCode == 200) {
+  //       // Success handling
+  //       print('Feedback submitted successfully');
+  //       Get.snackbar(
+  //         'Success',
+  //         'License verification skipped successfully',
+  //         backgroundColor: Colors.green,
+  //         colorText: Colors.white,
+  //       );
+
+  //       // Navigate to FollowupsDetails screen
+  //       Navigator.push(
+  //         context,
+  //         MaterialPageRoute(
+  //           builder: (context) =>
+  //               StartDriveMap(leadId: widget.leadId, eventId: widget.eventId),
+  //         ),
+  //       );
+  //     } else {
+  //       // Error handling
+  //       print(
+  //         'Failed to submit feedback : ${responseData['message'].toString()}',
+  //       );
+  //       Get.snackbar(
+  //         'Error',
+  //         'error due to ${responseData['message']}',
+  //         backgroundColor: Colors.red,
+  //         colorText: Colors.white,
+  //       );
+  //     }
+  //   } catch (e) {
+  //     // Exception handling
+  //     print('Exception occurred: ${e.toString()}');
+  //     Get.snackbar(
+  //       'Error',
+  //       'An error occurred: ${e.toString()}',
+  //       backgroundColor: Colors.red,
+  //       colorText: Colors.white,
+  //     );
+  //   } finally {
+  //     setState(() {
+  //       _isUploading = false;
+  //     });
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {

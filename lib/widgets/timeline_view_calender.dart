@@ -270,14 +270,15 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
     );
   }
 
-  Widget _buildTabbedTimelineView() {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: Colors.blue));
-    }
-    // Only show hours with actual appointments/tasks
-    final List<int> displayHours = _getDisplayHours();
-    if (_timeSlotItems.isEmpty) {
-      return Center(
+Widget _buildTabbedTimelineView() {
+  if (_isLoading) {
+    return const Center(child: CircularProgressIndicator(color: Colors.blue));
+  }
+
+  final List<int> displayHours = _getDisplayHours();
+  if (_timeSlotItems.isEmpty) {
+    return Expanded(
+      child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -294,17 +295,20 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
             ),
           ],
         ),
-      );
-    }
-      final activeTimeSlots = _timeSlotItems.keys.toList()..sort();
+      ),
+    );
+  }
 
-       if (activeTimeSlots.isEmpty) {
-      return _emptyState('No scheduled activities for this date');
-    }
-    // Timeline view (vertical tabbed)
-  return ListView.separated(
-      shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
+  final activeTimeSlots = _timeSlotItems.keys.toList()..sort();
+
+  if (activeTimeSlots.isEmpty) {
+    return Expanded(child: _emptyState('No scheduled activities for this date'));
+  }
+
+  // Timeline view (vertical tabbed)
+  return Expanded(
+    child: ListView.separated(
+      controller: _timelineScrollController,
       itemCount: activeTimeSlots.length,
       separatorBuilder: (_, __) => Divider(
         height: 1,
@@ -423,8 +427,9 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
           ),
         );
       },
-    );
-  }
+    ),
+  );
+}
 
 
    DateTime _parseTimeString(String timeStr) {

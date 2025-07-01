@@ -39,6 +39,9 @@ class _CalendarSmState extends State<CalendarSm> {
   Set<int> _activeHours = {};
   Map<String, List<dynamic>> _timeSlotItems = {};
 
+  // Added for Show More/Show Less per time slot
+  Map<String, bool> _expandedSlots = {};
+
   @override
   void initState() {
     super.initState();
@@ -180,6 +183,7 @@ class _CalendarSmState extends State<CalendarSm> {
       _activeHours.clear();
       _timeSlotItems.clear();
       _isLoading = true;
+      _expandedSlots.clear();
     });
     _fetchActivitiesData();
   }
@@ -192,6 +196,7 @@ class _CalendarSmState extends State<CalendarSm> {
         _selectedUserId = '';
       }
       _isLoading = true;
+      _expandedSlots.clear();
     });
     await _fetchActivitiesData();
   }
@@ -202,6 +207,7 @@ class _CalendarSmState extends State<CalendarSm> {
       _selectedUserId = userId;
       _selectedType = 'team';
       _isLoading = true;
+      _expandedSlots.clear();
     });
     await _fetchActivitiesData();
   }
@@ -280,6 +286,7 @@ class _CalendarSmState extends State<CalendarSm> {
     );
   }
 
+  // =================== UPDATED TIMELINE VIEW ===================
   Widget _buildTimelineView() {
     if (_isLoading) {
       return const Center(
@@ -293,7 +300,6 @@ class _CalendarSmState extends State<CalendarSm> {
       return _emptyState('Select a PS to view their schedule');
     }
 
-    // Only show active time slots (that have items)
     final activeTimeSlots = _timeSlotItems.keys.toList()..sort();
 
     if (activeTimeSlots.isEmpty) {
@@ -315,56 +321,107 @@ class _CalendarSmState extends State<CalendarSm> {
         final timeKey = activeTimeSlots[index];
         final items = _timeSlotItems[timeKey] ?? [];
 
-        // Separate tasks and events
-        final events = items
-            .where((item) => item['start_time'] != null)
-            .toList();
-        final tasks = items
-            .where((item) => item['start_time'] == null)
-            .toList();
+        // Group by type, but merge for display (show all event/task types)
+        final events = items.where((item) => item['start_time'] != null).toList();
+        final tasks = items.where((item) => item['start_time'] == null).toList();
+
+        List<dynamic> allItems = [];
+        allItems.addAll(events);
+        allItems.addAll(tasks);
+
+        bool isExpanded = _expandedSlots[timeKey] ?? false;
+        int showCount = isExpanded ? allItems.length : 2;
+        bool showMore = allItems.length > 2;
+
+        List<dynamic> displayItems = allItems.take(showCount).toList();
 
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8),
-          child: Row(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(
-                width: 64,
-                child: Text(
-                  timeKey,
-                  style: TextStyle(
-                    color: Colors.grey.shade700,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 64,
+                    child: Text(
+                      timeKey,
+                      style: TextStyle(
+                        color: Colors.grey.shade700,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Display Events first
-                    ...events
-                        .map(
-                          (event) => Padding(
-                            padding: const EdgeInsets.only(bottom: 8.0),
-                            child: _buildEventTab(event),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ...displayItems.map(
+                          (item) {
+                            if (item['start_time'] != null) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 8.0),
+                                child: _buildEventTab(item),
+                              );
+                            } else {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 8.0),
+                                child: _buildTaskTab(item),
+                              );
+                            }
+                          },
+                        ).toList(),
+                        if (showMore && !isExpanded)
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _expandedSlots[timeKey] = true;
+                                });
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 3.0),
+                                child: Text(
+                                  "Show More (${allItems.length - 2} more) ▼",
+                                  style: TextStyle(
+                                    color:  const Color.fromRGBO(117, 117, 117, 1),
+                                    fontSize: 13.5,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
-                        )
-                        .toList(),
-
-                    // Display Tasks after events
-                    ...tasks
-                        .map(
-                          (task) => Padding(
-                            padding: const EdgeInsets.only(bottom: 8.0),
-                            child: _buildTaskTab(task),
+                        if (showMore && isExpanded)
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _expandedSlots[timeKey] = false;
+                                });
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 3.0),
+                                child: Text(
+                                  "Show Less ▲",
+                                  style: TextStyle(
+                                    color: const Color.fromRGBO(117, 117, 117, 1),
+                                    fontSize: 13.5,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
-                        )
-                        .toList(),
-                  ],
-                ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -382,7 +439,7 @@ class _CalendarSmState extends State<CalendarSm> {
             'assets/calendar.png',
             width: 50,
             height: 50,
-            color: Colors.grey.shade600,
+            color: const Color.fromRGBO(117, 117, 117, 1),
           ),
           SizedBox(height: 12),
           Text(
@@ -421,7 +478,7 @@ class _CalendarSmState extends State<CalendarSm> {
         );
       },
       child: Container(
-        width: double.infinity, // Full width instead of fixed 180
+        width: double.infinity,
         padding: EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: AppColors.colorsBlue.withOpacity(.09),
@@ -465,6 +522,7 @@ class _CalendarSmState extends State<CalendarSm> {
               ),
             ),
           ],
+          //NUll
         ),
       ),
     );
@@ -495,7 +553,12 @@ class _CalendarSmState extends State<CalendarSm> {
       taskIcon = Icons.directions_car;
       taskColor = Colors.blue;
       taskType = 'Test Drive';
+    } else if (category.toLowerCase().contains('meeting')) {
+      taskIcon = Icons.people;
+      taskColor = Colors.teal;
+      taskType = 'Meeting';
     }
+    // You can add more types as needed.
 
     return InkWell(
       onTap: () {
@@ -513,7 +576,7 @@ class _CalendarSmState extends State<CalendarSm> {
         );
       },
       child: Container(
-        width: double.infinity, // Full width instead of fixed 180
+        width: double.infinity,
         padding: EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: taskColor.withOpacity(.08),
@@ -559,7 +622,6 @@ class _CalendarSmState extends State<CalendarSm> {
     );
   }
 
-  // --- SUPPORT FOR TEAM/PROFILE ---
   Widget _buildTeamYourButtons() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -892,7 +954,6 @@ class _CalendarSmState extends State<CalendarSm> {
     return '${hour12}:${parsedTime.minute.toString().padLeft(2, '0')} $period';
   }
 }
-
 
 
 // import 'dart:convert';

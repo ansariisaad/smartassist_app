@@ -156,18 +156,20 @@ class _TestUpcomingState extends State<TestUpcoming> {
             name: item['name'],
             vehicle: item['PMI'] ?? 'Range Rover Velar',
             subject: item['subject'] ?? 'Meeting',
-            date: item['start_date'] ?? '',
-            email: item['updated_by'] ?? '',
-            leadId: item['lead_id'] ?? '',
-            // startTime: item['start_time'] ?? '',
+
+            date: item['start_date'],
+            email: item['updated_by'],
+            leadId: item['lead_id'],
             startTime:
                 (item['start_time'] != null &&
                     item['start_time'].toString().isNotEmpty)
                 ? item['start_time']
+
                       .toString() 
                 : "00:00:00", 
 
             eventId: item['event_id'] ?? '',
+
             isFavorite: item['favourite'] ?? false,
             swipeOffset: swipeOffset,
             onToggleFavorite: () {

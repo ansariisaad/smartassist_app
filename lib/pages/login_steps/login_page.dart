@@ -150,7 +150,7 @@ class _LoginPageState extends State<LoginPage>
                               const SizedBox(height: 16),
                               buildRichText(
                                 "First time logging in ? ",
-                                "Verify your e-mail",
+                                "Create your password",
                                 () {
                                   Navigator.push(
                                     context,

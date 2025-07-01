@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
+// import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
@@ -9,10 +10,10 @@ import 'package:smartassist/config/component/font/font.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
-import 'package:smartassist/widgets/google_location.dart';
-import 'package:smartassist/widgets/remarks_field.dart';
+import 'package:smartassist/widgets/google_location.dart'; 
 import 'package:smartassist/widgets/reusable/leadsearch_testdrive.dart';
 import 'package:smartassist/widgets/reusable/slot_calendar.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class CreateTestdrive extends StatefulWidget {
   final Function onFormSubmit;
@@ -40,6 +41,8 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
   bool isLoading = false;
   Map<String, String> _errors = {};
   Map<String, dynamic>? slotData;
+  late stt.SpeechToText _speech;
+  bool _isListening = false;
 
   String? selectedLeads;
   String? selectedLeadsName;
@@ -69,11 +72,68 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
   @override
   void initState() {
     super.initState();
+    _speech = stt.SpeechToText();
+    _initSpeech();
   }
 
   @override
   void dispose() {
     super.dispose();
+  }
+
+  // Initialize speech recognition
+  void _initSpeech() async {
+    bool available = await _speech.initialize(
+      onStatus: (status) {
+        if (status == 'done') {
+          setState(() {
+            _isListening = false;
+          });
+        }
+      },
+      onError: (errorNotification) {
+        setState(() {
+          _isListening = false;
+        });
+        showErrorMessage(
+          context,
+          message: 'Speech recognition error: ${errorNotification.errorMsg}',
+        );
+      },
+    );
+    if (!available) {
+      showErrorMessage(
+        context,
+        message: 'Speech recognition not available on this device',
+      );
+    }
+  }
+
+  // Toggle listening
+  void _toggleListening(TextEditingController controller) async {
+    if (_isListening) {
+      _speech.stop();
+      setState(() {
+        _isListening = false;
+      });
+    } else {
+      setState(() {
+        _isListening = true;
+      });
+
+      await _speech.listen(
+        onResult: (result) {
+          setState(() {
+            controller.text = result.recognizedWords;
+          });
+        },
+        listenFor: Duration(seconds: 30),
+        pauseFor: Duration(seconds: 5),
+        partialResults: true,
+        cancelOnError: true,
+        listenMode: stt.ListenMode.confirmation,
+      );
+    }
   }
 
   void _submit() async {
@@ -160,17 +220,31 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
                   print('Lead search input changed: $value');
                 },
                 isRequired: true, // Set to true if lead selection is mandatory
-                // onLeadSelected: (String leadId, String leadName) {
                 onLeadSelected: (leadId, leadName) {
                   setState(() {
                     _leadId = leadId;
                     _leadName = leadName;
+
+                    // Clear slot data when lead changes since vehicle might change
+                    slotData = {};
+                    startDateController.clear();
                   });
 
                   // Handle lead selection
                   print('Lead selected: ID = $leadId, Name = $leadName');
                 },
                 onClearSelection: () {
+                  setState(() {
+                    // Clear all related data when lead selection is cleared
+                    _leadId = null;
+                    _leadName = null;
+                    selectedVehicleData = {};
+                    selectedVehicleName = null;
+                    vehicleId = null;
+                    selectedBrand = null;
+                    slotData = {};
+                    startDateController.clear();
+                  });
                   // Handle clearing of lead selection
                   print('Lead selection cleared');
                 },
@@ -179,11 +253,60 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
                     selectedVehicleData = selectedVehicle;
                     selectedVehicleName = selectedVehicle['vehicle_name'];
                     vehicleId = selectedVehicle['vehicle_id'];
-                    selectedBrand =
-                        selectedVehicle['brand'] ?? ''; // Handle null brand
+                    selectedBrand = selectedVehicle['brand'] ?? '';
+                    slotData = {};
+                    startDateController.clear();
                   });
+
+                  // Log the vehicle selection
+                  if (selectedVehicle['from_lead'] == true) {
+                    print(
+                      'Vehicle auto-selected from lead PMI: ${selectedVehicle['vehicle_name']} (ID: ${selectedVehicle['vehicle_id']})',
+                    );
+                  } else {
+                    print(
+                      'Vehicle manually selected: ${selectedVehicle['vehicle_name']} (ID: ${selectedVehicle['vehicle_id']})',
+                    );
+                  }
                 },
               ),
+
+              // LeadsearchTestdrive(
+              //   errorText: '', // Empty error text as provided
+              //   onChanged: (String value) {
+              //     if (_errors.containsKey('select lead name')) {
+              //       setState(() {
+              //         _errors.remove('select lead name');
+              //       });
+              //     }
+              //     // Handle lead search input changes
+              //     print('Lead search input changed: $value');
+              //   },
+              //   isRequired: true, // Set to true if lead selection is mandatory
+              //   // onLeadSelected: (String leadId, String leadName) {
+              //   onLeadSelected: (leadId, leadName) {
+              //     setState(() {
+              //       _leadId = leadId;
+              //       _leadName = leadName;
+              //     });
+
+              //     // Handle lead selection
+              //     print('Lead selected: ID = $leadId, Name = $leadName');
+              //   },
+              //   onClearSelection: () {
+              //     // Handle clearing of lead selection
+              //     print('Lead selection cleared');
+              //   },
+              //   onVehicleSelected: (Map<String, dynamic> selectedVehicle) {
+              //     setState(() {
+              //       selectedVehicleData = selectedVehicle;
+              //       selectedVehicleName = selectedVehicle['vehicle_name'];
+              //       vehicleId = selectedVehicle['vehicle_id'];
+              //       selectedBrand =
+              //           selectedVehicle['brand'] ?? ''; // Handle null brand
+              //     });
+              //   },
+              // ),
               const SizedBox(height: 5),
               CustomGooglePlacesField(
                 controller: _locationController,
@@ -194,20 +317,51 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
                 isRequired: true,
               ),
               const SizedBox(height: 15),
+
+              // SlotCalendar(
+              //   label: 'Select Date & Time Slot',
+              //   isRequired: true,
+              //   controller: startDateController,
+              //   vehicleId: vehicleId.toString(),
+              //   onChanged: (value) {
+              //     try {
+              //       final parsedSlotData = jsonDecode(value);
+              //       print('Slot data received: $parsedSlotData');
+
+              //       // 🔥 THE ACTUAL FIX: Store the slot data in the CLASS VARIABLE
+              //       setState(() {
+              //         slotData =
+              //             parsedSlotData; // This updates the class-level variable
+              //         // Clear the error if it exists
+              //         if (_errors.containsKey('select_slot')) {
+              //           _errors.remove('select_slot');
+              //         }
+              //       });
+
+              //       print('slotData variable set to: $slotData'); // Debug log
+              //     } catch (e) {
+              //       // If it's not JSON (like initial date selection), just print
+              //       print('Slot changed: $value');
+              //     }
+              //   },
+              //   onTextFieldTap: () {
+              //     print('Calendar container tapped');
+              //   },
+              // ),
               SlotCalendar(
                 label: 'Select Date & Time Slot',
                 isRequired: true,
                 controller: startDateController,
-                vehicleId: vehicleId.toString(),
+                vehicleId:
+                    vehicleId?.toString() ??
+                    '', // This gets the vehicle ID from either source
                 onChanged: (value) {
                   try {
                     final parsedSlotData = jsonDecode(value);
                     print('Slot data received: $parsedSlotData');
 
-                    // 🔥 THE ACTUAL FIX: Store the slot data in the CLASS VARIABLE
                     setState(() {
-                      slotData =
-                          parsedSlotData; // This updates the class-level variable
+                      slotData = parsedSlotData;
                       // Clear the error if it exists
                       if (_errors.containsKey('select_slot')) {
                         _errors.remove('select_slot');
@@ -224,19 +378,27 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
                   print('Calendar container tapped');
                 },
               ),
+
               const SizedBox(height: 10),
 
               const SizedBox(height: 10),
-              EnhancedSpeechTextField(
-                isRequired: false,
-                // contentPadding: EdgeInsets.zero,
+
+              _buildTextField(
                 label: 'Remarks:',
                 controller: descriptionController,
-                hint: 'Type or speak... ',
-                onChanged: (text) {
-                  print('Text changed: $text');
-                },
+                hint: 'Type or speak...',
               ),
+
+              // EnhancedSpeechTextField(
+              //   isRequired: false,
+              //   // contentPadding: EdgeInsets.zero,
+              //   label: 'Remarks:',
+              //   controller: descriptionController,
+              //   hint: 'Type or speak... ',
+              //   onChanged: (text) {
+              //     print('Text changed: $text');
+              //   },
+              // ),
               const SizedBox(height: 10),
             ],
           ),
@@ -275,8 +437,85 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
     );
   }
 
+  Widget _buildTextField({
+    required String label,
+    required TextEditingController controller,
+    required String hint,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 5.0),
+          child: Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.fontBlack,
+            ),
+          ),
+        ),
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(5),
+            color: AppColors.containerBg,
+          ),
+          child: Row(
+            children: [
+              // Expanded TextField that adjusts height
+              Expanded(
+                child: TextField(
+                  textCapitalization: TextCapitalization.sentences,
+                  controller: controller,
+                  maxLines:
+                      null, // This allows the TextField to expand vertically based on content
+                  minLines: 1, // Minimum 1 line of height
+                  keyboardType: TextInputType.multiline,
+                  decoration: InputDecoration(
+                    hintText: hint,
+                    hintStyle: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 10,
+                    ),
+                    border: InputBorder.none,
+                  ),
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+              // Microphone icon with speech recognition
+              Align(
+                alignment: Alignment.centerRight,
+                child: IconButton(
+                  onPressed: () => _toggleListening(controller),
+                  icon: Icon(
+                    _isListening
+                        ? FontAwesomeIcons.stop
+                        : FontAwesomeIcons.microphone,
+                    color: _isListening ? Colors.red : AppColors.fontColor,
+                    size: 15,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Future<void> submitForm() async {
-    try { 
+    try {
       final prefs = await SharedPreferences.getInstance();
       final spId = prefs.getString('user_id');
 
@@ -313,7 +552,7 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
       };
 
       final success = await LeadsSrv.submitTestDrive(testdriveData, _leadId!);
-      print('Submitting testdrive data: $testdriveData'); 
+      print('Submitting testdrive data: $testdriveData');
 
       if (success) {
         if (context.mounted) {
@@ -325,10 +564,10 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
         );
         widget.onFormSubmit?.call(); // Refresh dashboard data
         widget.onTabChange?.call(2);
-      } else { 
+      } else {
         showErrorMessage(context, message: 'Failed to submit Testdrive.');
       }
-    } catch (e) { 
+    } catch (e) {
       if (context.mounted) {
         print(e.toString());
       }

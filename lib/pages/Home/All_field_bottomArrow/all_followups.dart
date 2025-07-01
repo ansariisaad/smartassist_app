@@ -13,6 +13,7 @@ import 'package:smartassist/widgets/buttons/add_btn.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smartassist/widgets/reusable/globle_speechtotext.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class AddFollowups extends StatefulWidget {
   final Future<void> Function() refreshDashboard;
@@ -38,6 +39,7 @@ class _AddFollowupsState extends State<AddFollowups>
   String _query = '';
   int _upcomingButtonIndex = 0;
   int count = 0;
+  late stt.SpeechToText _speech;
 
   final TextEditingController _searchController = TextEditingController();
   Timer? _searchDebounceTimer;
@@ -47,6 +49,9 @@ class _AddFollowupsState extends State<AddFollowups>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     fetchTasks();
+
+    _speech = stt.SpeechToText();
+    _initSpeech();
   }
 
   @override
@@ -55,6 +60,61 @@ class _AddFollowupsState extends State<AddFollowups>
     _searchDebounceTimer?.cancel();
     _searchController.dispose();
     super.dispose();
+  }
+
+  // Initialize speech recognition
+  void _initSpeech() async {
+    bool available = await _speech.initialize(
+      onStatus: (status) {
+        if (status == 'done') {
+          setState(() {
+            _isListening = false;
+          });
+        }
+      },
+      onError: (errorNotification) {
+        setState(() {
+          _isListening = false;
+        });
+        showErrorMessage(
+          context,
+          message: 'Speech recognition error: ${errorNotification.errorMsg}',
+        );
+      },
+    );
+    if (!available) {
+      showErrorMessage(
+        context,
+        message: 'Speech recognition not available on this device',
+      );
+    }
+  }
+
+  // Toggle listening
+  void _toggleListening(TextEditingController controller) async {
+    if (_isListening) {
+      _speech.stop();
+      setState(() {
+        _isListening = false;
+      });
+    } else {
+      setState(() {
+        _isListening = true;
+      });
+      await _speech.listen(
+        onResult: (result) {
+          setState(() {
+            controller.text = result.recognizedWords;
+            _onSearchChanged(); // Trigger search filtering
+          });
+        },
+        listenFor: Duration(seconds: 30),
+        pauseFor: Duration(seconds: 5),
+        partialResults: true,
+        cancelOnError: true,
+        listenMode: stt.ListenMode.confirmation,
+      );
+    }
   }
 
   // Responsive methods
@@ -209,6 +269,20 @@ class _AddFollowupsState extends State<AddFollowups>
     });
   }
 
+  // bool _matchesSearchCriteria(dynamic item, String searchQuery) {
+  //   String name = (item['lead_name'] ?? item['name'] ?? '')
+  //       .toString()
+  //       .toLowerCase();
+  //   String email = (item['email'] ?? '').toString().toLowerCase();
+  //   String phone = (item['mobile'] ?? '').toString().toLowerCase();
+  //   String subject = (item['subject'] ?? '').toString().toLowerCase();
+
+  //   return name.contains(searchQuery) ||
+  //       email.contains(searchQuery) ||
+  //       phone.contains(searchQuery) ||
+  //       subject.contains(searchQuery);
+  // }
+
   bool _matchesSearchCriteria(dynamic item, String searchQuery) {
     String name = (item['lead_name'] ?? item['name'] ?? '')
         .toString()
@@ -216,7 +290,6 @@ class _AddFollowupsState extends State<AddFollowups>
     String email = (item['email'] ?? '').toString().toLowerCase();
     String phone = (item['mobile'] ?? '').toString().toLowerCase();
     String subject = (item['subject'] ?? '').toString().toLowerCase();
-
     return name.contains(searchQuery) ||
         email.contains(searchQuery) ||
         phone.contains(searchQuery) ||
@@ -226,22 +299,35 @@ class _AddFollowupsState extends State<AddFollowups>
   void _onSearchChanged() {
     final newQuery = _searchController.text.trim();
     if (newQuery == _query) return;
-
     _query = newQuery;
-
-    // Cancel previous timer
     _searchDebounceTimer?.cancel();
-
-    // Perform local search immediately
     _performLocalSearch(_query);
-
-    // Debounce for consistency
     _searchDebounceTimer = Timer(const Duration(milliseconds: 500), () {
       if (_query == _searchController.text.trim() && mounted) {
         _performLocalSearch(_query);
       }
     });
   }
+
+  // void _onSearchChanged() {
+  //   final newQuery = _searchController.text.trim();
+  //   if (newQuery == _query) return;
+
+  //   _query = newQuery;
+
+  //   // Cancel previous timer
+  //   _searchDebounceTimer?.cancel();
+
+  //   // Perform local search immediately
+  //   _performLocalSearch(_query);
+
+  //   // Debounce for consistency
+  //   _searchDebounceTimer = Timer(const Duration(milliseconds: 500), () {
+  //     if (_query == _searchController.text.trim() && mounted) {
+  //       _performLocalSearch(_query);
+  //     }
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -356,30 +442,57 @@ class _AddFollowupsState extends State<AddFollowups>
                                 ? AppColors.iconGrey
                                 : Colors.grey,
                           ),
+
                           suffixIcon: Container(
                             width: _getResponsiveIconContainerWidth(
                               context,
                               isTablet,
                             ),
                             child: Center(
-                              child: GlobleSpeechtotext(
-                                onSpeechResult: (result) {
-                                  _searchController.text = result;
-                                  _onSearchChanged();
-                                },
-                                onListeningStateChanged: (isListening) {
-                                  setState(() => _isListening = isListening);
-                                },
-                                iconSize: _getResponsiveIconSize(
-                                  context,
-                                  isTablet,
+                              child: IconButton(
+                                icon: Icon(
+                                  _isListening
+                                      ? FontAwesomeIcons.microphone
+                                      : FontAwesomeIcons.microphoneSlash,
+                                  color: _isListening
+                                      ? AppColors.fontColor
+                                      : AppColors.fontColor,
+                                  size: _getResponsiveIconSize(
+                                    context,
+                                    isTablet,
+                                  ),
                                 ),
-                                // activeColor: AppColors.colorsBlue,
-                                activeColor: AppColors.iconGrey,
-                                inactiveColor: AppColors.fontColor,
+                                onPressed: () =>
+                                    _toggleListening(_searchController),
                               ),
                             ),
                           ),
+                          // suffixIcon: Container(
+                          //   width: _getResponsiveIconContainerWidth(
+                          //     context,
+                          //     isTablet,
+                          //   ),
+                          //   child: Center(
+                          //     child:
+                          //     // i dont want to use it i want to use the _togglelistening and initspeect and it fileter the search
+                          //      GlobleSpeechtotext(
+                          //       onSpeechResult: (result) {
+                          //         _searchController.text = result;
+                          //         _onSearchChanged();
+                          //       },
+                          //       onListeningStateChanged: (isListening) {
+                          //         setState(() => _isListening = isListening);
+                          //       },
+                          //       iconSize: _getResponsiveIconSize(
+                          //         context,
+                          //         isTablet,
+                          //       ),
+                          //       // activeColor: AppColors.colorsBlue,
+                          //       activeColor: AppColors.iconGrey,
+                          //       inactiveColor: AppColors.fontColor,
+                          //     ),
+                          //   ),
+                          // ),
                           prefixIcon: Container(
                             width: _getResponsiveIconContainerWidth(
                               context,
@@ -647,6 +760,8 @@ class _AddFollowupsState extends State<AddFollowups>
     );
   }
 }
+
+
 
 
 // import 'dart:convert';

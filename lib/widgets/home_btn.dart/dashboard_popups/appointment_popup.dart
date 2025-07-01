@@ -577,21 +577,21 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
               ),
 
               const SizedBox(height: 10),
-              // _buildTextField(
-              //   label: 'Remarks:',
-              //   controller: descriptionController,
-              //   hint: 'Type or speak...',
-              // ),
-              EnhancedSpeechTextField(
-                isRequired: false,
-                // contentPadding: EdgeInsets.zero,
+              _buildTextField(
                 label: 'Remarks:',
                 controller: descriptionController,
-                hint: 'Type or speak... ',
-                onChanged: (text) {
-                  print('Text changed: $text');
-                },
+                hint: 'Type or speak...',
               ),
+              // EnhancedSpeechTextField(
+              //   isRequired: false,
+              //   // contentPadding: EdgeInsets.zero,
+              //   label: 'Remarks:',
+              //   controller: descriptionController,
+              //   hint: 'Type or speak... ',
+              //   onChanged: (text) {
+              //     print('Text changed: $text');
+              //   },
+              // ),
               const SizedBox(height: 10),
             ],
           ),

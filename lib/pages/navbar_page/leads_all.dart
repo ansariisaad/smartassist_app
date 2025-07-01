@@ -7,7 +7,6 @@ import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
-import 'package:smartassist/utils/bottom_navigation.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:smartassist/utils/snackbar_helper.dart';
@@ -24,7 +23,6 @@ class AllLeads extends StatefulWidget {
 
 class _AllLeadsState extends State<AllLeads> {
   bool isLoading = true;
-  int _selectedButtonIndex = 0;
   final Map<String, double> _swipeOffsets = {};
   Set<String> selectedLeads = {};
   bool isSelectionMode = false;
@@ -109,6 +107,40 @@ class _AllLeadsState extends State<AllLeads> {
   double _smallFontSize(BuildContext context) =>
       _isTablet(context) ? 14 : (_isSmallScreen(context) ? 10 : 12);
 
+  // Future<void> _toggleFavorite(String leadId, int index) async {
+  //   final token = await Storage.getToken();
+  //   try {
+  //     // Get the current favorite status before toggling
+  //     bool currentStatus = upcomingTasks[index]['favourite'] ?? false;
+  //     bool newFavoriteStatus = !currentStatus;
+
+  //     final response = await http.put(
+  //       Uri.parse(
+  //         'https://api.smartassistapp.in/api/favourites/mark-fav/lead/$leadId',
+  //       ),
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+
+  //     if (response.statusCode == 200) {
+  //       // Parse the response to get the updated favorite status
+  //       final responseData = json.decode(response.body);
+
+  //       // Update only the specific item in the list
+  //       setState(() {
+  //         upcomingTasks[index]['favourite'] = newFavoriteStatus;
+  //         _updateFilteredResults(); // Update filtered results
+  //       });
+  //     } else {
+  //       print('Failed to toggle favorite: ${response.statusCode}');
+  //     }
+  //   } catch (e) {
+  //     print('Error toggling favorite: $e');
+  //   }
+  // }
+
   Future<void> _toggleFavorite(String leadId, int index) async {
     final token = await Storage.getToken();
     try {
@@ -127,10 +159,16 @@ class _AllLeadsState extends State<AllLeads> {
 
       if (response.statusCode == 200) {
         setState(() {
+          // Update upcomingTasks
           upcomingTasks[index]['favourite'] = newFavoriteStatus;
-          _updateFilteredResults();
+          // Update _filteredTasks to reflect the change
+          int filteredIndex = _filteredTasks.indexWhere(
+            (task) => task['lead_id'] == leadId,
+          );
+          if (filteredIndex != -1) {
+            _filteredTasks[filteredIndex]['favourite'] = newFavoriteStatus;
+          }
         });
-        await fetchTasksData();
       } else {
         print('Failed to toggle favorite: ${response.statusCode}');
       }
@@ -187,10 +225,32 @@ class _AllLeadsState extends State<AllLeads> {
   }
 
   // Local search function for name, email, phone
+  // void _performLocalSearch(String query) {
+  //   if (query.isEmpty) {
+  //     setState(() {
+  //       _filteredTasks = List.from(upcomingTasks);
+  //     });
+  //     return;
+  //   }
+
+  //   setState(() {
+  //     _filteredTasks = upcomingTasks.where((item) {
+  //       String name = (item['lead_name'] ?? '').toString().toLowerCase();
+  //       String email = (item['email'] ?? '').toString().toLowerCase();
+  //       String phone = (item['mobile'] ?? '').toString().toLowerCase();
+  //       String searchQuery = query.toLowerCase();
+
+  //       return name.contains(searchQuery) ||
+  //           email.contains(searchQuery) ||
+  //           phone.contains(searchQuery);
+  //     }).toList();
+  //   });
+  // }
+
   void _performLocalSearch(String query) {
     if (query.isEmpty) {
       setState(() {
-        _filteredTasks = List.from(upcomingTasks);
+        _filteredTasks = List.from(upcomingTasks); // Copy without sorting
       });
       return;
     }
@@ -209,52 +269,21 @@ class _AllLeadsState extends State<AllLeads> {
     });
   }
 
+  // void _updateFilteredResults() {
+  //   if (_query.isEmpty) {
+  //     _filteredTasks = List.from(upcomingTasks);
+  //   } else {
+  //     _performLocalSearch(_query);
+  //   }
+  // }
+
   void _updateFilteredResults() {
     if (_query.isEmpty) {
-      _filteredTasks = List.from(upcomingTasks);
+      setState(() {
+        _filteredTasks = List.from(upcomingTasks); // Copy without sorting
+      });
     } else {
       _performLocalSearch(_query);
-    }
-  }
-
-  Future<void> _fetchSearchResults(String query) async {
-    if (query.isEmpty) {
-      setState(() {
-        _searchResults.clear();
-      });
-      return;
-    }
-
-    setState(() {
-      _isLoadingSearch = true;
-    });
-
-    try {
-      final token = await Storage.getToken();
-      final response = await http.get(
-        Uri.parse(
-          'https://api.smartassistapp.in/api/search/global?query=$query',
-        ),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
-
-      final Map<String, dynamic> data = json.decode(response.body);
-      if (response.statusCode == 200) {
-        setState(() {
-          _searchResults = data['data']['suggestions'] ?? [];
-        });
-      } else {
-        showErrorMessage(context, message: data['message']);
-      }
-    } catch (e) {
-      showErrorMessage(context, message: 'Something went wrong..!');
-    } finally {
-      setState(() {
-        _isLoadingSearch = false;
-      });
     }
   }
 
@@ -266,13 +295,6 @@ class _AllLeadsState extends State<AllLeads> {
 
     // Perform local search immediately for better UX
     _performLocalSearch(_query);
-
-    // Also perform API search with debounce
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (_query == _searchController.text.trim()) {
-        _fetchSearchResults(_query);
-      }
-    });
   }
 
   // Responsive helper methods
@@ -533,8 +555,7 @@ class _AllLeadsState extends State<AllLeads> {
             isFavorite: item['favourite'] ?? false,
             swipeOffset: swipeOffset,
             fetchDashboardData: () {},
-            onFavoriteToggled: () {
-              fetchTasksData();
+            onFavoriteToggled: () async {
               _updateFilteredResults();
             },
             onTap: selectedLeads.isNotEmpty
@@ -883,6 +904,16 @@ class _TaskItemState extends State<TaskItem>
         ),
       ),
     );
+  }
+
+  @override
+  void didUpdateWidget(TaskItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isFavorite != widget.isFavorite) {
+      setState(() {
+        isFav = widget.isFavorite;
+      });
+    }
   }
   // Widget _buildFollowupCard(BuildContext context) {
   //   final screenSize = MediaQuery.of(context).size;

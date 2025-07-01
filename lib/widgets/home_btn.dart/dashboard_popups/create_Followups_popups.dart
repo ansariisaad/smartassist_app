@@ -726,8 +726,14 @@ class _CreateFollowupsPopupsState extends State<CreateFollowupsPopups> {
               onChanged: (String value) {},
             ),
 
-            const SizedBox(height: 10),
-            // _buildTextField(
+            // const SizedBox(height: 10),
+            // // _buildTextField(
+            // //   label: 'Remarks:',
+            // //   controller: descriptionController,
+            // //   hint: 'Type or speak...',
+            // // ),
+            // EnhancedSpeechTextField(
+            //   // contentPadding: EdgeInsets.zero,
             //   label: 'Remarks:',
             //   controller: descriptionController,
             //   hint: 'Type or speak...',

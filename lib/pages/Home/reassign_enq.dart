@@ -2039,7 +2039,7 @@ class ReusableSlidableAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomSlidableAction(
-      borderRadius: BorderRadius.circular(10),
+      // borderRadius: BorderRadius.circular(10),
       onPressed: (context) => onPressed(),
       backgroundColor: backgroundColor,
       padding: EdgeInsets.zero,

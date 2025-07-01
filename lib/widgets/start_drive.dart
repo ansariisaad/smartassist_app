@@ -9,7 +9,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:screenshot/screenshot.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Home/home_screen.dart';
@@ -18,7 +17,6 @@ import 'package:smartassist/widgets/feedback.dart';
 import 'package:smartassist/widgets/testdrive_overview.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:geolocator/geolocator.dart';
-// Remove permission_handler import since we're going to use only Geolocator's permission system
 
 class StartDriveMap extends StatefulWidget {
   final String eventId;
@@ -54,7 +52,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
   void initState() {
     super.initState();
     startTime = DateTime.now(); // Track when drive started
-    _screenshotController = ScreenshotController();
+    // _screenshotController = ScreenshotController();
     _determinePosition();
 
     routePolyline = Polyline(
@@ -176,6 +174,8 @@ class _StartDriveMapState extends State<StartDriveMap> {
         1000; // Convert to km
   }
 
+  Timer? _throttleTimer;
+
   // Initialize the Socket.IO connection
   void _initializeSocket() {
     try {
@@ -194,7 +194,6 @@ class _StartDriveMapState extends State<StartDriveMap> {
 
       socket!.onConnectError((data) {
         print('Connection error: $data');
-        // Try reconnecting if socket fails
         if (socket != null && !socket!.connected) {
           socket!.connect();
         }
@@ -206,19 +205,21 @@ class _StartDriveMapState extends State<StartDriveMap> {
 
       socket!.on('disconnect', (_) {
         print('Socket disconnected');
-        // Try reconnecting if not already ended
         if (!isDriveEnded && socket != null) {
           socket!.connect();
         }
       });
 
-      // Listen for live location updates from backend
       socket!.on('locationUpdated', (data) {
         if (mounted) {
           if (data == null || data['newCoordinates'] == null) {
             print('Received invalid location update data');
             return;
           }
+
+          // Throttle updates to once every 3 seconds
+          if (_throttleTimer?.isActive ?? false) return;
+          _throttleTimer = Timer(const Duration(seconds: 3), () {});
 
           try {
             setState(() {
@@ -227,7 +228,6 @@ class _StartDriveMapState extends State<StartDriveMap> {
                 data['newCoordinates']['longitude'],
               );
 
-              // Update user marker
               userMarker = Marker(
                 markerId: const MarkerId('user'),
                 position: newCoordinates,
@@ -237,7 +237,6 @@ class _StartDriveMapState extends State<StartDriveMap> {
                 ),
               );
 
-              // Calculate distance for this segment
               if (routePoints.isNotEmpty) {
                 LatLng lastPoint = routePoints.last;
                 double segmentDistance = _calculateDistance(
@@ -247,16 +246,15 @@ class _StartDriveMapState extends State<StartDriveMap> {
                 totalDistance += segmentDistance;
               }
 
-              // Add point to route
               routePoints.add(newCoordinates);
               _updatePolyline();
 
-              // Update total distance if provided by server
               if (data['totalDistance'] != null) {
-                totalDistance = data['totalDistance'].toDouble();
+                totalDistance =
+                    double.tryParse(data['totalDistance'].toString()) ??
+                    totalDistance;
               }
 
-              // Move camera to follow user
               if (mapController != null) {
                 mapController.animateCamera(
                   CameraUpdate.newLatLng(newCoordinates),
@@ -269,18 +267,25 @@ class _StartDriveMapState extends State<StartDriveMap> {
         }
       });
 
-      // Listen for test drive ended event
       socket!.on('testDriveEnded', (data) {
         if (mounted) {
-          double finalDistance = data['totalDistance'] != null
-              ? data['totalDistance'].toDouble()
-              : totalDistance;
+          try {
+            double finalDistance = data['totalDistance'] != null
+                ? double.tryParse(data['totalDistance'].toString()) ??
+                      totalDistance
+                : totalDistance;
 
-          int finalDuration = data['duration'] != null
-              ? data['duration']
-              : _calculateDuration();
+            int finalDuration = data['duration'] != null
+                ? data['duration'] is int
+                      ? data['duration']
+                      : int.tryParse(data['duration'].toString()) ??
+                            _calculateDuration()
+                : _calculateDuration();
 
-          _handleDriveEnded(finalDistance, finalDuration);
+            _handleDriveEnded(finalDistance, finalDuration);
+          } catch (e) {
+            print('Error processing testDriveEnded: $e');
+          }
         }
       });
 
@@ -354,7 +359,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
     try {
       const LocationSettings locationSettings = LocationSettings(
         accuracy: LocationAccuracy.high,
-        distanceFilter: 10, // Update location every 10 meters
+        distanceFilter: 50, // Increase to 50 meters
       );
 
       positionStreamSubscription =
@@ -366,10 +371,8 @@ class _StartDriveMapState extends State<StartDriveMap> {
               position.longitude,
             );
 
-            // Update locally first
             if (mounted && userMarker != null) {
               setState(() {
-                // Update user marker position
                 userMarker = Marker(
                   markerId: const MarkerId('user'),
                   position: newLocation,
@@ -379,7 +382,6 @@ class _StartDriveMapState extends State<StartDriveMap> {
                   ),
                 );
 
-                // Calculate distance for this segment
                 if (routePoints.isNotEmpty) {
                   LatLng lastPoint = routePoints.last;
                   double segmentDistance = _calculateDistance(
@@ -389,13 +391,11 @@ class _StartDriveMapState extends State<StartDriveMap> {
                   totalDistance += segmentDistance;
                 }
 
-                // Add new point to route
                 routePoints.add(newLocation);
                 _updatePolyline();
               });
             }
 
-            // Then send to server
             _sendLocationUpdate(newLocation);
           });
     } catch (e) {
@@ -448,54 +448,6 @@ class _StartDriveMapState extends State<StartDriveMap> {
       });
     }
   }
-
-  // New method to upload drive summary instead of image
-  // Future<void> _uploadDriveSummary() async {
-  //   try {
-  //     final url = Uri.parse(
-  //         'https://api.smartassistapp.in/api/events/${widget.eventId}/drive-summary');
-  //     final token = await Storage.getToken();
-
-  //     // Convert route points to a simpler format for the API
-  //     List<Map<String, double>> routeCoordinates = routePoints
-  //         .map((point) => {
-  //               'latitude': point.latitude,
-  //               'longitude': point.longitude,
-  //             })
-  //         .toList();
-
-  //     final response = await http.post(
-  //       url,
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         'Authorization': 'Bearer $token',
-  //       },
-  //       body: json.encode({
-  //         'startPoint': {
-  //           'latitude': startMarker?.position.latitude,
-  //           'longitude': startMarker?.position.longitude,
-  //         },
-  //         'endPoint': {
-  //           'latitude': userMarker?.position.latitude,
-  //           'longitude': userMarker?.position.longitude,
-  //         },
-  //         'totalDistance': totalDistance,
-  //         'duration': _calculateDuration(),
-  //         'routePoints': routeCoordinates,
-  //         'timestamp': DateTime.now().toIso8601String(),
-  //       }),
-  //     );
-
-  //     if (response.statusCode == 200) {
-  //       print('Drive summary data uploaded successfully');
-  //     } else {
-  //       print('Failed to upload drive summary: ${response.statusCode}');
-  //     }
-  //   } catch (e) {
-  //     print('Error uploading drive summary: $e');
-  //     // Just log the error but don't throw - we want to continue with the workflow
-  //   }
-  // }
 
   Future<void> _submitEndDrive() async {
     if (isSubmitting) return;
@@ -608,76 +560,6 @@ class _StartDriveMapState extends State<StartDriveMap> {
     }
   }
 
-  // Future<void> _handleEndDrive() async {
-  //   setState(() {
-  //     isLoading = true;
-  //   });
-
-  //   try {
-  //     // First upload the drive summary - most reliable method
-  //     // await _uploadDriveSummary();
-
-  //     // Then try the screenshot but don't block on failure
-  //     bool screenshotSuccess = false;
-  //     try {
-  //       await _captureAndUploadImage().timeout(
-  //         const Duration(seconds: 10),
-  //         onTimeout: () {
-  //           print("Screenshot operation timed out");
-  //           return;
-  //         },
-  //       );
-  //       screenshotSuccess = true;
-  //     } catch (e) {
-  //       print("Screenshot process failed: $e");
-  //       // Continue with the process
-  //     }
-
-  //     // Finally end the drive with API call
-  //     await _endTestDrive();
-
-  //     // Clean up resources
-  //     _cleanupResources();
-
-  //     // Show feedback to user about screenshot if it failed
-  //     if (!screenshotSuccess && mounted) {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(
-  //           content: Text(
-  //             'Map image could not be captured, but drive data was saved successfully',
-  //           ),
-  //         ),
-  //       );
-  //     }
-
-  //     // Navigate to feedback screen
-  //     if (mounted) {
-  //       // Add a small delay to let any UI updates complete
-  //       await Future.delayed(Duration(milliseconds: 300));
-
-  //       Navigator.of(context).pushReplacement(
-  //         MaterialPageRoute(
-  //           builder: (context) =>
-  //               Feedbackscreen(leadId: widget.leadId, eventId: widget.eventId),
-  //         ),
-  //       );
-  //     }
-  //   } catch (e) {
-  //     print("Error in end drive process: $e");
-
-  //     if (mounted) {
-  //       ScaffoldMessenger.of(
-  //         context,
-  //       ).showSnackBar(SnackBar(content: Text('Error ending test drive: $e')));
-  //       setState(() {
-  //         isLoading = false;
-  //       });
-  //     }
-
-  //     _cleanupResources();
-  //   }
-  // }
-
   Future<void> _handleEndDriveNavigatesummary() async {
     setState(() {
       isLoading = true;
@@ -774,40 +656,6 @@ class _StartDriveMapState extends State<StartDriveMap> {
     mapController = controller;
   }
 
-  // End the test drive with API call
-
-  // Modify your _endTestDrive function
-  // Future<void> _endTestDrive() async {
-  //   try {
-  //     final url = Uri.parse(
-  //       'https://api.smartassistapp.in/api/events/${widget.eventId}/end-drive',
-  //     );
-  //     final token = await Storage.getToken();
-
-  //     final response = await http.post(
-  //       url,
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         'Authorization': 'Bearer $token',
-  //       },
-  //       body: json.encode({
-  //         'totalDistance': totalDistance,
-  //         'duration': _calculateDuration(),
-  //       }),
-  //     );
-
-  //     if (response.statusCode == 200) {
-  //       print('Test drive ended successfully');
-  //       print('Duration: ${_calculateDuration()}');
-  //       _handleDriveEnded(totalDistance, _calculateDuration());
-  //     } else {
-  //       throw Exception('Failed to end drive: ${response.statusCode}');
-  //     }
-  //   } catch (e) {
-  //     print('Error ending drive: $e');
-  //     throw e; // Re-throw to be caught by caller
-  //   }
-  // }
   Future<void> _endTestDrive({bool sendFeedback = false}) async {
     try {
       // Build the URL with query parameter
@@ -848,53 +696,98 @@ class _StartDriveMapState extends State<StartDriveMap> {
 
   @override
   void dispose() {
-    // Clean up resources
+    _throttleTimer?.cancel();
     if (socket != null && socket!.connected) {
       socket!.disconnect();
     }
-
     if (positionStreamSubscription != null) {
       positionStreamSubscription!.cancel();
     }
-
     super.dispose();
   }
 
-  ScreenshotController _screenshotController = ScreenshotController();
+  // @override
+  // void dispose() {
+  //   // Clean up resources
+  //   if (socket != null && socket!.connected) {
+  //     socket!.disconnect();
+  //   }
+
+  //   if (positionStreamSubscription != null) {
+  //     positionStreamSubscription!.cancel();
+  //   }
+
+  //   super.dispose();
+  // }
+
+  // ScreenshotController _screenshotController = ScreenshotController();
 
   // Improved screenshot capture function with better error handling
   Future<void> _captureAndUploadImage() async {
-    // Longer delay before capture to ensure UI is fully rendered
-    await Future.delayed(const Duration(milliseconds: 500));
-
     try {
-      final image = await _screenshotController.capture();
-      if (image == null) {
-        print("Screenshot capture returned null - trying alternative method");
-        // Try alternative capture method - use UI only
+      if (mapController == null) {
+        print("Map controller is not initialized");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Map is not ready for screenshot')),
+        );
         return;
       }
 
+      // Increase delay to ensure map is rendered
+      await Future.delayed(const Duration(milliseconds: 1000));
+
+      // Retry snapshot up to 3 times
+      Uint8List? image;
+      for (int i = 0; i < 3; i++) {
+        try {
+          image = await mapController.takeSnapshot();
+          if (image != null) break;
+          print('Snapshot attempt ${i + 1} failed, retrying...');
+          await Future.delayed(const Duration(milliseconds: 500));
+        } catch (e) {
+          print('Snapshot attempt ${i + 1} error: $e');
+        }
+      }
+
+      if (image == null) {
+        print("Failed to capture map screenshot after retries");
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   const SnackBar(content: Text('Could not capture map image')),
+        // );
+        return;
+      }
+
+      print('Snapshot size: ${image.lengthInBytes} bytes');
+
+      // Save to temporary file
       final directory = await getTemporaryDirectory();
       final filePath =
           '${directory.path}/map_image_${DateTime.now().millisecondsSinceEpoch}.png';
       final file = File(filePath)..writeAsBytesSync(image);
 
-      await _uploadImage(file);
+      // Upload the image
+      final uploadSuccess = await _uploadImage(file);
+      if (!uploadSuccess) {
+        print("Image upload failed");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to upload map image')),
+        );
+      } else {
+        print("Image uploaded successfully");
+      }
     } catch (e) {
-      print("Error in screenshot capture: $e");
-      // Fall back to drive summary upload
-      // Don't rethrow - we've handled it with the fallback
+      print("Error capturing/uploading map image: $e");
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error capturing map image: $e')));
     }
   }
 
-  // Improved upload image function with better error handling
   Future<bool> _uploadImage(File file) async {
     final url = Uri.parse(
       'https://api.smartassistapp.in/api/events/${widget.eventId}/upload-map',
     );
     final token = await Storage.getToken();
-
     try {
       var request = http.MultipartRequest('POST', url)
         ..headers['Authorization'] = 'Bearer $token'
@@ -902,33 +795,44 @@ class _StartDriveMapState extends State<StartDriveMap> {
           await http.MultipartFile.fromPath(
             'file',
             file.path,
-            contentType: MediaType('image', 'png'), // Changed to PNG
+            contentType: MediaType('image', 'png'),
           ),
         );
-
-      // Add a timeout to the request
       var streamedResponse = await request.send().timeout(
         const Duration(seconds: 15),
         onTimeout: () {
           throw TimeoutException("Image upload timed out");
         },
       );
-
-      // Get the response
       final response = await http.Response.fromStream(streamedResponse);
-
+      print('Upload Response: ${response.body}');
       if (response.statusCode == 200) {
-        print('Image uploaded successfully');
-        print('Response: ${response.body}');
+        final responseData = json.decode(response.body);
+        // Handle both cases: data as string or map
+        String? uploadedUrl;
+        if (responseData['data'] is String) {
+          uploadedUrl = responseData['data'];
+        } else {
+          uploadedUrl =
+              responseData['data']?['map_img'] ?? responseData['map_img'];
+        }
+        print('Uploaded Map Image URL: $uploadedUrl');
         return true;
       } else {
         print('Failed to upload image: ${response.statusCode}');
-        print('Response: ${response.body}');
         return false;
       }
     } catch (e) {
       print('Error uploading image: $e');
       return false;
+    } finally {
+      try {
+        if (await file.exists()) {
+          await file.delete();
+        }
+      } catch (e) {
+        print('Error deleting temporary file: $e');
+      }
     }
   }
 
@@ -1023,32 +927,39 @@ class _StartDriveMapState extends State<StartDriveMap> {
                                       color: Colors.black,
                                       borderRadius: BorderRadius.circular(10),
                                     ),
-                                    child: Screenshot(
-                                      controller: _screenshotController,
 
-                                      child: GoogleMap(
-                                        onMapCreated: _onMapCreated,
-                                        initialCameraPosition: CameraPosition(
-                                          target:
-                                              startMarker?.position ??
-                                              const LatLng(0, 0),
-                                          zoom: 16,
-                                        ),
-                                        myLocationEnabled: true,
-                                        myLocationButtonEnabled: true,
-                                        zoomControlsEnabled: true,
-                                        markers: {
-                                          if (startMarker != null) startMarker!,
-                                          if (userMarker != null) userMarker!,
-                                          if (isDriveEnded && endMarker != null)
-                                            endMarker!,
-                                        },
-                                        polylines: {routePolyline},
+                                    child: GoogleMap(
+                                      onMapCreated: _onMapCreated,
+                                      initialCameraPosition: CameraPosition(
+                                        target:
+                                            startMarker?.position ??
+                                            const LatLng(0, 0),
+                                        zoom: 16,
                                       ),
+                                      myLocationEnabled: true,
+                                      zoomControlsEnabled:
+                                          false, // Disable zoom buttons
+                                      mapToolbarEnabled:
+                                          false, // Disable toolbar
+                                      compassEnabled: false, // Disable compass
+                                      // gestureRecognizers:
+                                      //     const <
+                                      //       Factory<
+                                      //         OneSequenceGestureRecognizer
+                                      //       >
+                                      //     >{}, // Disable gestures
+                                      markers: {
+                                        if (startMarker != null) startMarker!,
+                                        if (userMarker != null) userMarker!,
+                                        if (isDriveEnded && endMarker != null)
+                                          endMarker!,
+                                      },
+                                      polylines: {routePolyline},
                                     ),
                                   ),
                                 ),
                               ),
+
                               const SizedBox(height: 10),
                               if (!isDriveEnded)
                                 Container(

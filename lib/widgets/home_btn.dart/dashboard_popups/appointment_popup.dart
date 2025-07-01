@@ -1158,7 +1158,7 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
         widget.onFormSubmit?.call(); // Refresh dashboard data
         widget.onTabChange?.call(1);
       } else {
-        // showErrorMessage(context, message: 'Failed to submit appointment.');
+        showErrorMessage(context, message: 'Failed to submit appointment.');
       }
     } catch (e) {
       print(e.toString());

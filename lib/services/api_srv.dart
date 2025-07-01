@@ -453,7 +453,7 @@ class LeadsSrv {
       print('API Response Status: ${response.statusCode}');
       print('API Response Body: ${response.body}');
 
-      //  final followupsData = json.decode(response.body);
+      final responseData = json.decode(response.body);
 
       if (response.statusCode == 201) {
         return true;
@@ -462,7 +462,8 @@ class LeadsSrv {
         print('Error details: ${response.body}');
         showErrorMessage(
           context,
-          message: 'Submission failed: ${response.statusCode}',
+          // message: 'Submission failed: ${response.statusCode}',
+          message: 'Submission failed : ${responseData['message']}',
         );
         return false;
       }
@@ -511,6 +512,8 @@ class LeadsSrv {
         body: jsonEncode(followupsData),
       );
 
+      final responseData = jsonDecode(response.body);
+
       print('API Response Status: ${response.statusCode}');
       print('API Response Body: ${response.body}');
 
@@ -520,7 +523,7 @@ class LeadsSrv {
         print('Error: ${response.statusCode}');
         print('Error details: ${response.body}');
         showErrorMessageGetx(
-          message: 'Submission failed: ${response.statusCode}',
+          message: 'Submission failed: ${responseData['message']}',
         );
         return false;
       }
@@ -615,17 +618,18 @@ class LeadsSrv {
         body: jsonEncode(testdriveData),
       );
 
+      final responseData = jsonDecode(response.body);
+
       print('API Response Status: ${response.statusCode}');
       print('API Response Body: ${response.body}');
 
       if (response.statusCode == 201) {
         return true;
       } else {
-        print('Error: ${response.statusCode}');
-        print('Error details: ${response.body}');
         showErrorMessageGetx(
-          message: 'Submission failed: ${response.statusCode}',
+          message: 'Submission failed: ${responseData['message']}',
         );
+        print('Error details: ${response.body}');
         return false;
       }
     } on SocketException {
@@ -1622,7 +1626,7 @@ class LeadsSrv {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
-        return {'success': true, 'data': data['data']['suggestions'] ?? []};
+        return {'success': true, 'data': data['data']['results'] ?? []};
       } else {
         return {
           'success': false,

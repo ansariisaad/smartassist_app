@@ -1,8 +1,7 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
+// import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
@@ -91,18 +90,8 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
         isValid = false;
       }
 
-      if (selectedVehicleName == null || selectedVehicleName!.isEmpty) {
-        _errors['select_vehicle'] = 'Please select a vehicle';
-        isValid = false;
-      }
-
       if (slotData == null) {
         _errors['select_slot'] = 'Please select a date and time slot';
-        isValid = false;
-      }
-
-      if (_locationController.text.trim().isEmpty) {
-        _errors['location'] = 'Please enter a location';
         isValid = false;
       }
     });
@@ -138,54 +127,6 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
     }
   }
 
-  // void _submit() async {
-  //   if (isSubmitting) return;
-
-  //   bool isValid = true;
-
-  //   setState(() {
-  //     isSubmitting = true;
-  //     _errors = {};
-
-  //     if (_leadId == null || _leadId!.isEmpty) {
-  //       _errors['select lead name'] = 'Please select a lead name';
-  //       isValid = false;
-  //     }
-
-  //     if (selectedVehicleName == null || selectedVehicleName!.isEmpty) {
-  //       _errors['select_vehicle'] = 'Please select an action';
-  //       isValid = false;
-  //     }
-
-  //     if (slotData == null) {
-  //       _errors['select_slot'] = 'Please select a date and time slot';
-  //       isValid = false;
-  //     }
-  //   });
-
-  //   // 💡 Check validity before calling the API
-  //   if (!isValid) {
-  //     setState(() => isSubmitting = false);
-  //     return;
-  //   }
-
-  //   try {
-  //     // if (slotData != null) {
-  //     //   await _bookSlot(slotData!);
-  //     // }
-  //     await submitForm(); // ✅ Only call if valid
-  //   } catch (e) {
-  //     Get.snackbar(
-  //       'Error',
-  //       'Submission failed: ${e.toString()}',
-  //       backgroundColor: Colors.red,
-  //       colorText: Colors.white,
-  //     );
-  //   } finally {
-  //     setState(() => isSubmitting = false);
-  //   }
-  // }
-
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -219,17 +160,31 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
                   print('Lead search input changed: $value');
                 },
                 isRequired: true, // Set to true if lead selection is mandatory
-                // onLeadSelected: (String leadId, String leadName) {
                 onLeadSelected: (leadId, leadName) {
                   setState(() {
                     _leadId = leadId;
                     _leadName = leadName;
+
+                    // Clear slot data when lead changes since vehicle might change
+                    slotData = {};
+                    startDateController.clear();
                   });
 
                   // Handle lead selection
                   print('Lead selected: ID = $leadId, Name = $leadName');
                 },
                 onClearSelection: () {
+                  setState(() {
+                    // Clear all related data when lead selection is cleared
+                    _leadId = null;
+                    _leadName = null;
+                    selectedVehicleData = {};
+                    selectedVehicleName = null;
+                    vehicleId = null;
+                    selectedBrand = null;
+                    slotData = {};
+                    startDateController.clear();
+                  });
                   // Handle clearing of lead selection
                   print('Lead selection cleared');
                 },
@@ -239,10 +194,60 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
                     selectedVehicleName = selectedVehicle['vehicle_name'];
                     vehicleId = selectedVehicle['vehicle_id'];
                     selectedBrand =
-                        selectedVehicle['brand'] ?? ''; // Handle null brand
+                        selectedVehicle['brand'] ?? ''; 
+                    slotData = {};
+                    startDateController.clear();
                   });
+
+                  // Log the vehicle selection
+                  if (selectedVehicle['from_lead'] == true) {
+                    print(
+                      'Vehicle auto-selected from lead PMI: ${selectedVehicle['vehicle_name']} (ID: ${selectedVehicle['vehicle_id']})',
+                    );
+                  } else {
+                    print(
+                      'Vehicle manually selected: ${selectedVehicle['vehicle_name']} (ID: ${selectedVehicle['vehicle_id']})',
+                    );
+                  }
                 },
               ),
+
+              // LeadsearchTestdrive(
+              //   errorText: '', // Empty error text as provided
+              //   onChanged: (String value) {
+              //     if (_errors.containsKey('select lead name')) {
+              //       setState(() {
+              //         _errors.remove('select lead name');
+              //       });
+              //     }
+              //     // Handle lead search input changes
+              //     print('Lead search input changed: $value');
+              //   },
+              //   isRequired: true, // Set to true if lead selection is mandatory
+              //   // onLeadSelected: (String leadId, String leadName) {
+              //   onLeadSelected: (leadId, leadName) {
+              //     setState(() {
+              //       _leadId = leadId;
+              //       _leadName = leadName;
+              //     });
+
+              //     // Handle lead selection
+              //     print('Lead selected: ID = $leadId, Name = $leadName');
+              //   },
+              //   onClearSelection: () {
+              //     // Handle clearing of lead selection
+              //     print('Lead selection cleared');
+              //   },
+              //   onVehicleSelected: (Map<String, dynamic> selectedVehicle) {
+              //     setState(() {
+              //       selectedVehicleData = selectedVehicle;
+              //       selectedVehicleName = selectedVehicle['vehicle_name'];
+              //       vehicleId = selectedVehicle['vehicle_id'];
+              //       selectedBrand =
+              //           selectedVehicle['brand'] ?? ''; // Handle null brand
+              //     });
+              //   },
+              // ),
               const SizedBox(height: 5),
               CustomGooglePlacesField(
                 controller: _locationController,
@@ -253,20 +258,51 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
                 isRequired: true,
               ),
               const SizedBox(height: 15),
+
+              // SlotCalendar(
+              //   label: 'Select Date & Time Slot',
+              //   isRequired: true,
+              //   controller: startDateController,
+              //   vehicleId: vehicleId.toString(),
+              //   onChanged: (value) {
+              //     try {
+              //       final parsedSlotData = jsonDecode(value);
+              //       print('Slot data received: $parsedSlotData');
+
+              //       // 🔥 THE ACTUAL FIX: Store the slot data in the CLASS VARIABLE
+              //       setState(() {
+              //         slotData =
+              //             parsedSlotData; // This updates the class-level variable
+              //         // Clear the error if it exists
+              //         if (_errors.containsKey('select_slot')) {
+              //           _errors.remove('select_slot');
+              //         }
+              //       });
+
+              //       print('slotData variable set to: $slotData'); // Debug log
+              //     } catch (e) {
+              //       // If it's not JSON (like initial date selection), just print
+              //       print('Slot changed: $value');
+              //     }
+              //   },
+              //   onTextFieldTap: () {
+              //     print('Calendar container tapped');
+              //   },
+              // ),
               SlotCalendar(
                 label: 'Select Date & Time Slot',
                 isRequired: true,
                 controller: startDateController,
-                vehicleId: vehicleId.toString(),
+                vehicleId:
+                    vehicleId?.toString() ??
+                    '', // This gets the vehicle ID from either source
                 onChanged: (value) {
                   try {
                     final parsedSlotData = jsonDecode(value);
                     print('Slot data received: $parsedSlotData');
 
-                    // 🔥 THE ACTUAL FIX: Store the slot data in the CLASS VARIABLE
                     setState(() {
-                      slotData =
-                          parsedSlotData; // This updates the class-level variable
+                      slotData = parsedSlotData;
                       // Clear the error if it exists
                       if (_errors.containsKey('select_slot')) {
                         _errors.remove('select_slot');
@@ -283,30 +319,7 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
                   print('Calendar container tapped');
                 },
               ),
-              // SlotCalendar(
-              //   label: 'Select Date & Time Slot',
-              //   isRequired: true,
-              //   controller: startDateController,
-              //   vehicleId: vehicleId.toString(),
-              //   onChanged: (value) {
-              //     // setState(() {
-              //     //   // startDateController = value;
-              //     // });
-              //     // print('Slot changed: $value');
-              //     try {
-              //       final slotData = jsonDecode(value);
-              //       print('Slot data received: $slotData');
 
-              //       // Call the booking API immediately when slot is selected
-              //     } catch (e) {
-              //       // If it's not JSON (like initial date selection), just print
-              //       print('Slot changed: $value');
-              //     }
-              //   },
-              //   onTextFieldTap: () {
-              //     print('Calendar container tapped');
-              //   },
-              // ),
               const SizedBox(height: 10),
 
               const SizedBox(height: 10),
@@ -360,21 +373,32 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
 
   Future<void> submitForm() async {
     try {
-      // Retrieve sp_id from SharedPreferences.
       final prefs = await SharedPreferences.getInstance();
       final spId = prefs.getString('user_id');
 
-      if (spId == null) {
-        throw Exception('User ID not found. Please login again.');
-      }
+      final rawStartDate = DateTime.parse(slotData!['date']);
+      final rawEndDate = DateTime.parse(slotData!['date']); // Automatically set
+      final formattedStartDate = DateFormat('dd/MM/yyyy').format(rawStartDate);
+      final formattedEndDate = DateFormat('dd/MM/yyyy').format(rawEndDate);
+
+      final rawStartTime = DateFormat(
+        'HH:mm:ss',
+      ).parse(slotData!['start_time_slot']);
+      final rawEndTime = DateFormat(
+        'HH:mm:ss',
+      ).parse(slotData!['end_time_slot']);
+      final formattedStartTime = DateFormat('hh:mm a').format(rawStartTime);
+      final formattedEndTime = DateFormat(
+        'HH:mm:ss',
+      ).format(rawEndTime); // Automatically set
 
       // Prepare the appointment data.
       final testdriveData = {
         'vehicleId': vehicleId,
-        'start_date': slotData!['date'],
-        'end_date': slotData!['date'],
-        'start_time': slotData!['start_time_slot'],
-        'end_time': slotData!['end_time_slot'],
+        'start_date': formattedStartDate,
+        'end_date': formattedEndDate,
+        'start_time': formattedStartTime,
+        'end_time': formattedEndTime,
         'date_of_booking': slotData!['date'],
         'start_time_slot': slotData!['start_time_slot'],
         'end_time_slot': slotData!['end_time_slot'],
@@ -384,30 +408,25 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
         'remarks': descriptionController.text.trim(),
       };
 
-      print('Submitting testdrive data: $testdriveData'); // Debug log
-
-      // Call the service to submit the appointment.
       final success = await LeadsSrv.submitTestDrive(testdriveData, _leadId!);
+      print('Submitting testdrive data: $testdriveData');
 
       if (success) {
         if (context.mounted) {
           Navigator.pop(context, true); // Close the modal on success.
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Test Drive created successfully!')),
+        showSuccessMessage(
+          context,
+          message: 'Testdrive created successfully for $formattedStartDate',
         );
         widget.onFormSubmit?.call(); // Refresh dashboard data
         widget.onTabChange?.call(2);
       } else {
-        throw Exception('Failed to submit test drive. Please try again.');
+        showErrorMessage(context, message: 'Failed to submit Testdrive.');
       }
     } catch (e) {
-      print('submitForm error: $e'); // Debug log
       if (context.mounted) {
-        showErrorMessage(
-          context,
-          message: 'Failed to submit test drive: ${e.toString()}',
-        );
+        print(e.toString());
       }
       rethrow; // Re-throw to be caught by _submit()
     }
@@ -435,6 +454,11 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
 
   //   // Prepare the appointment data.
   //   final testdriveData = {
+
+  // 'start_date': slotData!['date'],
+  // 'end_date': slotData!['date'],
+  //   'start_time': slotData!['start_time_slot'],
+  // 'end_time': slotData!['end_time_slot'],
   //     'vehicleId': vehicleId,
   //     'start_date': slotData!['date'],
   //     'end_date': slotData!['date'],

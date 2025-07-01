@@ -61,16 +61,36 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
         print('Decoded JSON:');
         print(const JsonEncoder.withIndent('  ').convert(data));
         setState(() {
-          startTime = data['data']['duration'];
-          distanceCovered = data['data']['distance'] + ' km';
-          mapImgUrl = data['data']['map_img'] ?? '';
-          potentialPurchase = data['data']['purchase_potential'];
-          purchase_potential = data['data']['purchase_potential'];
-          // avg_rating = data['data']['avg_rating'].toString();
-          avg_rating = double.parse(
-            data['data']['avg_rating'].toString(),
-          ).toStringAsFixed(1);
+          // startTime = data['data']['duration'];
+          // distanceCovered = data['data']['distance'] + ' km';
+          // mapImgUrl = data['data']['map_img'] ?? '';
+          // potentialPurchase = data['data']['purchase_potential'];
+          // purchase_potential = data['data']['purchase_potential'];
+          // // avg_rating = data['data']['avg_rating'].toString();
+          // avg_rating = double.parse(
+          //   data['data']['avg_rating'].toString(),
+          // ).toStringAsFixed(1);
 
+          // ratings = data['data']['drive_feedback'];
+
+          // isLoading = false;
+          // print('Map Image URL: $mapImgUrl');
+
+          startTime = data['data']['duration'] ?? '0';
+          distanceCovered = data['data']['distance'] != null
+              ? '${data['data']['distance']} km'
+              : '0.0 km';
+          mapImgUrl = data['data']['map_img'] ?? '';
+          potentialPurchase =
+              data['data']['purchase_potential'] ?? 'Not provided';
+          purchase_potential =
+              data['data']['purchase_potential'] ?? 'Not provided';
+          avg_rating = data['data']['avg_rating'] != null
+              ? double.tryParse(
+                      data['data']['avg_rating'].toString(),
+                    )?.toStringAsFixed(1) ??
+                    '0.0'
+              : '0.0';
           ratings = data['data']['drive_feedback'];
           isLoading = false;
         });
@@ -457,6 +477,25 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
                                   ),
                                 ],
                               ),
+
+                              // if (!_isHidden) ...[
+                              //   if (mapImgUrl.isNotEmpty)
+                              //     Column(
+                              //       children: [
+                              //         Container(
+                              //           margin: const EdgeInsets.symmetric(
+                              //             horizontal: 10,
+                              //           ),
+                              //           decoration: BoxDecoration(
+                              //             borderRadius: BorderRadius.circular(
+                              //               30,
+                              //             ),
+                              //           ),
+                              //           child: Image.network(mapImgUrl),
+                              //         ),
+                              //       ],
+                              //     ),
+                              // ],
                               if (!_isHidden) ...[
                                 if (mapImgUrl.isNotEmpty)
                                   Column(
@@ -470,9 +509,60 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
                                             30,
                                           ),
                                         ),
-                                        child: Image.network(mapImgUrl),
+                                        child: Image.network(
+                                          mapImgUrl,
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                                return Container(
+                                                  height:
+                                                      200, // Set a fixed height for the placeholder
+                                                  width: double.infinity,
+                                                  color: Colors.grey[200],
+                                                  child: const Center(
+                                                    child: Text(
+                                                      'Failed to load map image',
+                                                      style: TextStyle(
+                                                        color: Colors.red,
+                                                        fontSize: 16,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                          loadingBuilder:
+                                              (
+                                                context,
+                                                child,
+                                                loadingProgress,
+                                              ) {
+                                                if (loadingProgress == null)
+                                                  return child;
+                                                return const Center(
+                                                  child:
+                                                      CircularProgressIndicator(),
+                                                );
+                                              },
+                                        ),
                                       ),
                                     ],
+                                  )
+                                else
+                                  Container(
+                                    margin: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                    ),
+                                    height: 200,
+                                    width: double.infinity,
+                                    color: Colors.grey[200],
+                                    child: const Center(
+                                      child: Text(
+                                        'No map image available',
+                                        style: TextStyle(
+                                          color: Colors.black54,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ),
                                   ),
                               ],
                             ],

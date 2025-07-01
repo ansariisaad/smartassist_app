@@ -606,8 +606,6 @@
 //   );
 // }
 
-
-
 //   Widget _buildTeamYourButtons() {
 //     return Row(
 //       mainAxisAlignment: MainAxisAlignment.center,
@@ -1230,15 +1228,12 @@ class _CalendarSmState extends State<CalendarSm> {
       itemBuilder: (context, index) {
         final timeKey = activeTimeSlots[index];
         final items = _timeSlotItems[timeKey] ?? [];
-
-        // Group by type, but merge for display (show all event/task types)
         final events = items
             .where((item) => item['start_time'] != null)
             .toList();
         final tasks = items
             .where((item) => item['start_time'] == null)
             .toList();
-
         List<dynamic> allItems = [];
         allItems.addAll(events);
         allItems.addAll(tasks);
@@ -1271,19 +1266,14 @@ class _CalendarSmState extends State<CalendarSm> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ...displayItems.map((item) {
-                          if (item['start_time'] != null) {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: _buildEventTab(item),
-                            );
-                          } else {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: _buildTaskTab(item),
-                            );
-                          }
-                        }).toList(),
+                        ...displayItems
+                            .map(
+                              (item) => Padding(
+                                padding: const EdgeInsets.only(bottom: 8.0),
+                                child: _buildTaskCard(item),
+                              ),
+                            )
+                            .toList(),
                         if (showMore && !isExpanded)
                           Align(
                             alignment: Alignment.centerRight,
@@ -1361,9 +1351,13 @@ class _CalendarSmState extends State<CalendarSm> {
     if (c.contains('test drive')) {
       return Color(0xFF4A90E2).withOpacity(0.13); // mid blue
     }
-    if (c.contains('call') || c.contains('quotation') || c.contains('show')
-        || c.contains('appointment') || c.contains('enquiry')
-        || c.contains('follow up') || c.contains('followup')) {
+    if (c.contains('call') ||
+        c.contains('quotation') ||
+        c.contains('show') ||
+        c.contains('appointment') ||
+        c.contains('enquiry') ||
+        c.contains('follow up') ||
+        c.contains('followup')) {
       return Color(0xFFF865AB).withOpacity(0.16); // mid pink
     }
     return Color(0xFFF0F3FA); // default
@@ -1394,10 +1388,7 @@ class _CalendarSmState extends State<CalendarSm> {
         width: double.infinity,
         decoration: BoxDecoration(
           color: getTaskCardColor(category),
-          border: Border.all(
-            color: Colors.black,
-            width: 0.3,
-          ),
+          border: Border.all(color: Colors.black, width: 0.3),
           borderRadius: BorderRadius.circular(12),
         ),
         padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),

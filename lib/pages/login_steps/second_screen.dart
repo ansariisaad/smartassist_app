@@ -114,7 +114,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
   Widget _buildTitle() {
     return const Padding(
       padding: EdgeInsets.symmetric(vertical: 10),
-      child: StyleText('Verify Your Email Address'),
+      child: StyleText('Verify OTP'),
     );
   }
 
@@ -157,49 +157,6 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
       ),
     );
   }
-
-  // Widget _buildOTPFields() {
-  //   return Row(
-  //     mainAxisAlignment: MainAxisAlignment.center,
-  //     children: List.generate(
-  //       OTPVerificationScreen._otpLength,
-  //       (index) => Container(
-  //         margin: const EdgeInsets.symmetric(horizontal: 5),
-  //         width: 45,
-  //         child: TextFormField(
-  //           controller: _controllers[index],
-  //           focusNode: _focusNodes[index],
-  //           keyboardType: TextInputType.number,
-  //           textAlign: TextAlign.center,
-  //           maxLength: 1,
-  //           style: GoogleFonts.poppins(
-  //             fontSize: 20,
-  //             fontWeight: FontWeight.bold,
-  //           ),
-  //           decoration: InputDecoration(
-  //             counterText: '',
-  //             enabledBorder: OutlineInputBorder(
-  //               borderSide: BorderSide(color: Colors.grey.shade300),
-  //               borderRadius: BorderRadius.circular(8),
-  //             ),
-  //             focusedBorder: OutlineInputBorder(
-  //               borderSide: const BorderSide(color: Colors.blue, width: 2),
-  //               borderRadius: BorderRadius.circular(8),
-  //             ),
-  //             errorBorder: OutlineInputBorder(
-  //               borderSide: const BorderSide(color: Colors.red),
-  //               borderRadius: BorderRadius.circular(8),
-  //             ),
-  //           ),
-  //           inputFormatters: [
-  //             FilteringTextInputFormatter.digitsOnly,
-  //           ],
-  //           onChanged: (value) => _handleOTPInput(value, index),
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
 
   Widget _buildOTPFields() {
     // Calculate the available width for OTP fields
@@ -245,7 +202,10 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: Colors.blue, width: 2),
+                    borderSide: const BorderSide(
+                      color: AppColors.colorsBlue,
+                      width: 2,
+                    ),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   errorBorder: OutlineInputBorder(
@@ -293,7 +253,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
       child: ElevatedButton(
         onPressed: _isLoading ? null : _handleVerification,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF0276FE),
+          backgroundColor: AppColors.colorsBlue,
           foregroundColor: Colors.white,
           minimumSize: const Size(double.infinity, 50),
           shape: RoundedRectangleBorder(
@@ -347,53 +307,6 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
       }
     }
   }
-
-  // Future<void> _handleVerification() async {
-  //   final otpString = _controllers.map((controller) => controller.text).join();
-
-  //   if (otpString.length != OTPVerificationScreen._otpLength) {
-  //     showErrorMessage(context, message: 'Please enter all digits');
-  //     return;
-  //   }
-
-  //   if (int.tryParse(otpString) == null) {
-  //     showErrorMessage(context, message: 'Please enter valid digits');
-  //     return;
-  //   }
-
-  //   setState(() => _isLoading = true);
-
-  //   try {
-  //     final response = await LeadsSrv.verifyEmail({
-  //       "otp": int.parse(otpString),
-  //       "email": widget.email,
-  //     });
-
-  //     if (!mounted) return;
-
-  //     if (response['isSuccess'] == true) {
-  //       final responseData = response['data'];
-  //       showSuccessMessage(context, message: 'Email verified successfully');
-  //       _navigateToPasswordScreen();
-  //     } else {
-  //       showErrorMessage(
-  //         context,
-  //         message: response['message'] ?? 'Invalid OTP. Please try again.',
-  //       );
-  //     }
-  //   } catch (error) {
-  //     if (!mounted) return;
-  //     showErrorMessage(
-  //       context,
-  //       message: 'Verification failed. Please try again.',
-  //     );
-  //     debugPrint('OTP verification error: $error');
-  //   } finally {
-  //     if (mounted) {
-  //       setState(() => _isLoading = false);
-  //     }
-  //   }
-  // }
 
   Future<void> _handleVerification() async {
     final otpString = _controllers.map((controller) => controller.text).join();
@@ -463,236 +376,3 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
     );
   }
 }
-
-// import 'package:flutter/gestures.dart';
-// import 'package:flutter/material.dart';
-// import 'package:smartassist/pages/login/first_screen.dart';
-// import 'package:smartassist/pages/login/last_screen.dart';
-// import 'package:smartassist/services/otp_srv.dart';
-// import 'package:smartassist/utils/button.dart';
-// import 'package:smartassist/utils/snackbar_helper.dart';
-// import 'package:smartassist/utils/style_text.dart';
-
-// class VerifyMail extends StatefulWidget {
-//   final String text;
-//   final TextStyle? style;
-//   final int _otpLength = 6; // Number of OTP digits
-//   final List<TextEditingController> _controllers =
-//       List.generate(6, (index) => TextEditingController());
-
-//   final String email;
-//   VerifyMail({super.key, required this.email, required this.text, this.style});
-
-//   @override
-//   State<VerifyMail> createState() => _SetPwdState();
-// }
-
-// class _SetPwdState extends State<VerifyMail> {
-//   // Form key for validation );
-//   TextEditingController otpController = TextEditingController();
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-//       resizeToAvoidBottomInset: true, // Prevents bottom overflow
-
-//       body: Center(
-//         child: SafeArea(
-//           // Adds safe area to prevent bottom inset issues
-//           child: SingleChildScrollView(
-//             // Allows scrolling when keyboard appears
-//             child: Padding(
-//               padding: const EdgeInsets.all(16.0),
-//               child: Form(
-//                 child: Column(
-//                   mainAxisAlignment: MainAxisAlignment.center,
-//                   children: [
-//                     // Image
-//                     Image.asset(
-//                       'assets/lock.png',
-//                       width: 250,
-//                     ),
-
-//                     // Title
-//                     const Padding(
-//                       padding: EdgeInsets.symmetric(vertical: 10),
-//                       child: StyleText('Verify Your Email address'),
-//                     ),
-
-//                     // Subtitle
-//                     Padding(
-//                       padding: const EdgeInsets.symmetric(
-//                           horizontal: 6, vertical: 2),
-//                       child: RichText(
-//                         textAlign: TextAlign.center,
-//                         text: TextSpan(
-//                           style: const TextStyle(
-//                               color: Colors.grey), // Default text color
-//                           children: [
-//                             const TextSpan(
-//                               text: 'An 6-digit code has been sent to ',
-//                               style: TextStyle(fontSize: 16, height: 2),
-//                             ),
-//                             TextSpan(
-//                               text: '${widget.email}',
-//                               style: const TextStyle(
-//                                   color:
-//                                       Colors.black), // Dark color for the email
-//                             ),
-//                             TextSpan(
-//                               text: ' Change',
-//                               style: const TextStyle(
-//                                 color: Colors.blue, // Link-like color
-//                                 decoration: TextDecoration
-//                                     .underline, // Underline the "Change" text
-//                               ),
-//                               recognizer: TapGestureRecognizer()
-//                                 ..onTap = () {
-//                                   Navigator.push(
-//                                       context,
-//                                       MaterialPageRoute(
-//                                           builder: (context) =>
-//                                               const EmailSetupScreen(text: '',)));
-//                                 },
-//                             ),
-//                           ],
-//                         ),
-//                       ),
-//                     ),
-
-//                     // TextField(
-//                     //   controller: otpController,
-//                     //   decoration: const InputDecoration(hintText: 'Enter otp'),
-//                     // ),
-//                     SizedBox(
-//                       height: 20,
-//                     ),
-//                     Row(
-//                       mainAxisAlignment: MainAxisAlignment.center,
-//                       children: List.generate(widget._otpLength, (index) {
-//                         return Container(
-//                           margin: const EdgeInsets.symmetric(horizontal: 5),
-//                           width: 45,
-//                           child: TextField(
-//                             controller: widget._controllers[index],
-//                             keyboardType: TextInputType.number,
-//                             textAlign: TextAlign.center,
-//                             maxLength: 1,
-//                             style: const TextStyle(
-//                               fontSize: 20,
-//                               fontWeight: FontWeight.bold,
-//                             ),
-//                             decoration: const InputDecoration(
-//                               counterText: '',
-//                               enabledBorder: OutlineInputBorder(
-//                                 borderSide: BorderSide(color: Colors.grey),
-//                               ),
-//                               focusedBorder: OutlineInputBorder(
-//                                 borderSide: BorderSide(color: Colors.blue),
-//                               ),
-//                             ),
-//                             onChanged: (value) {
-//                               if (value.isNotEmpty &&
-//                                   index < widget._otpLength - 1) {
-//                                 FocusScope.of(context).nextFocus();
-//                               } else if (value.isEmpty && index > 0) {
-//                                 FocusScope.of(context).previousFocus();
-//                               }
-//                             },
-//                           ),
-//                         );
-//                       }),
-//                     ),
-//                     SizedBox(
-//                       height: 20,
-//                     ),
-//                     RichText(
-//                       textAlign: TextAlign.center,
-//                       text: TextSpan(
-//                         text:
-//                             "Didn't receive the code? ", // Text before the link
-//                         style: const TextStyle(
-//                             color: Colors.grey,
-//                             fontSize: 16), // Default style for the first part
-//                         children: [
-//                           TextSpan(
-//                             text: 'Resend',
-//                             style: const TextStyle(
-//                               color: Colors.blue,
-//                               decoration: TextDecoration
-//                                   .underline, // Underline the link
-//                             ),
-//                             recognizer: TapGestureRecognizer()..onTap = () {},
-//                           ),
-//                         ],
-//                       ),
-//                     ), // Next Step Button
-//                     Padding(
-//                       padding: const EdgeInsets.symmetric(
-//                           vertical: 26, horizontal: 8),
-//                       child: ElevatedButton(
-//                         onPressed: onVerify,
-//                         style: ElevatedButton.styleFrom(
-//                           backgroundColor: const Color(0xFF0276FE),
-//                           foregroundColor: Colors.white,
-//                           minimumSize: const Size(double.infinity, 50),
-//                           shape: RoundedRectangleBorder(
-//                             borderRadius: BorderRadius.circular(10),
-//                           ),
-//                         ),
-//                         child: const Button('Verify', style: TextStyle(
-//                               fontSize: 18, fontWeight: FontWeight.w600),
-//                         ),
-//                       ),
-//                     ),
-//                   ],
-//                 ),
-//               ),
-//             ),
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-
-//   Future<void> onVerify() async {
-//     // Combine all the text from the individual controllers to form the OTP as a string
-//     final otpString =
-//         widget._controllers.map((controller) => controller.text).join();
-
-//     // Ensure the OTP is valid (numeric and correct length)
-//     if (otpString.length != widget._otpLength ||
-//         int.tryParse(otpString) == null) {
-//       showErrorMessage(context,
-//           message: 'Invalid OTP. Please enter a valid code.');
-//       return;
-//     }
-
-//     // Convert the OTP string to an integer for the API
-//     final otp = int.parse(otpString);
-
-//     final body = {"otp": otp, "email": widget.email};
-
-//     try {
-//       final response = await OtpSrv.verifyEmail(body);
-
-//       print('API Response: $response');
-
-//       if (response['isSuccess'] == true) {
-//         showSuccessMessage(context, message: 'Email Verified Successfully');
-
-//         Navigator.push(
-//           context,
-//           MaterialPageRoute(
-//             builder: (context) => SetNewPwd(email: widget.email, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600), text: '',
-//             ),
-//           ),
-//         );
-//       } else {
-//         showErrorMessage(context, message: 'Check the Email or OTP');
-//       }
-//     } catch (error) {
-//       showErrorMessage(context, message: 'Error during API call');
-//     }
-//   }
-// }

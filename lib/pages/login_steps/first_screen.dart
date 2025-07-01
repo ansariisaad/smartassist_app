@@ -79,13 +79,13 @@ class _EmailSetupScreenState extends State<EmailSetupScreen> {
       children: [
         Padding(
           padding: EdgeInsets.symmetric(vertical: _verticalPadding),
-          child: StyleText('Set Your Email'),
+          child: StyleText('Verify Your Email'),
         ),
         SizedBox(height: 10),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           child: ParagraphText(
-            'In order to keep your account safe, you need to create a strong password.',
+            'Enter your email address to verify your account and proceed to create password.',
             textAlign: TextAlign.center,
             maxLines: 2,
           ),
@@ -121,9 +121,9 @@ class _EmailSetupScreenState extends State<EmailSetupScreen> {
           decoration: InputDecoration(
             fillColor: const Color(0xffF3F9FF),
             filled: true,
-            hintText: 'Enter Email ID',
+            hintText: 'johndoe@example.com',
             hintStyle: GoogleFonts.poppins(
-              color: AppColors.fontColor,
+              color: Colors.grey.shade500,
               fontSize: 12,
               fontWeight: FontWeight.w400,
             ),
@@ -146,7 +146,7 @@ class _EmailSetupScreenState extends State<EmailSetupScreen> {
       child: ElevatedButton(
         onPressed: _isLoading ? null : _handleEmailVerification,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF0276FE),
+          backgroundColor: AppColors.colorsBlue,
           foregroundColor: Colors.white,
           minimumSize: const Size(double.infinity, 50),
           shape: RoundedRectangleBorder(
@@ -192,12 +192,12 @@ class _EmailSetupScreenState extends State<EmailSetupScreen> {
       if (!mounted) return;
 
       if (response['isSuccess'] == true) {
-        showSuccessMessage(context, message: 'Email Verified Successfully');
+        showSuccessMessage(context, message: 'OTP sent to your email');
         _navigateToVerifyMail();
       } else {
         showErrorMessage(
           context,
-          message: response['message'] ?? 'Check the Email',
+          message: response['message'] ?? 'Invalid email address',
         );
       }
     } catch (error) {
@@ -226,230 +226,3 @@ class _EmailSetupScreenState extends State<EmailSetupScreen> {
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// import 'package:flutter/material.dart';
-// import 'package:google_fonts/google_fonts.dart';
-// import 'package:smartassist/config/component/color/colors.dart';
-// import 'package:smartassist/pages/login/second_screen.dart';
-// import 'package:smartassist/services/email_srv.dart';
-// import 'package:smartassist/utils/button.dart';
-// import 'package:smartassist/utils/paragraph_text.dart';
-// import 'package:smartassist/utils/snackbar_helper.dart';
-// import 'package:smartassist/utils/style_text.dart';
-
-// class SetPwd extends StatefulWidget {
-//   final TextStyle? style;
-//   final String text;
-//   const SetPwd({super.key, this.style, required this.text});
-
-//   @override
-//   State<SetPwd> createState() => _SetPwdState();
-// }
-
-// class _SetPwdState extends State<SetPwd> {
-//   // Controllers for text fields
-//   // final TextEditingController _passwordController = TextEditingController();
-//   TextEditingController emailController = TextEditingController();
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       resizeToAvoidBottomInset: true,
-//       body: Center(
-//         child: SafeArea(
-//           // Adds safe area to prevent bottom inset issues
-//           child: SingleChildScrollView(
-//             // Allows scrolling when keyboard appears
-//             child: Padding(
-//               padding: const EdgeInsets.all(16.0),
-//               child: Form(
-//                 child: Column( 
-//                   mainAxisAlignment: MainAxisAlignment.spaceAround,
-//                   children: [
-//                     // Image
-//                     Image.asset(
-//                       'assets/login_img.png',
-//                       width: 250,
-//                     ),
-
-//                     // Title
-//                     const Padding(
-//                       padding: EdgeInsets.symmetric(vertical: 10),
-//                       child: StyleText('Set Your Email'),
-//                     ),
-
-//                     // Subtitle
-//                     const Padding(
-//                       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-//                       child: ParagraphText(
-//                         'In order to keep your account safe, you need to create a strong password.',
-//                         textAlign: TextAlign.center,
-//                         maxLines: 2,
-//                       ),
-//                     ),
-
-//                     // const Row(
-//                     //   children: [
-//                     //     Padding(
-//                     //         padding: EdgeInsets.fromLTRB(6, 20, 0, 0),
-//                     //         child: Text('Email'))
-//                     //   ],
-//                     // ),
-//                     // // Password TextField
-//                     // Padding(
-//                     //   padding: const EdgeInsets.symmetric(vertical: 10),
-//                     //   child: TextFormField(
-//                     //     controller: emailController,
-//                     //     decoration: InputDecoration(
-//                     //       hintText: 'Enter Email ID',
-//                     //       border: OutlineInputBorder(
-//                     //         borderRadius: BorderRadius.circular(10),
-//                     //       ),
-//                     //     ),
-//                     //   ),
-//                     // ),
-
-//                     Row(
-//                       children: [
-//                         SizedBox(
-//                           height: 5,
-//                           width: 5,
-//                         ),
-//                         Padding(
-//                           padding: const EdgeInsets.fromLTRB(4, 0, 0, 10),
-//                           child: Text(
-//                             'Email',
-//                             style: GoogleFonts.poppins(
-//                                 fontSize: 12,
-//                                 fontWeight: FontWeight.w500,
-//                                 color: AppColors.fontColor),
-//                           ),
-//                         )
-//                       ],
-//                     ),
-//                     SizedBox(
-//                       height: 5,
-//                     ),
-//                     // Password TextField
-//                     TextField(
-//                       style: GoogleFonts.poppins(
-//                           fontSize: 14,
-//                           fontWeight: FontWeight.w500,
-//                           color: Colors.black),
-//                       // controller: _passwordController,
-//                       controller: emailController,
-//                       decoration: InputDecoration(
-//                         fillColor: Color(0xffF3F9FF),
-//                         filled: true,
-//                         hintText: 'Enter Email ID', // Only placeholder text
-//                         // fillColor: Colors.grey,
-//                         hintStyle: GoogleFonts.poppins(
-//                             color: AppColors.fontColor,
-//                             fontSize: 12,
-//                             fontWeight: FontWeight.w400),
-//                         border: OutlineInputBorder(
-//                           borderSide: BorderSide.none,
-//                           borderRadius: BorderRadius.circular(10),
-//                         ),
-//                       ),
-//                     ),
-
-//                     // Next Step Button
-//                     // Padding(
-//                     //   padding: const EdgeInsets.symmetric(vertical: 16),
-//                     //   child: ElevatedButton(
-
-//                     //     onPressed: verifyEmail,
-//                     //     style: ElevatedButton.styleFrom(
-//                     //       backgroundColor: const Color(0xFF0276FE),
-//                     //       foregroundColor: Colors.white,
-//                     //       minimumSize: const Size(double.infinity, 50),
-//                     //       shape: RoundedRectangleBorder(
-//                     //         borderRadius: BorderRadius.circular(10),
-//                     //       ),
-//                     //       elevation: 4,
-//                     //       shadowColor: AppColors.colorsBlue.withOpacity(0.4),
-//                     //     ),
-//                     //     child:   Button('Next Step' ),
-//                     //   ),
-//                     // ),
-
-//                     Padding(
-//                       padding: const EdgeInsets.symmetric(vertical: 16),
-//                       child: ElevatedButton(
-//                         onPressed: verifyEmail,
-//                         style: ElevatedButton.styleFrom(
-//                           backgroundColor: const Color(0xFF0276FE),
-//                           foregroundColor: Colors.white,
-//                           minimumSize: const Size(double.infinity, 50),
-//                           shape: RoundedRectangleBorder(
-//                             borderRadius: BorderRadius.circular(10),
-//                           ),
-//                           elevation: 4,
-//                           shadowColor: AppColors.colorsBlue.withOpacity(0.4),
-//                         ),
-//                         child: Button(
-//                           'Next Step',
-//                           style: GoogleFonts.poppins(
-//                               fontSize: 14,
-//                               fontWeight:
-//                                   FontWeight.w500), // Set font size here
-//                         ),
-//                       ),
-//                     ),
-//                   ],
-//                 ),
-//               ),
-//             ),
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-
-//   Future<void> verifyEmail() async {
-//     final email = emailController.text;
-//     final body = {"email": email};
-
-//     try {
-//       final response = await EmailService.verifyEmail(body);
-
-//       if (response['isSuccess'] == true) {
-//         print('API hit successful: ${response['data']}');
-//         showSuccessMessage(context, message: 'Email Verified Successfully');
-
-//         Navigator.push(
-//           context,
-//           MaterialPageRoute(
-//             builder: (context) => VerifyMail(
-//               email: emailController.text,
-//               text: '',
-//             ),
-//           ),
-//         );
-//       } else {
-//         print('API hit failed: ${response['data']}');
-//         showErrorMessage(context, message: 'Check the Email');
-//       }
-//     } catch (error) {
-//       // Handle unexpected errors
-//       print('Unexpected error: $error');
-//       showErrorMessage(context, message: 'Error during API call');
-//     }
-//   }
-// }

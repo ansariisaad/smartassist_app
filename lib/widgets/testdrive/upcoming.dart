@@ -101,7 +101,6 @@ class _TestUpcomingState extends State<TestUpcoming> {
     }
   }
 
-  
   Future<void> _getOtp(String eventId) async {
     final success = await LeadsSrv.getOtp(eventId: eventId);
 
@@ -113,7 +112,6 @@ class _TestUpcomingState extends State<TestUpcoming> {
 
     if (mounted) setState(() {});
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -161,7 +159,13 @@ class _TestUpcomingState extends State<TestUpcoming> {
             date: item['start_date'],
             email: item['updated_by'],
             leadId: item['lead_id'],
-            startTime: item['start_time'],
+            startTime:
+                (item['start_time'] != null &&
+                    item['start_time'].toString().isNotEmpty)
+                ? item['start_time']
+                      .toString() // Convert to String
+                : "00:00:00", // Default time instead of null
+
             eventId: item['event_id'],
             isFavorite: item['favourite'] ?? false,
             swipeOffset: swipeOffset,
@@ -453,8 +457,6 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
             ),
           ],
         );
-
-
       },
     );
   }

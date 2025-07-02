@@ -269,15 +269,15 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
       ),
     );
   }
-
   Widget _buildTabbedTimelineView() {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: Colors.blue));
-    }
-    // Only show hours with actual appointments/tasks
-    final List<int> displayHours = _getDisplayHours();
-    if (_timeSlotItems.isEmpty) {
-      return Center(
+  if (_isLoading) {
+    return const Center(child: CircularProgressIndicator(color: Colors.blue));
+  }
+
+  final List<int> displayHours = _getDisplayHours();
+  if (_timeSlotItems.isEmpty) {
+    return Expanded(
+      child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -294,17 +294,19 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
             ),
           ],
         ),
-      );
-    }
-      final activeTimeSlots = _timeSlotItems.keys.toList()..sort();
+          ),
+    );
+  }
+  final activeTimeSlots = _timeSlotItems.keys.toList()..sort();
 
-       if (activeTimeSlots.isEmpty) {
-      return _emptyState('No scheduled activities for this date');
-    }
-    // Timeline view (vertical tabbed)
-  return ListView.separated(
-      shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
+  if (activeTimeSlots.isEmpty) {
+    return Expanded(child: _emptyState('No scheduled activities for this date'));
+  }
+
+  // Timeline view (vertical tabbed)
+  return Expanded(
+    child: ListView.separated(
+      controller: _timelineScrollController,
       itemCount: activeTimeSlots.length,
       separatorBuilder: (_, __) => Divider(
         height: 1,
@@ -423,11 +425,10 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
           ),
         );
       },
-    );
-  }
-
-
-   DateTime _parseTimeString(String timeStr) {
+      ),
+  );
+}
+ DateTime _parseTimeString(String timeStr) {
     if (timeStr.isEmpty) {
       return DateTime(2022, 1, 1, 0, 0);
     }
@@ -673,46 +674,4 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
       ),
     );
   }
-
-  // --- Helper functions ---
-  
-  // DateTime _parseTimeString(String timeStr) {
-  //   if (timeStr.isEmpty) {
-  //     return DateTime(2022, 1, 1, 0, 0);
-  //   }
-  //   bool isPM = timeStr.toLowerCase().contains('pm');
-  //   bool isAM = timeStr.toLowerCase().contains('am');
-  //   String cleanTime = timeStr
-  //       .toLowerCase()
-  //       .replaceAll('am', '')
-  //       .replaceAll('pm', '')
-  //       .replaceAll(' ', '')
-  //       .trim();
-  //   final parts = cleanTime.split(':');
-  //   if (parts.length < 2) return DateTime(2022, 1, 1, 0, 0);
-  //   try {
-  //     int hour = int.parse(parts[0]);
-  //     final minute = int.parse(parts[1]);
-  //     if (isPM && hour < 12) {
-  //       hour += 12;
-  //     } else if (isAM && hour == 12) {
-  //       hour = 0;
-  //     }
-  //     return DateTime(2022, 1, 1, hour, minute);
-  //   } catch (e) {
-  //     return DateTime(2022, 1, 1, 0, 0);
-  //   }
-  // }
-
-  // String _formatTimeFor12Hour(String timeStr) {
-  //   if (timeStr.isEmpty || !timeStr.contains(':')) {
-  //     return timeStr;
-  //   }
-  //   DateTime parsedTime = _parseTimeString(timeStr);
-  //   String period = parsedTime.hour >= 12 ? 'PM' : 'AM';
-  //   int hour12 = parsedTime.hour > 12
-  //       ? parsedTime.hour - 12
-  //       : (parsedTime.hour == 0 ? 12 : parsedTime.hour);
-  //   return '${hour12}:${parsedTime.minute.toString().padLeft(2, '0')} $period';
-  // }
 }

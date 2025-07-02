@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 // import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -9,10 +10,10 @@ import 'package:smartassist/config/component/font/font.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
-import 'package:smartassist/widgets/google_location.dart';
-import 'package:smartassist/widgets/remarks_field.dart';
+import 'package:smartassist/widgets/google_location.dart'; 
 import 'package:smartassist/widgets/reusable/leadsearch_testdrive.dart';
 import 'package:smartassist/widgets/reusable/slot_calendar.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class CreateTestdrive extends StatefulWidget {
   final Function onFormSubmit;
@@ -40,6 +41,8 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
   bool isLoading = false;
   Map<String, String> _errors = {};
   Map<String, dynamic>? slotData;
+  late stt.SpeechToText _speech;
+  bool _isListening = false;
 
   String? selectedLeads;
   String? selectedLeadsName;
@@ -69,11 +72,68 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
   @override
   void initState() {
     super.initState();
+    _speech = stt.SpeechToText();
+    _initSpeech();
   }
 
   @override
   void dispose() {
     super.dispose();
+  }
+
+  // Initialize speech recognition
+  void _initSpeech() async {
+    bool available = await _speech.initialize(
+      onStatus: (status) {
+        if (status == 'done') {
+          setState(() {
+            _isListening = false;
+          });
+        }
+      },
+      onError: (errorNotification) {
+        setState(() {
+          _isListening = false;
+        });
+        showErrorMessage(
+          context,
+          message: 'Speech recognition error: ${errorNotification.errorMsg}',
+        );
+      },
+    );
+    if (!available) {
+      showErrorMessage(
+        context,
+        message: 'Speech recognition not available on this device',
+      );
+    }
+  }
+
+  // Toggle listening
+  void _toggleListening(TextEditingController controller) async {
+    if (_isListening) {
+      _speech.stop();
+      setState(() {
+        _isListening = false;
+      });
+    } else {
+      setState(() {
+        _isListening = true;
+      });
+
+      await _speech.listen(
+        onResult: (result) {
+          setState(() {
+            controller.text = result.recognizedWords;
+          });
+        },
+        listenFor: Duration(seconds: 30),
+        pauseFor: Duration(seconds: 5),
+        partialResults: true,
+        cancelOnError: true,
+        listenMode: stt.ListenMode.confirmation,
+      );
+    }
   }
 
   void _submit() async {
@@ -193,8 +253,7 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
                     selectedVehicleData = selectedVehicle;
                     selectedVehicleName = selectedVehicle['vehicle_name'];
                     vehicleId = selectedVehicle['vehicle_id'];
-                    selectedBrand =
-                        selectedVehicle['brand'] ?? ''; 
+                    selectedBrand = selectedVehicle['brand'] ?? '';
                     slotData = {};
                     startDateController.clear();
                   });
@@ -323,16 +382,23 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
               const SizedBox(height: 10),
 
               const SizedBox(height: 10),
-              EnhancedSpeechTextField(
-                isRequired: false,
-                // contentPadding: EdgeInsets.zero,
+
+              _buildTextField(
                 label: 'Remarks:',
                 controller: descriptionController,
-                hint: 'Type or speak... ',
-                onChanged: (text) {
-                  print('Text changed: $text');
-                },
+                hint: 'Type or speak...',
               ),
+
+              // EnhancedSpeechTextField(
+              //   isRequired: false,
+              //   // contentPadding: EdgeInsets.zero,
+              //   label: 'Remarks:',
+              //   controller: descriptionController,
+              //   hint: 'Type or speak... ',
+              //   onChanged: (text) {
+              //     print('Text changed: $text');
+              //   },
+              // ),
               const SizedBox(height: 10),
             ],
           ),
@@ -368,6 +434,83 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTextField({
+    required String label,
+    required TextEditingController controller,
+    required String hint,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 5.0),
+          child: Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.fontBlack,
+            ),
+          ),
+        ),
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(5),
+            color: AppColors.containerBg,
+          ),
+          child: Row(
+            children: [
+              // Expanded TextField that adjusts height
+              Expanded(
+                child: TextField(
+                  textCapitalization: TextCapitalization.sentences,
+                  controller: controller,
+                  maxLines:
+                      null, // This allows the TextField to expand vertically based on content
+                  minLines: 1, // Minimum 1 line of height
+                  keyboardType: TextInputType.multiline,
+                  decoration: InputDecoration(
+                    hintText: hint,
+                    hintStyle: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 10,
+                    ),
+                    border: InputBorder.none,
+                  ),
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+              // Microphone icon with speech recognition
+              Align(
+                alignment: Alignment.centerRight,
+                child: IconButton(
+                  onPressed: () => _toggleListening(controller),
+                  icon: Icon(
+                    _isListening
+                        ? FontAwesomeIcons.stop
+                        : FontAwesomeIcons.microphone,
+                    color: _isListening ? Colors.red : AppColors.fontColor,
+                    size: 15,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

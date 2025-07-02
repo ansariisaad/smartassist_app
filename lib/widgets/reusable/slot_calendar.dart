@@ -829,34 +829,35 @@ class _SlotCalendarState extends State<SlotCalendar> {
             children: staticSlots.map((slot) {
               final isSelected = _selectedSlot == slot;
               final isBooked = _isSlotBooked(slot);
-
-              return ElevatedButton(
-                onPressed: isBooked ? null : () => _onSlotSelected(slot),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isBooked
-                      ? Colors.grey.shade400
-                      : isSelected
-                      ? Colors.blue
-                      : Colors.grey.shade200,
-                  foregroundColor: isBooked
-                      ? Colors.grey.shade600
-                      : isSelected
-                      ? Colors.white
-                      : Colors.black,
-                  elevation: isSelected ? 2 : 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+              return InkWell(
+                onTap: isBooked ? null : () => _onSlotSelected(slot),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5,
+                    vertical: 2,
                   ),
-                  disabledBackgroundColor: Colors.grey.shade400,
-                  disabledForegroundColor: Colors.grey.shade600,
-                ),
-                child: Text(
-                  slot['display']!,
-                  style: TextStyle(
-                    fontWeight: isSelected
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                    decoration: isBooked ? TextDecoration.lineThrough : null,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: isSelected
+                          ? AppColors.colorsBlueButton
+                          : AppColors.fontColor,
+                      width: 0.5,
+                    ),
+                    borderRadius: BorderRadius.circular(15),
+                    color: isSelected
+                        ? AppColors.colorsBlue.withOpacity(0.2)
+                        : AppColors.innerContainerBg,
+                  ),
+                  child: Text(
+                    slot['display']!,
+                    style: GoogleFonts.poppins(
+                      color: isSelected
+                          ? AppColors.colorsBlue
+                          : AppColors.fontColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                      decoration: isBooked ? TextDecoration.lineThrough : null,
+                    ),
                   ),
                 ),
               );
@@ -877,6 +878,94 @@ class _SlotCalendarState extends State<SlotCalendar> {
           ],
         ],
 
+        // if (_selectedDate != null) ...[
+        //   const SizedBox(height: 15),
+        //   Text('Select Time Slot', style: AppFont.dropDowmLabel(context)),
+        //   const SizedBox(height: 8),
+        //   Wrap(
+        //     spacing: 8.0,
+        //     runSpacing: 8.0,
+        //     children: staticSlots.map((slot) {
+        //       final isSelected = _selectedSlot == slot;
+        //       final isBooked = _isSlotBooked(slot);
+        //       return InkWell(
+        //         onTap: isBooked ? null : () => _onSlotSelected(slot),
+        //         child: Container(
+        //           padding: const EdgeInsets.symmetric(
+        //             horizontal: 5,
+        //             vertical: 2,
+        //           ),
+        //           decoration: BoxDecoration(
+        //             border: Border.all(
+        //               color: isSelected
+        //                   ? AppColors.colorsBlueButton
+        //                   : AppColors.fontColor,
+        //               width: 0.5,
+        //             ),
+        //             borderRadius: BorderRadius.circular(15),
+        //             color: isSelected
+        //                 ? AppColors.colorsBlue.withOpacity(0.2)
+        //                 : AppColors.innerContainerBg,
+        //           ),
+        //           child: Text(
+        //             slot['display']!,
+        //             style: GoogleFonts.poppins(
+        //               color: isSelected
+        //                   ? AppColors.colorsBlue
+        //                   : AppColors.fontColor,
+        //               fontSize: 14,
+        //               fontWeight: FontWeight.w400,
+        //             ),
+        //           ),
+        //         ),
+        //       );
+
+        //       // return ElevatedButton(
+        //       //   onPressed: isBooked ? null : () => _onSlotSelected(slot),
+        //       //   style: ElevatedButton.styleFrom(
+        //       //     backgroundColor: isBooked
+        //       //         ? Colors.grey.shade400
+        //       //         : isSelected
+        //       //         ? Colors.blue
+        //       //         : Colors.grey.shade200,
+        //       //     foregroundColor: isBooked
+        //       //         ? Colors.grey.shade600
+        //       //         : isSelected
+        //       //         ? Colors.white
+        //       //         : Colors.black,
+        //       //     elevation: isSelected ? 2 : 0,
+        //       //     shape: RoundedRectangleBorder(
+        //       //       borderRadius: BorderRadius.circular(8),
+        //       //     ),
+        //       //     disabledBackgroundColor: Colors.grey.shade400,
+        //       //     disabledForegroundColor: Colors.grey.shade600,
+        //       //   ),
+        //       //   child: Text(
+        //       //     slot['display']!,
+        //       //     style: TextStyle(
+        //       //       fontWeight: isSelected
+        //       //           ? FontWeight.bold
+        //       //           : FontWeight.normal,
+        //       //       decoration: isBooked ? TextDecoration.lineThrough : null,
+        //       //     ),
+        //       //   ),
+        //       // );
+        //     }).toList(),
+        //   ),
+
+        //   // Show booked slots info
+        //   if (bookedSlots.isNotEmpty && _selectedDate != null) ...[
+        //     const SizedBox(height: 8),
+        //     Text(
+        //       'Booked slots are disabled',
+        //       style: TextStyle(
+        //         fontSize: 12,
+        //         color: Colors.grey.shade600,
+        //         fontStyle: FontStyle.italic,
+        //       ),
+        //     ),
+        //   ],
+        // ],
         if (widget.errorText != null)
           Padding(
             padding: const EdgeInsets.only(top: 8.0),

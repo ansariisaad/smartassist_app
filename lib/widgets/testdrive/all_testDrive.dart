@@ -63,24 +63,24 @@ class _AllFollowupsItemState extends State<AllTestrive>
     super.dispose();
   }
 
-  void _handleTestDrive(dynamic item) {
-    String email = item['updated_by'] ?? '';
-    String mobile = item['mobile'] ?? '';
-    String eventId = item['event_id'] ?? '';
-    String leadId = item['lead_id'] ?? '';
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => TestdriveVerifyotp(
-          email: email,
-          mobile: mobile,
-          leadId: leadId,
-          eventId: eventId,
-        ),
-      ),
-    );
-    print("Call action triggered for ${item['name']}");
-  }
+  // void _handleTestDrive(dynamic item) {
+  //   String email = item['updated_by'] ?? '';
+  //   String mobile = item['mobile'] ?? '';
+  //   String eventId = item['event_id'] ?? '';
+  //   String leadId = item['lead_id'] ?? '';
+  //   Navigator.push(
+  //     context,
+  //     MaterialPageRoute(
+  //       builder: (context) => TestdriveVerifyotp(
+  //         email: email,
+  //         mobile: mobile,
+  //         leadId: leadId,
+  //         eventId: eventId,
+  //       ),
+  //     ),
+  //   );
+  //   print("Call action triggered for ${item['name']}");
+  // }
 
   //   Future<void> _getOtp(String eventId) async {
   //   final success = await LeadsSrv.getOtp(eventId: eventId);
@@ -731,7 +731,12 @@ class _AllTestDriveState extends State<AllTestDrive> {
               leadId: item['lead_id'] ?? '',
               mobile: item['mobile'] ?? '',
               taskId: item['task_id'] ?? '',
-              startTime: item['start_time'],
+              // startTime: item['start_time'],
+              startTime:
+                  (item['start_time'] != null &&
+                      item['start_time'].toString().isNotEmpty)
+                  ? item['start_time'].toString()
+                  : "00:00:00",
               eventId: item['event_id'],
               isFavorite: _favorites[index],
               onToggleFavorite: () => _toggleFavorite(index),

@@ -151,6 +151,7 @@ class _WhatsappChatState extends State<WhatsappChat>
   bool isCheckingStatus = true;
   bool isLoggedOut = false; // Track if user has logged out
   Timer? _reconnectTimer;
+  bool isSocketInitialized = false;
 
   final TextEditingController _messageController = TextEditingController();
   late IO.Socket socket;
@@ -169,11 +170,13 @@ class _WhatsappChatState extends State<WhatsappChat>
     super.didChangeAppLifecycleState(state);
     print('AppLifecycleState: $state');
     if (state == AppLifecycleState.resumed) {
-      // App is back in foreground, attempt to reconnect socket immediately
       _stopReconnectTimer();
       if (!isConnected) {
         print('App resumed, forcing socket reconnect');
-        socket.connect();
+        // Only connect if socket is initialized and WhatsApp is ready
+        if (isSocketInitialized && isWhatsAppReady) {
+          socket.connect();
+        }
         // Delay status check to allow socket connection
         Future.delayed(Duration(seconds: 1), () {
           if (mounted && !isWhatsAppReady && !isLoggedOut) {
@@ -183,7 +186,6 @@ class _WhatsappChatState extends State<WhatsappChat>
       }
     } else if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.hidden) {
-      // App is in background or hidden, start reconnection attempts
       print('App paused or hidden, starting reconnect timer');
       _startReconnectTimer();
     }
@@ -193,8 +195,8 @@ class _WhatsappChatState extends State<WhatsappChat>
     _reconnectTimer?.cancel();
     int attempt = 0;
     const maxAttempts = 10;
-    const baseDelay = 2000; // Start with 2 seconds
-    const maxDelay = 10000; // Cap at 10 seconds
+    const baseDelay = 2000;
+    const maxDelay = 10000;
 
     _reconnectTimer = Timer.periodic(Duration(milliseconds: baseDelay), (
       timer,
@@ -203,9 +205,16 @@ class _WhatsappChatState extends State<WhatsappChat>
         print(
           'Attempting to reconnect socket... (Attempt ${attempt + 1}/$maxAttempts)',
         );
-        socket.connect();
+
+        // Only attempt reconnection if socket is initialized and WhatsApp is ready
+        if (isSocketInitialized && isWhatsAppReady) {
+          socket.connect();
+        } else if (!isWhatsAppReady) {
+          // Check WhatsApp status if not ready
+          await checkWhatsAppStatus();
+        }
+
         attempt++;
-        // Increase delay with exponential backoff
         final delay = (baseDelay * pow(1.5, attempt)).toInt().clamp(
           baseDelay,
           maxDelay,
@@ -217,7 +226,9 @@ class _WhatsappChatState extends State<WhatsappChat>
               print(
                 'Attempting to reconnect socket... (Attempt ${attempt + 1}/$maxAttempts)',
               );
-              socket.connect();
+              if (isSocketInitialized && isWhatsAppReady) {
+                socket.connect();
+              }
               attempt++;
             } else {
               t.cancel();
@@ -240,14 +251,23 @@ class _WhatsappChatState extends State<WhatsappChat>
     spId = prefs.getString('user_id') ?? '';
     email = await TokenManager.getUserEmail() ?? '';
     print('this is spid $spId');
-    initSocket(); // Initialize socket first
-    await checkWhatsAppStatus(); // Check status after socket is initialized
+    // await checkWhatsAppStatus(); // Check status after socket is initialized
+    // initSocket(); // Initialize socket first
+
+    // Always check WhatsApp status first
+    await checkWhatsAppStatus();
+
+    // Initialize socket only if WhatsApp is ready
+    if (isWhatsAppReady) {
+      initSocket();
+    }
   }
 
   Future<void> checkWhatsAppStatus() async {
     setState(() {
       isCheckingStatus = true;
     });
+
     try {
       final url = Uri.parse(
         'https://api.smartassistapp.in/api/check-wa-status',
@@ -276,19 +296,17 @@ class _WhatsappChatState extends State<WhatsappChat>
             isLoggedOut = false;
           }
         });
-        // Remove direct socket.emit; rely on socket's onConnect
+
+        // Initialize socket here if WhatsApp is ready and socket isn't already initialized
+        if (isWhatsAppReady && !isSocketInitialized) {
+          initSocket();
+        }
       } else {
         print('Failed to check WhatsApp status: ${response.body}');
         setState(() {
           isWhatsAppReady = false;
           isCheckingStatus = false;
         });
-        // Get.snackbar(
-        //   'Error',
-        //   'Failed to check WhatsApp status',
-        //   backgroundColor: Colors.red,
-        //   colorText: Colors.white,
-        // );
       }
     } catch (e) {
       print('Error checking WhatsApp status: $e');
@@ -304,6 +322,67 @@ class _WhatsappChatState extends State<WhatsappChat>
       );
     }
   }
+
+  // Future<void> checkWhatsAppStatus() async {
+  //   setState(() {
+  //     isCheckingStatus = true;
+  //   });
+  //   try {
+  //     final url = Uri.parse(
+  //       'https://api.smartassistapp.in/api/check-wa-status',
+  //     );
+  //     final token = await Storage.getToken();
+  //     final response = await http.post(
+  //       url,
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'Authorization': 'Bearer $token',
+  //       },
+  //       body: json.encode({'sessionId': spId}),
+  //     );
+
+  //     print(
+  //       'Check WA Status Response: ${response.statusCode} - ${response.body}',
+  //     );
+
+  //     if (response.statusCode == 200) {
+  //       final data = json.decode(response.body);
+  //       setState(() {
+  //         isWhatsAppReady = data['isReady'] ?? false;
+  //         isCheckingStatus = false;
+  //         // Reset logout flag if WhatsApp is ready
+  //         if (isWhatsAppReady) {
+  //           isLoggedOut = false;
+  //         }
+  //       });
+  //       // Remove direct socket.emit; rely on socket's onConnect
+  //     } else {
+  //       print('Failed to check WhatsApp status: ${response.body}');
+  //       setState(() {
+  //         isWhatsAppReady = false;
+  //         isCheckingStatus = false;
+  //       });
+  //       // Get.snackbar(
+  //       //   'Error',
+  //       //   'Failed to check WhatsApp status',
+  //       //   backgroundColor: Colors.red,
+  //       //   colorText: Colors.white,
+  //       // );
+  //     }
+  //   } catch (e) {
+  //     print('Error checking WhatsApp status: $e');
+  //     setState(() {
+  //       isWhatsAppReady = false;
+  //       isCheckingStatus = false;
+  //     });
+  //     Get.snackbar(
+  //       'Error',
+  //       'Failed to check WhatsApp status',
+  //       backgroundColor: Colors.red,
+  //       colorText: Colors.white,
+  //     );
+  //   }
+  // }
 
   Future<void> initWhatsAppChat(BuildContext context) async {
     if (isWhatsAppReady || isLoading) return;
@@ -408,6 +487,7 @@ class _WhatsappChatState extends State<WhatsappChat>
   }
 
   void initSocket() {
+    if (isSocketInitialized) return;
     socket = IO.io('wss://api.smartassistapp.in', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': true,
@@ -504,17 +584,23 @@ class _WhatsappChatState extends State<WhatsappChat>
       );
     });
 
-    // Updated wa_logout handler to show connect button
     socket.on('wa_logout', (data) {
       print('WA Logout: $data');
       setState(() {
         isWhatsAppReady = false;
-        isWhatsAppLoading = false; // Stop loading on logout
+        isWhatsAppLoading = false;
         loadingMessage = '';
-        isLoggedOut = true; // Set logout flag to show connect button
-        messages.clear(); // Clear messages on logout
+        isLoggedOut = true;
+        messages.clear();
+        // Reset socket initialization to allow re-initialization
+        isSocketInitialized = false;
       });
-      // Show a snackbar to inform user about logout
+
+      // Disconnect and dispose socket
+      if (socket.connected) {
+        socket.disconnect();
+      }
+
       Get.snackbar(
         'WhatsApp Logged Out',
         data['message'] ??
@@ -584,6 +670,8 @@ class _WhatsappChatState extends State<WhatsappChat>
         colorText: Colors.white,
       );
     });
+
+    isSocketInitialized = true;
   }
 
   void _scrollToBottom() {
@@ -598,25 +686,38 @@ class _WhatsappChatState extends State<WhatsappChat>
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
     _stopReconnectTimer();
-    socket.off('connect');
-    socket.off('disconnect');
-    socket.off('new_message');
-    socket.off('chat_messages');
-    socket.off('message_sent');
-    socket.off('wa_error');
-    socket.off('connect_error');
-    socket.off('wa_login_success');
-    socket.off('wa_auth_failure');
-    socket.off('wa_disconnected');
-    socket.off('wa_loading_started'); // Clean up the new listener
-    socket.off('wa_logout'); // Clean up the logout listener
-    socket.disconnect();
+    if (isSocketInitialized) {
+      socket.disconnect();
+      socket.dispose();
+    }
     _messageController.dispose();
     _scrollController.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
+
+  // @override
+  // void dispose() {
+  //   WidgetsBinding.instance.removeObserver(this);
+  //   _stopReconnectTimer();
+  //   socket.off('connect');
+  //   socket.off('disconnect');
+  //   socket.off('new_message');
+  //   socket.off('chat_messages');
+  //   socket.off('message_sent');
+  //   socket.off('wa_error');
+  //   socket.off('connect_error');
+  //   socket.off('wa_login_success');
+  //   socket.off('wa_auth_failure');
+  //   socket.off('wa_disconnected');
+  //   socket.off('wa_loading_started'); // Clean up the new listener
+  //   socket.off('wa_logout'); // Clean up the logout listener
+  //   socket.disconnect();
+  //   _messageController.dispose();
+  //   _scrollController.dispose();
+  //   super.dispose();
+  // }
 
   void disconnectSocket() {
     _stopReconnectTimer();
@@ -644,7 +745,7 @@ class _WhatsappChatState extends State<WhatsappChat>
       fromMe: true,
       timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
       type: 'chat',
-      mediaUrl: null,
+      // mediaUrl: null,
     );
 
     setState(() {
@@ -657,6 +758,7 @@ class _WhatsappChatState extends State<WhatsappChat>
     });
   }
 
+  //728358
   @override
   Widget build(BuildContext context) {
     return Scaffold(

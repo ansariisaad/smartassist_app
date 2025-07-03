@@ -84,6 +84,9 @@ dependencies:
   share_plus: ^11.0.0
   external_app_launcher: ^4.0.3
   flutter_tts: ^3.8.5
+  flutter_time_picker_spinner: ^2.0.0
+  flutter_datetime_picker: ^1.5.1
+
 
 dev_dependencies:
   flutter_test:

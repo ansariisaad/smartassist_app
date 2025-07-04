@@ -307,10 +307,12 @@ class _WhatsappChatState extends State<WhatsappChat>
 
   Future<void> initWhatsAppChat(BuildContext context) async {
     if (isWhatsAppReady || isLoading) return;
+
     setState(() {
       isLoading = true;
       isLoggedOut = false; // Reset logout flag when trying to reconnect
     });
+
     try {
       final url = Uri.parse('https://dev.smartassistapp.in/api/init-wa');
       final token = await Storage.getToken();
@@ -324,7 +326,6 @@ class _WhatsappChatState extends State<WhatsappChat>
       );
 
       print(url.toString());
-
       print('Init WA Response: ${response.statusCode} - ${response.body}');
 
       if (response.statusCode == 200) {
@@ -344,12 +345,13 @@ class _WhatsappChatState extends State<WhatsappChat>
       } else {
         final errorMessage =
             json.decode(response.body)['message'] ?? 'Unknown error';
-        Get.snackbar(
-          'Error',
-          errorMessage,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
+        print(errorMessage.toString());
+        // Get.snackbar(
+        //   'Error',
+        //   errorMessage,
+        //   backgroundColor: Colors.red,
+        //   colorText: Colors.white,
+        // );
       }
     } catch (e) {
       print('Error initializing WhatsApp chat: $e');
@@ -364,6 +366,25 @@ class _WhatsappChatState extends State<WhatsappChat>
         isLoading = false;
       });
     }
+  }
+
+  Future<void> resendQR() async {
+    if (!isConnected) {
+      Get.snackbar(
+        'Error',
+        'Not connected to server',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    setState(() {
+      isWhatsAppLoading = true;
+      loadingMessage = 'Regenerating QR code...';
+    });
+
+    socket.emit('resend_qr', {'sessionId': spId});
   }
 
   Future<void> launchWhatsAppScanner() async {
@@ -515,6 +536,23 @@ class _WhatsappChatState extends State<WhatsappChat>
       );
     });
 
+    socket.on('wa_qr_expired', (data) {
+      print('QR Expired: $data');
+      setState(() {
+        isWhatsAppReady = false;
+        isWhatsAppLoading = false;
+        loadingMessage = '';
+        isLoggedOut = true; // Show reconnect button
+      });
+      Get.snackbar(
+        'QR Code Expired',
+        data['message'] ?? 'QR code expired, please rescan.',
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+        duration: Duration(seconds: 4),
+      );
+    });
+
     socket.on('wa_disconnected', (data) {
       print('WA Disconnected: $data');
       setState(() {
@@ -648,6 +686,7 @@ class _WhatsappChatState extends State<WhatsappChat>
     socket.off('wa_disconnected');
     socket.off('wa_loading_started'); // Clean up the new listener
     socket.off('wa_logout'); // Clean up the logout listener
+    socket.off('wa_qr_expired');
     socket.disconnect();
     _messageController.dispose();
     _scrollController.dispose();
@@ -911,8 +950,15 @@ class _WhatsappChatState extends State<WhatsappChat>
                                       ),
                                     InkWell(
                                       onTap: () {
-                                        initWhatsAppChat(context);
-                                        print('Connect WhatsApp clicked');
+                                        if (isLoggedOut) {
+                                          resendQR(); // Call resendQR if user was logged out
+                                          print('Resend QR clicked');
+                                        } else {
+                                          initWhatsAppChat(
+                                            context,
+                                          ); // Call normal init for first connection
+                                          print('Connect WhatsApp clicked');
+                                        }
                                       },
                                       child: Container(
                                         width: double

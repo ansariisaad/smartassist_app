@@ -779,27 +779,19 @@
 //   bool shouldReclip(CustomClipper<Path> oldClipper) => true;
 // }
 
-
-
 // // Don't forget to add this import at the top of your file:
 // // import 'package:image/image.dart' as img;
 // // import 'dart:math';
 // // Custom painter for license corner lines
 
-
-
-
-
-
-
 // // import 'dart:convert';
-// // import 'dart:io'; 
+// // import 'dart:io';
 // // import 'package:camera/camera.dart';
-// // import 'package:flutter/material.dart'; 
-// // import 'package:get/get.dart'; 
+// // import 'package:flutter/material.dart';
+// // import 'package:get/get.dart';
 // // import 'package:http/http.dart' as http;
 // // import 'package:path/path.dart' as path;
-// // import 'package:path_provider/path_provider.dart'; 
+// // import 'package:path_provider/path_provider.dart';
 // // import 'package:shared_preferences/shared_preferences.dart';
 // // import 'package:smartassist/config/component/color/colors.dart';
 // // import 'package:smartassist/config/component/font/font.dart';
@@ -1191,7 +1183,7 @@ class _LicenseVarificationState extends State<LicenseVarification>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (_isDisposed) return; // Prevent operations after disposal
-    
+
     final CameraController? cameraController = this.cameraController;
 
     // App state changed before we got the chance to initialize.
@@ -1220,7 +1212,7 @@ class _LicenseVarificationState extends State<LicenseVarification>
       } catch (e) {
         print('Error disposing camera controller: $e');
       }
-      
+
       if (!_isDisposed && mounted) {
         setState(() {
           _isCameraInitialized = false;
@@ -1231,28 +1223,29 @@ class _LicenseVarificationState extends State<LicenseVarification>
 
   Future<void> _setupCameraController() async {
     if (_isDisposed) return; // Prevent setup after disposal
-    
+
     try {
       // Dispose existing controller first
       await _disposeCamera();
-      
+
       // Small delay to ensure proper cleanup
       await Future.delayed(const Duration(milliseconds: 100));
-      
+
       List<CameraDescription> _cameras = await availableCameras();
       if (_cameras.isNotEmpty && !_isDisposed) {
         cameraController = CameraController(
           _cameras.first,
-          ResolutionPreset.medium, // Use medium resolution to reduce memory usage
+          ResolutionPreset
+              .medium, // Use medium resolution to reduce memory usage
           enableAudio: false,
           imageFormatGroup: ImageFormatGroup.jpeg,
         );
-        
+
         await cameraController!.initialize();
-        
+
         // Configure camera settings to reduce buffer usage
         await cameraController!.setFlashMode(FlashMode.off);
-        
+
         // Set exposure mode to reduce processing overhead
         try {
           await cameraController!.setExposureMode(ExposureMode.auto);
@@ -1260,7 +1253,7 @@ class _LicenseVarificationState extends State<LicenseVarification>
         } catch (e) {
           print('Error setting camera modes: $e');
         }
-        
+
         if (!_isDisposed && mounted) {
           setState(() {
             _isCameraInitialized = true;
@@ -1278,8 +1271,12 @@ class _LicenseVarificationState extends State<LicenseVarification>
   }
 
   Future<void> _captureImage() async {
-    if (!(cameraController?.value.isInitialized ?? false) || _isCapturing || _isDisposed) {
-      print('Cannot capture: camera not initialized or already capturing or disposed');
+    if (!(cameraController?.value.isInitialized ?? false) ||
+        _isCapturing ||
+        _isDisposed) {
+      print(
+        'Cannot capture: camera not initialized or already capturing or disposed',
+      );
       return;
     }
 
@@ -1289,14 +1286,13 @@ class _LicenseVarificationState extends State<LicenseVarification>
 
     try {
       print('Starting image capture...');
-      
+
       // Take the picture with reduced quality to save memory
       final XFile file = await cameraController!.takePicture();
       print('Image captured successfully: ${file.path}');
 
       // Process image in background to avoid blocking UI
       await _processAndCropImage(file);
-
     } catch (e) {
       print('Error capturing image: $e');
       if (!_isDisposed && mounted) {
@@ -1348,7 +1344,7 @@ class _LicenseVarificationState extends State<LicenseVarification>
       // Load and decode image with memory optimization
       final imageBytes = await File(file.path).readAsBytes();
       final image = img.decodeImage(imageBytes);
-      
+
       if (image == null) {
         print("Failed to decode image");
         throw Exception("Failed to decode image");
@@ -1382,9 +1378,12 @@ class _LicenseVarificationState extends State<LicenseVarification>
 
       // Save the processed image with reduced quality
       final Directory appDir = await getApplicationDocumentsDirectory();
-      final String imagePath = path.join(appDir.path, '${DateTime.now().millisecondsSinceEpoch}.jpg');
+      final String imagePath = path.join(
+        appDir.path,
+        '${DateTime.now().millisecondsSinceEpoch}.jpg',
+      );
       final File croppedFile = File(imagePath);
-      
+
       // Use JPEG with quality setting to reduce file size
       await croppedFile.writeAsBytes(img.encodeJpg(resizedImage, quality: 85));
 
@@ -1410,7 +1409,7 @@ class _LicenseVarificationState extends State<LicenseVarification>
         if (mounted) {
           // Dispose camera before navigation to free resources
           await _disposeCamera();
-          
+
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -1437,7 +1436,7 @@ class _LicenseVarificationState extends State<LicenseVarification>
 
   Future<void> submitFeedback(String skipReason) async {
     if (_isDisposed) return;
-    
+
     setState(() {
       _isUploading = true;
     });
@@ -1471,10 +1470,10 @@ class _LicenseVarificationState extends State<LicenseVarification>
         print('Feedback submitted successfully');
         if (!_isDisposed && mounted) {
           Get.snackbar('Success', 'License verification skipped successfully');
-          
+
           // Dispose camera before navigation
           await _disposeCamera();
-          
+
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -1508,11 +1507,7 @@ class _LicenseVarificationState extends State<LicenseVarification>
   @override
   Widget build(BuildContext context) {
     if (_isDisposed) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     // Calculate rectangle dimensions
@@ -1663,7 +1658,9 @@ class _LicenseVarificationState extends State<LicenseVarification>
                                 width: 70,
                                 height: 70,
                                 decoration: BoxDecoration(
-                                  color: _isCapturing ? Colors.grey : Colors.white,
+                                  color: _isCapturing
+                                      ? Colors.grey
+                                      : Colors.white,
                                   shape: BoxShape.circle,
                                   border: Border.all(
                                     color: Colors.blue,
@@ -1781,7 +1778,7 @@ class _LicenseVarificationState extends State<LicenseVarification>
   // Show skip confirmation dialog
   Future<void> _showSkipDialog() async {
     if (_isDisposed) return;
-    
+
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // User must tap button to close dialog

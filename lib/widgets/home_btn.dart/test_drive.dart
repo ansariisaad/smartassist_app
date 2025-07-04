@@ -196,7 +196,7 @@ class _TestDriveState extends State<TestDrive> {
                 child: _buildInfoCard3(
                   context,
                   // '45%',
-                  '${selectedData['enquiryToUniqueTestdriveRatio'] ?? 0} %',
+                  '${selectedData['enquiryToUniqueTestdriveRatio'] ?? 0} ',
                   'Enquiry to unique Test Drive ratio',
                   screenWidth,
                 ),
@@ -211,7 +211,7 @@ class _TestDriveState extends State<TestDrive> {
                   context,
 
                   // '29%',
-                  '${selectedData['testDriveRatio'] ?? 0} %',
+                  '${selectedData['testDriveRatio'] ?? 0} ',
                   'Enquiry to Test Drive ratio',
                   screenWidth,
                 ),

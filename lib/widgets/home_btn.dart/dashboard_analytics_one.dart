@@ -7,7 +7,6 @@ import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/home_btn.dart/leads.dart';
 import 'package:smartassist/widgets/home_btn.dart/order.dart';
 import 'package:smartassist/widgets/home_btn.dart/test_drive.dart';
-
 import 'package:http/http.dart' as http;
 
 class BottomBtnSecond extends StatefulWidget {
@@ -82,10 +81,13 @@ class _BottomBtnSecondState extends State<BottomBtnSecond> {
   // Fetch dashboard data for a specific period
   Future<Map<String, dynamic>?> _fetchDashboardData(String period) async {
     try {
+
+      // this is new one
       final token = await Storage.getToken();
 
       final uri = Uri.parse(
-        'https://api.smartassistapp.in/api/users/dashboard/analytics?type=$period',
+        // 'https://dev.smartassistapp.in/api/users/dashboard/analytics?type=$period',
+        'https://dev.smartassistapp.in/api/users/analytics?type=$period',
       );
 
       final response = await http.get(

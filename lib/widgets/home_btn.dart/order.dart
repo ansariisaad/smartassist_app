@@ -124,7 +124,7 @@ class _OrderState extends State<Order> {
                         margin: const EdgeInsets.only(right: 10),
                         child: _buildInfoCard2(
                           context,
-                          '${selectedData['TestDriveToRetail'] ?? 0}%',
+                          '${selectedData['TestDriveToRetail'] ?? 0}',
                           'Test Drive to retail ratio',
                           screenWidth,
                           Colors.red,

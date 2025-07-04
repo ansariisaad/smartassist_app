@@ -50,7 +50,7 @@ class _NotificationPageState extends State<NotificationPage> {
 
   Future<void> _fetchNotifications({String? category}) async {
     final token = await Storage.getToken();
-    String url = 'https://api.smartassistapp.in/api/users/notifications/all';
+    String url = 'https://dev.smartassistapp.in/api/users/notifications/all';
 
     if (category != null && category != 'All') {
       // Use the categoryMap to get the correct URL parameter
@@ -106,7 +106,7 @@ class _NotificationPageState extends State<NotificationPage> {
   Future<void> markAsRead(String notificationId) async {
     final token = await Storage.getToken();
     final url =
-        'https://api.smartassistapp.in/api/users/notifications/$notificationId';
+        'https://dev.smartassistapp.in/api/users/notifications/$notificationId';
 
     print('Marking notification as read with URL: $url');
 
@@ -145,7 +145,7 @@ class _NotificationPageState extends State<NotificationPage> {
   Future<void> markAllAsRead() async {
     final token = await Storage.getToken();
     final url =
-        'https://api.smartassistapp.in/api/users/notifications/read/all';
+        'https://dev.smartassistapp.in/api/users/notifications/read/all';
 
     print('Marking all notifications as read with URL: $url');
 

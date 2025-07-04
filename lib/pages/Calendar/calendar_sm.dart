@@ -1060,6 +1060,15 @@ class _CalendarSmState extends State<CalendarSm> {
   }
 
   Future<void> _fetchActivitiesData() async {
+    if (_selectedType == 'team' && _selectedUserId.isEmpty) {
+      // No team member selected, do not fetch anything
+      setState(() {
+        tasks = [];
+        events = [];
+        _isLoading = false;
+      });
+      return;
+    }
     if (mounted) setState(() => _isLoading = true);
     try {
       final token = await Storage.getToken();
@@ -1145,10 +1154,15 @@ class _CalendarSmState extends State<CalendarSm> {
       if (type == 'your') {
         _selectedProfileIndex = 0;
         _selectedUserId = '';
+        _selectedLetter = null;
+      } else if (type == 'team') {
+        // When switching to team, clear selected user and letter!
+        _selectedUserId = '';
+        _selectedProfileIndex = 0;
+        _selectedLetter = null;
       }
       _isLoading = true;
       _expandedSlots.clear();
-      _selectedLetter = null;
     });
     await _fetchActivitiesData();
   }
@@ -1539,6 +1553,14 @@ class _CalendarSmState extends State<CalendarSm> {
         ),
       );
     }
+
+    // ---- KEY LOGIC START ----
+    if (_selectedType == 'team' && _selectedUserId.isEmpty) {
+      // Show empty state if no team member selected!
+      return _emptyState('Select a PS to view their schedule');
+    }
+    // ---- KEY LOGIC END ----
+
     final activeTimeSlots = _timeSlotItems.keys.toList()..sort();
     if (activeTimeSlots.isEmpty) {
       return _emptyState('No scheduled activities for this date');

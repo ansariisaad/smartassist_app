@@ -1869,6 +1869,7 @@ class _LicenseVarificationState extends State<LicenseVarification>
               onPressed: () {
                 Navigator.of(context).pop();
               },
+              
               child: Text(
                 'Cancel',
                 style: TextStyle(color: AppColors.colorsBlue),

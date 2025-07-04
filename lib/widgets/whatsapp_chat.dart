@@ -250,7 +250,7 @@ class _WhatsappChatState extends State<WhatsappChat>
     });
     try {
       final url = Uri.parse(
-        'https://api.smartassistapp.in/api/check-wa-status',
+        'https://dev.smartassistapp.in/api/check-wa-status',
       );
       final token = await Storage.getToken();
       final response = await http.post(
@@ -307,12 +307,14 @@ class _WhatsappChatState extends State<WhatsappChat>
 
   Future<void> initWhatsAppChat(BuildContext context) async {
     if (isWhatsAppReady || isLoading) return;
+
     setState(() {
       isLoading = true;
       isLoggedOut = false; // Reset logout flag when trying to reconnect
     });
+
     try {
-      final url = Uri.parse('https://api.smartassistapp.in/api/init-wa');
+      final url = Uri.parse('https://dev.smartassistapp.in/api/init-wa');
       final token = await Storage.getToken();
       final response = await http.post(
         url,
@@ -324,7 +326,6 @@ class _WhatsappChatState extends State<WhatsappChat>
       );
 
       print(url.toString());
-
       print('Init WA Response: ${response.statusCode} - ${response.body}');
 
       if (response.statusCode == 200) {
@@ -344,12 +345,13 @@ class _WhatsappChatState extends State<WhatsappChat>
       } else {
         final errorMessage =
             json.decode(response.body)['message'] ?? 'Unknown error';
-        Get.snackbar(
-          'Error',
-          errorMessage,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
+        print(errorMessage.toString());
+        // Get.snackbar(
+        //   'Error',
+        //   errorMessage,
+        //   backgroundColor: Colors.red,
+        //   colorText: Colors.white,
+        // );
       }
     } catch (e) {
       print('Error initializing WhatsApp chat: $e');
@@ -364,6 +366,25 @@ class _WhatsappChatState extends State<WhatsappChat>
         isLoading = false;
       });
     }
+  }
+
+  Future<void> resendQR() async {
+    if (!isConnected) {
+      Get.snackbar(
+        'Error',
+        'Not connected to server',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    setState(() {
+      isWhatsAppLoading = true;
+      loadingMessage = 'Regenerating QR code...';
+    });
+
+    socket.emit('resend_qr', {'sessionId': spId});
   }
 
   Future<void> launchWhatsAppScanner() async {
@@ -408,7 +429,7 @@ class _WhatsappChatState extends State<WhatsappChat>
   }
 
   void initSocket() {
-    socket = IO.io('wss://api.smartassistapp.in', <String, dynamic>{
+    socket = IO.io('wss://dev.smartassistapp.in', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': true,
       'reconnection': true,
@@ -426,7 +447,6 @@ class _WhatsappChatState extends State<WhatsappChat>
       setState(() {
         isConnected = true;
       });
-      // Only get messages if WhatsApp is ready and not logged out
       if (isWhatsAppReady && !isLoggedOut) {
         socket.emit('get_messages', {
           'sessionId': spId,
@@ -435,6 +455,33 @@ class _WhatsappChatState extends State<WhatsappChat>
         print('Requesting messages for chat ID: ${widget.chatId}');
       }
     });
+    // socket = IO.io('wss://dev.smartassistapp.in', <String, dynamic>{
+    //   'transports': ['websocket'],
+    //   'autoConnect': true,
+    //   'reconnection': true,
+    //   'reconnectionAttempts': 10,
+    //   'reconnectionDelay': 1000,
+    //   'reconnectionDelayMax': 5000,
+    //   'timeout': 20000,
+    // });
+
+    // socket.onConnect((_) {
+    //   print('Socket connected');
+    //   _stopReconnectTimer();
+    //   socket.emit('register_session', {'sessionId': spId});
+    //   print('Emitted register_session: sessionId=$spId');
+    //   setState(() {
+    //     isConnected = true;
+    //   });
+    //   // Only get messages if WhatsApp is ready and not logged out
+    //   if (isWhatsAppReady && !isLoggedOut) {
+    //     socket.emit('get_messages', {
+    //       'sessionId': spId,
+    //       'chatId': widget.chatId,
+    //     });
+    //     print('Requesting messages for chat ID: ${widget.chatId}');
+    //   }
+    // });
 
     socket.onDisconnect((_) {
       print('Socket disconnected');
@@ -486,6 +533,23 @@ class _WhatsappChatState extends State<WhatsappChat>
         data['error'] ?? 'WhatsApp authentication failed',
         backgroundColor: Colors.red,
         colorText: Colors.white,
+      );
+    });
+
+    socket.on('wa_qr_expired', (data) {
+      print('QR Expired: $data');
+      setState(() {
+        isWhatsAppReady = false;
+        isWhatsAppLoading = false;
+        loadingMessage = '';
+        isLoggedOut = true; // Show reconnect button
+      });
+      Get.snackbar(
+        'QR Code Expired',
+        data['message'] ?? 'QR code expired, please rescan.',
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+        duration: Duration(seconds: 4),
       );
     });
 
@@ -584,6 +648,16 @@ class _WhatsappChatState extends State<WhatsappChat>
         colorText: Colors.white,
       );
     });
+
+    socket.on('QrSend', (data) {
+      print('QrSend received: $data');
+      setState(() {
+        isWhatsAppLoading = true;
+        loadingMessage = 'QR code generated, please scan in WhatsApp';
+      });
+      // Launch WhatsApp for QR code scanning
+      launchWhatsAppScanner();
+    });
   }
 
   void _scrollToBottom() {
@@ -612,9 +686,12 @@ class _WhatsappChatState extends State<WhatsappChat>
     socket.off('wa_disconnected');
     socket.off('wa_loading_started'); // Clean up the new listener
     socket.off('wa_logout'); // Clean up the logout listener
+    socket.off('wa_qr_expired');
     socket.disconnect();
     _messageController.dispose();
     _scrollController.dispose();
+    socket.disconnect();
+    socket.dispose();
     super.dispose();
   }
 
@@ -669,8 +746,8 @@ class _WhatsappChatState extends State<WhatsappChat>
             color: Colors.white,
           ),
           onPressed: () {
-            disconnectSocket();
             Navigator.pop(context);
+            disconnectSocket();
           },
         ),
         title: Row(
@@ -873,8 +950,15 @@ class _WhatsappChatState extends State<WhatsappChat>
                                       ),
                                     InkWell(
                                       onTap: () {
-                                        initWhatsAppChat(context);
-                                        print('Connect WhatsApp clicked');
+                                        if (isLoggedOut) {
+                                          resendQR(); // Call resendQR if user was logged out
+                                          print('Resend QR clicked');
+                                        } else {
+                                          initWhatsAppChat(
+                                            context,
+                                          ); // Call normal init for first connection
+                                          print('Connect WhatsApp clicked');
+                                        }
                                       },
                                       child: Container(
                                         width: double

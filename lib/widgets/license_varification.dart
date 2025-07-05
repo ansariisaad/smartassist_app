@@ -1445,7 +1445,7 @@ class _LicenseVarificationState extends State<LicenseVarification>
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? spId = prefs.getString('user_id');
       final url = Uri.parse(
-        'https://dev.smartassistapp.in/api/events/update/${widget.eventId}',
+        'https://api.smartassistapp.in/api/events/update/${widget.eventId}',
       );
       final token = await Storage.getToken();
       skip['Overall Ambience'] = skipReason;
@@ -1504,7 +1504,6 @@ class _LicenseVarificationState extends State<LicenseVarification>
     }
   }
 
- 
   // Future<void> submitFeedback(String skipReason) async {
   //   setState(() {
   //     _isUploading = true;
@@ -1515,7 +1514,7 @@ class _LicenseVarificationState extends State<LicenseVarification>
   //     SharedPreferences prefs = await SharedPreferences.getInstance();
   //     String? spId = prefs.getString('user_id');
   //     final url = Uri.parse(
-  //       'https://dev.smartassistapp.in/api/events/update/${widget.eventId}',
+  //       'https://api.smartassistapp.in/api/events/update/${widget.eventId}',
   //     );
   //     final token = await Storage.getToken();
 
@@ -1591,7 +1590,6 @@ class _LicenseVarificationState extends State<LicenseVarification>
   //   }
   // }
 
- 
   @override
   Widget build(BuildContext context) {
     if (_isDisposed) {
@@ -2201,7 +2199,7 @@ class InvertedRectangleClipper extends CustomClipper<Path> {
 //       SharedPreferences prefs = await SharedPreferences.getInstance();
 //       String? spId = prefs.getString('user_id');
 //       final url = Uri.parse(
-//           'https://dev.smartassistapp.in/api/events/update/${widget.eventId}');
+//           'https://api.smartassistapp.in/api/events/update/${widget.eventId}');
 //       final token = await Storage.getToken();
 
 //       // Update the skip reason

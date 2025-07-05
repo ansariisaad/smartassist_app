@@ -250,7 +250,7 @@ class _WhatsappChatState extends State<WhatsappChat>
     });
     try {
       final url = Uri.parse(
-        'https://dev.smartassistapp.in/api/check-wa-status',
+        'https://api.smartassistapp.in/api/check-wa-status',
       );
       final token = await Storage.getToken();
       final response = await http.post(
@@ -314,7 +314,7 @@ class _WhatsappChatState extends State<WhatsappChat>
     });
 
     try {
-      final url = Uri.parse('https://dev.smartassistapp.in/api/init-wa');
+      final url = Uri.parse('https://api.smartassistapp.in/api/init-wa');
       final token = await Storage.getToken();
       final response = await http.post(
         url,
@@ -429,7 +429,7 @@ class _WhatsappChatState extends State<WhatsappChat>
   }
 
   void initSocket() {
-    socket = IO.io('wss://dev.smartassistapp.in', <String, dynamic>{
+    socket = IO.io('wss://api.smartassistapp.in', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': true,
       'reconnection': true,
@@ -455,7 +455,7 @@ class _WhatsappChatState extends State<WhatsappChat>
         print('Requesting messages for chat ID: ${widget.chatId}');
       }
     });
-    // socket = IO.io('wss://dev.smartassistapp.in', <String, dynamic>{
+    // socket = IO.io('wss://api.smartassistapp.in', <String, dynamic>{
     //   'transports': ['websocket'],
     //   'autoConnect': true,
     //   'reconnection': true,

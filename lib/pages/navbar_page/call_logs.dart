@@ -37,7 +37,7 @@ class _CallLogsState extends State<CallLogs> {
 
   //     final token = await Storage.getToken();
   //     final uri =
-  //         Uri.parse('https://dev.smartassistapp.in/api/leads/all-CallLogs');
+  //         Uri.parse('https://api.smartassistapp.in/api/leads/all-CallLogs');
 
   //     final response = await http.get(
   //       uri,
@@ -119,7 +119,7 @@ class _CallLogsState extends State<CallLogs> {
 
       final token = await Storage.getToken();
       final url = Uri.parse(
-        'https://dev.smartassistapp.in/api/leads/excluded-calls',
+        'https://api.smartassistapp.in/api/leads/excluded-calls',
       );
 
       final response = await http.put(
@@ -212,7 +212,7 @@ class _CallLogsState extends State<CallLogs> {
 
       final token = await Storage.getToken();
       final uri = Uri.parse(
-        'https://dev.smartassistapp.in/api/leads/all-CallLogs',
+        'https://api.smartassistapp.in/api/leads/all-CallLogs',
       );
 
       final response = await http.get(

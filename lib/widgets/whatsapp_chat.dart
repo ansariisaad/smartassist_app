@@ -20,7 +20,7 @@ class Message {
   final int timestamp;
   final String type;
   final String? mediaUrl;
-  final String? id; // Add this field
+  final String? id; 
 
   Message({
     required this.body,
@@ -28,7 +28,7 @@ class Message {
     required this.timestamp,
     required this.type,
     this.mediaUrl,
-    this.id, // Add this field
+    this.id, 
   });
 
   factory Message.fromJson(Map<String, dynamic> json) {
@@ -39,7 +39,7 @@ class Message {
           json['timestamp'] ?? (DateTime.now().millisecondsSinceEpoch ~/ 1000),
       type: json['type'] ?? 'chat',
       mediaUrl: json['mediaUrl'],
-      id: json['id'], // Parse the ID
+      id: json['id'], 
     );
   }
 }

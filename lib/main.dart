@@ -1,6 +1,7 @@
 // notification work here
-
+// this is
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -22,9 +23,6 @@ void main() async {
       DeviceOrientation.portraitUp,
     ]);
     print("Firebase initialized successfully!");
-
-
-    
   } catch (e) {
     print("Firebase initialization failed: $e");
   }
@@ -32,6 +30,17 @@ void main() async {
   await Hive.initFlutter(); // Initialize Hive after Firebase
   try {
     await NotificationService.instance.initialize(); // Initialize Notifications
+    final apnsToken = await FirebaseMessaging.instance.getAPNSToken();
+    if (apnsToken != null) {
+      print('🔔 APNs Token retrieved: $apnsToken');
+    } else {
+      print(
+        '❌ APNs Token is null - make sure you are testing on a real iOS device',
+      );
+    }
+    // Get FCM token
+    final fcmToken = await FirebaseMessaging.instance.getToken();
+    print('📱 FCM Token: $fcmToken');
   } catch (e) {
     print("Firebase initialization failed: $e");
   }
@@ -42,9 +51,6 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-
-
-  
   const MyApp({super.key});
 
   @override

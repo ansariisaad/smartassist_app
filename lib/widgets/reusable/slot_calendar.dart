@@ -704,25 +704,31 @@ class _CalenderWidgetState extends State<CalenderWidget> {
   }
 
   // Count booked slots for a specific date
+
   List<Widget> _buildMarkers(DateTime day) {
     final dateStr = DateFormat('yyyy-MM-dd').format(day);
     final count = widget.bookedSlots
         .where((slot) => slot['date'] == dateStr)
         .length;
 
-    // Return up to three dots based on the number of bookings
-    return List.generate(
-      count > 3 ? 3 : count,
-      (index) => Container(
-        width: 5,
-        height: 5,
-        margin: const EdgeInsets.symmetric(horizontal: 1),
-        decoration: const BoxDecoration(
-          color: Colors.red,
-          shape: BoxShape.circle,
-        ),
+    // Determine color based on slot count
+    Color markerColor;
+    if (count >= 3) {
+      markerColor = Colors.red;
+    } else if (count == 2) {
+      markerColor = Colors.orange;
+    } else {
+      markerColor = Colors.green;
+    }
+
+    // Always show only one circle indicator
+    return [
+      Container(
+        width: 6,
+        height: 6,
+        decoration: BoxDecoration(color: markerColor, shape: BoxShape.circle),
       ),
-    );
+    ];
   }
 
   @override
@@ -810,6 +816,7 @@ class _CalenderWidgetState extends State<CalenderWidget> {
     );
   }
 }
+
 // import 'package:flutter/material.dart';
 // import 'package:get/get.dart';
 // import 'package:google_fonts/google_fonts.dart';

@@ -16,11 +16,6 @@ import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.
 import 'package:smartassist/pages/Home/single_details_pages/teams_enquiryIds.dart';
 import 'package:smartassist/pages/navbar_page/call_analytics.dart';
 import 'package:smartassist/utils/storage.dart';
-import 'package:smartassist/widgets/home_btn.dart/teams_popups.dart/appointment_teams.dart';
-import 'package:smartassist/widgets/home_btn.dart/teams_popups.dart/createTeam.dart';
-import 'package:smartassist/widgets/home_btn.dart/teams_popups.dart/followups_teams.dart';
-import 'package:smartassist/widgets/home_btn.dart/teams_popups.dart/lead_teams.dart';
-import 'package:smartassist/widgets/home_btn.dart/teams_popups.dart/testdrive_teams.dart';
 import 'package:smartassist/widgets/team_calllog_userid.dart';
 
 class MyTeams extends StatefulWidget {
@@ -1464,7 +1459,7 @@ class _MyTeamsState extends State<MyTeams> {
         if (isLoading)
           Center(child: CircularProgressIndicator())
         else if (_isComparing)
-          _buildTeamComparisonChart(context)
+          _buildTeamComparisonChart(context, screenWidth)
         else
           _callAnalyticAll(context),
       ],
@@ -1654,7 +1649,7 @@ class _MyTeamsState extends State<MyTeams> {
   }
 
   // Team Comparison Chart
-  Widget _buildTeamComparisonChart(BuildContext context) {
+  Widget _buildTeamComparisonChart(BuildContext context, double screenWidth) {
     // Process data
     final teamData = _processTeamComparisonData();
 
@@ -1689,6 +1684,7 @@ class _MyTeamsState extends State<MyTeams> {
                   ],
                 ),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     IconButton(
                       style: ButtonStyle(
@@ -1720,6 +1716,7 @@ class _MyTeamsState extends State<MyTeams> {
                         ),
                       ),
                     ),
+                    _buildFilterTeams(screenWidth),
                   ],
                 ),
               ),
@@ -1743,6 +1740,70 @@ class _MyTeamsState extends State<MyTeams> {
       ),
     );
   }
+
+  // Period filter (ALL, MTD, QTD, YTD)
+  Widget _buildFilterTeams(double screenWidth) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(top: 5),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              border: Border.all(color: Colors.grey.shade300, width: 1),
+              borderRadius: BorderRadius.circular(30),
+            ),
+            child: Row(
+              children: [
+                _buildPeriodButton('MTD', 1),
+                _buildPeriodButton('QTD', 0),
+                _buildPeriodButton('YTD', 2),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Individual period button
+  // Widget _buildPeriodButton(String label, int index) {
+  //   return InkWell(
+  //     onTap: () {
+  //       setState(() {
+  //         _periodIndex = index;
+  //         _fetchTeamDetails();
+  //         // _fetchSingleCalllog();
+  //       });
+  //     },
+  //     child: Container(
+  //       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+  //       decoration: BoxDecoration(
+  //         color: _periodIndex == index
+  //             ? AppColors.colorsBlue.withOpacity(0.1)
+  //             : Colors.transparent,
+  //         border: Border.all(
+  //           color: _periodIndex == index
+  //               ? AppColors.colorsBlue
+  //               : Colors.transparent,
+  //         ),
+  //         borderRadius: BorderRadius.circular(30),
+  //       ),
+  //       child: Text(
+  //         label,
+  //         style: TextStyle(
+  //           color: _periodIndex == index
+  //               ? AppColors.colorsBlue
+  //               : AppColors.iconGrey,
+  //           fontWeight: FontWeight.w500,
+  //           fontSize: 14,
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget _buildTableTeamParison() {
     double screenWidth = MediaQuery.of(context).size.width;

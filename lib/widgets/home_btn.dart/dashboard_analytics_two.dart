@@ -62,7 +62,10 @@ class _BottomBtnThirdState extends State<BottomBtnThird> {
       }
 
       final uri = Uri.parse(
-        'https://dev.smartassistapp.in/api/users/dashboard/analytics$periodParam',
+
+        // 'https://api.smartassistapp.in/api/users/dashboard/analytics$periodParam',
+        'https://api.smartassistapp.in/api/users/analytics$periodParam',
+
       );
 
       final response = await http.get(

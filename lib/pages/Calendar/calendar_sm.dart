@@ -106,7 +106,6 @@ class _CalendarSmState extends State<CalendarSm> {
     }
   }
 
-
   Future<void> _fetchActivitiesData() async {
     if (mounted) setState(() => _isLoading = true);
     try {
@@ -114,7 +113,6 @@ class _CalendarSmState extends State<CalendarSm> {
       String formattedDate = DateFormat(
         'dd-MM-yyyy',
       ).format(_selectedDay ?? _focusedDay);
-
 
       final Map<String, String> queryParams = {'date': formattedDate};
       if (_selectedType == 'team' && _selectedUserId.isNotEmpty) {
@@ -131,7 +129,6 @@ class _CalendarSmState extends State<CalendarSm> {
           'Content-Type': 'application/json',
         },
       );
-
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
@@ -443,7 +440,6 @@ class _CalendarSmState extends State<CalendarSm> {
         );
       },
     );
-
   }
 
   Widget _emptyState(String msg) {
@@ -1590,7 +1586,7 @@ class _CalendarSmState extends State<CalendarSm> {
 //     try {
 //       final token = await Storage.getToken();
 //       final baseUri = Uri.parse(
-//         'https://dev.smartassistapp.in/api/users/sm/dashboard/team-dashboard',
+//         'https://api.smartassistapp.in/api/users/sm/dashboard/team-dashboard',
 //       );
 //       final response = await http.get(
 //         baseUri,
@@ -1636,7 +1632,7 @@ class _CalendarSmState extends State<CalendarSm> {
 //         queryParams['user_id'] = _selectedUserId;
 //       }
 //       final baseUrl = Uri.parse(
-//         "https://dev.smartassistapp.in/api/calendar/activities/all/asondate",
+//         "https://api.smartassistapp.in/api/calendar/activities/all/asondate",
 //       );
 //       final uri = baseUrl.replace(queryParameters: queryParams);
 //       final response = await http.get(
@@ -2469,7 +2465,7 @@ class _CalendarSmState extends State<CalendarSm> {
 //     try {
 //       final token = await Storage.getToken();
 //       final baseUri = Uri.parse(
-//         'https://dev.smartassistapp.in/api/users/sm/dashboard/team-dashboard',
+//         'https://api.smartassistapp.in/api/users/sm/dashboard/team-dashboard',
 //       );
 //       final response = await http.get(
 //         baseUri,
@@ -2515,7 +2511,7 @@ class _CalendarSmState extends State<CalendarSm> {
 //         queryParams['user_id'] = _selectedUserId;
 //       }
 //       final baseUrl = Uri.parse(
-//         "https://dev.smartassistapp.in/api/calendar/activities/all/asondate",
+//         "https://api.smartassistapp.in/api/calendar/activities/all/asondate",
 //       );
 //       final uri = baseUrl.replace(queryParameters: queryParams);
 //       final response = await http.get(

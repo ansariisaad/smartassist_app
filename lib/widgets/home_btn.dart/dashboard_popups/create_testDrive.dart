@@ -647,7 +647,7 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
 
   //     final response = await http.post(
   //       Uri.parse(
-  //         'https://dev.smartassistapp.in/api/slots/$vehicleId/slots/book',
+  //         'https://api.smartassistapp.in/api/slots/$vehicleId/slots/book',
   //       ),
   //       headers: {
   //         'Authorization': 'Bearer $token',

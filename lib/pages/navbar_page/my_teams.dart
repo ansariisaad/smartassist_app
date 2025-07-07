@@ -86,6 +86,11 @@ class _MyTeamsState extends State<MyTeams> {
   Map<String, dynamic>? _enquiryData;
   Map<String, dynamic>? _coldCallData;
 
+  bool get _isOnlyLetterSelected =>
+      _selectedLetters.isNotEmpty &&
+      _selectedProfileIndex == -1 &&
+      _selectedUserId.isEmpty;
+
   // Controller for FAB
   final FabController fabController = Get.put(FabController());
   final GlobalKey incomingKey = GlobalKey();
@@ -456,7 +461,7 @@ class _MyTeamsState extends State<MyTeams> {
       // ✅ If "All" is selected (_selectedProfileIndex == 0), no user parameters are added
 
       final baseUri = Uri.parse(
-        'https://api.smartassistapp.in/api/users/sm/dashboard/team-dashboard',
+        'https://api.smartassistapp.in/api/users/sm/analytics/team-dashboard',
       );
 
       final uri = baseUri.replace(queryParameters: queryParams);
@@ -1262,6 +1267,17 @@ class _MyTeamsState extends State<MyTeams> {
     BuildContext context,
     double screenWidth,
   ) {
+    if (_isOnlyLetterSelected) {
+      return Container(
+        padding: const EdgeInsets.all(30),
+        child: Center(
+          child: Text(
+            "Select a user to view details.",
+            style: AppFont.dropDowmLabelLightcolors(context),
+          ),
+        ),
+      );
+    }
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
       child: Column(
@@ -1497,10 +1513,12 @@ class _MyTeamsState extends State<MyTeams> {
 
   Widget _buildSingleuserCalllog(BuildContext context) {
     return TeamCalllogUserid(
+      key: ValueKey(selectedTimeRange),
       dashboardData: _dashboardData,
       enquiryData: _enquiryData,
       coldCallData: _coldCallData,
       onTimeRangeChanged: _handleTimeRangeChange,
+      initialTimeRange: selectedTimeRange, // <- pass it here!
     );
   }
 
@@ -1932,6 +1950,17 @@ class _MyTeamsState extends State<MyTeams> {
   // call ananlytics
 
   Widget _callAnalyticAll(BuildContext context) {
+    if (_isOnlyLetterSelected) {
+      return Container(
+        padding: const EdgeInsets.all(30),
+        child: Center(
+          child: Text(
+            "Select a user to view call analysis.",
+            style: AppFont.dropDowmLabelLightcolors(context),
+          ),
+        ),
+      );
+    }
     return InkWell(
       onTap: () {
         setState(() {

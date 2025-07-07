@@ -56,6 +56,7 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
   @override
   void initState() {
     super.initState();
+    selectedTimeRange = widget.initialTimeRange ?? '1D';
     _tabController = TabController(length: tabTitles.length, vsync: this);
     _tabController.addListener(() {
       if (_tabController.indexIsChanging == false) {
@@ -72,18 +73,28 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
     super.dispose();
   }
 
+  // @override
+  // void didUpdateWidget(TeamCalllogUserid oldWidget) {
+  //   super.didUpdateWidget(oldWidget);
+  //   if (widget.initialTimeRange != oldWidget.initialTimeRange) {
+  //     setState(() {
+  //       selectedTimeRange = widget.initialTimeRange ?? '1D';
+  //       _isLoading = true; // Trigger loading state to refresh data
+  //     });
+  //     // Optionally, fetch data or notify parent to refresh
+  //     if (widget.onTimeRangeChanged != null) {
+  //       widget.onTimeRangeChanged!(selectedTimeRange);
+  //     }
+  //   }
+  // }
+
   @override
-  void didUpdateWidget(TeamCalllogUserid oldWidget) {
+  void didUpdateWidget(covariant TeamCalllogUserid oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.initialTimeRange != oldWidget.initialTimeRange) {
       setState(() {
         selectedTimeRange = widget.initialTimeRange ?? '1D';
-        _isLoading = true; // Trigger loading state to refresh data
       });
-      // Optionally, fetch data or notify parent to refresh
-      if (widget.onTimeRangeChanged != null) {
-        widget.onTimeRangeChanged!(selectedTimeRange);
-      }
     }
   }
 

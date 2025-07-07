@@ -1,6 +1,5 @@
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
@@ -470,8 +469,41 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
     }
   }
 
+  // void _messageAction() {
+  //   print("Message action triggered");
+  // }
+
   void _messageAction() {
-    print("Message action triggered");
+    print("Message action triggered for ${widget.mobile}");
+
+    if (widget.mobile.isNotEmpty) {
+      try {
+        // Set flag that we're opening SMS (if you want to track this)
+        // _wasOpeningSMS = true;
+
+        // Launch SMS app with the mobile number
+        launchUrl(Uri.parse('sms:${widget.mobile}'));
+
+        print('SMS app launched');
+      } catch (e) {
+        print('Error launching SMS app: $e');
+
+        // Reset flag if there was an error (if you're using the flag)
+        // _wasOpeningSMS = false;
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not launch SMS app')),
+          );
+        }
+      }
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No phone number available')),
+        );
+      }
+    }
   }
 
   void _mailAction() {

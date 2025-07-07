@@ -717,8 +717,10 @@ class _CalenderWidgetState extends State<CalenderWidget> {
       markerColor = Colors.red;
     } else if (count == 2) {
       markerColor = Colors.orange;
-    } else {
+    } else if (count == 1) {
       markerColor = Colors.green;
+    } else {
+      markerColor = Colors.transparent;
     }
 
     // Always show only one circle indicator

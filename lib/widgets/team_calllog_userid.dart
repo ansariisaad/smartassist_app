@@ -61,11 +61,9 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
       if (_tabController.indexIsChanging == false) {
         setState(() {
           selectedTabIndex = _tabController.index;
-          // No need to fetch data again as we already have both tab data
         });
       }
     });
-    // _fetchDashboardData();
   }
 
   @override

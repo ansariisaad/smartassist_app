@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+// import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
@@ -46,17 +46,15 @@ class _MyTeamsState extends State<MyTeams> {
   String _selectedUserId = '';
   bool _isComparing = false;
   int overdueCount = 0;
+  String selectedTimeRange = '1D';
   // String userId = '';
-  // bool isLoading = false;
+  bool isLoading = false;
   // String _selectedCheckboxIds = '';
   String _selectedType = 'All';
   Map<String, dynamic> _individualPerformanceData = {};
-
   Set<String> _selectedCheckboxIds = {}; //remove this
   List<Map<String, dynamic>> selectedItems = [];
   Set<String> selectedUserIds = {};
-  // String? selectedUserIds;
-
   late TabControllerNew _tabController;
   Set<String> _selectedLetters = {}; // Replace String _selectedLetter
   bool _isMultiSelectMode = false;
@@ -69,7 +67,7 @@ class _MyTeamsState extends State<MyTeams> {
   bool isSingleCall = false;
   bool isHideCheckbox = false;
   // Data state
-  bool isLoading = false;
+  // bool isLoading = false;
   Map<String, dynamic> _teamData = {};
   Map<String, dynamic>? _selectedUserData = {};
   List<Map<String, dynamic>> _teamMembers = [];
@@ -218,49 +216,44 @@ class _MyTeamsState extends State<MyTeams> {
 
   Future<void> _fetchSingleCalllog() async {
     try {
-      // setState(() {
-      //   _isLoading = true;
-      // });
+      setState(() {
+        isLoading = true;
+      });
 
       final token = await Storage.getToken();
 
-      // Determine period parameter based on selection
-      String? periodParam;
-      switch (_periodIndex) {
-        // case 0:
-        //   periodParam = 'DAY';
-        //   break;
-        // case 1:
-        //   periodParam = 'WEEK' ;
-        //   break;
-        case 1:
+      String periodParam = '';
+      switch (selectedTimeRange) {
+        case '1D':
+          periodParam = 'DAY'; // REMOVE the '?type=' part
+          break;
+        case '1W':
+          periodParam = 'WEEK';
+          break;
+        case '1M':
           periodParam = 'MTD';
           break;
-        case 0:
+        case '1Q':
           periodParam = 'QTD';
           break;
-        case 2:
+        case '1Y':
           periodParam = 'YTD';
           break;
         default:
-          periodParam = 'QTD';
+          periodParam = 'DAY';
       }
 
-      final Map<String, String> queryParams = {};
+      final Map<String, String> queryParams = {
+        'type': periodParam, // CHANGE THIS LINE
+      };
 
-      if (periodParam != null) {
-        queryParams['type'] = periodParam;
-      }
-
-      // ✅ Add userId to query parameters if it's available
+      // Add userId to query parameters if it's available
       if (_selectedUserId.isNotEmpty) {
         queryParams['user_id'] = _selectedUserId;
       }
 
-      // ✅ Fixed: Use the correct base URL without concatenating userId
       final baseUri = Uri.parse(
         'https://api.smartassistapp.in/api/users/ps/dashboard/call-analytics',
-        // 'https://api.smartassistapp.in/api/users/sm/dashboard/call-analytics'
       );
 
       final uri = baseUri.replace(queryParameters: queryParams);
@@ -274,45 +267,33 @@ class _MyTeamsState extends State<MyTeams> {
           'Content-Type': 'application/json',
         },
       );
-      print('this is single response ${uri}');
-      print('📤 Fetching from single: $uri');
 
       print('📥 Call Analytics Status Code: ${response.statusCode}');
       print('📥 Call Analytics Response: ${response.body}');
 
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
-        // Check if the widget is still in the widget tree before calling setState
+
         if (mounted) {
           setState(() {
             _dashboardData = jsonData['data'];
             _enquiryData = jsonData['data']['summaryEnquiry'];
             _coldCallData = jsonData['data']['summaryColdCalls'];
-            // _isLoading = false;
+            isLoading = false;
           });
         }
       } else {
-        // Handle unsuccessful status codes
         throw Exception(
           'Failed to load dashboard data. Status code: ${response.statusCode}',
         );
       }
     } catch (e) {
-      // Check if the widget is still in the widget tree before calling setState
-      // if (mounted) {
-      //   setState(() {
-      //     _isLoading = false;
-      //   });
-      // }
-
-      // Handle different types of errors
-      if (e is http.ClientException) {
-        debugPrint('Network error: $e');
-      } else if (e is FormatException) {
-        debugPrint('Error parsing data: $e');
-      } else {
-        debugPrint('Unexpected error: $e');
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
       }
+      debugPrint('Error fetching data: $e');
     }
   }
 
@@ -326,12 +307,6 @@ class _MyTeamsState extends State<MyTeams> {
       // Build period parameter
       String? periodParam;
       switch (_periodIndex) {
-        // case 1:
-        //   periodParam = 'DAY';
-        //   break;
-        // case 2:
-        //   periodParam = 'WEEK';
-        //   break;
         case 1:
           periodParam = 'MTD';
           break;
@@ -460,12 +435,6 @@ class _MyTeamsState extends State<MyTeams> {
       // ✅ Add summary parameter for both All and specific user selection
       queryParams['summary'] = summaryParam;
       queryParams['target'] = targetParam;
-
-      // 🔥 REMOVE THE DUPLICATE LOGIC - Only keep this single user selection logic
-      // ❌ REMOVED: Duplicate user_id logic that was causing the issue
-      // if (_selectedProfileIndex != 0 && _selectedUserId.isNotEmpty) {
-      //   queryParams['user_id'] = _selectedUserId;
-      // }
 
       // 🔥 MODIFIED LOGIC: Handle user selection based on comparison mode
       if (_isComparing && selectedUserIds.isNotEmpty) {
@@ -1184,10 +1153,6 @@ class _MyTeamsState extends State<MyTeams> {
 
   // Helper method to determine border style based on selection state
   Border? _getBorderStyle(bool isSelectedForComparison, int index) {
-    // if (isSelectedForComparison) {
-    //   return Border.all(color: AppColors.colorsBlue, width: 3);
-    // } else
-
     if (_selectedProfileIndex == index) {
       return Border.all(color: AppColors.backgroundLightGrey, width: 3);
     }
@@ -1535,7 +1500,17 @@ class _MyTeamsState extends State<MyTeams> {
       dashboardData: _dashboardData,
       enquiryData: _enquiryData,
       coldCallData: _coldCallData,
+      onTimeRangeChanged: _handleTimeRangeChange,
     );
+  }
+
+  // ADD THIS METHOD
+  void _handleTimeRangeChange(String newTimeRange) {
+    setState(() {
+      selectedTimeRange = newTimeRange;
+      isLoading = true;
+    });
+    _fetchSingleCalllog();
   }
 
   // Fixed Performance Metrics Widget all
@@ -2919,6 +2894,57 @@ class _MyTeamsState extends State<MyTeams> {
   }
 
   // Upcoming Activities Section
+  // Widget _buildUpcomingActivities(BuildContext context) {
+  //   return Container(
+  //     margin: const EdgeInsets.all(10),
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         Padding(
+  //           padding: const EdgeInsets.only(bottom: 0),
+  //           child: Row(
+  //             children: [
+  //               // const SizedBox(height: 10),
+  //               Container(
+  //                 margin: const EdgeInsets.only(bottom: 10, top: 5),
+  //                 width: 180,
+  //                 height: 30,
+  //                 decoration: BoxDecoration(
+  //                   border: Border.all(
+  //                     color: AppColors.arrowContainerColor,
+  //                     width: .5,
+  //                   ),
+  //                   borderRadius: BorderRadius.circular(30),
+  //                 ),
+  //                 child: Row(
+  //                   children: [
+  //                     _buildFilterButton(
+  //                       index: 0,
+  //                       text: 'Upcoming',
+  //                       activeColor: AppColors.borderGreen,
+  //                     ),
+  //                     _buildFilterButton(
+  //                       index: 1,
+  //                       text: 'Overdue ($overdueCount)',
+  //                       activeColor: AppColors.borderRed,
+  //                     ),
+  //                   ],
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //         if (_upcomingFollowups.isNotEmpty)
+  //           _buildActivitySection(context, _upcomingFollowups, 'due_date'),
+  //         if (_upcomingAppointments.isNotEmpty)
+  //           _buildActivitySection(context, _upcomingAppointments, 'start_date'),
+  //         if (_upcomingTestDrives.isNotEmpty)
+  //           _buildActivitySection(context, _upcomingTestDrives, 'start_date'),
+  //       ],
+  //     ),
+  //   );
+  // }
+
   Widget _buildUpcomingActivities(BuildContext context) {
     return Container(
       margin: const EdgeInsets.all(10),
@@ -2929,31 +2955,36 @@ class _MyTeamsState extends State<MyTeams> {
             padding: const EdgeInsets.only(bottom: 0),
             child: Row(
               children: [
-                // const SizedBox(height: 10),
-                Container(
-                  margin: const EdgeInsets.only(bottom: 10, top: 5),
-                  width: 200,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: AppColors.arrowContainerColor,
-                      width: .5,
+                IntrinsicWidth(
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 10, top: 5),
+                    constraints: const BoxConstraints(
+                      minWidth: 180, // Minimum width
+                      maxWidth: 300, // Maximum width to prevent overflow
                     ),
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: Row(
-                    children: [
-                      _buildFilterButton(
-                        index: 0,
-                        text: 'Upcoming',
-                        activeColor: AppColors.borderGreen,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: AppColors.arrowContainerColor,
+                        width: .5,
                       ),
-                      _buildFilterButton(
-                        index: 1,
-                        text: 'Overdue ($overdueCount)',
-                        activeColor: AppColors.borderRed,
-                      ),
-                    ],
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildFilterButton(
+                          index: 0,
+                          text: 'Upcoming',
+                          activeColor: AppColors.borderGreen,
+                        ),
+                        _buildFilterButton(
+                          index: 1,
+                          text: 'Overdue ($overdueCount)',
+                          activeColor: AppColors.borderRed,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -3022,13 +3053,15 @@ class _MyTeamsState extends State<MyTeams> {
         style: TextButton.styleFrom(
           backgroundColor: _upcommingButtonIndex == index
               ? activeColor.withOpacity(0.29)
-              : Colors.white,
+              : Colors.transparent,
           foregroundColor: _upcommingButtonIndex == index
               ? activeColor
               : Colors.black,
           padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 5),
           side: BorderSide(
-            color: _upcommingButtonIndex == index ? activeColor : Colors.white,
+            color: _upcommingButtonIndex == index
+                ? activeColor
+                : Colors.transparent,
             width: .5,
           ),
           shape: RoundedRectangleBorder(

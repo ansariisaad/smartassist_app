@@ -46,8 +46,9 @@ class _MyTeamsState extends State<MyTeams> {
   String _selectedUserId = '';
   bool _isComparing = false;
   int overdueCount = 0;
+  String selectedTimeRange = '1D';
   // String userId = '';
-  // bool isLoading = false;
+  bool isLoading = false;
   // String _selectedCheckboxIds = '';
   String _selectedType = 'All';
   Map<String, dynamic> _individualPerformanceData = {};
@@ -69,7 +70,7 @@ class _MyTeamsState extends State<MyTeams> {
   bool isSingleCall = false;
   bool isHideCheckbox = false;
   // Data state
-  bool isLoading = false;
+  // bool isLoading = false;
   Map<String, dynamic> _teamData = {};
   Map<String, dynamic>? _selectedUserData = {};
   List<Map<String, dynamic>> _teamMembers = [];
@@ -218,49 +219,44 @@ class _MyTeamsState extends State<MyTeams> {
 
   Future<void> _fetchSingleCalllog() async {
     try {
-      // setState(() {
-      //   _isLoading = true;
-      // });
+      setState(() {
+        isLoading = true;
+      });
 
       final token = await Storage.getToken();
 
-      // Determine period parameter based on selection
-      String? periodParam;
-      switch (_periodIndex) {
-        // case 0:
-        //   periodParam = 'DAY';
-        //   break;
-        // case 1:
-        //   periodParam = 'WEEK' ;
-        //   break;
-        case 1:
+      String periodParam = '';
+      switch (selectedTimeRange) {
+        case '1D':
+          periodParam = 'DAY'; // REMOVE the '?type=' part
+          break;
+        case '1W':
+          periodParam = 'WEEK';
+          break;
+        case '1M':
           periodParam = 'MTD';
           break;
-        case 0:
+        case '1Q':
           periodParam = 'QTD';
           break;
-        case 2:
+        case '1Y':
           periodParam = 'YTD';
           break;
         default:
-          periodParam = 'QTD';
+          periodParam = 'DAY';
       }
 
-      final Map<String, String> queryParams = {};
+      final Map<String, String> queryParams = {
+        'type': periodParam, // CHANGE THIS LINE
+      };
 
-      if (periodParam != null) {
-        queryParams['type'] = periodParam;
-      }
-
-      // ✅ Add userId to query parameters if it's available
+      // Add userId to query parameters if it's available
       if (_selectedUserId.isNotEmpty) {
         queryParams['user_id'] = _selectedUserId;
       }
 
-      // ✅ Fixed: Use the correct base URL without concatenating userId
       final baseUri = Uri.parse(
         'https://api.smartassistapp.in/api/users/ps/dashboard/call-analytics',
-        // 'https://api.smartassistapp.in/api/users/sm/dashboard/call-analytics'
       );
 
       final uri = baseUri.replace(queryParameters: queryParams);
@@ -274,47 +270,129 @@ class _MyTeamsState extends State<MyTeams> {
           'Content-Type': 'application/json',
         },
       );
-      print('this is single response ${uri}');
-      print('📤 Fetching from single: $uri');
 
       print('📥 Call Analytics Status Code: ${response.statusCode}');
       print('📥 Call Analytics Response: ${response.body}');
 
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
-        // Check if the widget is still in the widget tree before calling setState
+
         if (mounted) {
           setState(() {
             _dashboardData = jsonData['data'];
             _enquiryData = jsonData['data']['summaryEnquiry'];
             _coldCallData = jsonData['data']['summaryColdCalls'];
-            // _isLoading = false;
+            isLoading = false;
           });
         }
       } else {
-        // Handle unsuccessful status codes
         throw Exception(
           'Failed to load dashboard data. Status code: ${response.statusCode}',
         );
       }
     } catch (e) {
-      // Check if the widget is still in the widget tree before calling setState
-      // if (mounted) {
-      //   setState(() {
-      //     _isLoading = false;
-      //   });
-      // }
-
-      // Handle different types of errors
-      if (e is http.ClientException) {
-        debugPrint('Network error: $e');
-      } else if (e is FormatException) {
-        debugPrint('Error parsing data: $e');
-      } else {
-        debugPrint('Unexpected error: $e');
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
       }
+      debugPrint('Error fetching data: $e');
     }
   }
+
+  // Future<void> _fetchSingleCalllog() async {
+  //   try {
+  //     final token = await Storage.getToken();
+
+  //     String periodParam = '';
+  //     switch (selectedTimeRange) {
+  //       case '1D':
+  //         periodParam = '?type=DAY';
+  //         break;
+  //       case '1W':
+  //         periodParam = '?type=WEEK';
+  //         break;
+  //       case '1M':
+  //         periodParam = '?type=MTD';
+  //         break;
+  //       case '1Q':
+  //         periodParam = '?type=QTD';
+  //         break;
+  //       case '1Y':
+  //         periodParam = '?type=YTD';
+  //         break;
+  //       default:
+  //         periodParam = '?type=DAY';
+  //     }
+
+  //     final Map<String, String> queryParams = {};
+
+  //     if (periodParam != null) {
+  //       queryParams['type'] = periodParam;
+  //     }
+
+  //     // ✅ Add userId to query parameters if it's available
+  //     if (_selectedUserId.isNotEmpty) {
+  //       queryParams['user_id'] = _selectedUserId;
+  //     }
+
+  //     // ✅ Fixed: Use the correct base URL without concatenating userId
+  //     final baseUri = Uri.parse(
+  //       'https://api.smartassistapp.in/api/users/ps/dashboard/call-analytics',
+  //     );
+
+  //     final uri = baseUri.replace(queryParameters: queryParams);
+
+  //     print('📤 Fetching call analytics from: $uri');
+
+  //     final response = await http.get(
+  //       uri,
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+  //     print('this is single response ${uri}');
+  //     print('📤 Fetching from single: $uri');
+
+  //     print('📥 Call Analytics Status Code: ${response.statusCode}');
+  //     print('📥 Call Analytics Response: ${response.body}');
+
+  //     if (response.statusCode == 200) {
+  //       final jsonData = json.decode(response.body);
+  //       // Check if the widget is still in the widget tree before calling setState
+  //       if (mounted) {
+  //         setState(() {
+  //           _dashboardData = jsonData['data'];
+  //           _enquiryData = jsonData['data']['summaryEnquiry'];
+  //           _coldCallData = jsonData['data']['summaryColdCalls'];
+  //           // _isLoading = false;
+  //         });
+  //       }
+  //     } else {
+  //       // Handle unsuccessful status codes
+  //       throw Exception(
+  //         'Failed to load dashboard data. Status code: ${response.statusCode}',
+  //       );
+  //     }
+  //   } catch (e) {
+  //     // Check if the widget is still in the widget tree before calling setState
+  //     // if (mounted) {
+  //     //   setState(() {
+  //     //     _isLoading = false;
+  //     //   });
+  //     // }
+
+  //     // Handle different types of errors
+  //     if (e is http.ClientException) {
+  //       debugPrint('Network error: $e');
+  //     } else if (e is FormatException) {
+  //       debugPrint('Error parsing data: $e');
+  //     } else {
+  //       debugPrint('Unexpected error: $e');
+  //     }
+  //   }
+  // }
 
   Future<void> _fetchAllCalllog() async {
     setState(() {
@@ -1535,7 +1613,17 @@ class _MyTeamsState extends State<MyTeams> {
       dashboardData: _dashboardData,
       enquiryData: _enquiryData,
       coldCallData: _coldCallData,
+      onTimeRangeChanged: _handleTimeRangeChange,
     );
+  }
+
+  // ADD THIS METHOD
+  void _handleTimeRangeChange(String newTimeRange) {
+    setState(() {
+      selectedTimeRange = newTimeRange;
+      isLoading = true;
+    });
+    _fetchSingleCalllog();
   }
 
   // Fixed Performance Metrics Widget all

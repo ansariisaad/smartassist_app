@@ -121,8 +121,11 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
   Future<void> _killSpeechEngine() async {
     try {
       if (_speech != null) {
-        if (_speech!.isListening) await _speech!.stop();
-        await _speech!.cancel();
+        if (_speech!.isListening) {
+          await _speech!.stop();
+          await Future.delayed(const Duration(milliseconds: 100));
+          await _speech!.cancel();
+        }
       }
     } catch (_) {}
     _speech = null;
@@ -151,8 +154,7 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
         for (var locale in locales) {
           debugPrint('${locale.localeId} (${locale.name})');
         }
-
-        // Try English locales in priority order
+        // Pick your preferred locale or default to first
         List<String> englishLocaleIds = [
           'en_US',
           'en_GB',
@@ -162,44 +164,13 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
           'en_IE',
           'en_SG',
         ];
-
-        String? workingLocale;
-        for (String localeId in englishLocaleIds) {
-          if (locales.any((l) => l.localeId == localeId)) {
-            try {
-              // Try listening for a split second with this locale
-              await _speech!.listen(
-                localeId: localeId,
-                listenFor: const Duration(milliseconds: 500),
-                onResult: (_) {},
-                partialResults: false,
-                cancelOnError: true,
-                listenMode: stt.ListenMode.dictation,
-              );
-              await _speech!.stop();
-              workingLocale = localeId;
-              debugPrint('Selected WORKING locale: $localeId');
-              break;
-            } catch (e) {
-              debugPrint('Locale $localeId not usable: $e');
-              await _speech!.stop();
-            }
-          }
-        }
-        if (workingLocale != null) {
-          _currentLocaleId = workingLocale;
-        } else if (locales.isNotEmpty) {
-          _currentLocaleId = locales.first.localeId;
-          debugPrint('Fallback to first available: $_currentLocaleId');
-        } else {
-          _showFeedback(
-            "Speech recognition language not available. Please enable Google Voice Typing in device settings.",
-            isError: true,
-          );
-          _speechAvailable = false;
-          setState(() {});
-          return;
-        }
+        _currentLocaleId = locales
+            .map((l) => l.localeId)
+            .firstWhere(
+              (id) => englishLocaleIds.contains(id),
+              orElse: () => locales.first.localeId,
+            );
+        debugPrint('Speech will use locale: $_currentLocaleId');
       }
       if (mounted) setState(() => _isInitialized = true);
     } catch (e) {
@@ -274,6 +245,19 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
     if (status == 'notListening' || status == 'done') {
       _updateListeningUI(false);
       _forceStopTimer?.cancel();
+      // Aggressive cleanup to prevent system sound popup
+      Future.delayed(const Duration(milliseconds: 50), () async {
+        if (mounted && _speech != null) {
+          try {
+            await _speech!.cancel();
+            // Additional delay and reinit to ensure clean state
+            await Future.delayed(const Duration(milliseconds: 300));
+            if (mounted && !_isListening) {
+              _initSpeechEngine();
+            }
+          } catch (_) {}
+        }
+      });
     } else if (status == 'listening') {
       _updateListeningUI(true);
       _startForceStopTimer();
@@ -287,6 +271,22 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
     _lastError = error.toString();
     _showFeedback(_getErrorMessage(_lastError!), isError: true);
     _forceStopTimer?.cancel();
+
+    // Aggressive cleanup to prevent system sound popup after error
+    Future.delayed(const Duration(milliseconds: 50), () async {
+      if (mounted && _speech != null) {
+        try {
+          await _speech!.cancel();
+          // Kill and reinitialize engine to prevent phantom mic sounds
+          await Future.delayed(const Duration(milliseconds: 300));
+          if (mounted && !_isListening) {
+            await _killSpeechEngine();
+            await Future.delayed(const Duration(milliseconds: 200));
+            _initSpeechEngine();
+          }
+        } catch (_) {}
+      }
+    });
 
     // For Samsung bug: show help
     if (_lastError != null &&
@@ -336,10 +336,26 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
 
   void _startForceStopTimer() {
     _forceStopTimer?.cancel();
-    _forceStopTimer = Timer(const Duration(seconds: 10), () {
+    _forceStopTimer = Timer(const Duration(seconds: 10), () async {
       if (mounted && _isListening) {
         debugPrint('[SAFETY TIMEOUT] No speech or engine event - force stop.');
-        _stopListening();
+        // Immediate UI update
+        _updateListeningUI(false);
+
+        // Aggressive cleanup sequence to prevent system sound popup
+        try {
+          if (_speech != null && _speech!.isListening) {
+            await _speech!.stop();
+            await Future.delayed(const Duration(milliseconds: 300));
+            await _speech!.cancel();
+            await Future.delayed(const Duration(milliseconds: 200));
+            // Kill and reinitialize engine to ensure clean state
+            await _killSpeechEngine();
+            await Future.delayed(const Duration(milliseconds: 300));
+            _initSpeechEngine();
+          }
+        } catch (_) {}
+
         _showFeedback("Mic stopped due to inactivity.", isError: true);
       }
     });
@@ -387,10 +403,29 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
   Future<void> _stopListening() async {
     if (!mounted || _speech == null) return;
     _forceStopTimer?.cancel();
-    try {
-      if (_speech!.isListening) await _speech!.stop();
-    } catch (_) {}
+
+    // Set UI state immediately to prevent any new operations
     _updateListeningUI(false);
+
+    try {
+      if (_speech!.isListening) {
+        // Stop first
+        await _speech!.stop();
+        // Wait longer to ensure stop is processed
+        await Future.delayed(const Duration(milliseconds: 300));
+        // Force cancel to ensure microphone is completely released
+        await _speech!.cancel();
+        // Additional delay to ensure system processes the cancel
+        await Future.delayed(const Duration(milliseconds: 200));
+      }
+    } catch (_) {}
+
+    // Force reinitialize speech engine to clean state
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted && !_isListening) {
+        _initSpeechEngine();
+      }
+    });
   }
 
   String _getErrorMessage(String error) {
@@ -413,9 +448,20 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
     if (!mounted) return;
     if (result.finalResult) {
       _addToTextField(result.recognizedWords);
-      Future.delayed(const Duration(milliseconds: 400), () {
+      // Stop listening immediately after getting final result
+      Future.delayed(const Duration(milliseconds: 200), () async {
         if (mounted && _isListening) {
-          _stopListening();
+          // Immediate UI update
+          _updateListeningUI(false);
+
+          // Aggressive cleanup to prevent system sound popup
+          try {
+            if (_speech != null && _speech!.isListening) {
+              await _speech!.stop();
+              await Future.delayed(const Duration(milliseconds: 300));
+              await _speech!.cancel();
+            }
+          } catch (_) {}
         }
       });
     }

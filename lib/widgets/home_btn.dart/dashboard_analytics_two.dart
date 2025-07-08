@@ -62,12 +62,8 @@ class _BottomBtnThirdState extends State<BottomBtnThird> {
       }
 
       final uri = Uri.parse(
-
-
-        // 'https://api.smartassistapp.in/api/users/dashboard/analytics$periodParam',
-        'https://api.smartassistapp.in/api/users/analytics$periodParam',
-
-
+        // 'https://dev.smartassistapp.in/api/users/dashboard/analytics$periodParam',
+        'https://dev.smartassistapp.in/api/users/analytics$periodParam',
       );
 
       final response = await http.get(
@@ -225,10 +221,11 @@ class _BottomBtnThirdState extends State<BottomBtnThird> {
 
     data.add([
       'Net Orders',
-      performanceCount['']?.toString() ?? '0', //performance
-      allIndiaBestPerformace['']?.toString() ?? '0', //allIndiaRank
-      dealershipRank['']?.toString() ?? '0', //
-      currentAllIndiaRank['']?.toString() ?? '0', //dealershiprank
+      performanceCount['net_orders']?.toString() ?? '0', //performance
+      allIndiaBestPerformace['netOrdersCount']?.toString() ??
+          '0', //allIndiaRank
+      dealershipRank['netOrdersRank']?.toString() ?? '0', //
+      currentAllIndiaRank['netOrdersRank']?.toString() ?? '0', //dealershiprank
     ]);
 
     return data;

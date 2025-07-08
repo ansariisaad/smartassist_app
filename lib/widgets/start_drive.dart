@@ -52,6 +52,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
   void initState() {
     super.initState();
     startTime = DateTime.now(); // Track when drive started
+    totalDistance = 0.0;
     // _screenshotController = ScreenshotController();
     _determinePosition();
 
@@ -163,28 +164,22 @@ class _StartDriveMapState extends State<StartDriveMap> {
     );
   }
 
-  // Calculate distance between two points
-  double _calculateDistance(LatLng point1, LatLng point2) {
-    return Geolocator.distanceBetween(
-          point1.latitude,
-          point1.longitude,
-          point2.latitude,
-          point2.longitude,
-        ) /
-        1000; // Convert to km
-  }
-
   Timer? _throttleTimer;
 
-  // Initialize the Socket.IO connection
+  // Replace your _initializeSocket() method with this fixed version:
+
   void _initializeSocket() {
     try {
-      socket = IO.io('wss://api.smartassistapp.in', <String, dynamic>{
+      // Updated socket configuration
+      socket = IO.io('https://api.smartassistapp.in', <String, dynamic>{
         'transports': ['websocket'],
-        'autoConnect': true,
+        'autoConnect': false, // Changed to false for better control
         'reconnection': true,
         'reconnectionAttempts': 5,
-        'reconnectionDelay': 1000,
+        'reconnectionDelay': 2000, // Increased delay
+        'reconnectionDelayMax': 5000,
+        'timeout': 10000, // Added timeout
+        'forceNew': true, // Force new connection
       });
 
       socket!.onConnect((_) {
@@ -194,20 +189,44 @@ class _StartDriveMapState extends State<StartDriveMap> {
 
       socket!.onConnectError((data) {
         print('Connection error: $data');
-        if (socket != null && !socket!.connected) {
-          socket!.connect();
-        }
+        // Retry connection after a delay
+        Future.delayed(Duration(seconds: 3), () {
+          if (socket != null && !socket!.connected && !isDriveEnded) {
+            print('Retrying socket connection...');
+            socket!.connect();
+          }
+        });
       });
 
       socket!.onError((data) {
         print('Socket error: $data');
       });
 
-      socket!.on('disconnect', (_) {
-        print('Socket disconnected');
-        if (!isDriveEnded && socket != null) {
-          socket!.connect();
+      socket!.on('disconnect', (reason) {
+        print('Socket disconnected: $reason');
+        // Only reconnect if drive hasn't ended and reason isn't client disconnect
+        if (!isDriveEnded && reason != 'client namespace disconnect') {
+          Future.delayed(Duration(seconds: 2), () {
+            if (socket != null && !socket!.connected) {
+              print('Attempting to reconnect...');
+              socket!.connect();
+            }
+          });
         }
+      });
+
+      // Add connection timeout handler
+      socket!.on('connect_timeout', (_) {
+        print('Socket connection timeout');
+      });
+
+      socket!.on('reconnect', (attemptNumber) {
+        print('Socket reconnected after $attemptNumber attempts');
+        socket!.emit('joinTestDrive', {'eventId': widget.eventId});
+      });
+
+      socket!.on('reconnect_error', (error) {
+        print('Socket reconnection error: $error');
       });
 
       socket!.on('locationUpdated', (data) {
@@ -237,22 +256,32 @@ class _StartDriveMapState extends State<StartDriveMap> {
                 ),
               );
 
+              // Only add to route if it's a significant movement
               if (routePoints.isNotEmpty) {
                 LatLng lastPoint = routePoints.last;
                 double segmentDistance = _calculateDistance(
                   lastPoint,
                   newCoordinates,
                 );
-                totalDistance += segmentDistance;
+
+                if (segmentDistance > 0.005) {
+                  // Only add if moved more than 5 meters
+                  totalDistance = (totalDistance + segmentDistance);
+                  routePoints.add(newCoordinates);
+                  _updatePolyline();
+                }
+              } else {
+                routePoints.add(newCoordinates);
+                _updatePolyline();
               }
 
-              routePoints.add(newCoordinates);
-              _updatePolyline();
-
+              // Use server-provided total distance if available and valid
               if (data['totalDistance'] != null) {
-                totalDistance =
-                    double.tryParse(data['totalDistance'].toString()) ??
-                    totalDistance;
+                double serverDistance =
+                    double.tryParse(data['totalDistance'].toString()) ?? 0.0;
+                if (serverDistance > 0) {
+                  totalDistance = serverDistance;
+                }
               }
 
               if (mapController != null) {
@@ -289,6 +318,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
         }
       });
 
+      // Connect the socket
       socket!.connect();
     } catch (e) {
       print('Socket initialization error: $e');
@@ -297,6 +327,53 @@ class _StartDriveMapState extends State<StartDriveMap> {
           error = 'Error connecting to server: $e';
         });
       }
+    }
+  }
+
+  // Also update your _sendLocationUpdate method for better error handling:
+
+  void _sendLocationUpdate(LatLng location) {
+    if (socket != null && socket!.connected) {
+      socket!.emit('updateLocation', {
+        'eventId': widget.eventId,
+        'newCoordinates': {
+          'latitude': location.latitude,
+          'longitude': location.longitude,
+        },
+        'totalDistance': totalDistance,
+      });
+    } else {
+      print('Socket not connected, trying to reconnect...');
+      if (socket != null && !isDriveEnded) {
+        // Add a small delay before reconnecting
+        Future.delayed(Duration(seconds: 1), () {
+          if (socket != null && !socket!.connected) {
+            socket!.connect();
+          }
+        });
+      }
+    }
+  }
+
+  // Update your _cleanupResources method:
+
+  void _cleanupResources() {
+    try {
+      if (socket != null) {
+        socket!.disconnect();
+        socket!.dispose(); // Add this line
+        socket = null;
+      }
+      if (positionStreamSubscription != null) {
+        positionStreamSubscription!.cancel();
+        positionStreamSubscription = null;
+      }
+      if (_throttleTimer != null) {
+        _throttleTimer!.cancel();
+        _throttleTimer = null;
+      }
+    } catch (e) {
+      print("Error during resource cleanup: $e");
     }
   }
 
@@ -354,12 +431,11 @@ class _StartDriveMapState extends State<StartDriveMap> {
     }
   }
 
-  // Listen for location changes and update backend
   void _startLocationTracking() {
     try {
       const LocationSettings locationSettings = LocationSettings(
         accuracy: LocationAccuracy.high,
-        distanceFilter: 50, // Increase to 50 meters
+        distanceFilter: 10, // Reduced to 10 meters for better tracking
       );
 
       positionStreamSubscription =
@@ -382,13 +458,24 @@ class _StartDriveMapState extends State<StartDriveMap> {
                   ),
                 );
 
+                // Only calculate distance if we have previous points
                 if (routePoints.isNotEmpty) {
                   LatLng lastPoint = routePoints.last;
                   double segmentDistance = _calculateDistance(
                     lastPoint,
                     newLocation,
                   );
-                  totalDistance += segmentDistance;
+
+                  // Make sure we're adding numbers, not strings
+                  totalDistance = (totalDistance + segmentDistance);
+
+                  // Optional: Add some debugging
+                  print(
+                    'Segment distance: ${segmentDistance.toStringAsFixed(3)} km',
+                  );
+                  print(
+                    'Total distance: ${totalDistance.toStringAsFixed(3)} km',
+                  );
                 }
 
                 routePoints.add(newLocation);
@@ -403,24 +490,44 @@ class _StartDriveMapState extends State<StartDriveMap> {
     }
   }
 
-  // Update location to backend
-  void _sendLocationUpdate(LatLng location) {
-    if (socket != null && socket!.connected) {
-      socket!.emit('updateLocation', {
-        'eventId': widget.eventId,
-        'newCoordinates': {
-          'latitude': location.latitude,
-          'longitude': location.longitude,
-        },
-        'totalDistance': totalDistance, // Also send current calculated distance
-      });
-    } else {
-      print('Socket not connected, trying to reconnect...');
-      if (socket != null) {
-        socket!.connect();
-      }
+  // Also update your _calculateDistance method to ensure it returns a proper double:
+  double _calculateDistance(LatLng point1, LatLng point2) {
+    double distanceInMeters = Geolocator.distanceBetween(
+      point1.latitude,
+      point1.longitude,
+      point2.latitude,
+      point2.longitude,
+    );
+
+    // Convert to kilometers and return as double
+    double distanceInKm = distanceInMeters / 1000.0;
+
+    // Optional: Add minimum distance threshold to avoid micro-movements
+    if (distanceInKm < 0.001) {
+      // Less than 1 meter
+      return 0.0;
     }
+
+    return distanceInKm;
   }
+  // Update location to backend
+  // void _sendLocationUpdate(LatLng location) {
+  //   if (socket != null && socket!.connected) {
+  //     socket!.emit('updateLocation', {
+  //       'eventId': widget.eventId,
+  //       'newCoordinates': {
+  //         'latitude': location.latitude,
+  //         'longitude': location.longitude,
+  //       },
+  //       'totalDistance': totalDistance, // Also send current calculated distance
+  //     });
+  //   } else {
+  //     print('Socket not connected, trying to reconnect...');
+  //     if (socket != null) {
+  //       socket!.connect();
+  //     }
+  //   }
+  // }
 
   // Handle when drive ends
   void _handleDriveEnded(double distance, int duration) {
@@ -573,7 +680,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
       bool screenshotSuccess = false;
       try {
         await _captureAndUploadImage().timeout(
-          const Duration(seconds: 10),
+          const Duration(seconds: 5),
           onTimeout: () {
             print("Screenshot operation timed out");
             return;
@@ -632,25 +739,6 @@ class _StartDriveMapState extends State<StartDriveMap> {
     }
   }
 
-  // Dedicated method for resource cleanup
-  void _cleanupResources() {
-    try {
-      if (socket != null) {
-        socket!.disconnect();
-        socket = null;
-      }
-      if (positionStreamSubscription != null) {
-        positionStreamSubscription!.cancel();
-        positionStreamSubscription = null;
-      }
-      if (mapController != null) {
-        // No need to explicitly dispose mapController as it's handled by the GoogleMap widget
-      }
-    } catch (e) {
-      print("Error during resource cleanup: $e");
-    }
-  }
-
   // Handle Google Map creation
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
@@ -666,6 +754,9 @@ class _StartDriveMapState extends State<StartDriveMap> {
         queryParameters: {'send_feedback': sendFeedback.toString()},
       );
 
+      double finalDistance = totalDistance;
+      int finalDuration = _calculateDuration();
+
       final token = await Storage.getToken();
 
       final response = await http.post(
@@ -675,7 +766,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
           'Authorization': 'Bearer $token',
         },
         body: json.encode({
-          'totalDistance': totalDistance,
+          'totalDistance': finalDistance,
           'duration': _calculateDuration(),
         }),
       );
@@ -684,6 +775,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
         print('Test drive ended successfully');
         print('Duration: ${_calculateDuration()}');
         print('Send feedback: $sendFeedback');
+        print(response.body);
         _handleDriveEnded(totalDistance, _calculateDuration());
       } else {
         throw Exception('Failed to end drive: ${response.statusCode}');
@@ -705,22 +797,6 @@ class _StartDriveMapState extends State<StartDriveMap> {
     }
     super.dispose();
   }
-
-  // @override
-  // void dispose() {
-  //   // Clean up resources
-  //   if (socket != null && socket!.connected) {
-  //     socket!.disconnect();
-  //   }
-
-  //   if (positionStreamSubscription != null) {
-  //     positionStreamSubscription!.cancel();
-  //   }
-
-  //   super.dispose();
-  // }
-
-  // ScreenshotController _screenshotController = ScreenshotController();
 
   // Improved screenshot capture function with better error handling
   Future<void> _captureAndUploadImage() async {
@@ -841,26 +917,10 @@ class _StartDriveMapState extends State<StartDriveMap> {
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: AppColors.backgroundLightGrey,
-          title: Align(
-            alignment: Alignment.centerLeft,
-            child: Text('Test Drive', style: AppFont.appbarfontgrey(context)),
-          ),
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back_ios_new_outlined,
-              color: AppColors.iconGrey,
-            ),
-            onPressed: () {
-              Navigator.pop(context, true);
-            },
-          ),
-          elevation: 0,
-        ),
         body: isLoading
             ? const Center(
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     CircularProgressIndicator(),
@@ -873,30 +933,29 @@ class _StartDriveMapState extends State<StartDriveMap> {
                 ),
               )
             : error.isNotEmpty
-            ? Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.error_outline,
-                        color: Colors.red,
-                        size: 48,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        error,
-                        style: const TextStyle(color: Colors.red, fontSize: 16),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 24),
-                      ElevatedButton(
-                        onPressed: _determinePosition,
-                        child: const Text('Try Again'),
-                      ),
-                    ],
-                  ),
+            ? Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      color: Colors.red,
+                      size: 48,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      error,
+                      style: const TextStyle(color: Colors.red, fontSize: 16),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: _determinePosition,
+                      child: const Text('Try Again'),
+                    ),
+                  ],
                 ),
               )
             : Stack(
@@ -912,6 +971,8 @@ class _StartDriveMapState extends State<StartDriveMap> {
                         child: Padding(
                           padding: const EdgeInsets.all(10.0),
                           child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Container(
                                 padding: const EdgeInsets.all(15),
@@ -942,12 +1003,6 @@ class _StartDriveMapState extends State<StartDriveMap> {
                                       mapToolbarEnabled:
                                           false, // Disable toolbar
                                       compassEnabled: false, // Disable compass
-                                      // gestureRecognizers:
-                                      //     const <
-                                      //       Factory<
-                                      //         OneSequenceGestureRecognizer
-                                      //       >
-                                      //     >{}, // Disable gestures
                                       markers: {
                                         if (startMarker != null) startMarker!,
                                         if (userMarker != null) userMarker!,

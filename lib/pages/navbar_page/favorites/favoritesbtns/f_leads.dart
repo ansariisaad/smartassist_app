@@ -79,7 +79,7 @@ class _FLeadsState extends State<FLeads> {
 
       final response = await http.put(
         Uri.parse(
-          'https://dev.smartassistapp.in/api/favourites/mark-fav/lead/$leadId',
+          'https://api.smartassistapp.in/api/favourites/mark-fav/lead/$leadId',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -119,7 +119,7 @@ class _FLeadsState extends State<FLeads> {
     final token = await Storage.getToken();
     try {
       final response = await http.get(
-        Uri.parse('https://dev.smartassistapp.in/api/favourites/leads/all'),
+        Uri.parse('https://api.smartassistapp.in/api/favourites/leads/all'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',

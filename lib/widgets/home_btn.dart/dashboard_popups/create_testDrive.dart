@@ -10,7 +10,7 @@ import 'package:smartassist/config/component/font/font.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
-import 'package:smartassist/widgets/google_location.dart'; 
+import 'package:smartassist/widgets/google_location.dart';
 import 'package:smartassist/widgets/reusable/leadsearch_testdrive.dart';
 import 'package:smartassist/widgets/reusable/slot_calendar.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
@@ -379,8 +379,7 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
                 },
               ),
 
-              const SizedBox(height: 10),
-
+              // const SizedBox(height: 10),
               const SizedBox(height: 10),
 
               _buildTextField(

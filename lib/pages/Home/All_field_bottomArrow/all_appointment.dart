@@ -306,8 +306,6 @@ class _AllAppointmentState extends State<AllAppointment>
     });
   }
 
-  
-
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;

@@ -670,43 +670,37 @@ class _overdueeFollowupsItemState extends State<overdueeFollowupsItem>
     }
   }
 
-  // void _phoneAction() {
-  //   print("Call action triggered for ${widget.mobile}");
-
-  //   // Set flag that we're making a phone call
-  //   _wasCallingPhone = true;
-  //   // String mobile = item['mobile'] ?? '';
-
-  //   if (widget.mobile.isNotEmpty) {
-  //     try {
-  //       // Simple approach without canLaunchUrl check
-  //       final phoneNumber = 'tel:${widget.mobile}';
-  //       launchUrl(
-  //         Uri.parse(phoneNumber),
-  //         mode: LaunchMode.externalNonBrowserApplication,
-  //       );
-  //     } catch (e) {
-  //       print('Error launching phone app: $e');
-  //       // Reset flag if there was an error
-  //       _wasCallingPhone = false;
-  //       // Show error message to user
-  //       if (context.mounted) {
-  //         ScaffoldMessenger.of(context).showSnackBar(
-  //           const SnackBar(content: Text('Could not launch phone dialer')),
-  //         );
-  //       }
-  //     }
-  //   } else {
-  //     if (context.mounted) {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         const SnackBar(content: Text('No phone number available')),
-  //       );
-  //     }
-  //   }
-  // }
-
   void _messageAction() {
-    print("Message action triggered");
+    print("Message action triggered for ${widget.mobile}");
+
+    if (widget.mobile.isNotEmpty) {
+      try {
+        // Set flag that we're opening SMS (if you want to track this)
+        // _wasOpeningSMS = true;
+
+        // Launch SMS app with the mobile number
+        launchUrl(Uri.parse('sms:${widget.mobile}'));
+
+        print('SMS app launched');
+      } catch (e) {
+        print('Error launching SMS app: $e');
+
+        // Reset flag if there was an error (if you're using the flag)
+        // _wasOpeningSMS = false;
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not launch SMS app')),
+          );
+        }
+      }
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No phone number available')),
+        );
+      }
+    }
   }
 
   void _mailAction() {

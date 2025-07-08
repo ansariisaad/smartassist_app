@@ -242,7 +242,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
         leadData['data']['expected_date_purchase'] ?? 'N/A';
         lead_name = leadData['data']['lead_name'] ?? 'N/A';
         pincode = leadData['data']['pincode']?.toString() ?? 'N/A';
-        lead_status = leadData['data']['opportunity_status'] ?? 'Not Converted';
+        lead_status = leadData['data']['opp_status'] ?? 'Not Converted';
       });
     } catch (e) {
       print('Error fetching data: $e');

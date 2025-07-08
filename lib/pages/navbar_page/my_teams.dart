@@ -37,7 +37,6 @@ class _MyTeamsState extends State<MyTeams> {
   String _selectedLetter = '';
   List<Map<String, dynamic>> _filteredByLetter = [];
 
-  // Tab and filter state
   int _tabIndex = 0; // 0 for Individual Performance, 1 for Team Comparison
   int _periodIndex = 0; // ALL, MTD, QTD, YTD
   int _metricIndex = 0; // Selected metric for comparison
@@ -51,11 +50,11 @@ class _MyTeamsState extends State<MyTeams> {
   // String _selectedCheckboxIds = '';
   String _selectedType = 'All';
   Map<String, dynamic> _individualPerformanceData = {};
-  Set<String> _selectedCheckboxIds = {}; //remove this
+  Set<String> _selectedCheckboxIds = {};
   List<Map<String, dynamic>> selectedItems = [];
   Set<String> selectedUserIds = {};
   late TabControllerNew _tabController;
-  Set<String> _selectedLetters = {}; // Replace String _selectedLetter
+  Set<String> _selectedLetters = {};
   bool _isMultiSelectMode = false;
   int _upcommingButtonIndex = 0;
 
@@ -569,7 +568,6 @@ class _MyTeamsState extends State<MyTeams> {
         _teamData['teamComparsion'] is List)) {
       return [];
     }
-
     return List<Map<String, dynamic>>.from(_teamData['teamComparsion']);
   }
 
@@ -1536,7 +1534,7 @@ class _MyTeamsState extends State<MyTeams> {
         });
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+        padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 0),
         decoration: BoxDecoration(
           color: _periodIndex == index
               ? AppColors.colorsBlue.withOpacity(0.1)
@@ -1769,10 +1767,13 @@ class _MyTeamsState extends State<MyTeams> {
             // 👇 Conditionally render chart section
             if (!isHide) ...[
               if (teamData.isEmpty)
-                const Center(
-                  child: Text(
-                    'No team data available',
-                    style: TextStyle(color: Colors.grey),
+                Center(
+                  child: Container(
+                    margin: EdgeInsets.only(top: 10),
+                    child: Text(
+                      'No team data available',
+                      style: AppFont.dropDowmLabelLightcolors(context),
+                    ),
                   ),
                 )
               else
@@ -1792,19 +1793,22 @@ class _MyTeamsState extends State<MyTeams> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Container(
-            margin: const EdgeInsets.only(top: 5),
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              border: Border.all(color: Colors.grey.shade300, width: 1),
-              borderRadius: BorderRadius.circular(30),
-            ),
-            child: Row(
-              children: [
-                _buildPeriodButton('MTD', 1),
-                _buildPeriodButton('QTD', 0),
-                _buildPeriodButton('YTD', 2),
-              ],
+          IntrinsicWidth(
+            child: Container(
+              constraints: const BoxConstraints(minWidth: 60, maxWidth: 150),
+              margin: const EdgeInsets.only(top: 5),
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                border: Border.all(color: Colors.grey.shade300, width: 1),
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Row(
+                children: [
+                  _buildPeriodButton('MTD', 1),
+                  _buildPeriodButton('QTD', 0),
+                  _buildPeriodButton('YTD', 2),
+                ],
+              ),
             ),
           ),
         ],
@@ -2721,7 +2725,7 @@ class _MyTeamsState extends State<MyTeams> {
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  member['fname'].toString(),
+                  member['name'].toString(),
                   overflow: TextOverflow.ellipsis,
                   style: AppFont.smallText10(context),
                 ),

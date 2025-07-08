@@ -12,7 +12,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/widgets/popups_widget/leadSearch_textfield.dart';
-import 'package:smartassist/widgets/remarks_field.dart';
 import 'package:smartassist/widgets/reusable/action_button.dart';
 import 'package:smartassist/widgets/reusable/date_button.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
@@ -274,7 +273,7 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
     DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: initialDate,
-      firstDate: DateTime(2000),
+      firstDate: DateTime.now(),
       lastDate: DateTime(2100),
     );
 
@@ -319,6 +318,48 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
     );
 
     if (pickedTime != null) {
+      // Check if the selected date is today
+      DateTime selectedDate;
+      try {
+        if (startDateController.text.isNotEmpty) {
+          selectedDate = DateFormat(
+            'dd MMM yyyy',
+          ).parse(startDateController.text);
+        } else {
+          selectedDate = DateTime.now();
+        }
+      } catch (e) {
+        selectedDate = DateTime.now();
+      }
+
+      // If the selected date is today, check if the time is in the past
+      bool isToday =
+          selectedDate.year == DateTime.now().year &&
+          selectedDate.month == DateTime.now().month &&
+          selectedDate.day == DateTime.now().day;
+
+      if (isToday) {
+        final now = DateTime.now();
+        final selectedDateTime = DateTime(
+          now.year,
+          now.month,
+          now.day,
+          pickedTime.hour,
+          pickedTime.minute,
+        );
+
+        // If selected time is in the past, show error and return
+        if (selectedDateTime.isBefore(now)) {
+          Get.snackbar(
+            'Error',
+            'Please select a future time',
+            colorText: Colors.white,
+            backgroundColor: Colors.red[400],
+          ); 
+          return;
+        }
+      }
+
       // Create a temporary DateTime to format the time
       final now = DateTime.now();
       final time = DateTime(
@@ -351,6 +392,66 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
       });
     }
   }
+
+  // Future<void> _pickStartTime() async {
+  //   FocusScope.of(context).unfocus();
+
+  //   // Get current time from startTimeController or use current time
+  //   TimeOfDay initialTime;
+  //   try {
+  //     if (startTimeController.text.isNotEmpty) {
+  //       final parsedTime = DateFormat(
+  //         'hh:mm a',
+  //       ).parse(startTimeController.text);
+  //       initialTime = TimeOfDay(
+  //         hour: parsedTime.hour,
+  //         minute: parsedTime.minute,
+  //       );
+  //     } else {
+  //       initialTime = TimeOfDay.now();
+  //     }
+  //   } catch (e) {
+  //     initialTime = TimeOfDay.now();
+  //   }
+
+  //   TimeOfDay? pickedTime = await showTimePicker(
+  //     context: context,
+  //     initialTime: initialTime,
+  //   );
+
+  //   if (pickedTime != null) {
+  //     // Create a temporary DateTime to format the time
+  //     final now = DateTime.now();
+  //     final time = DateTime(
+  //       now.year,
+  //       now.month,
+  //       now.day,
+  //       pickedTime.hour,
+  //       pickedTime.minute,
+  //     );
+  //     String formattedTime = DateFormat('hh:mm a').format(time);
+
+  //     // Calculate end time (1 hour later)
+  //     final endHour = (pickedTime.hour + 1) % 24;
+  //     final endTime = DateTime(
+  //       now.year,
+  //       now.month,
+  //       now.day,
+  //       endHour,
+  //       pickedTime.minute,
+  //     );
+  //     String formattedEndTime = DateFormat('hh:mm a').format(endTime);
+
+  //     setState(() {
+  //       // Set start time
+  //       startTimeController.text = formattedTime;
+
+  //       // Set end time to 1 hour later but not visible in the UI
+  //       // (Only passed to API)
+  //       endTimeController.text = formattedEndTime;
+  //     });
+  //   }
+  // }
 
   Widget _buildTextField({
     required String label,

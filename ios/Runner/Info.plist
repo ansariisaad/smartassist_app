@@ -6,6 +6,30 @@
 <array>
     <string>remote-notification</string>
 </array>
+
+<!-- CALL LOG PERMISSION (for call_log package) -->
+<key>NSContactsUsageDescription</key>
+<string>This app needs access to contacts to display call history and manage contacts.</string>
+
+<!-- LOCATION PERMISSIONS (for geolocator package) -->
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>This app needs location access to show your position on the map.</string>
+<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+<string>This app requires location access even in the background for accurate updates.</string>
+
+<!-- BIOMETRIC AUTHENTICATION (for local_auth package) -->
+<key>NSFaceIDUsageDescription</key>
+<string>This app uses Face ID to authenticate the user securely.</string>
+
+<!-- PHOTO LIBRARY (for image_picker package) -->
+<key>NSPhotoLibraryUsageDescription</key>
+<string>This app needs access to your photo library to save and select images.</string>
+<key>NSPhotoLibraryAddUsageDescription</key>
+<string>This app needs permission to save photos to your photo library.</string>
+
+<!-- CAMERA (for camera and image_picker packages) -->
+<key>NSCameraUsageDescription</key>
+<string>This app requires camera access to take photos or scan QR codes.</string>
 <!-- SPEECH RECOGNITION PERMISSIONS - UNCOMMENTED AND ACTIVE -->
 <key>NSMicrophoneUsageDescription</key>
 <string>This app needs access to your microphone for speech recognition.</string>

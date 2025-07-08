@@ -171,8 +171,8 @@ class _FUpcomingState extends State<FUpcoming> {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
-          upcomingTasks = data['data']['upcomingTasks']['rows'] ?? [];
-          overdueTasks = data['data']['overdueTasks']['rows'] ?? [];
+          upcomingTasks = data['data']['allTasks']['rows'] ?? [];
+          // overdueTasks = data['data']['overdueTasks']['rows'] ?? [];
           isLoading = false;
         });
       } else {

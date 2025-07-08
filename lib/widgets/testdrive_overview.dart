@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
@@ -94,6 +95,7 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
           ratings = data['data']['drive_feedback'];
           isLoading = false;
         });
+
         print('this is sthe data');
         print(data);
       } else {
@@ -138,6 +140,20 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
     return 'Poor';
   }
 
+  bool _isTablet(BuildContext context) =>
+      MediaQuery.of(context).size.width > 768;
+  bool _isSmallScreen(BuildContext context) =>
+      MediaQuery.of(context).size.width < 400;
+  double _screenWidth(BuildContext context) =>
+      MediaQuery.of(context).size.width;
+
+  double _titleFontSize(BuildContext context) =>
+      _isTablet(context) ? 20 : (_isSmallScreen(context) ? 16 : 18);
+  double _bodyFontSize(BuildContext context) =>
+      _isTablet(context) ? 16 : (_isSmallScreen(context) ? 12 : 14);
+  double _smallFontSize(BuildContext context) =>
+      _isTablet(context) ? 14 : (_isSmallScreen(context) ? 10 : 12);
+
   @override
   Widget build(BuildContext context) {
     String formattedTime = formatTime(startTime);
@@ -148,13 +164,18 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
           alignment: Alignment.centerLeft,
           child: Text(
             'Test Drive summary',
-            style: AppFont.popupTitleWhite(context),
+            style: GoogleFonts.poppins(
+              fontSize: _titleFontSize(context),
+              fontWeight: FontWeight.w400,
+              color: Colors.white,
+            ),
           ),
         ),
         leading: IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back_ios_new_outlined,
             color: Colors.white,
+            size: _isSmallScreen(context) ? 18 : 20,
           ),
           onPressed: () {
             Navigator.push(

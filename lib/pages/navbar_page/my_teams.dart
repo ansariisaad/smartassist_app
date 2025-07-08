@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
@@ -46,17 +45,15 @@ class _MyTeamsState extends State<MyTeams> {
   String _selectedUserId = '';
   bool _isComparing = false;
   int overdueCount = 0;
+  String selectedTimeRange = '1D';
   // String userId = '';
-  // bool isLoading = false;
+  bool isLoading = false;
   // String _selectedCheckboxIds = '';
   String _selectedType = 'All';
   Map<String, dynamic> _individualPerformanceData = {};
-
   Set<String> _selectedCheckboxIds = {}; //remove this
   List<Map<String, dynamic>> selectedItems = [];
   Set<String> selectedUserIds = {};
-  // String? selectedUserIds;
-
   late TabControllerNew _tabController;
   Set<String> _selectedLetters = {}; // Replace String _selectedLetter
   bool _isMultiSelectMode = false;
@@ -69,7 +66,7 @@ class _MyTeamsState extends State<MyTeams> {
   bool isSingleCall = false;
   bool isHideCheckbox = false;
   // Data state
-  bool isLoading = false;
+  // bool isLoading = false;
   Map<String, dynamic> _teamData = {};
   Map<String, dynamic>? _selectedUserData = {};
   List<Map<String, dynamic>> _teamMembers = [];
@@ -87,6 +84,11 @@ class _MyTeamsState extends State<MyTeams> {
   Map<String, dynamic>? _dashboardData;
   Map<String, dynamic>? _enquiryData;
   Map<String, dynamic>? _coldCallData;
+
+  bool get _isOnlyLetterSelected =>
+      _selectedLetters.isNotEmpty &&
+      _selectedProfileIndex == -1 &&
+      _selectedUserId.isEmpty;
 
   // Controller for FAB
   final FabController fabController = Get.put(FabController());
@@ -180,13 +182,6 @@ class _MyTeamsState extends State<MyTeams> {
             decoration: BoxDecoration(
               color: const Color.fromARGB(255, 0, 0, 0),
               borderRadius: BorderRadius.circular(8),
-              // boxShadow: const [
-              //   BoxShadow(
-              //     color: Colors.black26,
-              //     blurRadius: 6,
-              //     offset: Offset(2, 2),
-              //   ),
-              // ],
             ),
             child: Text(
               message,
@@ -218,49 +213,44 @@ class _MyTeamsState extends State<MyTeams> {
 
   Future<void> _fetchSingleCalllog() async {
     try {
-      // setState(() {
-      //   _isLoading = true;
-      // });
+      setState(() {
+        isLoading = true;
+      });
 
       final token = await Storage.getToken();
 
-      // Determine period parameter based on selection
-      String? periodParam;
-      switch (_periodIndex) {
-        // case 0:
-        //   periodParam = 'DAY';
-        //   break;
-        // case 1:
-        //   periodParam = 'WEEK' ;
-        //   break;
-        case 1:
+      String periodParam = '';
+      switch (selectedTimeRange) {
+        case '1D':
+          periodParam = 'DAY'; // REMOVE the '?type=' part
+          break;
+        case '1W':
+          periodParam = 'WEEK';
+          break;
+        case '1M':
           periodParam = 'MTD';
           break;
-        case 0:
+        case '1Q':
           periodParam = 'QTD';
           break;
-        case 2:
+        case '1Y':
           periodParam = 'YTD';
           break;
         default:
-          periodParam = 'QTD';
+          periodParam = 'DAY';
       }
 
-      final Map<String, String> queryParams = {};
+      final Map<String, String> queryParams = {
+        'type': periodParam, // CHANGE THIS LINE
+      };
 
-      if (periodParam != null) {
-        queryParams['type'] = periodParam;
-      }
-
-      // ✅ Add userId to query parameters if it's available
+      // Add userId to query parameters if it's available
       if (_selectedUserId.isNotEmpty) {
         queryParams['user_id'] = _selectedUserId;
       }
 
-      // ✅ Fixed: Use the correct base URL without concatenating userId
       final baseUri = Uri.parse(
         'https://api.smartassistapp.in/api/users/ps/dashboard/call-analytics',
-        // 'https://api.smartassistapp.in/api/users/sm/dashboard/call-analytics'
       );
 
       final uri = baseUri.replace(queryParameters: queryParams);
@@ -274,45 +264,33 @@ class _MyTeamsState extends State<MyTeams> {
           'Content-Type': 'application/json',
         },
       );
-      print('this is single response ${uri}');
-      print('📤 Fetching from single: $uri');
 
       print('📥 Call Analytics Status Code: ${response.statusCode}');
       print('📥 Call Analytics Response: ${response.body}');
 
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
-        // Check if the widget is still in the widget tree before calling setState
+
         if (mounted) {
           setState(() {
             _dashboardData = jsonData['data'];
             _enquiryData = jsonData['data']['summaryEnquiry'];
             _coldCallData = jsonData['data']['summaryColdCalls'];
-            // _isLoading = false;
+            isLoading = false;
           });
         }
       } else {
-        // Handle unsuccessful status codes
         throw Exception(
           'Failed to load dashboard data. Status code: ${response.statusCode}',
         );
       }
     } catch (e) {
-      // Check if the widget is still in the widget tree before calling setState
-      // if (mounted) {
-      //   setState(() {
-      //     _isLoading = false;
-      //   });
-      // }
-
-      // Handle different types of errors
-      if (e is http.ClientException) {
-        debugPrint('Network error: $e');
-      } else if (e is FormatException) {
-        debugPrint('Error parsing data: $e');
-      } else {
-        debugPrint('Unexpected error: $e');
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
       }
+      debugPrint('Error fetching data: $e');
     }
   }
 
@@ -326,12 +304,6 @@ class _MyTeamsState extends State<MyTeams> {
       // Build period parameter
       String? periodParam;
       switch (_periodIndex) {
-        // case 1:
-        //   periodParam = 'DAY';
-        //   break;
-        // case 2:
-        //   periodParam = 'WEEK';
-        //   break;
         case 1:
           periodParam = 'MTD';
           break;
@@ -461,12 +433,6 @@ class _MyTeamsState extends State<MyTeams> {
       queryParams['summary'] = summaryParam;
       queryParams['target'] = targetParam;
 
-      // 🔥 REMOVE THE DUPLICATE LOGIC - Only keep this single user selection logic
-      // ❌ REMOVED: Duplicate user_id logic that was causing the issue
-      // if (_selectedProfileIndex != 0 && _selectedUserId.isNotEmpty) {
-      //   queryParams['user_id'] = _selectedUserId;
-      // }
-
       // 🔥 MODIFIED LOGIC: Handle user selection based on comparison mode
       if (_isComparing && selectedUserIds.isNotEmpty) {
         // ✅ If comparison mode is ON, ONLY pass userIds (NO user_id)
@@ -487,7 +453,7 @@ class _MyTeamsState extends State<MyTeams> {
       // ✅ If "All" is selected (_selectedProfileIndex == 0), no user parameters are added
 
       final baseUri = Uri.parse(
-        'https://api.smartassistapp.in/api/users/sm/dashboard/team-dashboard',
+        'https://api.smartassistapp.in/api/users/sm/analytics/team-dashboard',
       );
 
       final uri = baseUri.replace(queryParameters: queryParams);
@@ -620,6 +586,57 @@ class _MyTeamsState extends State<MyTeams> {
           children: [
             Text('My Team', style: AppFont.appbarfontWhite(context)),
 
+            if (selectedUserIds.length >= 2)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 0,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: InkWell(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    setState(() {
+                      _isMultiSelectMode = true;
+                      selectedUserIds.clear(); // Clear existing selections
+                      selectedUserIds.addAll(
+                        _teamMembers.map(
+                          (member) => member['user_id'].toString(),
+                        ),
+                      );
+                      // Add all unique letters to _selectedLetters
+                      _selectedLetters.clear();
+                      for (var member in _teamMembers) {
+                        String firstLetter = (member['fname'] ?? '')
+                            .toString()
+                            .toUpperCase();
+                        if (firstLetter.isNotEmpty) {
+                          _selectedLetters.add(firstLetter[0]);
+                        }
+                      }
+                      _selectedType =
+                          'Letter'; // Indicate letter-based selection
+                      print(
+                        'Select All tapped, selectedUserIds: $selectedUserIds',
+                      );
+                    });
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppColors.white),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      'Select All',
+                      style: AppFont.smallTextWhite1(context),
+                    ),
+                  ),
+                ),
+              ),
             if (selectedUserIds.length >= 2)
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -1184,15 +1201,19 @@ class _MyTeamsState extends State<MyTeams> {
 
   // Helper method to determine border style based on selection state
   Border? _getBorderStyle(bool isSelectedForComparison, int index) {
-    // if (isSelectedForComparison) {
-    //   return Border.all(color: AppColors.colorsBlue, width: 3);
-    // } else
-
     if (_selectedProfileIndex == index) {
       return Border.all(color: AppColors.backgroundLightGrey, width: 3);
     }
     return Border.all(color: AppColors.colorsBlue.withOpacity(0.1), width: 1);
   }
+
+  // Border _getBorderStyle(bool isSelectedForComparison, int index) {
+  //   bool isCurrentlySelected =
+  //       _selectedProfileIndex == index && _selectedUserId == selectedUserIds;
+  //   return isSelectedForComparison || isCurrentlySelected
+  //       ? Border.all(color: AppColors.colorsBlue, width: 2.5)
+  //       : Border.all(color: Colors.grey.withOpacity(0.3), width: 1);
+  // }
 
   // Helper method to build profile content with modern styling
 
@@ -1297,6 +1318,17 @@ class _MyTeamsState extends State<MyTeams> {
     BuildContext context,
     double screenWidth,
   ) {
+    if (_isOnlyLetterSelected) {
+      return Container(
+        padding: const EdgeInsets.all(30),
+        child: Center(
+          child: Text(
+            "Select a user to view details.",
+            style: AppFont.dropDowmLabelLightcolors(context),
+          ),
+        ),
+      );
+    }
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
       child: Column(
@@ -1532,10 +1564,22 @@ class _MyTeamsState extends State<MyTeams> {
 
   Widget _buildSingleuserCalllog(BuildContext context) {
     return TeamCalllogUserid(
+      key: ValueKey(selectedTimeRange),
       dashboardData: _dashboardData,
       enquiryData: _enquiryData,
       coldCallData: _coldCallData,
+      onTimeRangeChanged: _handleTimeRangeChange,
+      initialTimeRange: selectedTimeRange, // <- pass it here!
     );
+  }
+
+  // ADD THIS METHOD
+  void _handleTimeRangeChange(String newTimeRange) {
+    setState(() {
+      selectedTimeRange = newTimeRange;
+      isLoading = true;
+    });
+    _fetchSingleCalllog();
   }
 
   // Fixed Performance Metrics Widget all
@@ -1732,7 +1776,7 @@ class _MyTeamsState extends State<MyTeams> {
                   ),
                 )
               else
-                _buildTableTeamParison(), // optional extracted widget
+                _buildTableTeamParison(),
               _buildShowMoreButtonTeamComparison(),
             ],
           ],
@@ -1957,6 +2001,17 @@ class _MyTeamsState extends State<MyTeams> {
   // call ananlytics
 
   Widget _callAnalyticAll(BuildContext context) {
+    if (_isOnlyLetterSelected) {
+      return Container(
+        padding: const EdgeInsets.all(30),
+        child: Center(
+          child: Text(
+            "Select a user to view call analysis.",
+            style: AppFont.dropDowmLabelLightcolors(context),
+          ),
+        ),
+      );
+    }
     return InkWell(
       onTap: () {
         setState(() {
@@ -2919,6 +2974,57 @@ class _MyTeamsState extends State<MyTeams> {
   }
 
   // Upcoming Activities Section
+  // Widget _buildUpcomingActivities(BuildContext context) {
+  //   return Container(
+  //     margin: const EdgeInsets.all(10),
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         Padding(
+  //           padding: const EdgeInsets.only(bottom: 0),
+  //           child: Row(
+  //             children: [
+  //               // const SizedBox(height: 10),
+  //               Container(
+  //                 margin: const EdgeInsets.only(bottom: 10, top: 5),
+  //                 width: 180,
+  //                 height: 30,
+  //                 decoration: BoxDecoration(
+  //                   border: Border.all(
+  //                     color: AppColors.arrowContainerColor,
+  //                     width: .5,
+  //                   ),
+  //                   borderRadius: BorderRadius.circular(30),
+  //                 ),
+  //                 child: Row(
+  //                   children: [
+  //                     _buildFilterButton(
+  //                       index: 0,
+  //                       text: 'Upcoming',
+  //                       activeColor: AppColors.borderGreen,
+  //                     ),
+  //                     _buildFilterButton(
+  //                       index: 1,
+  //                       text: 'Overdue ($overdueCount)',
+  //                       activeColor: AppColors.borderRed,
+  //                     ),
+  //                   ],
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //         if (_upcomingFollowups.isNotEmpty)
+  //           _buildActivitySection(context, _upcomingFollowups, 'due_date'),
+  //         if (_upcomingAppointments.isNotEmpty)
+  //           _buildActivitySection(context, _upcomingAppointments, 'start_date'),
+  //         if (_upcomingTestDrives.isNotEmpty)
+  //           _buildActivitySection(context, _upcomingTestDrives, 'start_date'),
+  //       ],
+  //     ),
+  //   );
+  // }
+
   Widget _buildUpcomingActivities(BuildContext context) {
     return Container(
       margin: const EdgeInsets.all(10),
@@ -2929,31 +3035,36 @@ class _MyTeamsState extends State<MyTeams> {
             padding: const EdgeInsets.only(bottom: 0),
             child: Row(
               children: [
-                // const SizedBox(height: 10),
-                Container(
-                  margin: const EdgeInsets.only(bottom: 10, top: 5),
-                  width: 200,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: AppColors.arrowContainerColor,
-                      width: .5,
+                IntrinsicWidth(
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 10, top: 5),
+                    constraints: const BoxConstraints(
+                      minWidth: 180, // Minimum width
+                      maxWidth: 300, // Maximum width to prevent overflow
                     ),
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: Row(
-                    children: [
-                      _buildFilterButton(
-                        index: 0,
-                        text: 'Upcoming',
-                        activeColor: AppColors.borderGreen,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: AppColors.arrowContainerColor,
+                        width: .5,
                       ),
-                      _buildFilterButton(
-                        index: 1,
-                        text: 'Overdue ($overdueCount)',
-                        activeColor: AppColors.borderRed,
-                      ),
-                    ],
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildFilterButton(
+                          index: 0,
+                          text: 'Upcoming',
+                          activeColor: AppColors.borderGreen,
+                        ),
+                        _buildFilterButton(
+                          index: 1,
+                          text: 'Overdue ($overdueCount)',
+                          activeColor: AppColors.borderRed,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -3022,13 +3133,15 @@ class _MyTeamsState extends State<MyTeams> {
         style: TextButton.styleFrom(
           backgroundColor: _upcommingButtonIndex == index
               ? activeColor.withOpacity(0.29)
-              : Colors.white,
+              : Colors.transparent,
           foregroundColor: _upcommingButtonIndex == index
               ? activeColor
               : Colors.black,
           padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 5),
           side: BorderSide(
-            color: _upcommingButtonIndex == index ? activeColor : Colors.white,
+            color: _upcommingButtonIndex == index
+                ? activeColor
+                : Colors.transparent,
             width: .5,
           ),
           shape: RoundedRectangleBorder(

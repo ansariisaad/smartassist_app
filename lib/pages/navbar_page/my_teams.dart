@@ -2867,115 +2867,67 @@ class _MyTeamsState extends State<MyTeams> {
   }
 
   // Individual metric card
-  Widget _buildMetricCard(
-    String value,
-    String label,
-    Color valueColor, {
-    bool isSelected = false,
-    Color backgroundColor = Colors.white,
-    Color textColor = Colors.black,
-    bool isUserSelected = false,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: (isSelected && !isUserSelected && _selectedType == 'All')
-              ? Colors.transparent
-              : Colors.transparent, // change the condition if u want color
-          width: 2,
+Widget _buildMetricCard(
+  String value,
+  String label,
+  Color valueColor, {
+  bool isSelected = false,
+  Color backgroundColor = Colors.white,
+  Color textColor = Colors.black,
+  bool isUserSelected = false,
+}) {
+  return Container(
+    padding: const EdgeInsets.symmetric(vertical: 8.5, horizontal: 10),
+    decoration: BoxDecoration(
+      color: backgroundColor,
+      borderRadius: BorderRadius.circular(8),
+      border: Border.all(
+        color: (isSelected && !isUserSelected && _selectedType == 'All')
+            ? Colors.transparent
+            : Colors.transparent,
+        width: 2,
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.05),
+          blurRadius: 4,
+          offset: const Offset(0, 2),
         ),
+      ],
+    ),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start, // Left align content
+      children: [
+        Text(
+          value,
+          textAlign: TextAlign.left, // Align text left
+          style: GoogleFonts.poppins(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
 
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            color: backgroundColor == Colors.white ? valueColor : textColor,
           ),
-        ],
-      ),
-      child: Row(
-        // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Align(
-            alignment: Alignment.centerLeft,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: 50),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  // Adjust font size based on number of digits
-                  final int length = value.length;
-                  double fontSize;
-
-                  if (length <= 2) {
-                    fontSize = 30;
-                  } else if (length == 3) {
-                    fontSize = 26;
-                  } else if (length == 4) {
-                    fontSize = 22;
-                  } else if (length == 5) {
-                    fontSize = 18;
-                  } else {
-                    fontSize = 16;
-                  }
-
-                  return Text(
-                    value,
-                    textAlign: TextAlign.start,
-                    style: GoogleFonts.poppins(
-                      fontSize: fontSize,
-                      fontWeight: FontWeight.bold,
-                      color: backgroundColor == Colors.white
-                          ? valueColor
-                          : textColor,
-                    ),
-                  );
-                },
-              ),
-            ),
+        ),
+        const SizedBox(height: 2), // 2px vertical spacing
+        Text(
+          label,
+          textAlign: TextAlign.left, // Align text left
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          softWrap: true,
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w400,
+            color: textColor.withOpacity(0.7),
+            height: 1.1,
           ),
-          const SizedBox(width: 5),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: 120),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  // Adjust font size based on number of digits
-                  final int length = value.length;
-                  double fontSize;
+        ),
+      ],
+    ),
+  );
+}
 
-                  if (length <= 2) {
-                    fontSize = 14;
-                  } else if (length == 3) {
-                    fontSize = 12;
-                  } else if (length == 4) {
-                    fontSize = 10;
-                  } else if (length == 5) {
-                    fontSize = 8;
-                  } else {
-                    fontSize = 10;
-                  }
-
-                  return Text(
-                    label,
-                    textAlign: TextAlign.start,
-                    style: GoogleFonts.poppins(
-                      fontSize: fontSize,
-                      color: textColor,
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   // Upcoming Activities Section
   // Widget _buildUpcomingActivities(BuildContext context) {

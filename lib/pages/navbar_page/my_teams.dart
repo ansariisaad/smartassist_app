@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
-// import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
@@ -183,13 +182,6 @@ class _MyTeamsState extends State<MyTeams> {
             decoration: BoxDecoration(
               color: const Color.fromARGB(255, 0, 0, 0),
               borderRadius: BorderRadius.circular(8),
-              // boxShadow: const [
-              //   BoxShadow(
-              //     color: Colors.black26,
-              //     blurRadius: 6,
-              //     offset: Offset(2, 2),
-              //   ),
-              // ],
             ),
             child: Text(
               message,
@@ -594,6 +586,57 @@ class _MyTeamsState extends State<MyTeams> {
           children: [
             Text('My Team', style: AppFont.appbarfontWhite(context)),
 
+            if (selectedUserIds.length >= 2)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 0,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: InkWell(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    setState(() {
+                      _isMultiSelectMode = true;
+                      selectedUserIds.clear(); // Clear existing selections
+                      selectedUserIds.addAll(
+                        _teamMembers.map(
+                          (member) => member['user_id'].toString(),
+                        ),
+                      );
+                      // Add all unique letters to _selectedLetters
+                      _selectedLetters.clear();
+                      for (var member in _teamMembers) {
+                        String firstLetter = (member['fname'] ?? '')
+                            .toString()
+                            .toUpperCase();
+                        if (firstLetter.isNotEmpty) {
+                          _selectedLetters.add(firstLetter[0]);
+                        }
+                      }
+                      _selectedType =
+                          'Letter'; // Indicate letter-based selection
+                      print(
+                        'Select All tapped, selectedUserIds: $selectedUserIds',
+                      );
+                    });
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppColors.white),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      'Select All',
+                      style: AppFont.smallTextWhite1(context),
+                    ),
+                  ),
+                ),
+              ),
             if (selectedUserIds.length >= 2)
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -1164,6 +1207,14 @@ class _MyTeamsState extends State<MyTeams> {
     return Border.all(color: AppColors.colorsBlue.withOpacity(0.1), width: 1);
   }
 
+  // Border _getBorderStyle(bool isSelectedForComparison, int index) {
+  //   bool isCurrentlySelected =
+  //       _selectedProfileIndex == index && _selectedUserId == selectedUserIds;
+  //   return isSelectedForComparison || isCurrentlySelected
+  //       ? Border.all(color: AppColors.colorsBlue, width: 2.5)
+  //       : Border.all(color: Colors.grey.withOpacity(0.3), width: 1);
+  // }
+
   // Helper method to build profile content with modern styling
 
   Widget _buildProfileContent(
@@ -1725,7 +1776,7 @@ class _MyTeamsState extends State<MyTeams> {
                   ),
                 )
               else
-                _buildTableTeamParison(), // optional extracted widget
+                _buildTableTeamParison(),
               _buildShowMoreButtonTeamComparison(),
             ],
           ],

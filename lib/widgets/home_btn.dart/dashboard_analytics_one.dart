@@ -97,7 +97,7 @@ class _BottomBtnSecondState extends State<BottomBtnSecond> {
         },
       );
 
-      print(uri);
+      print('thi sis theerere ${uri}');
       // print('hiii');
 
       if (response.statusCode == 200) {

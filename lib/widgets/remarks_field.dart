@@ -76,6 +76,7 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
+    // _checkPermissionStatus();
     _initSpeechEngine();
     _forceAnimationSync();
   }
@@ -94,6 +95,33 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
     _forceStopTimer?.cancel();
     _stateCheckTimer?.cancel();
     _engineSyncTimer?.cancel();
+  }
+
+  Future<void> _checkPermissionStatus() async {
+    if (Platform.isIOS) {
+      PermissionStatus micStatus = await Permission.microphone.status;
+      PermissionStatus speechStatus = await Permission.speech.status;
+
+      debugPrint('Microphone permission: $micStatus');
+      debugPrint('Speech permission: $speechStatus');
+
+      if (micStatus.isPermanentlyDenied || speechStatus.isPermanentlyDenied) {
+        debugPrint('Permissions permanently denied - showing settings dialog');
+        _showPermissionDialog();
+        return;
+      }
+    } else {
+      PermissionStatus micStatus = await Permission.microphone.status;
+      debugPrint('Microphone permission: $micStatus');
+
+      if (micStatus.isPermanentlyDenied) {
+        debugPrint(
+          'Microphone permission permanently denied - showing settings dialog',
+        );
+        _showPermissionDialog();
+        return;
+      }
+    }
   }
 
   // === Always force UI to match engine ===
@@ -139,10 +167,19 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
       bool hasPermission = await _checkMicrophonePermission();
       if (!mounted) return;
       if (!hasPermission) {
-        setState(() => _isInitialized = true);
-        _isProcessing = false;
+        setState(() {
+          _isInitialized = true;
+          _speechAvailable = false;
+        });
+        _showFeedback("Microphone permission not granted", isError: true);
         return;
       }
+
+      // if (!hasPermission) {
+      //   setState(() => _isInitialized = true);
+      //   _isProcessing = false;
+      //   return;
+      // }
       _speechAvailable = await _speech!.initialize(
         onStatus: _onSpeechStatus,
         onError: _onSpeechError,
@@ -187,25 +224,53 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
 
   Future<bool> _checkMicrophonePermission() async {
     try {
-      if (Platform.isIOS) {
-        Map<Permission, PermissionStatus> statuses = await [
-          Permission.microphone,
-          Permission.speech,
-        ].request();
+      // if (Platform.isIOS) {
+      // This handles both microphone and speech recognition permissions
+      // bool hasPermission = await _speech!.hasPermission;
 
-        bool micGranted = statuses[Permission.microphone]?.isGranted ?? false;
-        bool speechGranted = statuses[Permission.speech]?.isGranted ?? false;
-        if (!micGranted || !speechGranted) {
+      //   if (!hasPermission) {
+      //     // Show dialog explaining what to do
+      //     _showPermissionDialog();
+      //     return false;
+      //   }
+
+      //   return true;
+      // } else {
+      if (Platform.isIOS) {
+        // Double check: both permission_handler AND speech_to_text
+        bool speechPermission = await _speech!.hasPermission;
+        PermissionStatus micStatus = await Permission.microphone.status;
+
+        // If speech_to_text says yes, trust it (handles iOS 17+ bug)
+        if (speechPermission) {
+          return true;
+        }
+
+        // If both are denied, show dialog
+        if (!speechPermission && !micStatus.isGranted) {
           _showPermissionDialog();
           return false;
         }
-        return true;
+
+        return speechPermission;
       } else {
-        PermissionStatus micStatus = await Permission.microphone.request();
-        if (!micStatus.isGranted) {
+        // Android - still use permission_handler for microphone
+        PermissionStatus micStatus = await Permission.microphone.status;
+
+        if (micStatus.isGranted) {
+          return true;
+        }
+
+        if (micStatus.isPermanentlyDenied) {
+          _showPermissionDialog();
+          return false;
+        }
+
+        PermissionStatus requestResult = await Permission.microphone.request();
+        if (!requestResult.isGranted) {
           _showPermissionDialog();
         }
-        return micStatus.isGranted;
+        return requestResult.isGranted;
       }
     } catch (e) {
       debugPrint('Permission check error: $e');
@@ -213,14 +278,17 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
     }
   }
 
+  // Also update the permission dialog for iOS
   void _showPermissionDialog() {
     if (!mounted) return;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Permissions Required'),
-        content: const Text(
-          'This app needs microphone and speech recognition permissions to work properly. Please enable them in Settings.',
+        content: Text(
+          Platform.isIOS
+              ? 'This app needs microphone and speech recognition permissions to work properly. Please enable them in Settings > Privacy & Security > Microphone and Speech Recognition.'
+              : 'This app needs microphone permission to work properly. Please enable it in Settings.',
         ),
         actions: [
           TextButton(
@@ -587,6 +655,14 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
   }
 
   Widget _buildSpeechButton() {
+    if (!_speechAvailable) {
+      return IconButton(
+        onPressed: null,
+        icon: Icon(Icons.mic_off, color: Colors.grey),
+        tooltip: 'Microphone not available',
+      );
+    }
+
     if (!_isInitialized) {
       return const Padding(
         padding: EdgeInsets.all(12.0),
@@ -608,6 +684,7 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
               }
             }
           : null,
+
       icon: AnimatedSwitcher(
         duration: const Duration(milliseconds: 200),
         child: Icon(

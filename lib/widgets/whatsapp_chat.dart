@@ -750,21 +750,20 @@ class _WhatsappChatState extends State<WhatsappChat>
   }
 
   void attachment() async {
-    // Show bottom sheet to choose between image and video
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
         return Container(
-          height: 120,
+          height: 180,
           child: Column(
             children: [
               ListTile(
-                leading: Icon(Icons.photo),
-                title: Text('Camera'),
+                leading: Icon(Icons.camera),
+                title: Text('Camera', style: AppFont.dropDowmLabel(context)),
                 onTap: () async {
                   Navigator.pop(context);
                   final XFile? image = await _picker.pickImage(
-                    source: ImageSource.gallery,
+                    source: ImageSource.camera,
                     imageQuality: 70,
                   );
                   if (image != null) {
@@ -774,7 +773,7 @@ class _WhatsappChatState extends State<WhatsappChat>
               ),
               ListTile(
                 leading: Icon(Icons.photo),
-                title: Text('Photo'),
+                title: Text('Photo', style: AppFont.dropDowmLabel(context)),
                 onTap: () async {
                   Navigator.pop(context);
                   final XFile? image = await _picker.pickImage(
@@ -788,7 +787,7 @@ class _WhatsappChatState extends State<WhatsappChat>
               ),
               ListTile(
                 leading: Icon(Icons.videocam),
-                title: Text('Video'),
+                title: Text('Video', style: AppFont.dropDowmLabel(context)),
                 onTap: () async {
                   Navigator.pop(context);
                   final XFile? video = await _picker.pickVideo(

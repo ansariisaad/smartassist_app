@@ -1615,7 +1615,6 @@
 //   }
 // }
 
-
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -2571,8 +2570,7 @@ class _CallAnalyticsState extends State<CallAnalytics>
           FlSpot(i.toDouble(), (data['missedCalls'] ?? 0).toDouble()),
         );
       }
-    }
-    else if (ha.keys.any(
+    } else if (ha.keys.any(
       (k) => ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].contains(k),
     )) {
       final weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -2588,8 +2586,8 @@ class _CallAnalyticsState extends State<CallAnalytics>
           FlSpot(i.toDouble(), (data['missedCalls'] ?? 0).toDouble()),
         );
       }
-    }
-    else if (ha.keys.isNotEmpty && ha.keys.first.toString().contains('Week')) {
+    } else if (ha.keys.isNotEmpty &&
+        ha.keys.first.toString().contains('Week')) {
       final weeks = ha.keys.toList()
         ..sort((a, b) {
           int ai = int.tryParse(RegExp(r'\d+').stringMatch(a) ?? '0') ?? 0;
@@ -2608,8 +2606,7 @@ class _CallAnalyticsState extends State<CallAnalytics>
           FlSpot(i.toDouble(), (data['missedCalls'] ?? 0).toDouble()),
         );
       }
-    }
-    else if ([
+    } else if ([
       "Jan",
       "Feb",
       "Mar",
@@ -2655,8 +2652,7 @@ class _CallAnalyticsState extends State<CallAnalytics>
           FlSpot(i.toDouble(), (data['missedCalls'] ?? 0).toDouble()),
         );
       }
-    }
-    else if (ha.keys.isNotEmpty && ha.keys.first.toString().contains('Q')) {
+    } else if (ha.keys.isNotEmpty && ha.keys.first.toString().contains('Q')) {
       final List<String> quarters = ["Q1", "Q2", "Q3", "Q4"];
       for (int i = 0; i < quarters.length; i++) {
         var q = quarters[i];
@@ -2670,8 +2666,7 @@ class _CallAnalyticsState extends State<CallAnalytics>
           FlSpot(i.toDouble(), (data['missedCalls'] ?? 0).toDouble()),
         );
       }
-    }
-    else if (ha.isNotEmpty) {
+    } else if (ha.isNotEmpty) {
       final keys = ha.keys.map((e) => e.toString()).toList();
       for (int i = 0; i < keys.length; i++) {
         var data = ha[keys[i]] ?? {};
@@ -2692,9 +2687,11 @@ class _CallAnalyticsState extends State<CallAnalytics>
     }
 
     double maxY =
-        ([...allCallSpots, ...incomingSpots, ...missedCallSpots]
-                .map((e) => e.y)
-                .fold<double>(0, (prev, e) => e > prev ? e : prev))
+        ([
+              ...allCallSpots,
+              ...incomingSpots,
+              ...missedCallSpots,
+            ].map((e) => e.y).fold<double>(0, (prev, e) => e > prev ? e : prev))
             .ceilToDouble();
     if (maxY < 5) maxY = 5;
 
@@ -2911,4 +2908,3 @@ class _CallAnalyticsState extends State<CallAnalytics>
     );
   }
 }
-

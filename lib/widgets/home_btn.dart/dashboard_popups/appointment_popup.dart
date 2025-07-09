@@ -12,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/widgets/popups_widget/leadSearch_textfield.dart';
+import 'package:smartassist/widgets/remarks_field.dart';
 import 'package:smartassist/widgets/reusable/action_button.dart';
 import 'package:smartassist/widgets/reusable/date_button.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
@@ -355,7 +356,7 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
             'Please select a future time',
             colorText: Colors.white,
             backgroundColor: Colors.red[400],
-          ); 
+          );
           return;
         }
       }

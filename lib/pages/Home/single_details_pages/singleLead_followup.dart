@@ -239,7 +239,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
         purchase_type = leadData['data']['purchase_type'] ?? 'N/A';
         enquiry_type = leadData['data']['enquiry_type'] ?? 'N/A';
         expected_date_purchase =
-        leadData['data']['expected_date_purchase'] ?? 'N/A';
+            leadData['data']['expected_date_purchase'] ?? 'N/A';
         lead_name = leadData['data']['lead_name'] ?? 'N/A';
         pincode = leadData['data']['pincode']?.toString() ?? 'N/A';
         lead_status = leadData['data']['opp_status'] ?? 'Not Converted';
@@ -2212,6 +2212,3 @@ class NavigationController extends GetxController {
     });
   }
 }
-
-
-

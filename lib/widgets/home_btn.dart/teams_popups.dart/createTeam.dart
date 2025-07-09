@@ -74,7 +74,7 @@ class _CreateteamState extends State<Createteam> {
       ); // Debug token presence
 
       final apiUrl =
-          'https://dev.smartassistapp.in/api/search/users?user=$query';
+          'https://api.smartassistapp.in/api/search/users?user=$query';
       print("API URL: $apiUrl"); // Debug URL
 
       final response = await http.get(

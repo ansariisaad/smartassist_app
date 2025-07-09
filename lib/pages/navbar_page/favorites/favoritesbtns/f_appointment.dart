@@ -70,7 +70,7 @@ class _FAppointmentState extends State<FAppointment> {
 
       final response = await http.put(
         Uri.parse(
-          'https://api.smartassistapp.in/api/favourites/mark-fav/task/$taskId',
+          'https://dev.smartassistapp.in/api/favourites/mark-fav/task/$taskId',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -129,7 +129,7 @@ class _FAppointmentState extends State<FAppointment> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://api.smartassistapp.in/api/favourites/events/appointments/all',
+          'https://dev.smartassistapp.in/api/favourites/events/appointments/all',
         ),
         headers: {
           'Authorization': 'Bearer $token',

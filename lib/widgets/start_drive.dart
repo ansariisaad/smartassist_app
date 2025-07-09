@@ -171,7 +171,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
   void _initializeSocket() {
     try {
       // Updated socket configuration
-      socket = IO.io('https://api.smartassistapp.in', <String, dynamic>{
+      socket = IO.io('https://dev.smartassistapp.in', <String, dynamic>{
         'transports': ['websocket'],
         'autoConnect': false, // Changed to false for better control
         'reconnection': true,
@@ -389,7 +389,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
   Future<void> _startTestDrive(LatLng currentLocation) async {
     try {
       final url = Uri.parse(
-        'https://api.smartassistapp.in/api/events/${widget.eventId}/start-drive',
+        'https://dev.smartassistapp.in/api/events/${widget.eventId}/start-drive',
       );
       final token = await Storage.getToken();
 
@@ -748,7 +748,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
     try {
       // Build the URL with query parameter
       final uri = Uri.parse(
-        'https://api.smartassistapp.in/api/events/${widget.eventId}/end-drive',
+        'https://dev.smartassistapp.in/api/events/${widget.eventId}/end-drive',
       );
       final url = uri.replace(
         queryParameters: {'send_feedback': sendFeedback.toString()},
@@ -861,7 +861,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
 
   Future<bool> _uploadImage(File file) async {
     final url = Uri.parse(
-      'https://api.smartassistapp.in/api/events/${widget.eventId}/upload-map',
+      'https://dev.smartassistapp.in/api/events/${widget.eventId}/upload-map',
     );
     final token = await Storage.getToken();
     try {

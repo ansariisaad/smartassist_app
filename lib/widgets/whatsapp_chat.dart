@@ -143,13 +143,13 @@ class _WhatsappChatState extends State<WhatsappChat>
     with WidgetsBindingObserver {
   List<Message> messages = [];
   bool isLoading = false;
-  bool isWhatsAppLoading = false; // New loading state for WhatsApp client
-  String loadingMessage = ''; // Message to show during loading
+  bool isWhatsAppLoading = false;
+  String loadingMessage = '';
   String spId = '';
   String email = '';
   bool isWhatsAppReady = false;
   bool isCheckingStatus = true;
-  bool isLoggedOut = false; // Track if user has logged out
+  bool isLoggedOut = false;
   Timer? _reconnectTimer;
 
   final TextEditingController _messageController = TextEditingController();
@@ -160,7 +160,7 @@ class _WhatsappChatState extends State<WhatsappChat>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this); // Observe app lifecycle
+    WidgetsBinding.instance.addObserver(this);
     loadInitialData();
   }
 
@@ -250,7 +250,7 @@ class _WhatsappChatState extends State<WhatsappChat>
     });
     try {
       final url = Uri.parse(
-        'https://api.smartassistapp.in/api/check-wa-status',
+        'https://dev.smartassistapp.in/api/check-wa-status',
       );
       final token = await Storage.getToken();
       final response = await http.post(
@@ -271,7 +271,6 @@ class _WhatsappChatState extends State<WhatsappChat>
         setState(() {
           isWhatsAppReady = data['isReady'] ?? false;
           isCheckingStatus = false;
-          // Reset logout flag if WhatsApp is ready
           if (isWhatsAppReady) {
             isLoggedOut = false;
           }
@@ -283,12 +282,6 @@ class _WhatsappChatState extends State<WhatsappChat>
           isWhatsAppReady = false;
           isCheckingStatus = false;
         });
-        // Get.snackbar(
-        //   'Error',
-        //   'Failed to check WhatsApp status',
-        //   backgroundColor: Colors.red,
-        //   colorText: Colors.white,
-        // );
       }
     } catch (e) {
       print('Error checking WhatsApp status: $e');
@@ -314,7 +307,7 @@ class _WhatsappChatState extends State<WhatsappChat>
     });
 
     try {
-      final url = Uri.parse('https://api.smartassistapp.in/api/init-wa');
+      final url = Uri.parse('https://dev.smartassistapp.in/api/init-wa');
       final token = await Storage.getToken();
       final response = await http.post(
         url,
@@ -346,12 +339,6 @@ class _WhatsappChatState extends State<WhatsappChat>
         final errorMessage =
             json.decode(response.body)['message'] ?? 'Unknown error';
         print(errorMessage.toString());
-        // Get.snackbar(
-        //   'Error',
-        //   errorMessage,
-        //   backgroundColor: Colors.red,
-        //   colorText: Colors.white,
-        // );
       }
     } catch (e) {
       print('Error initializing WhatsApp chat: $e');
@@ -429,7 +416,7 @@ class _WhatsappChatState extends State<WhatsappChat>
   }
 
   void initSocket() {
-    socket = IO.io('wss://api.smartassistapp.in', <String, dynamic>{
+    socket = IO.io('wss://dev.smartassistapp.in', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': true,
       'reconnection': true,
@@ -455,33 +442,6 @@ class _WhatsappChatState extends State<WhatsappChat>
         print('Requesting messages for chat ID: ${widget.chatId}');
       }
     });
-    // socket = IO.io('wss://api.smartassistapp.in', <String, dynamic>{
-    //   'transports': ['websocket'],
-    //   'autoConnect': true,
-    //   'reconnection': true,
-    //   'reconnectionAttempts': 10,
-    //   'reconnectionDelay': 1000,
-    //   'reconnectionDelayMax': 5000,
-    //   'timeout': 20000,
-    // });
-
-    // socket.onConnect((_) {
-    //   print('Socket connected');
-    //   _stopReconnectTimer();
-    //   socket.emit('register_session', {'sessionId': spId});
-    //   print('Emitted register_session: sessionId=$spId');
-    //   setState(() {
-    //     isConnected = true;
-    //   });
-    //   // Only get messages if WhatsApp is ready and not logged out
-    //   if (isWhatsAppReady && !isLoggedOut) {
-    //     socket.emit('get_messages', {
-    //       'sessionId': spId,
-    //       'chatId': widget.chatId,
-    //     });
-    //     print('Requesting messages for chat ID: ${widget.chatId}');
-    //   }
-    // });
 
     socket.onDisconnect((_) {
       print('Socket disconnected');

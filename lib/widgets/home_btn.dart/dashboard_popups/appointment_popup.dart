@@ -140,7 +140,7 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://api.smartassistapp.in/api/search/global?query=$query',
+          'https://dev.smartassistapp.in/api/search/global?query=$query',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -355,7 +355,7 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
             'Please select a future time',
             colorText: Colors.white,
             backgroundColor: Colors.red[400],
-          ); 
+          );
           return;
         }
       }

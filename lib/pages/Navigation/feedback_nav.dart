@@ -235,7 +235,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
 
       // Create multipart request for file upload
 
-      var uri = Uri.parse('https://api.smartassistapp.in/api/bugs/raise-new');
+      var uri = Uri.parse('https://dev.smartassistapp.in/api/bugs/raise-new');
       var request = http.MultipartRequest('POST', uri);
 
       // Add headers

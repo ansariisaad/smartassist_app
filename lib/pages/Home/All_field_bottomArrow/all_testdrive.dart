@@ -9,6 +9,7 @@ import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/buttons/add_btn.dart';
 import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/create_testDrive.dart';
 import 'package:smartassist/widgets/reusable/globle_speechtotext.dart';
+import 'package:smartassist/widgets/reusable/skeleton_card.dart';
 import 'package:smartassist/widgets/testdrive/all_testDrive.dart';
 import 'package:smartassist/widgets/testdrive/overdue.dart';
 import 'package:smartassist/widgets/testdrive/upcoming.dart';
@@ -586,13 +587,7 @@ class _AllTestdriveState extends State<AllTestdrive>
             //     ),
             //   ),
             SliverToBoxAdapter(
-              child: _isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.colorsBlue,
-                      ),
-                    )
-                  : _buildContentBySelectedTab(),
+              child: _isLoading ? SkeletonCard() : _buildContentBySelectedTab(),
             ),
           ],
         ),

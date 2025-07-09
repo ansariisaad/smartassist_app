@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 import 'package:external_app_launcher/external_app_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
@@ -22,6 +24,8 @@ class Message {
   final String? mediaUrl;
   final String? id;
 
+  final Map<String, dynamic>? media;
+
   Message({
     required this.body,
     required this.fromMe,
@@ -29,17 +33,47 @@ class Message {
     required this.type,
     this.mediaUrl,
     this.id,
+    this.media,
   });
 
+  //   factory Message.fromJson(Map<String, dynamic> json) {
+
+  //     return Message(
+  //       body: json['body'] ?? '',
+  //       fromMe: json['fromMe'] ?? false,
+  //       timestamp:
+  //           json['timestamp'] ?? (DateTime.now().millisecondsSinceEpoch ~/ 1000),
+  //       type: json['type'] ?? 'chat',
+  //       mediaUrl: json['mediaUrl'],
+  //       id: json['id'],
+  //     );
+  //   }
+  // }
+
   factory Message.fromJson(Map<String, dynamic> json) {
+    String? mediaUrl;
+
+    // Handle media data from server
+    if (json['media'] != null && json['media']['base64'] != null) {
+      final mediaData = json['media'];
+      final base64Data = mediaData['base64'];
+      final mimeType = mediaData['mimetype'] ?? '';
+
+      // Convert base64 to data URL for display
+      mediaUrl = 'data:$mimeType;base64,$base64Data';
+    }
+
     return Message(
       body: json['body'] ?? '',
       fromMe: json['fromMe'] ?? false,
       timestamp:
           json['timestamp'] ?? (DateTime.now().millisecondsSinceEpoch ~/ 1000),
       type: json['type'] ?? 'chat',
-      mediaUrl: json['mediaUrl'],
+      mediaUrl:
+          mediaUrl ??
+          json['mediaUrl'], // Use converted media or existing mediaUrl
       id: json['id'],
+      media: json['media'], // Store original media data
     );
   }
 }
@@ -91,18 +125,58 @@ class _MessageBubbleState extends State<MessageBubble> {
                 widget.message.mediaUrl != null)
               ClipRRect(
                 borderRadius: BorderRadius.circular(6),
-                child: Image.network(
-                  widget.message.mediaUrl!,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    height: 150,
-                    color: Colors.grey[300],
-                    alignment: Alignment.center,
-                    child: const Text("Error loading image"),
-                  ),
-                ),
+                child: widget.message.mediaUrl!.startsWith('data:')
+                    ? Image.memory(
+                        base64Decode(widget.message.mediaUrl!.split(',')[1]),
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          height: 150,
+                          color: Colors.grey[300],
+                          alignment: Alignment.center,
+                          child: const Text("Error loading image"),
+                        ),
+                      )
+                    : widget.message.mediaUrl!.startsWith('http')
+                    ? Image.network(
+                        widget.message.mediaUrl!,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          height: 150,
+                          color: Colors.grey[300],
+                          alignment: Alignment.center,
+                          child: const Text("Error loading image"),
+                        ),
+                      )
+                    : Image.file(
+                        File(widget.message.mediaUrl!),
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          height: 150,
+                          color: Colors.grey[300],
+                          alignment: Alignment.center,
+                          child: const Text("Error loading image"),
+                        ),
+                      ),
               ),
+            // if (widget.message.type == 'image' &&
+            //     widget.message.mediaUrl != null)
+            //   ClipRRect(
+            //     borderRadius: BorderRadius.circular(6),
+            //     child: Image.network(
+            //       widget.message.mediaUrl!,
+            //       width: double.infinity,
+            //       fit: BoxFit.cover,
+            //       errorBuilder: (context, error, stackTrace) => Container(
+            //         height: 150,
+            //         color: Colors.grey[300],
+            //         alignment: Alignment.center,
+            //         child: const Text("Error loading image"),
+            //       ),
+            //     ),
+            //   ),
             if (widget.message.body.isNotEmpty)
               Text(widget.message.body, style: const TextStyle(fontSize: 16)),
             const SizedBox(height: 2),
@@ -151,6 +225,9 @@ class _WhatsappChatState extends State<WhatsappChat>
   bool isCheckingStatus = true;
   bool isLoggedOut = false;
   Timer? _reconnectTimer;
+
+  final ImagePicker _picker = ImagePicker();
+  bool isSendingImage = false;
 
   final TextEditingController _messageController = TextEditingController();
   late IO.Socket socket;
@@ -574,6 +651,13 @@ class _WhatsappChatState extends State<WhatsappChat>
         try {
           final messageData = data['message'];
           if (messageData != null) {
+            // Log media data for debugging
+            if (messageData['media'] != null) {
+              print(
+                'Received media message: ${messageData['type']} - ${messageData['media']['mimetype']}',
+              );
+            }
+
             final newMessage = Message.fromJson(messageData);
             if (data['chatId'] == widget.chatId &&
                 !messages.any((m) => m.id == newMessage.id)) {
@@ -587,6 +671,7 @@ class _WhatsappChatState extends State<WhatsappChat>
           }
         } catch (e) {
           print('Error parsing new message: $e');
+          print('Message data: $data'); // Add this for debugging
         }
       }
     });
@@ -644,8 +729,8 @@ class _WhatsappChatState extends State<WhatsappChat>
     socket.off('wa_login_success');
     socket.off('wa_auth_failure');
     socket.off('wa_disconnected');
-    socket.off('wa_loading_started'); // Clean up the new listener
-    socket.off('wa_logout'); // Clean up the logout listener
+    socket.off('wa_loading_started');
+    socket.off('wa_logout');
     socket.off('wa_qr_expired');
     socket.disconnect();
     _messageController.dispose();
@@ -664,6 +749,239 @@ class _WhatsappChatState extends State<WhatsappChat>
     print('Socket manually disconnected');
   }
 
+  void attachment() async {
+    // Show bottom sheet to choose between image and video
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          height: 120,
+          child: Column(
+            children: [
+              ListTile(
+                leading: Icon(Icons.photo),
+                title: Text('Camera'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  final XFile? image = await _picker.pickImage(
+                    source: ImageSource.gallery,
+                    imageQuality: 70,
+                  );
+                  if (image != null) {
+                    await sendImageMessage(image);
+                  }
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.photo),
+                title: Text('Photo'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  final XFile? image = await _picker.pickImage(
+                    source: ImageSource.gallery,
+                    imageQuality: 70,
+                  );
+                  if (image != null) {
+                    await sendImageMessage(image);
+                  }
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.videocam),
+                title: Text('Video'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  final XFile? video = await _picker.pickVideo(
+                    source: ImageSource.gallery,
+                  );
+                  if (video != null) {
+                    await sendVideoMessage(video);
+                  }
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> sendVideoMessage(XFile video) async {
+    if (!isWhatsAppReady) return;
+
+    setState(() {
+      isSendingImage = true; // You can rename this to isSendingMedia
+    });
+
+    try {
+      // Read video as bytes
+      final bytes = await video.readAsBytes();
+      final base64String = base64Encode(bytes);
+
+      // Get file extension and mime type
+      final extension = video.path.split('.').last.toLowerCase();
+      String mimeType = 'video/mp4'; // default
+
+      switch (extension) {
+        case 'mp4':
+          mimeType = 'video/mp4';
+          break;
+        case 'mov':
+          mimeType = 'video/quicktime';
+          break;
+        case 'avi':
+          mimeType = 'video/x-msvideo';
+          break;
+        case 'mkv':
+          mimeType = 'video/x-matroska';
+          break;
+        case '3gp':
+          mimeType = 'video/3gpp';
+          break;
+      }
+
+      final message = {
+        'chatId': widget.chatId,
+        'message': _messageController.text.trim(), // Caption
+        'sessionId': spId,
+        'media': {
+          'mimetype': mimeType,
+          'base64': base64String,
+          'filename': video.name,
+        },
+      };
+
+      print(
+        'Sending video message: ${(message['media'] as Map<String, dynamic>)['filename']}',
+      );
+      socket.emit('send_message', message);
+
+      // Add local message to UI
+      final localMessage = Message(
+        body: _messageController.text.trim(),
+        fromMe: true,
+        timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        type: 'video',
+        mediaUrl: video.path, // Use local path for immediate display
+        media: null,
+      );
+
+      setState(() {
+        messages.add(localMessage);
+      });
+
+      _messageController.clear();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToBottom();
+      });
+    } catch (e) {
+      print('Error sending video: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to send video',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      setState(() {
+        isSendingImage = false;
+      });
+    }
+  }
+
+  // void attachment() async {
+  //   final XFile? image = await _picker.pickImage(
+  //     source: ImageSource.gallery,
+  //     imageQuality: 70,
+  //   );
+
+  //   if (image != null) {
+  //     await sendImageMessage(image);
+  //   }
+  // }
+
+  Future<void> sendImageMessage(XFile image) async {
+    if (!isWhatsAppReady) return;
+
+    setState(() {
+      isSendingImage = true;
+    });
+
+    try {
+      // Read image as bytes
+      final bytes = await image.readAsBytes();
+      final base64String = base64Encode(bytes);
+
+      // Get file extension and mime type
+      final extension = image.path.split('.').last.toLowerCase();
+      String mimeType = 'image/jpeg'; // default
+
+      switch (extension) {
+        case 'png':
+          mimeType = 'image/png';
+          break;
+        case 'jpg':
+        case 'jpeg':
+          mimeType = 'image/jpeg';
+          break;
+        case 'gif':
+          mimeType = 'image/gif';
+          break;
+        case 'webp':
+          mimeType = 'image/webp';
+          break;
+      }
+
+      final message = {
+        'chatId': widget.chatId,
+        'message': _messageController.text.trim(), // Caption
+        'sessionId': spId,
+        'media': {
+          'mimetype': mimeType,
+          'base64': base64String,
+          'filename': image.name,
+        },
+      };
+
+      print(
+        'Sending image message: ${(message['media'] as Map<String, dynamic>)['filename']}',
+      );
+      socket.emit('send_message', message);
+
+      final localMessage = Message(
+        body: _messageController.text.trim(),
+        fromMe: true,
+        timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        type: 'image',
+        mediaUrl: image.path, // Use local path for immediate display
+        media: null,
+      );
+
+      // );
+
+      setState(() {
+        messages.add(localMessage);
+      });
+
+      _messageController.clear();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToBottom();
+      });
+    } catch (e) {
+      print('Error sending image: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to send image',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      setState(() {
+        isSendingImage = false;
+      });
+    }
+  }
+
   void sendMessage() {
     if (_messageController.text.trim().isEmpty || !isWhatsAppReady) return;
 
@@ -674,15 +992,17 @@ class _WhatsappChatState extends State<WhatsappChat>
     };
 
     print('Sending message: ${jsonEncode(message)}');
-    socket.emit('send_message', message);
-
     final localMessage = Message(
       body: _messageController.text,
       fromMe: true,
       timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
       type: 'chat',
       mediaUrl: null,
+      media: null,
     );
+    mediaUrl:
+    null;
+    // );
 
     setState(() {
       messages.add(localMessage);
@@ -726,7 +1046,8 @@ class _WhatsappChatState extends State<WhatsappChat>
                 ),
                 Text(
                   isWhatsAppLoading
-                      ? 'Initializing...'
+                      // ? 'Initializing...'
+                      ? 'Connected'
                       : isLoggedOut
                       ? 'Logged Out'
                       : isWhatsAppReady
@@ -997,6 +1318,21 @@ class _WhatsappChatState extends State<WhatsappChat>
                     color: Colors.white,
                     child: Row(
                       children: [
+                        IconButton(
+                          onPressed: isSendingImage ? null : attachment,
+                          icon: isSendingImage
+                              ? SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      AppColors.colorsBlueButton,
+                                    ),
+                                  ),
+                                )
+                              : Icon(Icons.attachment_sharp),
+                        ),
                         Expanded(
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 15),

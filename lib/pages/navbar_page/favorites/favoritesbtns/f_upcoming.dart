@@ -10,6 +10,7 @@ import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.
 import 'package:smartassist/services/leads_srv.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/followups.dart';
+import 'package:smartassist/widgets/reusable/skeleton_card.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class FUpcoming extends StatefulWidget {
@@ -108,41 +109,6 @@ class _FUpcomingState extends State<FUpcoming> {
       print('Failed to toggle favorite for task: $taskId');
     }
   }
-  // Future<void> _toggleFavorite(String taskId, int index) async {
-  //   final token = await Storage.getToken();
-  //   try {
-  //     // Get the current favorite status before toggling
-  //     bool currentStatus = upcomingTasks[index]['favourite'] ?? false;
-  //     bool newFavoriteStatus = !currentStatus;
-
-  //     final response = await http.put(
-  //       Uri.parse(
-  //         'https://api.smartassistapp.in/api/favourites/mark-fav/task/$taskId',
-  //       ),
-  //       headers: {
-  //         'Authorization': 'Bearer $token',
-  //         'Content-Type': 'application/json',
-  //       },
-  //     );
-
-  //     if (response.statusCode == 200) {
-  //       // Parse the response to get the updated favorite status
-  //       final responseData = json.decode(response.body);
-
-  //       // Update only the specific item in the list
-  //       setState(() {
-  //         upcomingTasks[index]['favourite'] = newFavoriteStatus;
-  //         overdueTasks[index]['favourite'] = newFavoriteStatus;
-  //       });
-
-  //       await fetchTasksData();
-  //     } else {
-  //       print('Failed to toggle favorite: ${response.statusCode}');
-  //     }
-  //   } catch (e) {
-  //     print('Error toggling favorite: $e');
-  //   }
-  // }
 
   void _handleCall(dynamic item) {
     print("Call action triggered for ${item['name']}");
@@ -188,7 +154,7 @@ class _FUpcomingState extends State<FUpcoming> {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return SkeletonCard();
     }
 
     if (upcomingTasks.isEmpty && overdueTasks.isEmpty) {

@@ -961,6 +961,7 @@ import 'package:smartassist/config/getX/fab.controller.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/calender/calender.dart';
+import 'package:smartassist/widgets/reusable/skeleton_calendar_card.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
@@ -1546,12 +1547,7 @@ class _CalendarSmState extends State<CalendarSm> {
 
   Widget _buildTimelineView() {
     if (_isLoading) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(48.0),
-          child: CircularProgressIndicator(color: AppColors.colorsBlue),
-        ),
-      );
+      return SkeletonCalendarCard();
     }
 
     // ---- KEY LOGIC START ----

@@ -11,6 +11,7 @@ import 'package:smartassist/pages/Home/reassign_enq.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/lead_update.dart';
+import 'package:smartassist/widgets/reusable/skeleton_card.dart';
 
 class FLeads extends StatefulWidget {
   const FLeads({super.key});
@@ -146,7 +147,7 @@ class _FLeadsState extends State<FLeads> {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return SkeletonCard();
     }
 
     return SingleChildScrollView(

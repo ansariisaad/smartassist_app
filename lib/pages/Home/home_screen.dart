@@ -25,6 +25,7 @@ import 'package:smartassist/widgets/home_btn.dart/threebtn.dart';
 import 'package:http/http.dart' as http;
 import 'package:smartassist/widgets/internet_exception.dart';
 import 'package:smartassist/widgets/profile_screen.dart';
+import 'package:smartassist/widgets/reusable/skeleton_homepage.dart';
 
 class HomeScreen extends StatefulWidget {
   final String greeting;
@@ -529,7 +530,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: RefreshIndicator(
                       onRefresh: onrefreshToggle,
                       child: isDashboardLoading
-                          ? const Center(child: CircularProgressIndicator())
+                          ? SkeletonHomepage()
                           : SingleChildScrollView(
                               controller: fabController.scrollController,
                               keyboardDismissBehavior:

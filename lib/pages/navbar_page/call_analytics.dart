@@ -1625,6 +1625,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:smartassist/pages/navbar_page/call_logs.dart';
 import 'package:smartassist/utils/storage.dart';
+import 'package:smartassist/widgets/reusable/skeleton/skeleton_callanalysis.dart';
 
 class CallAnalytics extends StatefulWidget {
   final String userId;
@@ -1736,7 +1737,7 @@ class _CallAnalyticsState extends State<CallAnalytics>
             _dashboardData = jsonData['data'];
             _enquiryData = jsonData['data']['summaryEnquiry'];
             _coldCallData = jsonData['data']['summaryColdCalls'];
-            _isLoading = false;
+            _isLoading = true;
           });
         }
       } else {
@@ -1995,7 +1996,7 @@ class _CallAnalyticsState extends State<CallAnalytics>
       ),
       body: SafeArea(
         child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? SkeletonCallanalysis()
             : LayoutBuilder(
                 builder: (context, constraints) {
                   return SingleChildScrollView(

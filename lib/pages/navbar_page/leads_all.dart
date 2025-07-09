@@ -13,6 +13,7 @@ import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/lead_update.dart';
 import 'package:smartassist/pages/Home/reassign_enq.dart';
+import 'package:smartassist/widgets/reusable/skeleton_globle_search_card.dart';
 
 class AllLeads extends StatefulWidget {
   const AllLeads({super.key});
@@ -378,7 +379,7 @@ class _AllLeadsState extends State<AllLeads> {
         automaticallyImplyLeading: false,
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? SkeletonGlobleSearchCard()
           : Column(
               children: [
                 // Responsive Search field container

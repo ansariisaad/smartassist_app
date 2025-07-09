@@ -25,6 +25,7 @@ import 'package:smartassist/widgets/home_btn.dart/threebtn.dart';
 import 'package:http/http.dart' as http;
 import 'package:smartassist/widgets/internet_exception.dart';
 import 'package:smartassist/widgets/profile_screen.dart';
+import 'package:smartassist/widgets/reusable/skeleton_homepage.dart';
 
 class HomeScreen extends StatefulWidget {
   final String greeting;
@@ -528,185 +529,176 @@ class _HomeScreenState extends State<HomeScreen> {
                   SafeArea(
                     child: RefreshIndicator(
                       onRefresh: onrefreshToggle,
-                      child: isDashboardLoading
-                          ? const Center(child: CircularProgressIndicator())
-                          : SingleChildScrollView(
-                              controller: fabController.scrollController,
-                              keyboardDismissBehavior:
-                                  ScrollViewKeyboardDismissBehavior.onDrag,
-                              child: Column(
-                                children: [
-                                  /// ✅ Row with Menu, Search Bar, and Microphone
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: Container(
-                                          margin: const EdgeInsets.symmetric(
-                                            horizontal: 15,
-                                            vertical: 10,
-                                          ),
-                                          child: SizedBox(
-                                            height: 40,
-                                            child: TextField(
-                                              readOnly: true,
-                                              onTap: () {
-                                                Get.to(
-                                                  () => const GlobalSearch(),
-                                                );
-                                              },
-                                              textAlignVertical:
-                                                  TextAlignVertical.center,
-                                              decoration: InputDecoration(
-                                                enabledBorder:
-                                                    OutlineInputBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            30,
-                                                          ),
-                                                      borderSide:
-                                                          BorderSide.none,
+                      child:
+                          // isDashboardLoading
+                          //     ? SkeletonHomepage()
+                          //     :
+                          SingleChildScrollView(
+                            controller: fabController.scrollController,
+                            keyboardDismissBehavior:
+                                ScrollViewKeyboardDismissBehavior.onDrag,
+                            child: Column(
+                              children: [
+                                /// ✅ Row with Menu, Search Bar, and Microphone
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Container(
+                                        margin: const EdgeInsets.symmetric(
+                                          horizontal: 15,
+                                          vertical: 10,
+                                        ),
+                                        child: SizedBox(
+                                          height: 40,
+                                          child: TextField(
+                                            readOnly: true,
+                                            onTap: () {
+                                              Get.to(
+                                                () => const GlobalSearch(),
+                                              );
+                                            },
+                                            textAlignVertical:
+                                                TextAlignVertical.center,
+                                            decoration: InputDecoration(
+                                              enabledBorder: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(30),
+                                                borderSide: BorderSide.none,
+                                              ),
+                                              contentPadding: EdgeInsets.zero,
+                                              filled: true,
+                                              fillColor: AppColors.containerBg,
+                                              hintText:
+                                                  'Search by name, email or phone',
+                                              hintStyle: GoogleFonts.poppins(
+                                                fontSize: responsiveFontSize,
+                                                color: AppColors.fontColor,
+                                                fontWeight: FontWeight.w400,
+                                              ),
+                                              prefixIcon: const Icon(
+                                                FontAwesomeIcons
+                                                    .magnifyingGlass,
+                                                color: AppColors.iconGrey,
+                                                size: 15,
+                                              ),
+                                              border: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(30),
+                                                borderSide: BorderSide.none,
+                                              ),
+                                              suffixIcon: Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      vertical: 2,
                                                     ),
-                                                contentPadding: EdgeInsets.zero,
-                                                filled: true,
-                                                fillColor:
-                                                    AppColors.containerBg,
-                                                hintText:
-                                                    'Search by name, email or phone',
-                                                hintStyle: GoogleFonts.poppins(
-                                                  fontSize: responsiveFontSize,
-                                                  color: AppColors.fontColor,
-                                                  fontWeight: FontWeight.w400,
-                                                ),
-                                                prefixIcon: const Icon(
-                                                  FontAwesomeIcons
-                                                      .magnifyingGlass,
-                                                  color: AppColors.iconGrey,
-                                                  size: 15,
-                                                ),
-                                                border: OutlineInputBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(30),
-                                                  borderSide: BorderSide.none,
-                                                ),
-                                                suffixIcon: Padding(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        vertical: 2,
-                                                      ),
-                                                  child: GestureDetector(
-                                                    onTap: () {
-                                                      Navigator.push(
-                                                        context,
-                                                        MaterialPageRoute(
-                                                          builder: (context) =>
-                                                              ProfileScreen(
-                                                                refreshDashboard:
-                                                                    fetchDashboardData,
-                                                              ),
-                                                        ),
-                                                      );
-                                                    },
-                                                    child: Container(
-                                                      width: 28,
-                                                      height: 28,
-                                                      // decoration: BoxDecoration(
-                                                      //   color: AppColors
-                                                      //       .backgroundLightGrey,
-                                                      //   shape: BoxShape.circle,
-                                                      // ),
-                                                      alignment:
-                                                          Alignment.center,
-                                                      child:
-                                                          profilePicUrl !=
-                                                                  null &&
-                                                              profilePicUrl
-                                                                  .isNotEmpty
-                                                          ? ClipOval(
-                                                              child: Image.network(
-                                                                profilePicUrl,
-                                                                width: 28,
-                                                                height: 28,
-                                                                fit: BoxFit
-                                                                    .cover,
-                                                                errorBuilder:
-                                                                    (
-                                                                      context,
-                                                                      error,
-                                                                      stackTrace,
-                                                                    ) {
-                                                                      return Container(
-                                                                        width:
-                                                                            28,
-                                                                        height:
-                                                                            28,
-                                                                        decoration: BoxDecoration(
-                                                                          shape:
-                                                                              BoxShape.circle,
-                                                                          color: Theme.of(
-                                                                            context,
-                                                                          ).colorScheme.primary.withOpacity(0.1),
-                                                                        ),
-                                                                        child: Center(
-                                                                          child: Text(
-                                                                            name.isNotEmpty
-                                                                                ? name
-                                                                                      .substring(
-                                                                                        0,
-                                                                                        1,
-                                                                                      )
-                                                                                      .toUpperCase()
-                                                                                : 'N/A',
-                                                                            style:
-                                                                                AppFont.mediumText14bluebold(
-                                                                                  context,
-                                                                                ).copyWith(
-                                                                                  fontSize: 10,
-                                                                                ),
-                                                                          ),
-                                                                        ),
-                                                                      );
-                                                                    },
-                                                              ),
-                                                            )
-                                                          : Container(
-                                                              width:
-                                                                  MediaQuery.of(
-                                                                    context,
-                                                                  ).size.width *
-                                                                  0.08,
-                                                              height:
-                                                                  MediaQuery.of(
-                                                                    context,
-                                                                  ).size.width *
-                                                                  0.08,
-                                                              alignment:
-                                                                  Alignment
-                                                                      .center,
-                                                              decoration: BoxDecoration(
-                                                                color: AppColors
-                                                                    .backgroundLightGrey,
-                                                                shape: BoxShape
-                                                                    .circle,
-                                                              ),
-                                                              child: Text(
-                                                                name.isNotEmpty
-                                                                    ? name
-                                                                          .substring(
-                                                                            0,
-                                                                            1,
-                                                                          )
-                                                                          .toUpperCase()
-                                                                    : 'N/A',
-                                                                style:
-                                                                    AppFont.mediumText14bluebold(
-                                                                      context,
-                                                                    ).copyWith(
-                                                                      fontSize:
-                                                                          14,
-                                                                    ),
-                                                              ),
+                                                child: GestureDetector(
+                                                  onTap: () {
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            ProfileScreen(
+                                                              refreshDashboard:
+                                                                  fetchDashboardData,
                                                             ),
-                                                    ),
+                                                      ),
+                                                    );
+                                                  },
+                                                  child: Container(
+                                                    width: 28,
+                                                    height: 28,
+                                                    // decoration: BoxDecoration(
+                                                    //   color: AppColors
+                                                    //       .backgroundLightGrey,
+                                                    //   shape: BoxShape.circle,
+                                                    // ),
+                                                    alignment: Alignment.center,
+                                                    child:
+                                                        profilePicUrl != null &&
+                                                            profilePicUrl
+                                                                .isNotEmpty
+                                                        ? ClipOval(
+                                                            child: Image.network(
+                                                              profilePicUrl,
+                                                              width: 28,
+                                                              height: 28,
+                                                              fit: BoxFit.cover,
+                                                              errorBuilder:
+                                                                  (
+                                                                    context,
+                                                                    error,
+                                                                    stackTrace,
+                                                                  ) {
+                                                                    return Container(
+                                                                      width: 28,
+                                                                      height:
+                                                                          28,
+                                                                      decoration: BoxDecoration(
+                                                                        shape: BoxShape
+                                                                            .circle,
+                                                                        color: Theme.of(
+                                                                          context,
+                                                                        ).colorScheme.primary.withOpacity(0.1),
+                                                                      ),
+                                                                      child: Center(
+                                                                        child: Text(
+                                                                          name.isNotEmpty
+                                                                              ? name
+                                                                                    .substring(
+                                                                                      0,
+                                                                                      1,
+                                                                                    )
+                                                                                    .toUpperCase()
+                                                                              : 'N/A',
+                                                                          style:
+                                                                              AppFont.mediumText14bluebold(
+                                                                                context,
+                                                                              ).copyWith(
+                                                                                fontSize: 10,
+                                                                              ),
+                                                                        ),
+                                                                      ),
+                                                                    );
+                                                                  },
+                                                            ),
+                                                          )
+                                                        : Container(
+                                                            width:
+                                                                MediaQuery.of(
+                                                                  context,
+                                                                ).size.width *
+                                                                0.08,
+                                                            height:
+                                                                MediaQuery.of(
+                                                                  context,
+                                                                ).size.width *
+                                                                0.08,
+                                                            alignment: Alignment
+                                                                .center,
+                                                            decoration: BoxDecoration(
+                                                              color: AppColors
+                                                                  .backgroundLightGrey,
+                                                              shape: BoxShape
+                                                                  .circle,
+                                                            ),
+                                                            child: Text(
+                                                              name.isNotEmpty
+                                                                  ? name
+                                                                        .substring(
+                                                                          0,
+                                                                          1,
+                                                                        )
+                                                                        .toUpperCase()
+                                                                  : 'N/A',
+                                                              style:
+                                                                  AppFont.mediumText14bluebold(
+                                                                    context,
+                                                                  ).copyWith(
+                                                                    fontSize:
+                                                                        14,
+                                                                  ),
+                                                            ),
+                                                          ),
                                                   ),
                                                 ),
                                               ),
@@ -714,74 +706,71 @@ class _HomeScreenState extends State<HomeScreen> {
                                           ),
                                         ),
                                       ),
+                                    ),
+                                  ],
+                                ),
+
+                                /// ✅ Other UI Components (Follow-ups, Buttons, etc.)
+                                // const SizedBox(height: 3),
+                                Threebtn(
+                                  leadId: leadId ?? 'empty',
+                                  upcomingFollowups: upcomingFollowups,
+                                  overdueFollowups: overdueFollowups,
+                                  upcomingAppointments: upcomingAppointments,
+                                  overdueAppointments: overdueAppointments,
+                                  upcomingTestDrives: upcomingTestDrives,
+                                  overdueTestDrives: overdueTestDrives,
+                                  refreshDashboard: fetchDashboardData,
+                                  overdueFollowupsCount: overdueFollowupsCount,
+                                  overdueAppointmentsCount:
+                                      overdueAppointmentsCount,
+                                  overdueTestDrivesCount:
+                                      overdueTestDrivesCount,
+                                  tabController: _tabController,
+                                ),
+                                const BottomBtnSecond(
+                                  // MtdData: MtdData,
+                                  // QtdData: QtdData,
+                                  // YtdData: YtdData,
+                                ),
+
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    left: 10.0,
+                                    right: 10.0,
+                                  ),
+                                  child: Row(
+                                    // mainAxisAlignment:
+                                    //     MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'Performance Analysis',
+                                        style: AppFont.appbarfontgrey(context),
+                                      ),
+                                      IconButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            _isHidden = !_isHidden;
+                                          });
+                                        },
+                                        icon: Icon(
+                                          _isHidden
+                                              ? Icons
+                                                    .keyboard_arrow_down_rounded
+                                              : Icons.keyboard_arrow_up_rounded,
+                                          size: 35,
+                                          color: AppColors.iconGrey,
+                                        ),
+                                      ),
                                     ],
                                   ),
+                                ),
+                                if (!_isHidden) ...[const BottomBtnThird()],
 
-                                  /// ✅ Other UI Components (Follow-ups, Buttons, etc.)
-                                  // const SizedBox(height: 3),
-                                  Threebtn(
-                                    leadId: leadId ?? 'empty',
-                                    upcomingFollowups: upcomingFollowups,
-                                    overdueFollowups: overdueFollowups,
-                                    upcomingAppointments: upcomingAppointments,
-                                    overdueAppointments: overdueAppointments,
-                                    upcomingTestDrives: upcomingTestDrives,
-                                    overdueTestDrives: overdueTestDrives,
-                                    refreshDashboard: fetchDashboardData,
-                                    overdueFollowupsCount:
-                                        overdueFollowupsCount,
-                                    overdueAppointmentsCount:
-                                        overdueAppointmentsCount,
-                                    overdueTestDrivesCount:
-                                        overdueTestDrivesCount,
-                                    tabController: _tabController,
-                                  ),
-                                  const BottomBtnSecond(
-                                    // MtdData: MtdData,
-                                    // QtdData: QtdData,
-                                    // YtdData: YtdData,
-                                  ),
-
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                      left: 10.0,
-                                      right: 10.0,
-                                    ),
-                                    child: Row(
-                                      // mainAxisAlignment:
-                                      //     MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          'Performance Analysis',
-                                          style: AppFont.appbarfontgrey(
-                                            context,
-                                          ),
-                                        ),
-                                        IconButton(
-                                          onPressed: () {
-                                            setState(() {
-                                              _isHidden = !_isHidden;
-                                            });
-                                          },
-                                          icon: Icon(
-                                            _isHidden
-                                                ? Icons
-                                                      .keyboard_arrow_down_rounded
-                                                : Icons
-                                                      .keyboard_arrow_up_rounded,
-                                            size: 35,
-                                            color: AppColors.iconGrey,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  if (!_isHidden) ...[const BottomBtnThird()],
-
-                                  const SizedBox(height: 10),
-                                ],
-                              ),
+                                const SizedBox(height: 10),
+                              ],
                             ),
+                          ),
                     ),
                   ),
 

@@ -2867,67 +2867,66 @@ class _MyTeamsState extends State<MyTeams> {
   }
 
   // Individual metric card
-Widget _buildMetricCard(
-  String value,
-  String label,
-  Color valueColor, {
-  bool isSelected = false,
-  Color backgroundColor = Colors.white,
-  Color textColor = Colors.black,
-  bool isUserSelected = false,
-}) {
-  return Container(
-    padding: const EdgeInsets.symmetric(vertical: 8.5, horizontal: 10),
-    decoration: BoxDecoration(
-      color: backgroundColor,
-      borderRadius: BorderRadius.circular(8),
-      border: Border.all(
-        color: (isSelected && !isUserSelected && _selectedType == 'All')
-            ? Colors.transparent
-            : Colors.transparent,
-        width: 2,
+  Widget _buildMetricCard(
+    String value,
+    String label,
+    Color valueColor, {
+    bool isSelected = false,
+    Color backgroundColor = Colors.white,
+    Color textColor = Colors.black,
+    bool isUserSelected = false,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8.5, horizontal: 10),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: (isSelected && !isUserSelected && _selectedType == 'All')
+              ? Colors.transparent
+              : Colors.transparent,
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.05),
-          blurRadius: 4,
-          offset: const Offset(0, 2),
-        ),
-      ],
-    ),
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start, // Left align content
-      children: [
-        Text(
-          value,
-          textAlign: TextAlign.left, // Align text left
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start, // Left align content
+        children: [
+          Text(
+            value,
+            textAlign: TextAlign.left, // Align text left
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
 
-            color: backgroundColor == Colors.white ? valueColor : textColor,
+              color: backgroundColor == Colors.white ? valueColor : textColor,
+            ),
           ),
-        ),
-        const SizedBox(height: 2), // 2px vertical spacing
-        Text(
-          label,
-          textAlign: TextAlign.left, // Align text left
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          softWrap: true,
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w400,
-            color: textColor.withOpacity(0.7),
-            height: 1.1,
+          const SizedBox(height: 2), // 2px vertical spacing
+          Text(
+            label,
+            textAlign: TextAlign.left, // Align text left
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            softWrap: true,
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.w400,
+              color: textColor.withOpacity(0.7),
+              height: 1.1,
+            ),
           ),
-        ),
-      ],
-    ),
-  );
-}
-
+        ],
+      ),
+    );
+  }
 
   // Upcoming Activities Section
   // Widget _buildUpcomingActivities(BuildContext context) {

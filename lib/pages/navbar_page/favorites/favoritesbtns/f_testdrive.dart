@@ -10,6 +10,7 @@ import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/testdrive.dart';
+import 'package:smartassist/widgets/reusable/skeleton_card.dart';
 
 class FTestdrive extends StatefulWidget {
   const FTestdrive({super.key});
@@ -170,7 +171,7 @@ class _FTestdriveState extends State<FTestdrive> {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return SkeletonCard();
     }
 
     if (upcomingTasks.isEmpty && overdueTasks.isEmpty) {

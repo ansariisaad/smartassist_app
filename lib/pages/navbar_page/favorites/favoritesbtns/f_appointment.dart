@@ -10,6 +10,7 @@ import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/appointments.dart';
+import 'package:smartassist/widgets/reusable/skeleton_card.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class FAppointment extends StatefulWidget {
@@ -163,7 +164,7 @@ class _FAppointmentState extends State<FAppointment> {
     final screenSize = MediaQuery.of(context).size;
     final isTablet = screenSize.width > 600;
     if (isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return SkeletonCard();
     }
 
     if (upcomingTasks.isEmpty && overdueTasks.isEmpty) {

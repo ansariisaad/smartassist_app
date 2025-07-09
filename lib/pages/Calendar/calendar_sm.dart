@@ -1,5 +1,3 @@
-
-
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -10,6 +8,7 @@ import 'package:smartassist/config/getX/fab.controller.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/calender/calender.dart';
+import 'package:smartassist/widgets/reusable/skeleton_calendar_card.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
@@ -595,12 +594,7 @@ class _CalendarSmState extends State<CalendarSm> {
 
   Widget _buildTimelineView() {
     if (_isLoading) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(48.0),
-          child: CircularProgressIndicator(color: AppColors.colorsBlue),
-        ),
-      );
+      return SkeletonCalendarCard();
     }
 
     // ---- KEY LOGIC START ----
@@ -745,28 +739,37 @@ class _CalendarSmState extends State<CalendarSm> {
     );
   }
 
- // 1. Updated Color Logic for task type backgrounds
-Color getTaskCardColor(String category) {
-  final c = category.toLowerCase();
-  if (c.contains('test drive')) {
-    return Color(0xFFF5EFFA); // Test Drive card background
+  // 1. Updated Color Logic for task type backgrounds
+  Color getTaskCardColor(String category) {
+    final c = category.toLowerCase();
+    if (c.contains('test drive')) {
+      return Color(0xFFF5EFFA); // Test Drive card background
+    }
+    return Color(0xFFEAF2FE); // Light blue for others
   }
-  return Color(0xFFEAF2FE); // Light blue for others
-}
-// 2. Modern task card UI
-Widget _buildTaskCard(dynamic item) {
-  String leadId = item['lead_id']?.toString() ?? '';
-  String clientName = item['name'] ?? 'No Name';
-  String carName = item['PMI'] ?? '';
-  String category = item['subject'] ?? 'Appointment';
-  String location = item['location'] ?? '';
 
-  String timeStr = item['slot'] ?? item['time_range'] ?? item['start_time'] ?? item['time'] ?? item['due_date'] ?? '';
+  // 2. Modern task card UI
+  Widget _buildTaskCard(dynamic item) {
+    String leadId = item['lead_id']?.toString() ?? '';
+    String clientName = item['name'] ?? 'No Name';
+    String carName = item['PMI'] ?? '';
+    String category = item['subject'] ?? 'Appointment';
+    String location = item['location'] ?? '';
 
-  final isTestDrive = category.toLowerCase().contains('test drive');
-  final verticalBarColor = isTestDrive ? Color(0xFFA674D4) : Color(0xFF3497F9);
+    String timeStr =
+        item['slot'] ??
+        item['time_range'] ??
+        item['start_time'] ??
+        item['time'] ??
+        item['due_date'] ??
+        '';
 
-  return InkWell(
+    final isTestDrive = category.toLowerCase().contains('test drive');
+    final verticalBarColor = isTestDrive
+        ? Color(0xFFA674D4)
+        : Color(0xFF3497F9);
+
+    return InkWell(
       onTap: () {
         Navigator.push(
           context,
@@ -781,43 +784,55 @@ Widget _buildTaskCard(dynamic item) {
           ),
         );
       },
-    child: Container(
-      margin: EdgeInsets.only(bottom: 4),
-     decoration: BoxDecoration(
-  color: getTaskCardColor(category),
-  borderRadius: BorderRadius.circular(7),
-  boxShadow: [
-    BoxShadow(
-      color: Colors.black.withOpacity(0.03),
-      blurRadius: 12,
-      offset: Offset(0, 4),
-    ),
-  ],
-),
-
-      child: Row(
-        children: [
-          SizedBox(width: 6.1),
-          Container(
-            width: 4,
-            height: 70,
-            margin: EdgeInsets.only(left: 6, right: 14),
-            decoration: BoxDecoration(
-              color: verticalBarColor,
-              borderRadius: BorderRadius.circular(4),
+      child: Container(
+        margin: EdgeInsets.only(bottom: 4),
+        decoration: BoxDecoration(
+          color: getTaskCardColor(category),
+          borderRadius: BorderRadius.circular(7),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 12,
+              offset: Offset(0, 4),
             ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.5, horizontal: 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Client Name with -5px left shift for test drive
-                  isTestDrive
-                      ? Transform.translate(
-                          offset: Offset(-2, 3),
-                          child: Text(
+          ],
+        ),
+
+        child: Row(
+          children: [
+            SizedBox(width: 6.1),
+            Container(
+              width: 4,
+              height: 70,
+              margin: EdgeInsets.only(left: 6, right: 14),
+              decoration: BoxDecoration(
+                color: verticalBarColor,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 8.5,
+                  horizontal: 0,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Client Name with -5px left shift for test drive
+                    isTestDrive
+                        ? Transform.translate(
+                            offset: Offset(-2, 3),
+                            child: Text(
+                              clientName,
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          )
+                        : Text(
                             clientName,
                             style: GoogleFonts.poppins(
                               fontWeight: FontWeight.w600,
@@ -825,102 +840,104 @@ Widget _buildTaskCard(dynamic item) {
                               color: Colors.black87,
                             ),
                           ),
-                        )
-                      : Text(
-                          clientName,
+                    SizedBox(height: 4),
+
+                    // Category + PMI model or time
+                    Row(
+                      children: [
+                        Text(
+                          category,
                           style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
-                            color: Colors.black87,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: verticalBarColor,
                           ),
                         ),
-                  SizedBox(height: 4),
+                        if (isTestDrive && carName.isNotEmpty) ...[
+                          SizedBox(width: 8),
+                          Icon(
+                            Icons.circle,
+                            size: 6,
+                            color: Colors.grey.shade400,
+                          ),
 
-                  // Category + PMI model or time
-                  Row(
-                    children: [
-                      Text(
-                        category,
-                        style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: verticalBarColor,
-                        ),
-                      ),
-                      if (isTestDrive && carName.isNotEmpty) ...[
-                        SizedBox(width: 8),
-                        Icon(Icons.circle, size: 6, color: Colors.grey.shade400),
-
-                        // PMI text with -5px left shift for test drive + 5px padding both sides
-                        Transform.translate(
-                          offset: Offset(-5, 0),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 5.0),
-                            child: Text(
-                              carName,
-                              style: GoogleFonts.poppins(
-                                fontSize: 13.5,
-                                color: Colors.grey[700],
+                          // PMI text with -5px left shift for test drive + 5px padding both sides
+                          Transform.translate(
+                            offset: Offset(-5, 0),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 5.0,
+                              ),
+                              child: Text(
+                                carName,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 13.5,
+                                  color: Colors.grey[700],
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ] else if (!isTestDrive && timeStr.isNotEmpty) ...[
-                        SizedBox(width: 8),
-                        Icon(Icons.circle, size: 6, color: Colors.grey.shade400),
-                        Text(
-                          timeStr,
-                          style: GoogleFonts.poppins(
-                            fontSize: 13.5,
-                            color: Colors.grey[700],
+                        ] else if (!isTestDrive && timeStr.isNotEmpty) ...[
+                          SizedBox(width: 8),
+                          Icon(
+                            Icons.circle,
+                            size: 6,
+                            color: Colors.grey.shade400,
+                          ),
+                          Text(
+                            timeStr,
+                            style: GoogleFonts.poppins(
+                              fontSize: 13.5,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+
+                    // Location line for Test Drive with -5px left shift + 5px horizontal padding
+                    if (isTestDrive)
+                      Transform.translate(
+                        offset: Offset(-5, 0),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 5.0),
+                          child: Text(
+                            location.isNotEmpty
+                                ? location
+                                : 'Location not specified',
+                            style: GoogleFonts.poppins(
+                              fontSize: 13,
+                              color: Colors.grey[600],
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            softWrap: false,
                           ),
                         ),
-                      ],
-                    ],
-                  ),
-
-                  // Location line for Test Drive with -5px left shift + 5px horizontal padding
-                  if (isTestDrive)
-                    Transform.translate(
-                      offset: Offset(-5, 0),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 5.0),
+                      )
+                    // For others show PMI if available
+                    else if (!isTestDrive && carName.isNotEmpty)
+                      Padding(
+                        padding: EdgeInsets.only(top: 2),
                         child: Text(
-                          location.isNotEmpty ? location : 'Location not specified',
+                          carName,
                           style: GoogleFonts.poppins(
                             fontSize: 13,
                             color: Colors.grey[600],
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          softWrap: false,
                         ),
                       ),
-                    )
-                  // For others show PMI if available
-                  else if (!isTestDrive && carName.isNotEmpty)
-                    Padding(
-                      padding: EdgeInsets.only(top: 2),
-                      child: Text(
-                        carName,
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          color: Colors.grey[600],
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
-
+    );
+  }
 
   Widget _emptyState(String msg) {
     return Padding(

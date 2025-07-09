@@ -15,6 +15,8 @@ import 'package:smartassist/widgets/oppointment/all_oppintment.dart';
 import 'package:smartassist/widgets/oppointment/overdue.dart';
 import 'package:smartassist/widgets/oppointment/upcoming.dart';
 import 'package:smartassist/widgets/reusable/globle_speechtotext.dart';
+import 'package:smartassist/widgets/reusable/skeleton_card.dart';
+import 'package:smartassist/widgets/reusable/skeleton_globle_search_card.dart';
 import 'package:speech_to_text/speech_to_text.dart'
     as stt; // Import GlobleSpeechtotext
 
@@ -571,13 +573,7 @@ class _AllAppointmentState extends State<AllAppointment>
             //     ),
             //   ),
             SliverToBoxAdapter(
-              child: _isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.colorsBlue,
-                      ),
-                    )
-                  : _buildContentBySelectedTab(),
+              child: _isLoading ? SkeletonCard() : _buildContentBySelectedTab(),
             ),
           ],
         ),

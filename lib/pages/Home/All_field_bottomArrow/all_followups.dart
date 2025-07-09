@@ -13,6 +13,7 @@ import 'package:smartassist/widgets/buttons/add_btn.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smartassist/widgets/reusable/globle_speechtotext.dart';
+import 'package:smartassist/widgets/reusable/skeleton_card.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class AddFollowups extends StatefulWidget {
@@ -597,13 +598,7 @@ class _AddFollowupsState extends State<AddFollowups>
                 ),
               ),
             SliverToBoxAdapter(
-              child: _isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.colorsBlue,
-                      ),
-                    )
-                  : _buildContentBySelectedTab(),
+              child: _isLoading ? SkeletonCard() : _buildContentBySelectedTab(),
             ),
           ],
         ),

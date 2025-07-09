@@ -8,13 +8,15 @@ import 'package:smartassist/config/getX/fab.controller.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/calender/calender.dart';
+import 'package:smartassist/widgets/reusable/skeleton_calendar_card.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class CalendarWithTimeline extends StatefulWidget {
   final String leadName;
 
-  const CalendarWithTimeline({Key? key, required this.leadName}) : super(key: key);
+  const CalendarWithTimeline({Key? key, required this.leadName})
+    : super(key: key);
 
   @override
   State<CalendarWithTimeline> createState() => _CalendarWithTimelineState();
@@ -65,10 +67,14 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
     if (mounted) setState(() => _isLoading = true);
     try {
       final token = await Storage.getToken();
-      String formattedDate = DateFormat('dd-MM-yyyy').format(_selectedDay ?? _focusedDay);
+      String formattedDate = DateFormat(
+        'dd-MM-yyyy',
+      ).format(_selectedDay ?? _focusedDay);
 
       final Map<String, String> queryParams = {'date': formattedDate};
-      final baseUrl = Uri.parse("https://api.smartassistapp.in/api/calendar/activities/all/asondate");
+      final baseUrl = Uri.parse(
+        "https://api.smartassistapp.in/api/calendar/activities/all/asondate",
+      );
       final uri = baseUrl.replace(queryParameters: queryParams);
 
       final response = await http.get(
@@ -173,7 +179,9 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
           IconButton(
             onPressed: () {
               setState(() {
-                _calendarFormat = _isMonthView ? CalendarFormat.week : CalendarFormat.month;
+                _calendarFormat = _isMonthView
+                    ? CalendarFormat.week
+                    : CalendarFormat.month;
                 _isMonthView = !_isMonthView;
               });
             },
@@ -216,7 +224,7 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
 
   Widget _buildTabbedTimelineView() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: Colors.blue));
+      return SkeletonCalendarCard();
     }
 
     final activeTimeSlots = _timeSlotItems.keys.toList()..sort();
@@ -269,25 +277,25 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ...displayItems.map(
-                          (item) {
-                            String category = (item['subject'] ?? '').toString().toLowerCase();
-                            if (category.contains('test drive') ||
-                                category.contains('call') ||
-                                category.contains('quotation') ||
-                                category.contains('provide quotation')) {
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 8.0),
-                                child: _buildCallTestDriveQuotationCard(item),
-                              );
-                            } else {
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 8.0),
-                                child: _buildTaskCard(item),
-                              );
-                            }
-                          },
-                        ),
+                        ...displayItems.map((item) {
+                          String category = (item['subject'] ?? '')
+                              .toString()
+                              .toLowerCase();
+                          if (category.contains('test drive') ||
+                              category.contains('call') ||
+                              category.contains('quotation') ||
+                              category.contains('provide quotation')) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 8.0),
+                              child: _buildCallTestDriveQuotationCard(item),
+                            );
+                          } else {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 8.0),
+                              child: _buildTaskCard(item),
+                            );
+                          }
+                        }),
                         if (showMore && !isExpanded)
                           Align(
                             alignment: Alignment.centerRight,
@@ -298,11 +306,19 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
                                 });
                               },
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 3.0, horizontal: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 3.0,
+                                  horizontal: 8,
+                                ),
                                 child: Text(
                                   "Show More (${items.length - 2} more) ▼",
                                   style: TextStyle(
-                                    color: const Color.fromRGBO(117, 117, 117, 1),
+                                    color: const Color.fromRGBO(
+                                      117,
+                                      117,
+                                      117,
+                                      1,
+                                    ),
                                     fontSize: 13.5,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -320,11 +336,19 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
                                 });
                               },
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 3.0, horizontal: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 3.0,
+                                  horizontal: 8,
+                                ),
                                 child: Text(
                                   "Show Less ▲",
                                   style: TextStyle(
-                                    color: const Color.fromRGBO(117, 117, 117, 1),
+                                    color: const Color.fromRGBO(
+                                      117,
+                                      117,
+                                      117,
+                                      1,
+                                    ),
                                     fontSize: 13.5,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -349,7 +373,9 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
     final c = category.toLowerCase();
     if (c.contains('test drive')) {
       return Color(0xFFF5EFFA); // Light purple for Test Drive
-    } else if (c.contains('call') || c.contains('quotation') || c.contains('provide quotation')) {
+    } else if (c.contains('call') ||
+        c.contains('quotation') ||
+        c.contains('provide quotation')) {
       return Color(0xFFEAF2FE); // Light blue for Call/Quotation
     }
     return Color(0xFFF0F3FA); // Default light background for others
@@ -362,10 +388,18 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
     String carName = item['PMI'] ?? '';
     String category = item['subject'] ?? 'Appointment';
     String location = item['location'] ?? '';
-    String timeStr = item['slot'] ?? item['time_range'] ?? item['start_time'] ?? item['time'] ?? item['due_date'] ?? '';
+    String timeStr =
+        item['slot'] ??
+        item['time_range'] ??
+        item['start_time'] ??
+        item['time'] ??
+        item['due_date'] ??
+        '';
 
     final isTestDrive = category.toLowerCase().contains('test drive');
-    final verticalBarColor = isTestDrive ? Color(0xFFA674D4) : Color(0xFF3497F9);
+    final verticalBarColor = isTestDrive
+        ? Color(0xFFA674D4)
+        : Color(0xFF3497F9);
 
     return InkWell(
       onTap: () {
@@ -409,7 +443,10 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.5, horizontal: 0),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 8.5,
+                  horizontal: 0,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -449,11 +486,17 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
                         ),
                         if (isTestDrive && carName.isNotEmpty) ...[
                           SizedBox(width: 8),
-                          Icon(Icons.circle, size: 6, color: Colors.grey.shade400),
+                          Icon(
+                            Icons.circle,
+                            size: 6,
+                            color: Colors.grey.shade400,
+                          ),
                           Transform.translate(
                             offset: Offset(-5, 0),
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 5.0),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 5.0,
+                              ),
                               child: Text(
                                 carName,
                                 style: GoogleFonts.poppins(
@@ -465,7 +508,11 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
                           ),
                         ] else if (!isTestDrive && timeStr.isNotEmpty) ...[
                           SizedBox(width: 8),
-                          Icon(Icons.circle, size: 6, color: Colors.grey.shade400),
+                          Icon(
+                            Icons.circle,
+                            size: 6,
+                            color: Colors.grey.shade400,
+                          ),
                           Text(
                             timeStr,
                             style: GoogleFonts.poppins(
@@ -484,7 +531,9 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 5.0),
                           child: Text(
-                            location.isNotEmpty ? location : 'Location not specified',
+                            location.isNotEmpty
+                                ? location
+                                : 'Location not specified',
                             style: GoogleFonts.poppins(
                               fontSize: 13,
                               color: Colors.grey[600],
@@ -523,18 +572,19 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
 
     String clientName =
         (item['name'] != null && item['name'].toString().trim().isNotEmpty)
-            ? item['name']
-            : 'No Name';
+        ? item['name']
+        : 'No Name';
 
     String carName =
         (item['PMI'] != null && item['PMI'].toString().trim().isNotEmpty)
-            ? item['PMI']
-            : 'No Car';
+        ? item['PMI']
+        : 'No Car';
 
     String category =
-        (item['subject'] != null && item['subject'].toString().trim().isNotEmpty)
-            ? item['subject']
-            : 'Task';
+        (item['subject'] != null &&
+            item['subject'].toString().trim().isNotEmpty)
+        ? item['subject']
+        : 'Task';
 
     // COLOR LOGIC
     Color cardColor;

@@ -28,6 +28,7 @@ class _MyTeamsState extends State<MyTeams> {
   // ADD THESE VARIABLES TO YOUR CLASS
   int _currentDisplayCount = 10; // Initially show 10 records
   static const int _incrementCount = 10; // Show 10 more each time
+  static const int _decrementCount = 10;
   List<dynamic> _teamComparisonData = [];
   // Your existing variables
   // List<dynamic> _membersData = []; // Your existing data list
@@ -150,6 +151,15 @@ class _MyTeamsState extends State<MyTeams> {
       _currentDisplayCount = math.min(
         _currentDisplayCount + _incrementCount,
         _membersData.length,
+      );
+    });
+  }
+
+  void _loadLessRecords() {
+    setState(() {
+      _currentDisplayCount = math.max(
+        _incrementCount,
+        _currentDisplayCount - _incrementCount,
       );
     });
   }
@@ -582,59 +592,105 @@ class _MyTeamsState extends State<MyTeams> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('My Team', style: AppFont.appbarfontWhite(context)),
+            selectedUserIds.length >= 2
+                ? InkWell(
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      setState(() {
+                        bool allSelected =
+                            selectedUserIds.length == _teamMembers.length;
 
-            if (selectedUserIds.length >= 2)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 0,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: InkWell(
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    setState(() {
-                      _isMultiSelectMode = true;
-                      selectedUserIds.clear(); // Clear existing selections
-                      selectedUserIds.addAll(
-                        _teamMembers.map(
-                          (member) => member['user_id'].toString(),
-                        ),
-                      );
-                      // Add all unique letters to _selectedLetters
-                      _selectedLetters.clear();
-                      for (var member in _teamMembers) {
-                        String firstLetter = (member['fname'] ?? '')
-                            .toString()
-                            .toUpperCase();
-                        if (firstLetter.isNotEmpty) {
-                          _selectedLetters.add(firstLetter[0]);
+                        if (allSelected) {
+                          // If already selected all, unselect all
+                          selectedUserIds.clear();
+                          _selectedLetters.clear();
+                          _selectedType = '';
+                        } else {
+                          // Select all
+                          _isMultiSelectMode = true;
+                          selectedUserIds.clear();
+                          selectedUserIds.addAll(
+                            _teamMembers.map(
+                              (member) => member['user_id'].toString(),
+                            ),
+                          );
+                          _selectedLetters.clear();
+                          for (var member in _teamMembers) {
+                            String firstLetter = (member['fname'] ?? '')
+                                .toString()
+                                .toUpperCase();
+                            if (firstLetter.isNotEmpty) {
+                              _selectedLetters.add(firstLetter[0]);
+                            }
+                          }
+                          _selectedType = 'Letter';
                         }
-                      }
-                      _selectedType =
-                          'Letter'; // Indicate letter-based selection
-                      print(
-                        'Select All tapped, selectedUserIds: $selectedUserIds',
-                      );
-                    });
-                  },
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.white),
-                      borderRadius: BorderRadius.circular(10),
+                      });
+                    },
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(6),
+                        color: selectedUserIds.length == _teamMembers.length
+                            ? Colors.green.withOpacity(0.1)
+                            : Colors.transparent,
+                      ),
+                      child: Row(
+                        children: [
+                          Checkbox(
+                            side: BorderSide(color: Colors.white),
+                            activeColor: Colors.white,
+
+                            checkColor: Colors.blue,
+                            value:
+                                selectedUserIds.length == _teamMembers.length,
+                            onChanged: (_) {
+                              HapticFeedback.lightImpact();
+                              setState(() {
+                                bool allSelected =
+                                    selectedUserIds.length ==
+                                    _teamMembers.length;
+
+                                if (allSelected) {
+                                  selectedUserIds.clear();
+                                  _selectedLetters.clear();
+                                  _selectedType = '';
+                                } else {
+                                  _isMultiSelectMode = true;
+                                  selectedUserIds.clear();
+                                  selectedUserIds.addAll(
+                                    _teamMembers.map(
+                                      (member) => member['user_id'].toString(),
+                                    ),
+                                  );
+                                  _selectedLetters.clear();
+                                  for (var member in _teamMembers) {
+                                    String firstLetter = (member['fname'] ?? '')
+                                        .toString()
+                                        .toUpperCase();
+                                    if (firstLetter.isNotEmpty) {
+                                      _selectedLetters.add(firstLetter[0]);
+                                    }
+                                  }
+                                  _selectedType = 'Letter';
+                                }
+                              });
+                            },
+                          ),
+                          Text(
+                            'Select All',
+                            style: AppFont.appbarfontWhite(context),
+                          ),
+                        ],
+                      ),
                     ),
-                    child: Text(
-                      'Select All',
-                      style: AppFont.smallTextWhite1(context),
-                    ),
-                  ),
-                ),
-              ),
+                  )
+                : Text('My Team', style: AppFont.appbarfontWhite(context)),
+
             if (selectedUserIds.length >= 2)
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -2088,6 +2144,7 @@ class _MyTeamsState extends State<MyTeams> {
                     children: [
                       _buildUserStatsCard(),
                       _buildAnalyticsTable(),
+
                       _buildShowMoreButton(),
                     ],
                   ),
@@ -2596,15 +2653,15 @@ class _MyTeamsState extends State<MyTeams> {
     CircleAvatar buildAvatar(Map<String, dynamic> member) {
       final String? imageUrl = member['profileImage'];
       final String initials =
-          (member['fname'] ?? member['name'] ?? '').toString().trim().isNotEmpty
-          ? (member['fname'] ?? member['name'] ?? '')
+          (member['name'] ?? member['name'] ?? '').toString().trim().isNotEmpty
+          ? (member['name'] ?? member['name'] ?? '')
                 .toString()
                 .trim()
                 .substring(0, 1)
                 .toUpperCase()
           : '?';
 
-      final String colorSeed = (member['fname'] ?? member['name'] ?? '')
+      final String colorSeed = (member['name'] ?? member['name'] ?? '')
           .toString();
 
       return CircleAvatar(
@@ -2663,9 +2720,6 @@ class _MyTeamsState extends State<MyTeams> {
       return [];
     }
 
-    // 🔥 FIX: Use safe count calculation
-    // int safeDisplayCount = math.min(_currentDisplayCount, dataToDisplay.length);
-    // 🔥 FIX: Add safety check for _currentDisplayCount
     int safeDisplayCount = math.max(
       0,
       math.min(_currentDisplayCount, dataToDisplay.length),
@@ -2823,37 +2877,123 @@ class _MyTeamsState extends State<MyTeams> {
       dataToDisplay = _membersData;
     }
 
-    if (dataToDisplay.isEmpty || !_hasMoreRecordsTeams(dataToDisplay)) {
+    if (dataToDisplay.isEmpty) {
       return const SizedBox.shrink();
     }
 
-    int remainingRecords = dataToDisplay.length - _currentDisplayCount;
-    int recordsToShow = math.min(_incrementCount, remainingRecords);
+    // Check if we can show more records
+    bool hasMoreRecords = _hasMoreRecordsTeams(dataToDisplay);
+
+    // Check if we can show less records (current display count is greater than initial count)
+    bool canShowLess =
+        _currentDisplayCount >
+        _incrementCount; // Assuming _incrementCount is your initial display count
+
+    // If no more records to show and can't show less, don't show button
+    if (!hasMoreRecords && !canShowLess) {
+      return const SizedBox.shrink();
+    }
 
     return Padding(
       padding: const EdgeInsets.only(top: 10.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          TextButton(
-            onPressed: _loadMoreRecords,
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.blue,
-              textStyle: const TextStyle(fontSize: 12),
+          // Show Less button
+          if (canShowLess)
+            TextButton(
+              onPressed: _loadLessRecords,
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.grey[600],
+                textStyle: const TextStyle(fontSize: 12),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Show Less'),
+                  SizedBox(width: 4),
+                  Icon(Icons.keyboard_arrow_up, size: 16),
+                ],
+              ),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('Show More ($recordsToShow more)'),
-                const SizedBox(width: 4),
-                const Icon(Icons.keyboard_arrow_down, size: 16),
-              ],
+
+          // Add spacing between buttons if both are visible
+          if (canShowLess && hasMoreRecords) const SizedBox(width: 16),
+
+          // Show More button
+          if (hasMoreRecords)
+            TextButton(
+              onPressed: _loadMoreRecords,
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.blue,
+                textStyle: const TextStyle(fontSize: 12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Show More (${_getRecordsToShow(dataToDisplay)} more)'),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.keyboard_arrow_down, size: 16),
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );
   }
+
+  // Helper method to get the number of records to show
+  int _getRecordsToShow(List<dynamic> dataToDisplay) {
+    int remainingRecords = dataToDisplay.length - _currentDisplayCount;
+    return math.min(_incrementCount, remainingRecords);
+  }
+
+  // Widget _buildShowMoreButtonTeamComparison() {
+  //   List<dynamic> dataToDisplay;
+
+  //   if (_isComparing &&
+  //       selectedUserIds.isNotEmpty &&
+  //       _teamComparisonData.isNotEmpty) {
+  //     dataToDisplay = _teamComparisonData;
+  //   } else if (_isComparing && selectedUserIds.isNotEmpty) {
+  //     dataToDisplay = _membersData.where((member) {
+  //       return selectedUserIds.contains(member['user_id'].toString());
+  //     }).toList();
+  //   } else {
+  //     dataToDisplay = _membersData;
+  //   }
+
+  //   if (dataToDisplay.isEmpty || !_hasMoreRecordsTeams(dataToDisplay)) {
+  //     return const SizedBox.shrink();
+  //   }
+
+  //   int remainingRecords = dataToDisplay.length - _currentDisplayCount;
+  //   int recordsToShow = math.min(_incrementCount, remainingRecords);
+
+  //   return Padding(
+  //     padding: const EdgeInsets.only(top: 10.0),
+  //     child: Row(
+  //       mainAxisAlignment: MainAxisAlignment.end,
+  //       children: [
+  //         TextButton(
+  //           onPressed: _loadMoreRecords,
+  //           style: TextButton.styleFrom(
+  //             foregroundColor: Colors.blue,
+  //             textStyle: const TextStyle(fontSize: 12),
+  //           ),
+  //           child: Row(
+  //             mainAxisSize: MainAxisSize.min,
+  //             children: [
+  //               Text('Show More ($recordsToShow more)'),
+  //               const SizedBox(width: 4),
+  //               const Icon(Icons.keyboard_arrow_down, size: 16),
+  //             ],
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   TableRow _buildTableRow(List<Widget> widgets) {
     return TableRow(

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'package:external_app_launcher/external_app_launcher.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
@@ -11,6 +12,7 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/utils/token_manager.dart';
+import 'package:smartassist/widgets/reusable/whatsapp_fullscreen.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -23,7 +25,6 @@ class Message {
   final String type;
   final String? mediaUrl;
   final String? id;
-
   final Map<String, dynamic>? media;
 
   Message({
@@ -36,20 +37,6 @@ class Message {
     this.media,
   });
 
-  //   factory Message.fromJson(Map<String, dynamic> json) {
-
-  //     return Message(
-  //       body: json['body'] ?? '',
-  //       fromMe: json['fromMe'] ?? false,
-  //       timestamp:
-  //           json['timestamp'] ?? (DateTime.now().millisecondsSinceEpoch ~/ 1000),
-  //       type: json['type'] ?? 'chat',
-  //       mediaUrl: json['mediaUrl'],
-  //       id: json['id'],
-  //     );
-  //   }
-  // }
-
   factory Message.fromJson(Map<String, dynamic> json) {
     String? mediaUrl;
 
@@ -58,7 +45,6 @@ class Message {
       final mediaData = json['media'];
       final base64Data = mediaData['base64'];
       final mimeType = mediaData['mimetype'] ?? '';
-
       // Convert base64 to data URL for display
       mediaUrl = 'data:$mimeType;base64,$base64Data';
     }
@@ -69,11 +55,9 @@ class Message {
       timestamp:
           json['timestamp'] ?? (DateTime.now().millisecondsSinceEpoch ~/ 1000),
       type: json['type'] ?? 'chat',
-      mediaUrl:
-          mediaUrl ??
-          json['mediaUrl'], // Use converted media or existing mediaUrl
+      mediaUrl: mediaUrl ?? json['mediaUrl'],
       id: json['id'],
-      media: json['media'], // Store original media data
+      media: json['media'],
     );
   }
 }
@@ -117,66 +101,22 @@ class _MessageBubbleState extends State<MessageBubble> {
             ),
           ],
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             if (widget.message.type == 'image' &&
                 widget.message.mediaUrl != null)
-              ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: widget.message.mediaUrl!.startsWith('data:')
-                    ? Image.memory(
-                        base64Decode(widget.message.mediaUrl!.split(',')[1]),
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Container(
-                          height: 150,
-                          color: Colors.grey[300],
-                          alignment: Alignment.center,
-                          child: const Text("Error loading image"),
-                        ),
-                      )
-                    : widget.message.mediaUrl!.startsWith('http')
-                    ? Image.network(
-                        widget.message.mediaUrl!,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Container(
-                          height: 150,
-                          color: Colors.grey[300],
-                          alignment: Alignment.center,
-                          child: const Text("Error loading image"),
-                        ),
-                      )
-                    : Image.file(
-                        File(widget.message.mediaUrl!),
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Container(
-                          height: 150,
-                          color: Colors.grey[300],
-                          alignment: Alignment.center,
-                          child: const Text("Error loading image"),
-                        ),
-                      ),
+              ClickableMessageImage(
+                imageUrl: widget.message.mediaUrl!,
+                heroTag: widget.message.id ?? widget.message.mediaUrl,
               ),
-            // if (widget.message.type == 'image' &&
-            //     widget.message.mediaUrl != null)
-            //   ClipRRect(
-            //     borderRadius: BorderRadius.circular(6),
-            //     child: Image.network(
-            //       widget.message.mediaUrl!,
-            //       width: double.infinity,
-            //       fit: BoxFit.cover,
-            //       errorBuilder: (context, error, stackTrace) => Container(
-            //         height: 150,
-            //         color: Colors.grey[300],
-            //         alignment: Alignment.center,
-            //         child: const Text("Error loading image"),
-            //       ),
-            //     ),
-            //   ),
+
+            // Document handling
+            if (widget.message.type == 'document' &&
+                widget.message.media != null)
+              _buildDocumentWidget(),
+
             if (widget.message.body.isNotEmpty)
               Text(widget.message.body, style: const TextStyle(fontSize: 16)),
             const SizedBox(height: 2),
@@ -188,16 +128,91 @@ class _MessageBubbleState extends State<MessageBubble> {
                   style: TextStyle(fontSize: 11, color: Colors.grey[600]),
                 ),
                 if (widget.message.fromMe) const SizedBox(width: 3),
-                if (widget.message.fromMe)
-                  const Icon(
-                    Icons.done_all,
-                    size: 14,
-                    color: Color(0xFF34B7F1),
-                  ),
               ],
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDocumentWidget() {
+    final media = widget.message.media;
+    final filename = media?['filename'] ?? 'Document';
+    final mimetype = media?['mimetype'] ?? '';
+
+    // Get appropriate icon based on file type
+    IconData getDocumentIcon(String mimetype, String filename) {
+      final extension = filename.split('.').last.toLowerCase();
+
+      switch (extension) {
+        case 'pdf':
+          return Icons.picture_as_pdf;
+        case 'doc':
+        case 'docx':
+          return Icons.description;
+        case 'xls':
+        case 'xlsx':
+          return Icons.table_chart;
+        case 'ppt':
+        case 'pptx':
+          return Icons.slideshow;
+        case 'txt':
+          return Icons.text_snippet;
+        case 'zip':
+        case 'rar':
+        case '7z':
+          return Icons.archive;
+        case 'mp3':
+        case 'wav':
+          return Icons.audio_file;
+        case 'mp4':
+        case 'avi':
+        case 'mov':
+          return Icons.video_file;
+        default:
+          return Icons.insert_drive_file;
+      }
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            getDocumentIcon(mimetype, filename),
+            size: 32,
+            color: Colors.blue[600],
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  filename,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                // Text(
+                //   // _getFileTypeLabel(mimetype, filename),
+                //   // style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                // ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -228,6 +243,7 @@ class _WhatsappChatState extends State<WhatsappChat>
 
   final ImagePicker _picker = ImagePicker();
   bool isSendingImage = false;
+  bool isSendingDocument = false;
 
   final TextEditingController _messageController = TextEditingController();
   late IO.Socket socket;
@@ -271,7 +287,7 @@ class _WhatsappChatState extends State<WhatsappChat>
     int attempt = 0;
     const maxAttempts = 10;
     const baseDelay = 2000; // Start with 2 seconds
-    const maxDelay = 10000; // Cap at 10 seconds
+    const maxDelay = 20000; // Cap at 20 seconds
 
     _reconnectTimer = Timer.periodic(Duration(milliseconds: baseDelay), (
       timer,
@@ -754,20 +770,35 @@ class _WhatsappChatState extends State<WhatsappChat>
       context: context,
       builder: (BuildContext context) {
         return Container(
-          height: 180,
+          height: 220,
           child: Column(
             children: [
+              // ListTile(
+              //   leading: Icon(Icons.camera),
+              //   title: Text('Camera', style: AppFont.dropDowmLabel(context)),
+              //   onTap: () async {
+              //     Navigator.pop(context);
+              //     final XFile? image = await _picker.pickImage(
+              //       source: ImageSource.camera,
+              //       imageQuality: 70,
+              //     );
+              //     if (image != null) {
+              //       await sendImageMessage(image);
+              //     }
+              //   },
+              // ),
               ListTile(
-                leading: Icon(Icons.camera),
-                title: Text('Camera', style: AppFont.dropDowmLabel(context)),
+                leading: Icon(Icons.picture_as_pdf),
+                title: Text('Document', style: AppFont.dropDowmLabel(context)),
                 onTap: () async {
                   Navigator.pop(context);
-                  final XFile? image = await _picker.pickImage(
-                    source: ImageSource.camera,
-                    imageQuality: 70,
-                  );
-                  if (image != null) {
-                    await sendImageMessage(image);
+                  // Use file_picker for documents instead of image_picker
+                  FilePickerResult? result = await FilePicker.platform
+                      .pickFiles(type: FileType.any, allowMultiple: false);
+
+                  if (result != null && result.files.single.path != null) {
+                    final file = XFile(result.files.single.path!);
+                    await sendDocumentMessage(file);
                   }
                 },
               ),
@@ -899,6 +930,248 @@ class _WhatsappChatState extends State<WhatsappChat>
   //   }
   // }
 
+  Future<void> sendDocumentMessage(XFile document) async {
+    if (!isWhatsAppReady) return;
+
+    setState(() {
+      isSendingDocument = true;
+    });
+
+    try {
+      // Read document as bytes
+      final bytes = await document.readAsBytes();
+      final base64String = base64Encode(bytes);
+
+      // Get file extension and mime type
+      final extension = document.path.split('.').last.toLowerCase();
+      String mimeType = 'application/octet-stream'; // default
+
+      switch (extension) {
+        case 'pdf':
+          mimeType = 'application/pdf';
+          break;
+        case 'doc':
+          mimeType = 'application/msword';
+          break;
+        case 'docx':
+          mimeType =
+              'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+          break;
+        case 'xls':
+          mimeType = 'application/vnd.ms-excel';
+          break;
+        case 'xlsx':
+          mimeType =
+              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+          break;
+        case 'ppt':
+          mimeType = 'application/vnd.ms-powerpoint';
+          break;
+        case 'pptx':
+          mimeType =
+              'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+          break;
+        case 'txt':
+          mimeType = 'text/plain';
+          break;
+        case 'csv':
+          mimeType = 'text/csv';
+          break;
+        case 'zip':
+          mimeType = 'application/zip';
+          break;
+        case 'rar':
+          mimeType = 'application/vnd.rar';
+          break;
+        case '7z':
+          mimeType = 'application/x-7z-compressed';
+          break;
+        case 'mp3':
+          mimeType = 'audio/mpeg';
+          break;
+        case 'mp4':
+          mimeType = 'video/mp4';
+          break;
+        case 'avi':
+          mimeType = 'video/x-msvideo';
+          break;
+        case 'mov':
+          mimeType = 'video/quicktime';
+          break;
+      }
+
+      final mediaInfo = {
+        'mimetype': mimeType,
+        'base64': base64String,
+        'filename': document.name,
+      };
+
+      // Fixed: Match the expected socket structure
+      final message = {
+        'sessionId': spId,
+        'chatId': widget.chatId,
+        'message': _messageController.text.trim(),
+        'media': mediaInfo,
+      };
+
+      print('Sending document message: ${document.name}');
+      print('Message structure: $message');
+
+      socket.emit('send_message', message);
+
+      // Fixed: Include media info in local message
+      final localMessage = Message(
+        body: _messageController.text.trim(),
+        fromMe: true,
+        timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        type: 'document',
+        mediaUrl: document.path,
+        media: mediaInfo, // Include media info for local display
+      );
+
+      setState(() {
+        messages.add(localMessage);
+      });
+
+      _messageController.clear();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToBottom();
+      });
+    } catch (e) {
+      print('Error sending document: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to send document',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      setState(() {
+        isSendingDocument = false;
+      });
+    }
+  }
+
+  // Future<void> sendDocumentMessage(XFile document) async {
+  //   if (!isWhatsAppReady) return;
+
+  //   setState(() {
+  //     isSendingDocument = true; // You'll need to add this boolean to your state
+  //   });
+
+  //   try {
+  //     // Read document as bytes
+  //     final bytes = await document.readAsBytes();
+  //     final base64String = base64Encode(bytes);
+
+  //     // Get file extension and mime type
+  //     final extension = document.path.split('.').last.toLowerCase();
+  //     String mimeType = 'application/octet-stream'; // default
+
+  //     switch (extension) {
+  //       case 'pdf':
+  //         mimeType = 'application/pdf';
+  //         break;
+  //       case 'doc':
+  //         mimeType = 'application/msword';
+  //         break;
+  //       case 'docx':
+  //         mimeType =
+  //             'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+  //         break;
+  //       case 'xls':
+  //         mimeType = 'application/vnd.ms-excel';
+  //         break;
+  //       case 'xlsx':
+  //         mimeType =
+  //             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  //         break;
+  //       case 'ppt':
+  //         mimeType = 'application/vnd.ms-powerpoint';
+  //         break;
+  //       case 'pptx':
+  //         mimeType =
+  //             'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+  //         break;
+  //       case 'txt':
+  //         mimeType = 'text/plain';
+  //         break;
+  //       case 'csv':
+  //         mimeType = 'text/csv';
+  //         break;
+  //       case 'zip':
+  //         mimeType = 'application/zip';
+  //         break;
+  //       case 'rar':
+  //         mimeType = 'application/vnd.rar';
+  //         break;
+  //       case '7z':
+  //         mimeType = 'application/x-7z-compressed';
+  //         break;
+  //       case 'mp3':
+  //         mimeType = 'audio/mpeg';
+  //         break;
+  //       case 'mp4':
+  //         mimeType = 'video/mp4';
+  //         break;
+  //       case 'avi':
+  //         mimeType = 'video/x-msvideo';
+  //         break;
+  //       case 'mov':
+  //         mimeType = 'video/quicktime';
+  //         break;
+  //     }
+
+  //     final message = {
+  //       'chatId': widget.chatId,
+  //       'message': _messageController.text.trim(), // Caption
+  //       'sessionId': spId,
+  //       'media': {
+  //         'mimetype': mimeType,
+  //         'base64': base64String,
+  //         'filename': document.name,
+  //       },
+  //     };
+
+  //     print(
+  //       'Sending document message: ${(message['media'] as Map<String, dynamic>)['filename']}',
+  //     );
+  //     print(' this is msg : $message.toString()');
+
+  //     socket.emit('send_message', message);
+
+  //     final localMessage = Message(
+  //       body: _messageController.text.trim(),
+  //       fromMe: true,
+  //       timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+  //       type: 'document',
+  //       mediaUrl: document.path, // Use local path for immediate display
+  //       media: null,
+  //     );
+
+  //     setState(() {
+  //       messages.add(localMessage);
+  //     });
+
+  //     _messageController.clear();
+  //     WidgetsBinding.instance.addPostFrameCallback((_) {
+  //       _scrollToBottom();
+  //     });
+  //   } catch (e) {
+  //     print('Error sending document: $e');
+  //     Get.snackbar(
+  //       'Error',
+  //       'Failed to send document',
+  //       backgroundColor: Colors.red,
+  //       colorText: Colors.white,
+  //     );
+  //   } finally {
+  //     setState(() {
+  //       isSendingDocument = false;
+  //     });
+  //   }
+  // }
+
   Future<void> sendImageMessage(XFile image) async {
     if (!isWhatsAppReady) return;
 
@@ -999,9 +1272,8 @@ class _WhatsappChatState extends State<WhatsappChat>
       mediaUrl: null,
       media: null,
     );
-    mediaUrl:
-    null;
-    // );
+
+    socket.emit('send_message', message);
 
     setState(() {
       messages.add(localMessage);
@@ -1347,6 +1619,27 @@ class _WhatsappChatState extends State<WhatsappChat>
                               ),
                               maxLines: null,
                             ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          decoration: const BoxDecoration(
+                            color: AppColors.iconGrey,
+                            shape: BoxShape.circle,
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.camera_alt_rounded),
+                            color: Colors.white,
+                            onPressed: () async {
+                              Navigator.pop(context);
+                              final XFile? image = await _picker.pickImage(
+                                source: ImageSource.camera,
+                                imageQuality: 70,
+                              );
+                              if (image != null) {
+                                await sendImageMessage(image);
+                              }
+                            },
                           ),
                         ),
                         const SizedBox(width: 8),

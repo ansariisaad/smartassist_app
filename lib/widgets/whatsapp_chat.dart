@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'package:external_app_launcher/external_app_launcher.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
@@ -11,6 +12,7 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/utils/token_manager.dart';
+import 'package:smartassist/widgets/reusable/whatsapp_fullscreen.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -99,66 +101,17 @@ class _MessageBubbleState extends State<MessageBubble> {
             ),
           ],
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             if (widget.message.type == 'image' &&
                 widget.message.mediaUrl != null)
-              ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: widget.message.mediaUrl!.startsWith('data:')
-                    ? Image.memory(
-                        base64Decode(widget.message.mediaUrl!.split(',')[1]),
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Container(
-                          height: 150,
-                          color: Colors.grey[300],
-                          alignment: Alignment.center,
-                          child: const Text("Error loading image"),
-                        ),
-                      )
-                    : widget.message.mediaUrl!.startsWith('http')
-                    ? Image.network(
-                        widget.message.mediaUrl!,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Container(
-                          height: 150,
-                          color: Colors.grey[300],
-                          alignment: Alignment.center,
-                          child: const Text("Error loading image"),
-                        ),
-                      )
-                    : Image.file(
-                        File(widget.message.mediaUrl!),
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Container(
-                          height: 150,
-                          color: Colors.grey[300],
-                          alignment: Alignment.center,
-                          child: const Text("Error loading image"),
-                        ),
-                      ),
+              ClickableMessageImage(
+                imageUrl: widget.message.mediaUrl!,
+                heroTag: widget.message.id ?? widget.message.mediaUrl,
               ),
-            // if (widget.message.type == 'image' &&
-            //     widget.message.mediaUrl != null)
-            //   ClipRRect(
-            //     borderRadius: BorderRadius.circular(6),
-            //     child: Image.network(
-            //       widget.message.mediaUrl!,
-            //       width: double.infinity,
-            //       fit: BoxFit.cover,
-            //       errorBuilder: (context, error, stackTrace) => Container(
-            //         height: 150,
-            //         color: Colors.grey[300],
-            //         alignment: Alignment.center,
-            //         child: const Text("Error loading image"),
-            //       ),
-            //     ),
-            //   ),
+
             if (widget.message.body.isNotEmpty)
               Text(widget.message.body, style: const TextStyle(fontSize: 16)),
             const SizedBox(height: 2),
@@ -170,12 +123,6 @@ class _MessageBubbleState extends State<MessageBubble> {
                   style: TextStyle(fontSize: 11, color: Colors.grey[600]),
                 ),
                 if (widget.message.fromMe) const SizedBox(width: 3),
-                if (widget.message.fromMe)
-                  const Icon(
-                    Icons.done_all,
-                    size: 14,
-                    color: Color(0xFF34B7F1),
-                  ),
               ],
             ),
           ],
@@ -210,6 +157,7 @@ class _WhatsappChatState extends State<WhatsappChat>
 
   final ImagePicker _picker = ImagePicker();
   bool isSendingImage = false;
+  bool isSendingDocument = false;
 
   final TextEditingController _messageController = TextEditingController();
   late IO.Socket socket;
@@ -736,7 +684,7 @@ class _WhatsappChatState extends State<WhatsappChat>
       context: context,
       builder: (BuildContext context) {
         return Container(
-          height: 180,
+          height: 220,
           child: Column(
             children: [
               // ListTile(
@@ -753,6 +701,21 @@ class _WhatsappChatState extends State<WhatsappChat>
               //     }
               //   },
               // ),
+              ListTile(
+                leading: Icon(Icons.picture_as_pdf),
+                title: Text('Document', style: AppFont.dropDowmLabel(context)),
+                onTap: () async {
+                  Navigator.pop(context);
+                  // Use file_picker for documents instead of image_picker
+                  FilePickerResult? result = await FilePicker.platform
+                      .pickFiles(type: FileType.any, allowMultiple: false);
+
+                  if (result != null && result.files.single.path != null) {
+                    final file = XFile(result.files.single.path!);
+                    await sendDocumentMessage(file);
+                  }
+                },
+              ),
               ListTile(
                 leading: Icon(Icons.photo),
                 title: Text('Photo', style: AppFont.dropDowmLabel(context)),
@@ -881,6 +844,124 @@ class _WhatsappChatState extends State<WhatsappChat>
   //   }
   // }
 
+  Future<void> sendDocumentMessage(XFile document) async {
+    if (!isWhatsAppReady) return;
+
+    setState(() {
+      isSendingDocument = true; // You'll need to add this boolean to your state
+    });
+
+    try {
+      // Read document as bytes
+      final bytes = await document.readAsBytes();
+      final base64String = base64Encode(bytes);
+
+      // Get file extension and mime type
+      final extension = document.path.split('.').last.toLowerCase();
+      String mimeType = 'application/octet-stream'; // default
+
+      switch (extension) {
+        case 'pdf':
+          mimeType = 'application/pdf';
+          break;
+        case 'doc':
+          mimeType = 'application/msword';
+          break;
+        case 'docx':
+          mimeType =
+              'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+          break;
+        case 'xls':
+          mimeType = 'application/vnd.ms-excel';
+          break;
+        case 'xlsx':
+          mimeType =
+              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+          break;
+        case 'ppt':
+          mimeType = 'application/vnd.ms-powerpoint';
+          break;
+        case 'pptx':
+          mimeType =
+              'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+          break;
+        case 'txt':
+          mimeType = 'text/plain';
+          break;
+        case 'csv':
+          mimeType = 'text/csv';
+          break;
+        case 'zip':
+          mimeType = 'application/zip';
+          break;
+        case 'rar':
+          mimeType = 'application/vnd.rar';
+          break;
+        case '7z':
+          mimeType = 'application/x-7z-compressed';
+          break;
+        case 'mp3':
+          mimeType = 'audio/mpeg';
+          break;
+        case 'mp4':
+          mimeType = 'video/mp4';
+          break;
+        case 'avi':
+          mimeType = 'video/x-msvideo';
+          break;
+        case 'mov':
+          mimeType = 'video/quicktime';
+          break;
+      }
+
+      final message = {
+        'chatId': widget.chatId,
+        'message': _messageController.text.trim(), // Caption
+        'sessionId': spId,
+        'media': {
+          'mimetype': mimeType,
+          'base64': base64String,
+          'filename': document.name,
+        },
+      };
+
+      print(
+        'Sending document message: ${(message['media'] as Map<String, dynamic>)['filename']}',
+      );
+      socket.emit('send_message', message);
+
+      final localMessage = Message(
+        body: _messageController.text.trim(),
+        fromMe: true,
+        timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        type: 'document',
+        mediaUrl: document.path, // Use local path for immediate display
+        media: null,
+      );
+
+      setState(() {
+        messages.add(localMessage);
+      });
+
+      _messageController.clear();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToBottom();
+      });
+    } catch (e) {
+      print('Error sending document: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to send document',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      setState(() {
+        isSendingDocument = false;
+      });
+    }
+  }
+
   Future<void> sendImageMessage(XFile image) async {
     if (!isWhatsAppReady) return;
 
@@ -981,9 +1062,8 @@ class _WhatsappChatState extends State<WhatsappChat>
       mediaUrl: null,
       media: null,
     );
-    // mediaUrl:
-    // null;
-    // );
+
+    socket.emit('send_message', message);
 
     setState(() {
       messages.add(localMessage);

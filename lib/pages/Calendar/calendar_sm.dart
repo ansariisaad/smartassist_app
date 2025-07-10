@@ -74,7 +74,7 @@ class _CalendarSmState extends State<CalendarSm> {
     try {
       final token = await Storage.getToken();
       final baseUri = Uri.parse(
-        'https://api.smartassistapp.in/api/users/sm/dashboard/team-dashboard',
+        'https://dev.smartassistapp.in/api/users/sm/dashboard/team-dashboard',
       );
       final response = await http.get(
         baseUri,
@@ -129,7 +129,7 @@ class _CalendarSmState extends State<CalendarSm> {
         queryParams['user_id'] = _selectedUserId;
       }
       final baseUrl = Uri.parse(
-        "https://api.smartassistapp.in/api/calendar/activities/all/asondate",
+        "https://dev.smartassistapp.in/api/calendar/activities/all/asondate",
       );
       final uri = baseUrl.replace(queryParameters: queryParams);
       final response = await http.get(

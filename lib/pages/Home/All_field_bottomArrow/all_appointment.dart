@@ -213,7 +213,7 @@ class _AllAppointmentState extends State<AllAppointment>
     try {
       final token = await Storage.getToken();
       const String apiUrl =
-          "https://api.smartassistapp.in/api/tasks/all-appointments";
+          "https://dev.smartassistapp.in/api/tasks/all-appointments";
 
       final response = await http.get(
         Uri.parse(apiUrl),
@@ -1173,7 +1173,7 @@ class _AllAppointmentState extends State<AllAppointment>
 //     try {
 //       final token = await Storage.getToken();
 //       const String apiUrl =
-//           "https://api.smartassistapp.in/api/tasks/all-appointments";
+//           "https://dev.smartassistapp.in/api/tasks/all-appointments";
 
 //       final response = await http.get(
 //         Uri.parse(apiUrl),
@@ -1245,7 +1245,7 @@ class _AllAppointmentState extends State<AllAppointment>
 //       final token = await Storage.getToken();
 //       final response = await http.get(
 //         Uri.parse(
-//           'https://api.smartassistapp.in/api/search/global?query=$query',
+//           'https://dev.smartassistapp.in/api/search/global?query=$query',
 //         ),
 //         headers: {
 //           'Authorization': 'Bearer $token',

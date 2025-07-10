@@ -95,12 +95,12 @@
 
 //       if (widget.isFromSM) {
 //         uri = Uri.parse(
-//           // 'https://api.smartassistapp.in/api/users/ps/dashboard/call-analytics$periodParam'?user_id=${widget.userId},
-//           'https://api.smartassistapp.in/api/users/ps/dashboard/call-analytics$periodParam&user_id=${widget.userId}',
+//           // 'https://dev.smartassistapp.in/api/users/ps/dashboard/call-analytics$periodParam'?user_id=${widget.userId},
+//           'https://dev.smartassistapp.in/api/users/ps/dashboard/call-analytics$periodParam&user_id=${widget.userId}',
 //         );
 //       } else {
 //         uri = Uri.parse(
-//           'https://api.smartassistapp.in/api/users/ps/dashboard/call-analytics$periodParam',
+//           'https://dev.smartassistapp.in/api/users/ps/dashboard/call-analytics$periodParam',
 //         );
 //       }
 
@@ -1711,11 +1711,11 @@ class _CallAnalyticsState extends State<CallAnalytics>
 
       if (widget.isFromSM) {
         uri = Uri.parse(
-          'https://api.smartassistapp.in/api/users/ps/dashboard/call-analytics$periodParam&user_id=${widget.userId}',
+          'https://dev.smartassistapp.in/api/users/ps/dashboard/call-analytics$periodParam&user_id=${widget.userId}',
         );
       } else {
         uri = Uri.parse(
-          'https://api.smartassistapp.in/api/users/ps/dashboard/call-analytics$periodParam',
+          'https://dev.smartassistapp.in/api/users/ps/dashboard/call-analytics$periodParam',
         );
       }
 

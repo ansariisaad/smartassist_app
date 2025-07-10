@@ -249,7 +249,7 @@ class _MyTeamsState extends State<MyTeams> {
       }
 
       final baseUri = Uri.parse(
-        'https://api.smartassistapp.in/api/users/ps/dashboard/call-analytics',
+        'https://dev.smartassistapp.in/api/users/ps/dashboard/call-analytics',
       );
 
       final uri = baseUri.replace(queryParameters: queryParams);
@@ -322,7 +322,7 @@ class _MyTeamsState extends State<MyTeams> {
       }
 
       final baseUri = Uri.parse(
-        'https://api.smartassistapp.in/api/users/sm/dashboard/call-analytics',
+        'https://dev.smartassistapp.in/api/users/sm/dashboard/call-analytics',
       );
 
       final uri = baseUri.replace(queryParameters: queryParams);
@@ -452,7 +452,7 @@ class _MyTeamsState extends State<MyTeams> {
       // ✅ If "All" is selected (_selectedProfileIndex == 0), no user parameters are added
 
       final baseUri = Uri.parse(
-        'https://api.smartassistapp.in/api/users/sm/analytics/team-dashboard',
+        'https://dev.smartassistapp.in/api/users/sm/analytics/team-dashboard',
       );
 
       final uri = baseUri.replace(queryParameters: queryParams);
@@ -582,59 +582,105 @@ class _MyTeamsState extends State<MyTeams> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('My Team', style: AppFont.appbarfontWhite(context)),
+            selectedUserIds.length >= 2
+                ? InkWell(
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      setState(() {
+                        bool allSelected =
+                            selectedUserIds.length == _teamMembers.length;
 
-            if (selectedUserIds.length >= 2)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 0,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: InkWell(
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    setState(() {
-                      _isMultiSelectMode = true;
-                      selectedUserIds.clear(); // Clear existing selections
-                      selectedUserIds.addAll(
-                        _teamMembers.map(
-                          (member) => member['user_id'].toString(),
-                        ),
-                      );
-                      // Add all unique letters to _selectedLetters
-                      _selectedLetters.clear();
-                      for (var member in _teamMembers) {
-                        String firstLetter = (member['fname'] ?? '')
-                            .toString()
-                            .toUpperCase();
-                        if (firstLetter.isNotEmpty) {
-                          _selectedLetters.add(firstLetter[0]);
+                        if (allSelected) {
+                          // If already selected all, unselect all
+                          selectedUserIds.clear();
+                          _selectedLetters.clear();
+                          _selectedType = '';
+                        } else {
+                          // Select all
+                          _isMultiSelectMode = true;
+                          selectedUserIds.clear();
+                          selectedUserIds.addAll(
+                            _teamMembers.map(
+                              (member) => member['user_id'].toString(),
+                            ),
+                          );
+                          _selectedLetters.clear();
+                          for (var member in _teamMembers) {
+                            String firstLetter = (member['fname'] ?? '')
+                                .toString()
+                                .toUpperCase();
+                            if (firstLetter.isNotEmpty) {
+                              _selectedLetters.add(firstLetter[0]);
+                            }
+                          }
+                          _selectedType = 'Letter';
                         }
-                      }
-                      _selectedType =
-                          'Letter'; // Indicate letter-based selection
-                      print(
-                        'Select All tapped, selectedUserIds: $selectedUserIds',
-                      );
-                    });
-                  },
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.white),
-                      borderRadius: BorderRadius.circular(10),
+                      });
+                    },
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(6),
+                        color: selectedUserIds.length == _teamMembers.length
+                            ? Colors.green.withOpacity(0.1)
+                            : Colors.transparent,
+                      ),
+                      child: Row(
+                        children: [
+                          Checkbox(
+                            side: BorderSide(color: Colors.white),
+                            activeColor: Colors.white,
+
+                            checkColor: Colors.blue,
+                            value:
+                                selectedUserIds.length == _teamMembers.length,
+                            onChanged: (_) {
+                              HapticFeedback.lightImpact();
+                              setState(() {
+                                bool allSelected =
+                                    selectedUserIds.length ==
+                                    _teamMembers.length;
+
+                                if (allSelected) {
+                                  selectedUserIds.clear();
+                                  _selectedLetters.clear();
+                                  _selectedType = '';
+                                } else {
+                                  _isMultiSelectMode = true;
+                                  selectedUserIds.clear();
+                                  selectedUserIds.addAll(
+                                    _teamMembers.map(
+                                      (member) => member['user_id'].toString(),
+                                    ),
+                                  );
+                                  _selectedLetters.clear();
+                                  for (var member in _teamMembers) {
+                                    String firstLetter = (member['fname'] ?? '')
+                                        .toString()
+                                        .toUpperCase();
+                                    if (firstLetter.isNotEmpty) {
+                                      _selectedLetters.add(firstLetter[0]);
+                                    }
+                                  }
+                                  _selectedType = 'Letter';
+                                }
+                              });
+                            },
+                          ),
+                          Text(
+                            'Select All',
+                            style: AppFont.appbarfontWhite(context),
+                          ),
+                        ],
+                      ),
                     ),
-                    child: Text(
-                      'Select All',
-                      style: AppFont.smallTextWhite1(context),
-                    ),
-                  ),
-                ),
-              ),
+                  )
+                : Text('My Team', style: AppFont.appbarfontWhite(context)),
+
             if (selectedUserIds.length >= 2)
               Container(
                 padding: const EdgeInsets.symmetric(

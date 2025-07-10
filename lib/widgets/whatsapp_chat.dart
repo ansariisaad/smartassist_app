@@ -23,7 +23,6 @@ class Message {
   final String type;
   final String? mediaUrl;
   final String? id;
-
   final Map<String, dynamic>? media;
 
   Message({
@@ -36,20 +35,6 @@ class Message {
     this.media,
   });
 
-  //   factory Message.fromJson(Map<String, dynamic> json) {
-
-  //     return Message(
-  //       body: json['body'] ?? '',
-  //       fromMe: json['fromMe'] ?? false,
-  //       timestamp:
-  //           json['timestamp'] ?? (DateTime.now().millisecondsSinceEpoch ~/ 1000),
-  //       type: json['type'] ?? 'chat',
-  //       mediaUrl: json['mediaUrl'],
-  //       id: json['id'],
-  //     );
-  //   }
-  // }
-
   factory Message.fromJson(Map<String, dynamic> json) {
     String? mediaUrl;
 
@@ -58,7 +43,6 @@ class Message {
       final mediaData = json['media'];
       final base64Data = mediaData['base64'];
       final mimeType = mediaData['mimetype'] ?? '';
-
       // Convert base64 to data URL for display
       mediaUrl = 'data:$mimeType;base64,$base64Data';
     }
@@ -69,11 +53,9 @@ class Message {
       timestamp:
           json['timestamp'] ?? (DateTime.now().millisecondsSinceEpoch ~/ 1000),
       type: json['type'] ?? 'chat',
-      mediaUrl:
-          mediaUrl ??
-          json['mediaUrl'], // Use converted media or existing mediaUrl
+      mediaUrl: mediaUrl ?? json['mediaUrl'],
       id: json['id'],
-      media: json['media'], // Store original media data
+      media: json['media'],
     );
   }
 }
@@ -271,7 +253,7 @@ class _WhatsappChatState extends State<WhatsappChat>
     int attempt = 0;
     const maxAttempts = 10;
     const baseDelay = 2000; // Start with 2 seconds
-    const maxDelay = 10000; // Cap at 10 seconds
+    const maxDelay = 20000; // Cap at 20 seconds
 
     _reconnectTimer = Timer.periodic(Duration(milliseconds: baseDelay), (
       timer,
@@ -327,7 +309,7 @@ class _WhatsappChatState extends State<WhatsappChat>
     });
     try {
       final url = Uri.parse(
-        'https://api.smartassistapp.in/api/check-wa-status',
+        'https://dev.smartassistapp.in/api/check-wa-status',
       );
       final token = await Storage.getToken();
       final response = await http.post(
@@ -384,7 +366,7 @@ class _WhatsappChatState extends State<WhatsappChat>
     });
 
     try {
-      final url = Uri.parse('https://api.smartassistapp.in/api/init-wa');
+      final url = Uri.parse('https://dev.smartassistapp.in/api/init-wa');
       final token = await Storage.getToken();
       final response = await http.post(
         url,
@@ -493,7 +475,7 @@ class _WhatsappChatState extends State<WhatsappChat>
   }
 
   void initSocket() {
-    socket = IO.io('wss://api.smartassistapp.in', <String, dynamic>{
+    socket = IO.io('wss://dev.smartassistapp.in', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': true,
       'reconnection': true,
@@ -757,20 +739,20 @@ class _WhatsappChatState extends State<WhatsappChat>
           height: 180,
           child: Column(
             children: [
-              ListTile(
-                leading: Icon(Icons.camera),
-                title: Text('Camera', style: AppFont.dropDowmLabel(context)),
-                onTap: () async {
-                  Navigator.pop(context);
-                  final XFile? image = await _picker.pickImage(
-                    source: ImageSource.camera,
-                    imageQuality: 70,
-                  );
-                  if (image != null) {
-                    await sendImageMessage(image);
-                  }
-                },
-              ),
+              // ListTile(
+              //   leading: Icon(Icons.camera),
+              //   title: Text('Camera', style: AppFont.dropDowmLabel(context)),
+              //   onTap: () async {
+              //     Navigator.pop(context);
+              //     final XFile? image = await _picker.pickImage(
+              //       source: ImageSource.camera,
+              //       imageQuality: 70,
+              //     );
+              //     if (image != null) {
+              //       await sendImageMessage(image);
+              //     }
+              //   },
+              // ),
               ListTile(
                 leading: Icon(Icons.photo),
                 title: Text('Photo', style: AppFont.dropDowmLabel(context)),
@@ -999,8 +981,8 @@ class _WhatsappChatState extends State<WhatsappChat>
       mediaUrl: null,
       media: null,
     );
-    mediaUrl:
-    null;
+    // mediaUrl:
+    // null;
     // );
 
     setState(() {
@@ -1347,6 +1329,27 @@ class _WhatsappChatState extends State<WhatsappChat>
                               ),
                               maxLines: null,
                             ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          decoration: const BoxDecoration(
+                            color: AppColors.iconGrey,
+                            shape: BoxShape.circle,
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.camera_alt_rounded),
+                            color: Colors.white,
+                            onPressed: () async {
+                              Navigator.pop(context);
+                              final XFile? image = await _picker.pickImage(
+                                source: ImageSource.camera,
+                                imageQuality: 70,
+                              );
+                              if (image != null) {
+                                await sendImageMessage(image);
+                              }
+                            },
                           ),
                         ),
                         const SizedBox(width: 8),

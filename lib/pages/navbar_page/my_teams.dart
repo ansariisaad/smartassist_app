@@ -28,6 +28,7 @@ class _MyTeamsState extends State<MyTeams> {
   // ADD THESE VARIABLES TO YOUR CLASS
   int _currentDisplayCount = 10; // Initially show 10 records
   static const int _incrementCount = 10; // Show 10 more each time
+  static const int _decrementCount = 10;
   List<dynamic> _teamComparisonData = [];
   // Your existing variables
   // List<dynamic> _membersData = []; // Your existing data list
@@ -154,6 +155,15 @@ class _MyTeamsState extends State<MyTeams> {
     });
   }
 
+  void _loadLessRecords() {
+    setState(() {
+      _currentDisplayCount = math.max(
+        _incrementCount,
+        _currentDisplayCount - _incrementCount,
+      );
+    });
+  }
+
   void showBubbleTooltip(BuildContext context, GlobalKey key, String message) {
     final overlay = Overlay.of(context);
     final renderBox = key.currentContext?.findRenderObject() as RenderBox?;
@@ -249,7 +259,7 @@ class _MyTeamsState extends State<MyTeams> {
       }
 
       final baseUri = Uri.parse(
-        'https://dev.smartassistapp.in/api/users/ps/dashboard/call-analytics',
+        'https://api.smartassistapp.in/api/users/ps/dashboard/call-analytics',
       );
 
       final uri = baseUri.replace(queryParameters: queryParams);
@@ -322,7 +332,7 @@ class _MyTeamsState extends State<MyTeams> {
       }
 
       final baseUri = Uri.parse(
-        'https://dev.smartassistapp.in/api/users/sm/dashboard/call-analytics',
+        'https://api.smartassistapp.in/api/users/sm/dashboard/call-analytics',
       );
 
       final uri = baseUri.replace(queryParameters: queryParams);
@@ -452,7 +462,7 @@ class _MyTeamsState extends State<MyTeams> {
       // ✅ If "All" is selected (_selectedProfileIndex == 0), no user parameters are added
 
       final baseUri = Uri.parse(
-        'https://dev.smartassistapp.in/api/users/sm/analytics/team-dashboard',
+        'https://api.smartassistapp.in/api/users/sm/analytics/team-dashboard',
       );
 
       final uri = baseUri.replace(queryParameters: queryParams);
@@ -2134,6 +2144,7 @@ class _MyTeamsState extends State<MyTeams> {
                     children: [
                       _buildUserStatsCard(),
                       _buildAnalyticsTable(),
+
                       _buildShowMoreButton(),
                     ],
                   ),
@@ -2642,15 +2653,15 @@ class _MyTeamsState extends State<MyTeams> {
     CircleAvatar buildAvatar(Map<String, dynamic> member) {
       final String? imageUrl = member['profileImage'];
       final String initials =
-          (member['fname'] ?? member['name'] ?? '').toString().trim().isNotEmpty
-          ? (member['fname'] ?? member['name'] ?? '')
+          (member['name'] ?? member['name'] ?? '').toString().trim().isNotEmpty
+          ? (member['name'] ?? member['name'] ?? '')
                 .toString()
                 .trim()
                 .substring(0, 1)
                 .toUpperCase()
           : '?';
 
-      final String colorSeed = (member['fname'] ?? member['name'] ?? '')
+      final String colorSeed = (member['name'] ?? member['name'] ?? '')
           .toString();
 
       return CircleAvatar(
@@ -2709,9 +2720,6 @@ class _MyTeamsState extends State<MyTeams> {
       return [];
     }
 
-    // 🔥 FIX: Use safe count calculation
-    // int safeDisplayCount = math.min(_currentDisplayCount, dataToDisplay.length);
-    // 🔥 FIX: Add safety check for _currentDisplayCount
     int safeDisplayCount = math.max(
       0,
       math.min(_currentDisplayCount, dataToDisplay.length),
@@ -2869,37 +2877,123 @@ class _MyTeamsState extends State<MyTeams> {
       dataToDisplay = _membersData;
     }
 
-    if (dataToDisplay.isEmpty || !_hasMoreRecordsTeams(dataToDisplay)) {
+    if (dataToDisplay.isEmpty) {
       return const SizedBox.shrink();
     }
 
-    int remainingRecords = dataToDisplay.length - _currentDisplayCount;
-    int recordsToShow = math.min(_incrementCount, remainingRecords);
+    // Check if we can show more records
+    bool hasMoreRecords = _hasMoreRecordsTeams(dataToDisplay);
+
+    // Check if we can show less records (current display count is greater than initial count)
+    bool canShowLess =
+        _currentDisplayCount >
+        _incrementCount; // Assuming _incrementCount is your initial display count
+
+    // If no more records to show and can't show less, don't show button
+    if (!hasMoreRecords && !canShowLess) {
+      return const SizedBox.shrink();
+    }
 
     return Padding(
       padding: const EdgeInsets.only(top: 10.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          TextButton(
-            onPressed: _loadMoreRecords,
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.blue,
-              textStyle: const TextStyle(fontSize: 12),
+          // Show Less button
+          if (canShowLess)
+            TextButton(
+              onPressed: _loadLessRecords,
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.grey[600],
+                textStyle: const TextStyle(fontSize: 12),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Show Less'),
+                  SizedBox(width: 4),
+                  Icon(Icons.keyboard_arrow_up, size: 16),
+                ],
+              ),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('Show More ($recordsToShow more)'),
-                const SizedBox(width: 4),
-                const Icon(Icons.keyboard_arrow_down, size: 16),
-              ],
+
+          // Add spacing between buttons if both are visible
+          if (canShowLess && hasMoreRecords) const SizedBox(width: 16),
+
+          // Show More button
+          if (hasMoreRecords)
+            TextButton(
+              onPressed: _loadMoreRecords,
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.blue,
+                textStyle: const TextStyle(fontSize: 12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Show More (${_getRecordsToShow(dataToDisplay)} more)'),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.keyboard_arrow_down, size: 16),
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );
   }
+
+  // Helper method to get the number of records to show
+  int _getRecordsToShow(List<dynamic> dataToDisplay) {
+    int remainingRecords = dataToDisplay.length - _currentDisplayCount;
+    return math.min(_incrementCount, remainingRecords);
+  }
+
+  // Widget _buildShowMoreButtonTeamComparison() {
+  //   List<dynamic> dataToDisplay;
+
+  //   if (_isComparing &&
+  //       selectedUserIds.isNotEmpty &&
+  //       _teamComparisonData.isNotEmpty) {
+  //     dataToDisplay = _teamComparisonData;
+  //   } else if (_isComparing && selectedUserIds.isNotEmpty) {
+  //     dataToDisplay = _membersData.where((member) {
+  //       return selectedUserIds.contains(member['user_id'].toString());
+  //     }).toList();
+  //   } else {
+  //     dataToDisplay = _membersData;
+  //   }
+
+  //   if (dataToDisplay.isEmpty || !_hasMoreRecordsTeams(dataToDisplay)) {
+  //     return const SizedBox.shrink();
+  //   }
+
+  //   int remainingRecords = dataToDisplay.length - _currentDisplayCount;
+  //   int recordsToShow = math.min(_incrementCount, remainingRecords);
+
+  //   return Padding(
+  //     padding: const EdgeInsets.only(top: 10.0),
+  //     child: Row(
+  //       mainAxisAlignment: MainAxisAlignment.end,
+  //       children: [
+  //         TextButton(
+  //           onPressed: _loadMoreRecords,
+  //           style: TextButton.styleFrom(
+  //             foregroundColor: Colors.blue,
+  //             textStyle: const TextStyle(fontSize: 12),
+  //           ),
+  //           child: Row(
+  //             mainAxisSize: MainAxisSize.min,
+  //             children: [
+  //               Text('Show More ($recordsToShow more)'),
+  //               const SizedBox(width: 4),
+  //               const Icon(Icons.keyboard_arrow_down, size: 16),
+  //             ],
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   TableRow _buildTableRow(List<Widget> widgets) {
     return TableRow(

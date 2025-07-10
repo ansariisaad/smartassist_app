@@ -126,7 +126,7 @@ class _FUpcomingState extends State<FUpcoming> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://dev.smartassistapp.in/api/favourites/follow-ups/all',
+          'https://api.smartassistapp.in/api/favourites/follow-ups/all',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -701,7 +701,7 @@ class ReusableSlidableAction extends StatelessWidget {
 //     try {
 //       final response = await http.get(
 //         Uri.parse(
-//             'https://dev.smartassistapp.in/api/favourites/follow-ups/all'),
+//             'https://api.smartassistapp.in/api/favourites/follow-ups/all'),
 //         headers: {
 //           'Authorization': 'Bearer $token',
 //           'Content-Type': 'application/json'
@@ -832,7 +832,7 @@ class ReusableSlidableAction extends StatelessWidget {
 //     try {
 //       final response = await http.put(
 //         Uri.parse(
-//           'https://dev.smartassistapp.in/api/favourites/mark-fav/task/${widget.taskId}',
+//           'https://api.smartassistapp.in/api/favourites/mark-fav/task/${widget.taskId}',
 //         ),
 //         headers: {
 //           'Authorization': 'Bearer $token',

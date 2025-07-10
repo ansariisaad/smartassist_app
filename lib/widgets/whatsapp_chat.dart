@@ -112,6 +112,11 @@ class _MessageBubbleState extends State<MessageBubble> {
                 heroTag: widget.message.id ?? widget.message.mediaUrl,
               ),
 
+            // Document handling
+            if (widget.message.type == 'document' &&
+                widget.message.media != null)
+              _buildDocumentWidget(),
+
             if (widget.message.body.isNotEmpty)
               Text(widget.message.body, style: const TextStyle(fontSize: 16)),
             const SizedBox(height: 2),
@@ -127,6 +132,87 @@ class _MessageBubbleState extends State<MessageBubble> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDocumentWidget() {
+    final media = widget.message.media;
+    final filename = media?['filename'] ?? 'Document';
+    final mimetype = media?['mimetype'] ?? '';
+
+    // Get appropriate icon based on file type
+    IconData getDocumentIcon(String mimetype, String filename) {
+      final extension = filename.split('.').last.toLowerCase();
+
+      switch (extension) {
+        case 'pdf':
+          return Icons.picture_as_pdf;
+        case 'doc':
+        case 'docx':
+          return Icons.description;
+        case 'xls':
+        case 'xlsx':
+          return Icons.table_chart;
+        case 'ppt':
+        case 'pptx':
+          return Icons.slideshow;
+        case 'txt':
+          return Icons.text_snippet;
+        case 'zip':
+        case 'rar':
+        case '7z':
+          return Icons.archive;
+        case 'mp3':
+        case 'wav':
+          return Icons.audio_file;
+        case 'mp4':
+        case 'avi':
+        case 'mov':
+          return Icons.video_file;
+        default:
+          return Icons.insert_drive_file;
+      }
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            getDocumentIcon(mimetype, filename),
+            size: 32,
+            color: Colors.blue[600],
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  filename,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                // Text(
+                //   // _getFileTypeLabel(mimetype, filename),
+                //   // style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                // ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -257,7 +343,7 @@ class _WhatsappChatState extends State<WhatsappChat>
     });
     try {
       final url = Uri.parse(
-        'https://dev.smartassistapp.in/api/check-wa-status',
+        'https://api.smartassistapp.in/api/check-wa-status',
       );
       final token = await Storage.getToken();
       final response = await http.post(
@@ -314,7 +400,7 @@ class _WhatsappChatState extends State<WhatsappChat>
     });
 
     try {
-      final url = Uri.parse('https://dev.smartassistapp.in/api/init-wa');
+      final url = Uri.parse('https://api.smartassistapp.in/api/init-wa');
       final token = await Storage.getToken();
       final response = await http.post(
         url,
@@ -423,7 +509,7 @@ class _WhatsappChatState extends State<WhatsappChat>
   }
 
   void initSocket() {
-    socket = IO.io('wss://dev.smartassistapp.in', <String, dynamic>{
+    socket = IO.io('wss://api.smartassistapp.in', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': true,
       'reconnection': true,
@@ -848,7 +934,7 @@ class _WhatsappChatState extends State<WhatsappChat>
     if (!isWhatsAppReady) return;
 
     setState(() {
-      isSendingDocument = true; // You'll need to add this boolean to your state
+      isSendingDocument = true;
     });
 
     try {
@@ -914,29 +1000,33 @@ class _WhatsappChatState extends State<WhatsappChat>
           break;
       }
 
-      final message = {
-        'chatId': widget.chatId,
-        'message': _messageController.text.trim(), // Caption
-        'sessionId': spId,
-        'media': {
-          'mimetype': mimeType,
-          'base64': base64String,
-          'filename': document.name,
-        },
+      final mediaInfo = {
+        'mimetype': mimeType,
+        'base64': base64String,
+        'filename': document.name,
       };
 
-      print(
-        'Sending document message: ${(message['media'] as Map<String, dynamic>)['filename']}',
-      );
+      // Fixed: Match the expected socket structure
+      final message = {
+        'sessionId': spId,
+        'chatId': widget.chatId,
+        'message': _messageController.text.trim(),
+        'media': mediaInfo,
+      };
+
+      print('Sending document message: ${document.name}');
+      print('Message structure: $message');
+
       socket.emit('send_message', message);
 
+      // Fixed: Include media info in local message
       final localMessage = Message(
         body: _messageController.text.trim(),
         fromMe: true,
         timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
         type: 'document',
-        mediaUrl: document.path, // Use local path for immediate display
-        media: null,
+        mediaUrl: document.path,
+        media: mediaInfo, // Include media info for local display
       );
 
       setState(() {
@@ -961,6 +1051,126 @@ class _WhatsappChatState extends State<WhatsappChat>
       });
     }
   }
+
+  // Future<void> sendDocumentMessage(XFile document) async {
+  //   if (!isWhatsAppReady) return;
+
+  //   setState(() {
+  //     isSendingDocument = true; // You'll need to add this boolean to your state
+  //   });
+
+  //   try {
+  //     // Read document as bytes
+  //     final bytes = await document.readAsBytes();
+  //     final base64String = base64Encode(bytes);
+
+  //     // Get file extension and mime type
+  //     final extension = document.path.split('.').last.toLowerCase();
+  //     String mimeType = 'application/octet-stream'; // default
+
+  //     switch (extension) {
+  //       case 'pdf':
+  //         mimeType = 'application/pdf';
+  //         break;
+  //       case 'doc':
+  //         mimeType = 'application/msword';
+  //         break;
+  //       case 'docx':
+  //         mimeType =
+  //             'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+  //         break;
+  //       case 'xls':
+  //         mimeType = 'application/vnd.ms-excel';
+  //         break;
+  //       case 'xlsx':
+  //         mimeType =
+  //             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  //         break;
+  //       case 'ppt':
+  //         mimeType = 'application/vnd.ms-powerpoint';
+  //         break;
+  //       case 'pptx':
+  //         mimeType =
+  //             'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+  //         break;
+  //       case 'txt':
+  //         mimeType = 'text/plain';
+  //         break;
+  //       case 'csv':
+  //         mimeType = 'text/csv';
+  //         break;
+  //       case 'zip':
+  //         mimeType = 'application/zip';
+  //         break;
+  //       case 'rar':
+  //         mimeType = 'application/vnd.rar';
+  //         break;
+  //       case '7z':
+  //         mimeType = 'application/x-7z-compressed';
+  //         break;
+  //       case 'mp3':
+  //         mimeType = 'audio/mpeg';
+  //         break;
+  //       case 'mp4':
+  //         mimeType = 'video/mp4';
+  //         break;
+  //       case 'avi':
+  //         mimeType = 'video/x-msvideo';
+  //         break;
+  //       case 'mov':
+  //         mimeType = 'video/quicktime';
+  //         break;
+  //     }
+
+  //     final message = {
+  //       'chatId': widget.chatId,
+  //       'message': _messageController.text.trim(), // Caption
+  //       'sessionId': spId,
+  //       'media': {
+  //         'mimetype': mimeType,
+  //         'base64': base64String,
+  //         'filename': document.name,
+  //       },
+  //     };
+
+  //     print(
+  //       'Sending document message: ${(message['media'] as Map<String, dynamic>)['filename']}',
+  //     );
+  //     print(' this is msg : $message.toString()');
+
+  //     socket.emit('send_message', message);
+
+  //     final localMessage = Message(
+  //       body: _messageController.text.trim(),
+  //       fromMe: true,
+  //       timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+  //       type: 'document',
+  //       mediaUrl: document.path, // Use local path for immediate display
+  //       media: null,
+  //     );
+
+  //     setState(() {
+  //       messages.add(localMessage);
+  //     });
+
+  //     _messageController.clear();
+  //     WidgetsBinding.instance.addPostFrameCallback((_) {
+  //       _scrollToBottom();
+  //     });
+  //   } catch (e) {
+  //     print('Error sending document: $e');
+  //     Get.snackbar(
+  //       'Error',
+  //       'Failed to send document',
+  //       backgroundColor: Colors.red,
+  //       colorText: Colors.white,
+  //     );
+  //   } finally {
+  //     setState(() {
+  //       isSendingDocument = false;
+  //     });
+  //   }
+  // }
 
   Future<void> sendImageMessage(XFile image) async {
     if (!isWhatsAppReady) return;

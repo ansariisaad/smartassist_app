@@ -66,6 +66,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
   String expected_date_purchase = 'Loading...';
   String pincode = 'Loading..';
   String lead_status = 'Not Converted';
+  String vehicle_id = '';
 
   bool isLoading = false;
   int _childButtonIndex = 0;
@@ -243,6 +244,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
         lead_name = leadData['data']['lead_name'] ?? 'N/A';
         pincode = leadData['data']['pincode']?.toString() ?? 'N/A';
         lead_status = leadData['data']['opp_status'] ?? 'Not Converted';
+        vehicle_id = leadData['data']['vehicle_id'] ?? '';
       });
     } catch (e) {
       print('Error fetching data: $e');
@@ -341,7 +343,6 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
   void _toggleTasks(int index) {
     setState(() {
       _childButtonIndex = index;
-
       if (index == 0) {
         // Show upcoming tasks
         _selectedTaskWidget = TimelineUpcoming(
@@ -481,6 +482,8 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
             ),
             child: TestdriveIds(
               leadId: leadId,
+              vehicle_id: vehicle_id,
+              PMI: PMI,
               onFormSubmit: eventandtask,
             ), // Appointment modal
           ),
@@ -1597,35 +1600,33 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                         // Lost Button
                         Expanded(
                           child: GestureDetector(
-                            onTap: () {
-                              if (widget.isFromFreshlead) {
-                                _showFollowupPopup(context, widget.leadId);
-                              } else {
-                                if (areButtonsEnabled()) {
-                                  handleLostAction();
-                                } else {
-                                  showLostRequiredDialog(context);
-                                }
-                              }
-                            },
+                            onTap: () =>
+                                _showFollowupPopup(context, widget.leadId),
+                            // onTap: () {
+                            //   if (widget.isFromFreshlead) {
+                            //     _showFollowupPopup(context, widget.leadId);
+                            //   } else {
+                            //     if (areButtonsEnabled()) {
+                            //       handleLostAction();
+                            //     } else {
+                            //       showLostRequiredDialog(context);
+                            //     }
+                            //   }
+                            // },
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 10),
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 border: Border.all(
-                                  color: widget.isFromFreshlead
-                                      ? Colors.blue
-                                      : Colors.red,
+                                  color: Colors.blue,
                                   width: 1,
                                 ),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
-                                widget.isFromFreshlead ? 'Follow up?' : 'Lost',
-                                style: widget.isFromFreshlead
-                                    ? AppFont.mediumText14bluee(context)
-                                    : AppFont.mediumText14red(context),
                                 textAlign: TextAlign.center,
+                                'Followups',
+                                style: AppFont.mediumText14bluee(context),
                               ),
                             ),
                           ),
@@ -1854,15 +1855,6 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   _buildPopupItem(
-                    Icons.call,
-                    "Followup",
-                    -40,
-                    onTap: () {
-                      fabController.closeFab();
-                      _showFollowupPopup(context, widget.leadId);
-                    },
-                  ),
-                  _buildPopupItem(
                     Icons.calendar_month_outlined,
                     "Appointment",
                     -80,
@@ -1878,6 +1870,16 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                     onTap: () {
                       fabController.closeFab();
                       _showTestdrivePopup(context, widget.leadId);
+                    },
+                  ),
+                  _buildPopupItem(
+                    Icons.trending_down_sharp ,
+                    "Lost",
+                    -40,
+                    onTap: () {
+                      fabController.closeFab();
+                      handleLostAction();
+                      // _showFollowupPopup(context, widget.leadId);
                     },
                   ),
                 ],

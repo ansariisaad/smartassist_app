@@ -649,14 +649,12 @@ class _LicenseVarificationState extends State<LicenseVarification>
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
-                    submitFeedback(
-                      "License previously verified - trusted client",
-                    );
+                    submitFeedback("License not available");
                   },
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'License previously verified - trusted client.',
+                      'License not available',
                       style: AppFont.mediumText14(context),
                       textAlign: TextAlign.left,
                     ),
@@ -666,14 +664,12 @@ class _LicenseVarificationState extends State<LicenseVarification>
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
-                    submitFeedback(
-                      "Test drive under sales associate supervision - license on file",
-                    );
+                    submitFeedback("Client denied");
                   },
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'Test drive under sales associate supervision - license on file.',
+                      'Client denied',
                       style: AppFont.mediumText14(context),
                       textAlign: TextAlign.left,
                     ),
@@ -683,14 +679,57 @@ class _LicenseVarificationState extends State<LicenseVarification>
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
-                    submitFeedback(
-                      "Exception approved by management - premium client",
-                    );
+                    submitFeedback("Already taken");
                   },
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'Exception approved by management - premium client.',
+                      'Already taken',
+                      style: AppFont.mediumText14(context),
+                      textAlign: TextAlign.left,
+                    ),
+                  ),
+                ),
+                Divider(height: 1, color: Colors.grey.shade200),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    submitFeedback("Just exploring");
+                  },
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Just exploring',
+                      style: AppFont.mediumText14(context),
+                      textAlign: TextAlign.left,
+                    ),
+                  ),
+                ),
+                Divider(height: 1, color: Colors.grey.shade200),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    submitFeedback("Time constraints");
+                  },
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Time constraints',
+                      style: AppFont.mediumText14(context),
+                      textAlign: TextAlign.left,
+                    ),
+                  ),
+                ),
+                Divider(height: 1, color: Colors.grey.shade200),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    submitFeedback("Others");
+                  },
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Others',
                       style: AppFont.mediumText14(context),
                       textAlign: TextAlign.left,
                     ),

@@ -1624,9 +1624,11 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
+                                'Follow up?',
+                                style: widget.isFromFreshlead
+                                    ? AppFont.mediumText14bluee(context)
+                                    : AppFont.mediumText14red(context),
                                 textAlign: TextAlign.center,
-                                'Followups',
-                                style: AppFont.mediumText14bluee(context),
                               ),
                             ),
                           ),

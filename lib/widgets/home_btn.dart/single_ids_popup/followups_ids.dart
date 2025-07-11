@@ -504,50 +504,9 @@ class _FollowupsIdsState extends State<FollowupsIds> {
                   'Plan a Follow up',
                   style: AppFont.popupTitleBlack(context),
                 ),
-                // TextButton(
-                //   onPressed: () => Navigator.pop(context),
-                //   child: Text(
-                //     textAlign: TextAlign.start,
-                //     'Cancel',
-                //     style: GoogleFonts.poppins(
-                //       fontSize: 18,
-                //       color: AppColors.colorsBlue,
-                //       fontWeight: FontWeight.w500,
-                //     ),
-                //   ),
-                // )
               ],
             ),
             const SizedBox(height: 10),
-            DateButton(
-              errorText: _errors['date'],
-              isRequired: true,
-              label: 'When?',
-              dateController: startDateController,
-              timeController: startTimeController,
-              onDateTap: _pickStartDate,
-              onTimeTap: _pickStartTime,
-              onChanged: (String value) {},
-            ),
-            // _buildSearchField(),
-            // const SizedBox(height: 10),
-            // _buildDatePicker(
-            //   label: 'Select date:',
-            //   controller: dateController,
-            //   errorText: _errors['date'],
-            //   onTap: _pickDate,
-            // ),
-            const SizedBox(height: 10),
-
-            // Row(
-            //   mainAxisAlignment: MainAxisAlignment.start,
-            //   children: [
-            //     _selectedInput(
-            //       label: "Priority:",
-            //       options: ["High"],
-            //     ),
-            //   ],
-            // ),
             ActionButton(
               label: "Action:",
               isRequired: true,
@@ -568,6 +527,37 @@ class _FollowupsIdsState extends State<FollowupsIds> {
               },
               errorText: _errors['subject'],
             ),
+
+            const SizedBox(height: 10),
+
+            DateButton(
+              errorText: _errors['date'],
+              isRequired: true,
+              label: 'When?',
+              dateController: startDateController,
+              timeController: startTimeController,
+              onDateTap: _pickStartDate,
+              onTimeTap: _pickStartTime,
+              onChanged: (String value) {},
+            ),
+            // _buildSearchField(),
+            // const SizedBox(height: 10),
+            // _buildDatePicker(
+            //   label: 'Select date:',
+            //   controller: dateController,
+            //   errorText: _errors['date'],
+            //   onTap: _pickDate,
+            // ),
+
+            // Row(
+            //   mainAxisAlignment: MainAxisAlignment.start,
+            //   children: [
+            //     _selectedInput(
+            //       label: "Priority:",
+            //       options: ["High"],
+            //     ),
+            //   ],
+            // ),
             // _buildButtons(
             //   label: 'Action:',
             //   // options: ['Call', 'Provide Quotation', 'Send Email'],

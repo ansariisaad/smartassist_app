@@ -107,7 +107,7 @@ class _AllTestdriveState extends State<AllTestdrive>
         onResult: (result) {
           setState(() {
             controller.text = result.recognizedWords;
-            _onSearchChanged(); // Trigger search filtering
+            _onSearchChanged();
           });
         },
         listenFor: Duration(seconds: 30),
@@ -376,145 +376,155 @@ class _AllTestdriveState extends State<AllTestdrive>
             SliverToBoxAdapter(
               child: Column(
                 children: [
-                  Container(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 15,
-                      vertical: 10,
-                    ),
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(
-                        minHeight: 38,
-                        maxHeight: 38,
-                      ),
-                      child: TextField(
-                        autofocus: false,
-                        controller: _searchController,
-                        enabled: !_isListening,
-                        onChanged: (value) => _onSearchChanged(),
-                        textAlignVertical: TextAlignVertical.center,
-                        style: GoogleFonts.poppins(
-                          fontSize: _getResponsiveFontSize(context, isTablet),
-                          color: _isListening
-                              ? AppColors.iconGrey
-                              : Colors.black,
-                        ),
-                        decoration: InputDecoration(
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
-                            borderSide: BorderSide.none,
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
-                            borderSide: BorderSide.none,
-                          ),
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: _getResponsiveHorizontalPadding(
-                              context,
-                              isTablet,
-                            ),
-                            vertical: _getResponsiveVerticalPadding(
-                              context,
-                              isTablet,
-                            ),
-                          ),
-                          filled: true,
-                          fillColor: _isListening
-                              ? AppColors.containerBg.withOpacity(0.8)
-                              : AppColors.containerBg,
-                          hintText: _isListening
-                              ? 'Listening... Speak now'
-                              : 'Search by name, email or phone',
-                          hintStyle: GoogleFonts.poppins(
-                            fontSize: _getResponsiveHintFontSize(
-                              context,
-                              isTablet,
-                            ),
-                            fontWeight: FontWeight.w300,
-                            color: _isListening
-                                ? AppColors.iconGrey
-                                : Colors.grey,
-                          ),
-                          suffixIcon: Container(
-                            width: _getResponsiveIconContainerWidth(
-                              context,
-                              isTablet,
-                            ),
-                            child: Center(
-                              child: IconButton(
-                                icon: Icon(
-                                  _isListening
-                                      ? FontAwesomeIcons.microphone
-                                      : FontAwesomeIcons.microphoneSlash,
-                                  color: _isListening
-                                      ? AppColors.fontColor
-                                      : AppColors.fontColor,
-                                  size: _getResponsiveIconSize(
-                                    context,
-                                    isTablet,
-                                  ),
-                                ),
-                                onPressed: () =>
-                                    _toggleListening(_searchController),
-                              ),
-                            ),
-                          ),
-
-                          // suffixIcon: Container(
-                          //   width: _getResponsiveIconContainerWidth(
-                          //     context,
-                          //     isTablet,
-                          //   ),
-                          //   child: Center(
-                          //     child: GlobleSpeechtotext(
-                          //       onSpeechResult: (result) {
-                          //         _searchController.text = result;
-                          //         _onSearchChanged();
-                          //       },
-                          //       onListeningStateChanged: (isListening) {
-                          //         setState(() => _isListening = isListening);
-                          //       },
-                          //       iconSize: _getResponsiveIconSize(
-                          //         context,
-                          //         isTablet,
-                          //       ),
-                          //       // activeColor: AppColors.colorsBlue,
-                          //       activeColor: AppColors.iconGrey,
-                          //       inactiveColor: AppColors.fontColor,
-                          //     ),
-                          //   ),
-                          // ),
-                          prefixIcon: Container(
-                            width: _getResponsiveIconContainerWidth(
-                              context,
-                              isTablet,
-                            ),
-                            child: Center(
-                              child: Icon(
-                                FontAwesomeIcons.magnifyingGlass,
-                                color: AppColors.fontColor,
-                                size: _getResponsiveIconSize(context, isTablet),
-                              ),
-                            ),
-                          ),
-                          prefixIconConstraints: BoxConstraints(
-                            minWidth: _getResponsiveIconContainerWidth(
-                              context,
-                              isTablet,
-                            ),
-                            maxWidth: _getResponsiveIconContainerWidth(
-                              context,
-                              isTablet,
-                            ),
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
-                            borderSide: BorderSide.none,
-                          ),
-                          isDense: true,
-                        ),
-                      ),
-                    ),
+                  SpeechSearchWidget(
+                    controller: _searchController,
+                    hintText: "Search test drives...",
+                    onChanged: (value) => _onSearchChanged(),
+                    primaryColor: AppColors.fontColor,
+                    backgroundColor: Colors.grey.shade100,
+                    borderRadius: 30.0,
+                    prefixIcon: Icon(Icons.search, color: AppColors.fontColor),
                   ),
+
+                  // Container(
+                  //   margin: const EdgeInsets.symmetric(
+                  //     horizontal: 15,
+                  //     vertical: 10,
+                  //   ),
+                  //   child: ConstrainedBox(
+                  //     constraints: const BoxConstraints(
+                  //       minHeight: 38,
+                  //       maxHeight: 38,
+                  //     ),
+                  //     child: TextField(
+                  //       autofocus: false,
+                  //       controller: _searchController,
+                  //       enabled: !_isListening,
+                  //       onChanged: (value) => _onSearchChanged(),
+                  //       textAlignVertical: TextAlignVertical.center,
+                  //       style: GoogleFonts.poppins(
+                  //         fontSize: _getResponsiveFontSize(context, isTablet),
+                  //         color: _isListening
+                  //             ? AppColors.iconGrey
+                  //             : Colors.black,
+                  //       ),
+                  //       decoration: InputDecoration(
+                  //         enabledBorder: OutlineInputBorder(
+                  //           borderRadius: BorderRadius.circular(30),
+                  //           borderSide: BorderSide.none,
+                  //         ),
+                  //         focusedBorder: OutlineInputBorder(
+                  //           borderRadius: BorderRadius.circular(30),
+                  //           borderSide: BorderSide.none,
+                  //         ),
+                  //         contentPadding: EdgeInsets.symmetric(
+                  //           horizontal: _getResponsiveHorizontalPadding(
+                  //             context,
+                  //             isTablet,
+                  //           ),
+                  //           vertical: _getResponsiveVerticalPadding(
+                  //             context,
+                  //             isTablet,
+                  //           ),
+                  //         ),
+                  //         filled: true,
+                  //         fillColor: _isListening
+                  //             ? AppColors.containerBg.withOpacity(0.8)
+                  //             : AppColors.containerBg,
+                  //         hintText: _isListening
+                  //             ? 'Listening... Speak now'
+                  //             : 'Search by name, email or phone',
+                  //         hintStyle: GoogleFonts.poppins(
+                  //           fontSize: _getResponsiveHintFontSize(
+                  //             context,
+                  //             isTablet,
+                  //           ),
+                  //           fontWeight: FontWeight.w300,
+                  //           color: _isListening
+                  //               ? AppColors.iconGrey
+                  //               : Colors.grey,
+                  //         ),
+                  //         suffixIcon: Container(
+                  //           width: _getResponsiveIconContainerWidth(
+                  //             context,
+                  //             isTablet,
+                  //           ),
+                  //           child: Center(
+                  //             child: IconButton(
+                  //               icon: Icon(
+                  //                 _isListening
+                  //                     ? FontAwesomeIcons.stop
+                  //                     : FontAwesomeIcons.microphone,
+                  //                 color: _isListening
+                  //                     ? AppColors.sideRed
+                  //                     : AppColors.fontColor,
+                  //                 size: _getResponsiveIconSize(
+                  //                   context,
+                  //                   isTablet,
+                  //                 ),
+                  //               ),
+                  //               onPressed: () =>
+                  //                   _toggleListening(_searchController),
+                  //             ),
+                  //           ),
+                  //         ),
+
+                  //         // suffixIcon: Container(
+                  //         //   width: _getResponsiveIconContainerWidth(
+                  //         //     context,
+                  //         //     isTablet,
+                  //         //   ),
+                  //         //   child: Center(
+                  //         //     child: GlobleSpeechtotext(
+                  //         //       onSpeechResult: (result) {
+                  //         //         _searchController.text = result;
+                  //         //         _onSearchChanged();
+                  //         //       },
+                  //         //       onListeningStateChanged: (isListening) {
+                  //         //         setState(() => _isListening = isListening);
+                  //         //       },
+                  //         //       iconSize: _getResponsiveIconSize(
+                  //         //         context,
+                  //         //         isTablet,
+                  //         //       ),
+                  //         //       // activeColor: AppColors.colorsBlue,
+                  //         //       activeColor: AppColors.iconGrey,
+                  //         //       inactiveColor: AppColors.fontColor,
+                  //         //     ),
+                  //         //   ),
+                  //         // ),
+                  //         prefixIcon: Container(
+                  //           width: _getResponsiveIconContainerWidth(
+                  //             context,
+                  //             isTablet,
+                  //           ),
+                  //           child: Center(
+                  //             child: Icon(
+                  //               FontAwesomeIcons.magnifyingGlass,
+                  //               color: AppColors.fontColor,
+                  //               size: _getResponsiveIconSize(context, isTablet),
+                  //             ),
+                  //           ),
+                  //         ),
+                  //         prefixIconConstraints: BoxConstraints(
+                  //           minWidth: _getResponsiveIconContainerWidth(
+                  //             context,
+                  //             isTablet,
+                  //           ),
+                  //           maxWidth: _getResponsiveIconContainerWidth(
+                  //             context,
+                  //             isTablet,
+                  //           ),
+                  //         ),
+                  //         border: OutlineInputBorder(
+                  //           borderRadius: BorderRadius.circular(30),
+                  //           borderSide: BorderSide.none,
+                  //         ),
+                  //         isDense: true,
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
                   if (_isLoadingSearch)
                     Container(
                       margin: const EdgeInsets.symmetric(horizontal: 15),
@@ -529,7 +539,11 @@ class _AllTestdriveState extends State<AllTestdrive>
                       children: [
                         const SizedBox(width: 10),
                         Container(
-                          width: _getSubTabWidth(),
+                          constraints: const BoxConstraints(
+                            minWidth: 240,
+                            maxWidth: 320,
+                          ),
+                          // width: _getSubTabWidth(),
                           height: _getSubTabHeight(),
                           decoration: BoxDecoration(
                             border: Border.all(

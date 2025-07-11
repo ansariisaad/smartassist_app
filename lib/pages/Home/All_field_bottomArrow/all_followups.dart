@@ -540,7 +540,11 @@ class _AddFollowupsState extends State<AddFollowups>
                       children: [
                         const SizedBox(width: 10),
                         Container(
-                          width: _getSubTabWidth(),
+                          constraints: const BoxConstraints(
+                            minWidth: 240,
+                            maxWidth: 320,
+                          ),
+                          // width: _getSubTabWidth(),
                           height: _getSubTabHeight(),
                           decoration: BoxDecoration(
                             border: Border.all(

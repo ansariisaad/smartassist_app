@@ -45,6 +45,40 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
     _fetchTestDriveData();
   }
 
+  double parseDistance(String concatenatedDistance) {
+    if (concatenatedDistance.isEmpty) return 0.0;
+
+    // Remove leading/trailing whitespace
+    concatenatedDistance = concatenatedDistance.trim();
+
+    // Split by decimal points and sum up the segments
+    List<String> segments = concatenatedDistance.split('.');
+    double totalDistance = 0.0;
+
+    for (int i = 0; i < segments.length; i++) {
+      String segment = segments[i];
+      if (segment.isNotEmpty) {
+        // Try to parse each segment as a decimal number
+        double? value = double.tryParse('0.$segment');
+        if (value != null) {
+          totalDistance += value;
+        }
+      }
+    }
+
+    return totalDistance;
+  }
+
+  String formatDistance(double distance) {
+    if (distance < 1.0) {
+      // Show in meters if less than 1 km
+      return '${(distance * 1000).toStringAsFixed(0)} m';
+    } else {
+      // Show in kilometers with 2 decimal places
+      return '${distance.toStringAsFixed(2)} km';
+    }
+  }
+
   Future<void> _fetchTestDriveData() async {
     try {
       await Future.delayed(Duration(seconds: 1));
@@ -62,25 +96,19 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
         print('Decoded JSON:');
         print(const JsonEncoder.withIndent('  ').convert(data));
         setState(() {
-          // startTime = data['data']['duration'];
-          // distanceCovered = data['data']['distance'] + ' km';
-          // mapImgUrl = data['data']['map_img'] ?? '';
-          // potentialPurchase = data['data']['purchase_potential'];
-          // purchase_potential = data['data']['purchase_potential'];
-          // // avg_rating = data['data']['avg_rating'].toString();
-          // avg_rating = double.parse(
-          //   data['data']['avg_rating'].toString(),
-          // ).toStringAsFixed(1);
-
-          // ratings = data['data']['drive_feedback'];
-
-          // isLoading = false;
-          // print('Map Image URL: $mapImgUrl');
-
           startTime = data['data']['duration'] ?? '0';
-          distanceCovered = data['data']['distance'] != null
-              ? '${data['data']['distance']} km'
-              : '0.0 km';
+          if (data['data']['distance'] != null) {
+            String rawDistance = data['data']['distance'].toString();
+            double calculatedDistance = parseDistance(rawDistance);
+            distanceCovered = formatDistance(calculatedDistance);
+
+            // Debug print to verify calculation
+            print('Raw distance: $rawDistance');
+            print('Calculated distance: $calculatedDistance km');
+            print('Formatted distance: $distanceCovered');
+          } else {
+            distanceCovered = '0.0 km';
+          }
           mapImgUrl = data['data']['map_img'] ?? '';
           potentialPurchase =
               data['data']['purchase_potential'] ?? 'Not provided';
@@ -657,15 +685,6 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
           // Rating label
           Text('$label', style: AppFont.smallText(context)),
 
-          // const Row(
-          //   children: [
-          //     Icon(
-          //       Icons.star_rounded,
-          //       size: 20,
-          //       color: Colors.amber,
-          //     )
-          //   ],
-          // ),
           // The progress line using LinearPercentIndicator
           Row(
             children: [
@@ -690,28 +709,6 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
               ),
             ],
           ),
-
-          // Emoji corresponding to the rating level
-          // Padding(
-          //   padding: const EdgeInsets.only(left: 0),
-          //   child: Text(
-          //     emojiRatings[
-          //         validRating - 1], // Adjust emoji index based on rating
-          //     style: const TextStyle(fontSize: 15),
-          //   ),
-          // ),
-
-          // Padding(
-          //   padding: const EdgeInsets.only(left: 0),
-          //   child: Text(
-          //     validRating > 0
-          //         ? emojiRatings[validRating - 1]
-          //         : '', // ✅ Safe check
-          //     style: const TextStyle(fontSize: 15),
-          //   ),
-          // ),
-
-          // Static stars (5 stars)
         ],
       ),
     );

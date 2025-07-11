@@ -3,22 +3,17 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:smartassist/config/component/color/colors.dart';
-import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/buttons/add_btn.dart';
 import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/create_Followups_popups.dart';
-// Adjust import as needed
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smartassist/widgets/oppointment/all_oppintment.dart';
 import 'package:smartassist/widgets/oppointment/overdue.dart';
 import 'package:smartassist/widgets/oppointment/upcoming.dart';
-import 'package:smartassist/widgets/reusable/globle_speechtotext.dart';
 import 'package:smartassist/widgets/reusable/skeleton_card.dart';
-import 'package:smartassist/widgets/reusable/skeleton_globle_search_card.dart';
-import 'package:speech_to_text/speech_to_text.dart'
-    as stt; // Import GlobleSpeechtotext
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class AllAppointment extends StatefulWidget {
   final Future<void> Function() refreshDashboard;
@@ -515,7 +510,11 @@ class _AllAppointmentState extends State<AllAppointment>
                       children: [
                         const SizedBox(width: 10),
                         Container(
-                          width: _getSubTabWidth(),
+                          constraints: const BoxConstraints(
+                            minWidth: 240,
+                            maxWidth: 300,
+                          ),
+                          // width: _getSubTabWidth(),
                           height: _getSubTabHeight(),
                           decoration: BoxDecoration(
                             border: Border.all(

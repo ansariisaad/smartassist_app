@@ -38,7 +38,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
   bool isDriveEnded = false;
   bool isLoading = true;
   String error = '';
-  double totalDistance = 0;
+  double totalDistance = 0.0;
   int driveDuration = 0;
   StreamSubscription<Position>? positionStreamSubscription;
   DateTime? startTime;
@@ -229,6 +229,73 @@ class _StartDriveMapState extends State<StartDriveMap> {
         print('Socket reconnection error: $error');
       });
 
+      // socket!.on('locationUpdated', (data) {
+      //   if (mounted) {
+      //     if (data == null || data['newCoordinates'] == null) {
+      //       print('Received invalid location update data');
+      //       return;
+      //     }
+
+      //     // Throttle updates to once every 3 seconds
+      //     if (_throttleTimer?.isActive ?? false) return;
+      //     _throttleTimer = Timer(const Duration(seconds: 3), () {});
+
+      //     try {
+      //       setState(() {
+      //         LatLng newCoordinates = LatLng(
+      //           data['newCoordinates']['latitude'],
+      //           data['newCoordinates']['longitude'],
+      //         );
+
+      //         userMarker = Marker(
+      //           markerId: const MarkerId('user'),
+      //           position: newCoordinates,
+      //           infoWindow: const InfoWindow(title: 'User'),
+      //           icon: BitmapDescriptor.defaultMarkerWithHue(
+      //             BitmapDescriptor.hueAzure,
+      //           ),
+      //         );
+
+      //         // Only add to route if it's a significant movement
+      //         if (routePoints.isNotEmpty) {
+      //           LatLng lastPoint = routePoints.last;
+      //           double segmentDistance = _calculateDistance(
+      //             lastPoint,
+      //             newCoordinates,
+      //           );
+
+      //           if (segmentDistance > 0.005) {
+      //             // Only add if moved more than 5 meters
+      //             totalDistance = (totalDistance + segmentDistance);
+      //             routePoints.add(newCoordinates);
+      //             _updatePolyline();
+      //           }
+      //         } else {
+      //           routePoints.add(newCoordinates);
+      //           _updatePolyline();
+      //         }
+
+      //         // Use server-provided total distance if available and valid
+      //         if (data['totalDistance'] != null) {
+      //           double serverDistance =
+      //               double.tryParse(data['totalDistance'].toString()) ?? 0.0;
+      //           if (serverDistance > 0) {
+      //             totalDistance = serverDistance;
+      //           }
+      //         }
+
+      //         if (mapController != null) {
+      //           mapController.animateCamera(
+      //             CameraUpdate.newLatLng(newCoordinates),
+      //           );
+      //         }
+      //       });
+      //     } catch (e) {
+      //       print('Error processing location update: $e');
+      //     }
+      //   }
+      // });
+
       socket!.on('locationUpdated', (data) {
         if (mounted) {
           if (data == null || data['newCoordinates'] == null) {
@@ -266,9 +333,18 @@ class _StartDriveMapState extends State<StartDriveMap> {
 
                 if (segmentDistance > 0.005) {
                   // Only add if moved more than 5 meters
-                  totalDistance = (totalDistance + segmentDistance);
+                  totalDistance +=
+                      segmentDistance; // FIXED: Use += instead of concatenation
                   routePoints.add(newCoordinates);
                   _updatePolyline();
+
+                  // Debug print to verify calculation
+                  print(
+                    'Segment distance: ${segmentDistance.toStringAsFixed(3)} km',
+                  );
+                  print(
+                    'Total distance: ${totalDistance.toStringAsFixed(3)} km',
+                  );
                 }
               } else {
                 routePoints.add(newCoordinates);
@@ -510,24 +586,6 @@ class _StartDriveMapState extends State<StartDriveMap> {
 
     return distanceInKm;
   }
-  // Update location to backend
-  // void _sendLocationUpdate(LatLng location) {
-  //   if (socket != null && socket!.connected) {
-  //     socket!.emit('updateLocation', {
-  //       'eventId': widget.eventId,
-  //       'newCoordinates': {
-  //         'latitude': location.latitude,
-  //         'longitude': location.longitude,
-  //       },
-  //       'totalDistance': totalDistance, // Also send current calculated distance
-  //     });
-  //   } else {
-  //     print('Socket not connected, trying to reconnect...');
-  //     if (socket != null) {
-  //       socket!.connect();
-  //     }
-  //   }
-  // }
 
   // Handle when drive ends
   void _handleDriveEnded(double distance, int duration) {

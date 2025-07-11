@@ -66,6 +66,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
   String expected_date_purchase = 'Loading...';
   String pincode = 'Loading..';
   String lead_status = 'Not Converted';
+  String vehicle_id = '';
 
   bool isLoading = false;
   int _childButtonIndex = 0;
@@ -243,6 +244,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
         lead_name = leadData['data']['lead_name'] ?? 'N/A';
         pincode = leadData['data']['pincode']?.toString() ?? 'N/A';
         lead_status = leadData['data']['opp_status'] ?? 'Not Converted';
+        vehicle_id = leadData['data']['vehicle_id'] ?? '';
       });
     } catch (e) {
       print('Error fetching data: $e');
@@ -481,6 +483,8 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
             ),
             child: TestdriveIds(
               leadId: leadId,
+              vehicle_id: vehicle_id,
+              PMI: PMI,
               onFormSubmit: eventandtask,
             ), // Appointment modal
           ),

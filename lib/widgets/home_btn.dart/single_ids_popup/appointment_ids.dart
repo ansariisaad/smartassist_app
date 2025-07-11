@@ -266,6 +266,102 @@ class _AppointmentIdsState extends State<AppointmentIds> {
     }
   }
 
+  // Future<void> _pickStartDate() async {
+  //   FocusScope.of(context).unfocus();
+
+  //   // Get current start date or use today
+  //   DateTime initialDate;
+  //   try {
+  //     if (startDateController.text.isNotEmpty) {
+  //       initialDate = DateFormat('dd MMM yyyy').parse(startDateController.text);
+  //     } else {
+  //       initialDate = DateTime.now();
+  //     }
+  //   } catch (e) {
+  //     initialDate = DateTime.now();
+  //   }
+
+  //   DateTime? pickedDate = await showDatePicker(
+  //     context: context,
+  //     initialDate: initialDate,
+  //     firstDate: DateTime(2000),
+  //     lastDate: DateTime(2100),
+  //   );
+
+  //   if (pickedDate != null) {
+  //     String formattedDate = DateFormat('dd MMM yyyy').format(pickedDate);
+
+  //     setState(() {
+  //       // Set start date
+  //       startDateController.text = formattedDate;
+
+  //       // Set end date to the same as start date but not visible in the UI
+  //       // (Only passed to API)
+  //       endDateController.text = formattedDate;
+  //     });
+  //   }
+  // }
+
+  // Future<void> _pickStartTime() async {
+  //   FocusScope.of(context).unfocus();
+
+  //   // Get current time from startTimeController or use current time
+  //   TimeOfDay initialTime;
+  //   try {
+  //     if (startTimeController.text.isNotEmpty) {
+  //       final parsedTime = DateFormat(
+  //         'hh:mm a',
+  //       ).parse(startTimeController.text);
+  //       initialTime = TimeOfDay(
+  //         hour: parsedTime.hour,
+  //         minute: parsedTime.minute,
+  //       );
+  //     } else {
+  //       initialTime = TimeOfDay.now();
+  //     }
+  //   } catch (e) {
+  //     initialTime = TimeOfDay.now();
+  //   }
+
+  //   TimeOfDay? pickedTime = await showTimePicker(
+  //     context: context,
+  //     initialTime: initialTime,
+  //   );
+
+  //   if (pickedTime != null) {
+  //     // Create a temporary DateTime to format the time
+  //     final now = DateTime.now();
+  //     final time = DateTime(
+  //       now.year,
+  //       now.month,
+  //       now.day,
+  //       pickedTime.hour,
+  //       pickedTime.minute,
+  //     );
+  //     String formattedTime = DateFormat('hh:mm a').format(time);
+
+  //     // Calculate end time (1 hour later)
+  //     final endHour = (pickedTime.hour + 1) % 24;
+  //     final endTime = DateTime(
+  //       now.year,
+  //       now.month,
+  //       now.day,
+  //       endHour,
+  //       pickedTime.minute,
+  //     );
+  //     String formattedEndTime = DateFormat('hh:mm a').format(endTime);
+
+  //     setState(() {
+  //       // Set start time
+  //       startTimeController.text = formattedTime;
+
+  //       // Set end time to 1 hour later but not visible in the UI
+  //       // (Only passed to API)
+  //       endTimeController.text = formattedEndTime;
+  //     });
+  //   }
+  // }
+
   void _submit() async {
     if (isSubmitting) return;
 

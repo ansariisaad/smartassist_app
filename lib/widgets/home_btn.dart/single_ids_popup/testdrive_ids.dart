@@ -12,16 +12,20 @@ import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/widgets/popups_widget/vehicleSearch_textfield.dart';
 import 'package:smartassist/widgets/remarks_field.dart';
-import 'package:smartassist/widgets/reusable/date_button.dart';
+import 'package:smartassist/widgets/reusable/slot_calendar.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class TestdriveIds extends StatefulWidget {
   final Function onFormSubmit;
   final String leadId;
+  final String vehicle_id;
+  final String PMI;
   const TestdriveIds({
     super.key,
     required this.leadId,
     required this.onFormSubmit,
+    required this.vehicle_id,
+    required this.PMI,
   });
 
   @override
@@ -47,6 +51,8 @@ class _TestdriveIdsState extends State<TestdriveIds> {
   late stt.SpeechToText _speech;
   bool _isListening = false;
   bool isSubmitting = false;
+  // String widget.ve;
+  Map<String, dynamic>? slotData;
 
   Map<String, String> _errors = {};
 
@@ -326,33 +332,6 @@ class _TestdriveIdsState extends State<TestdriveIds> {
     }
   }
 
-  // Toggle listening
-  void _toggleListening(TextEditingController controller) async {
-    if (_isListening) {
-      _speech.stop();
-      setState(() {
-        _isListening = false;
-      });
-    } else {
-      setState(() {
-        _isListening = true;
-      });
-
-      await _speech.listen(
-        onResult: (result) {
-          setState(() {
-            controller.text = result.recognizedWords;
-          });
-        },
-        listenFor: Duration(seconds: 30),
-        pauseFor: Duration(seconds: 5),
-        partialResults: true,
-        cancelOnError: true,
-        listenMode: stt.ListenMode.confirmation,
-      );
-    }
-  }
-
   void _submit() async {
     if (isSubmitting) return;
 
@@ -392,82 +371,6 @@ class _TestdriveIdsState extends State<TestdriveIds> {
     } finally {
       setState(() => isSubmitting = false);
     }
-  }
-
-  Widget _buildTextField({
-    required String label,
-    required TextEditingController controller,
-    required String hint,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 5.0),
-          child: Text(
-            label,
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: AppColors.fontBlack,
-            ),
-          ),
-        ),
-        Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(5),
-            color: AppColors.containerBg,
-          ),
-          child: Row(
-            children: [
-              // Expanded TextField that adjusts height
-              Expanded(
-                child: TextField(
-                  controller: controller,
-                  maxLines:
-                      null, // This allows the TextField to expand vertically based on content
-                  minLines: 1, // Minimum 1 line of height
-                  keyboardType: TextInputType.multiline,
-                  decoration: InputDecoration(
-                    hintText: hint,
-                    hintStyle: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 10,
-                    ),
-                    border: InputBorder.none,
-                  ),
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-              // Microphone icon with speech recognition
-              Align(
-                alignment: Alignment.centerRight,
-                child: IconButton(
-                  onPressed: () => _toggleListening(controller),
-                  icon: Icon(
-                    _isListening
-                        ? FontAwesomeIcons.stop
-                        : FontAwesomeIcons.microphone,
-                    color: _isListening ? Colors.red : AppColors.fontColor,
-                    size: 15,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
   }
 
   @override
@@ -526,22 +429,37 @@ class _TestdriveIdsState extends State<TestdriveIds> {
               //     ),
               //   ],
               // ),
-              DateButton(
-                errorText: _errors['date'],
+              SlotCalendar(
+                label: 'Select Date & Time Slot',
                 isRequired: true,
-                label: 'Start',
-                dateController: startDateController,
-                timeController: startTimeController,
-                onDateTap: _pickStartDate,
-                onTimeTap: _pickStartTime,
-                onChanged: (String value) {},
+                controller: startDateController,
+                vehicleId: widget
+                    .vehicle_id, // This gets the vehicle ID from either source
+                onChanged: (value) {
+                  try {
+                    final parsedSlotData = jsonDecode(value);
+                    print('Slot data received: $parsedSlotData');
+
+                    setState(() {
+                      slotData = parsedSlotData;
+                      // Clear the error if it exists
+                      if (_errors.containsKey('select_slot')) {
+                        _errors.remove('select_slot');
+                      }
+                    });
+
+                    print('slotData variable set to: $slotData'); // Debug log
+                  } catch (e) {
+                    // If it's not JSON (like initial date selection), just print
+                    print('Slot changed: $value');
+                  }
+                },
+                onTextFieldTap: () {
+                  print('Calendar container tapped');
+                },
               ),
+
               const SizedBox(height: 10),
-              // _buildTextField(
-              //   label: 'Remarks:',
-              //   controller: descriptionController,
-              //   hint: 'Type or speak...',
-              // ),
               EnhancedSpeechTextField(
                 isRequired: false,
                 // contentPadding: EdgeInsets.zero,
@@ -590,430 +508,34 @@ class _TestdriveIdsState extends State<TestdriveIds> {
     );
   }
 
-  Widget _buildSearchField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Select Lead', style: AppFont.dropDowmLabel(context)),
-        const SizedBox(height: 5),
-        Container(
-          height: MediaQuery.of(context).size.height * 0.055,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(5),
-            color: AppColors.containerBg,
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: AppColors.containerBg,
-                    hintText: selectedLeadsName ?? 'Type name, email or phone',
-                    hintStyle: TextStyle(
-                      color: selectedLeadsName != null
-                          ? Colors.black
-                          : Colors.grey,
-                    ),
-                    prefixIcon: const Icon(
-                      FontAwesomeIcons.magnifyingGlass,
-                      size: 15,
-                      color: AppColors.fontColor,
-                    ),
-                    suffixIcon: IconButton(
-                      icon: const Icon(
-                        FontAwesomeIcons.microphone,
-                        color: AppColors.fontColor,
-                        size: 15,
-                      ),
-                      onPressed: () {
-                        print('Microphone button pressed');
-                      },
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // Show loading indicator
-        if (_isLoadingSearch)
-          const Padding(
-            padding: EdgeInsets.only(top: 8.0),
-            child: Center(child: CircularProgressIndicator()),
-          ),
-
-        // Show search results
-        if (_searchResults.isNotEmpty)
-          Container(
-            margin: const EdgeInsets.only(top: 8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(5),
-              boxShadow: const [
-                BoxShadow(color: Colors.black12, blurRadius: 4),
-              ],
-            ),
-            child: ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _searchResults.length,
-              itemBuilder: (context, index) {
-                final result = _searchResults[index];
-                return ListTile(
-                  onTap: () {
-                    setState(() {
-                      FocusScope.of(context).unfocus();
-                      selectedLeads = result['lead_id'];
-                      selectedLeadsName = result['lead_name'];
-                      _searchController.clear();
-                      _searchResults.clear();
-                    });
-                  },
-                  title: Text(
-                    result['lead_name'] ?? 'No Name',
-                    style: TextStyle(
-                      color: selectedLeads == result['lead_id']
-                          ? Colors.black
-                          : AppColors.fontBlack,
-                    ),
-                  ),
-                  leading: const Icon(Icons.person),
-                );
-              },
-            ),
-          ),
-      ],
-    );
-  }
-
-  // Widget _buildSearchField() {
-  //   return Column(
-  //     crossAxisAlignment: CrossAxisAlignment.start,
-  //     children: [
-  //       Text('Choose Lead', style: AppFont.dropDowmLabel(context)),
-  //       const SizedBox(height: 5),
-  //       SizedBox(
-  //         height: MediaQuery.of(context).size.height * .05,
-  //         child: TextField(
-  //           controller: _searchController,
-  //           onTap: () => FocusScope.of(context).unfocus(),
-  //           decoration: InputDecoration(
-  //             filled: true,
-  //             alignLabelWithHint: true,
-  //             fillColor: AppColors.containerBg,
-  //             hintText: selectedLeadsName ?? 'Select New Leads',
-  //             hintStyle: AppFont.dropDown(context),
-  //             prefixIcon:
-  //                 const Icon(FontAwesomeIcons.magnifyingGlass, size: 15),
-  //             border: OutlineInputBorder(
-  //                 borderRadius: BorderRadius.circular(5),
-  //                 borderSide: BorderSide.none),
-  //           ),
-  //         ),
-  //       ),
-  //       if (_isLoadingSearch) const Center(child: CircularProgressIndicator()),
-  //       if (_searchResults.isNotEmpty)
-  //         Positioned(
-  //           top: 50,
-  //           left: 20,
-  //           right: 20,
-  //           child: Material(
-  //             elevation: 5,
-  //             child: Container(
-  //               height: MediaQuery.of(context).size.height * .2,
-  //               // margin: const EdgeInsets.only(top: 5),
-  //               decoration: BoxDecoration(
-  //                   color: Colors.white,
-  //                   borderRadius: BorderRadius.circular(5)),
-  //               child: ListView.builder(
-  //                 itemCount: _searchResults.length,
-  //                 itemBuilder: (context, index) {
-  //                   final result = _searchResults[index];
-  //                   return ListTile(
-  //                     onTap: () {
-  //                       setState(() {
-  //                         FocusScope.of(context).unfocus();
-  //                         selectedLeads = result['lead_id'];
-  //                         selectedLeadsName = result['lead_name'];
-  //                         _searchController.clear();
-  //                         _searchResults.clear();
-  //                       });
-  //                     },
-  //                     title: Text(result['lead_name'] ?? 'No Name',
-  //                         style: const TextStyle(
-  //                           color: AppColors.fontBlack,
-  //                         )),
-  //                     // subtitle: Text(result['email'] ?? 'No Email'),
-  //                     leading: const Icon(Icons.person),
-  //                   );
-  //                 },
-  //               ),
-  //             ),
-  //           ),
-  //         ),
-  //     ],
-  //   );
-  // }
-
-  Widget _buildDatePicker({
-    required TextEditingController controller,
-    required VoidCallback onTap,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        GestureDetector(
-          onTap: onTap,
-          child: Container(
-            height: 45,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: const Color.fromARGB(255, 248, 247, 247),
-            ),
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    controller.text.isEmpty ? "Select" : controller.text,
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: controller.text.isEmpty
-                          ? Colors.grey
-                          : Colors.black,
-                    ),
-                  ),
-                ),
-                const Icon(
-                  Icons.calendar_month_outlined,
-                  color: AppColors.iconGrey,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSearchField1() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 10),
-        Text('Select Vehicle', style: AppFont.dropDowmLabel(context)),
-        const SizedBox(height: 10),
-        Container(
-          height: MediaQuery.of(context).size.height * 0.055,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(5),
-            color: AppColors.containerBg,
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _searchController1,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: AppColors.containerBg,
-                    hintText: selectedVehicleName ?? 'Select',
-                    hintStyle: TextStyle(
-                      color: selectedVehicleName != null
-                          ? Colors.black
-                          : Colors.grey,
-                    ),
-                    prefixIcon: const Icon(
-                      FontAwesomeIcons.magnifyingGlass,
-                      size: 15,
-                      color: AppColors.iconGrey,
-                    ),
-                    suffixIcon: IconButton(
-                      icon: const Icon(
-                        FontAwesomeIcons.microphone,
-                        color: AppColors.iconGrey,
-                        size: 15,
-                      ),
-                      onPressed: () {
-                        print('Microphone button pressed');
-                      },
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 0,
-                      horizontal: 10,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // Show loading indicator
-        if (_isLoadingSearch1)
-          const Padding(
-            padding: EdgeInsets.only(top: 8.0),
-            child: Center(child: CircularProgressIndicator()),
-          ),
-
-        // Show search results
-        if (_searchResults1.isNotEmpty)
-          Container(
-            margin: const EdgeInsets.only(top: 8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(5),
-              boxShadow: const [
-                BoxShadow(color: AppColors.iconGrey, blurRadius: 4),
-              ],
-            ),
-            child: ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _searchResults1.length,
-              itemBuilder: (context, index) {
-                final result1 = _searchResults1[index];
-                return ListTile(
-                  onTap: () {
-                    setState(() {
-                      FocusScope.of(context).unfocus();
-                      selectedVehicleName =
-                          result1['vehicle_name']; // Ensure this is not null
-                      _searchController1.clear();
-                      _searchResults1.clear();
-                    });
-
-                    // ✅ Call the color-fetching function here!
-                    // if (selectedVehicleName != null) {
-                    //   fetchVehicleColors(
-                    //       selectedVehicleName!); // Ensure vehicleName is not null
-                    // }
-                  },
-                  title: Text(
-                    result1['vehicle_name'] ?? 'No Name',
-                    style: TextStyle(
-                      color: selectedVehicleName == result1['vehicle_name']
-                          ? Colors.black
-                          : AppColors.fontBlack,
-                    ),
-                  ),
-                  leading: const Icon(Icons.directions_car),
-                );
-              },
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildDatePicker1({
-    required TextEditingController controller,
-    required VoidCallback onTap,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        GestureDetector(
-          onTap: onTap,
-          child: Container(
-            height: 45,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: const Color.fromARGB(255, 248, 247, 247),
-            ),
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    controller.text.isEmpty ? "Select" : controller.text,
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: controller.text.isEmpty
-                          ? Colors.grey
-                          : Colors.black,
-                    ),
-                  ),
-                ),
-                const Icon(
-                  Icons.watch_later_outlined,
-                  color: AppColors.iconGrey,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   Future<void> submitForm() async {
     // Retrieve sp_id from SharedPreferences.
     final prefs = await SharedPreferences.getInstance();
     final spId = prefs.getString('user_id');
 
-    // Use the lead id from the dropdown selection.
-    // if (selectedLeads == null) {
-    //   showErrorMessage(context, message: 'Please select a lead.');
-    //   return;
-    // }
     final leadId = widget.leadId;
+    // final vehicleId = widget
 
-    // Parse and format the selected dates/times.
-    final rawStartDate = DateFormat(
-      'dd MMM yyyy',
-    ).parse(startDateController.text);
-    final rawEndDate = DateFormat(
-      'dd MMM yyyy',
-    ).parse(endDateController.text); // Automatically set
-
-    final rawStartTime = DateFormat('hh:mm a').parse(startTimeController.text);
-    final rawEndTime = DateFormat(
-      'hh:mm a',
-    ).parse(endTimeController.text); // Automatically set
-
-    // Format for API
+    final rawStartDate = DateTime.parse(slotData!['date']);
+    final rawEndDate = DateTime.parse(slotData!['date']); // Automatically set
     final formattedStartDate = DateFormat('dd/MM/yyyy').format(rawStartDate);
-    final formattedEndDate = DateFormat(
-      'dd/MM/yyyy',
-    ).format(rawEndDate); // Automatically set
+    final formattedEndDate = DateFormat('dd/MM/yyyy').format(rawEndDate);
 
-    // final formattedStartTime = DateFormat('HH:mm:ss').format(rawStartTime);
+    final rawStartTime = DateFormat(
+      'HH:mm:ss',
+    ).parse(slotData!['start_time_slot']);
+    final rawEndTime = DateFormat('HH:mm:ss').parse(slotData!['end_time_slot']);
     final formattedStartTime = DateFormat('hh:mm a').format(rawStartTime);
-    // final formattedEndTime = DateFormat(
-    //   'HH:mm:ss',
-    final formattedEndTime = DateFormat('hh:mm a').format(rawStartTime);
-    // ).format(rawEndTime); // Automatically set
-
+    final formattedEndTime = DateFormat(
+      'HH:mm:ss',
+    ).format(rawEndTime); // Automatically set
+    if (spId == null || leadId.isEmpty) {
+      showErrorMessage(
+        context,
+        message: 'User ID or Lead ID not found. Please log in again.',
+      );
+      return;
+    }
     if (spId == null || leadId.isEmpty) {
       showErrorMessage(
         context,
@@ -1024,10 +546,14 @@ class _TestdriveIdsState extends State<TestdriveIds> {
 
     // Prepare the appointment data.
     final testdriveData = {
+      'vehicleId': widget.vehicle_id,
       'start_date': formattedStartDate,
       'end_date': formattedEndDate,
       'start_time': formattedStartTime,
       'end_time': formattedEndTime,
+      'date_of_booking': slotData!['date'],
+      'start_time_slot': slotData!['start_time_slot'],
+      'end_time_slot': slotData!['end_time_slot'],
       'remarks': descriptionController.text,
       'sp_id': spId,
     };

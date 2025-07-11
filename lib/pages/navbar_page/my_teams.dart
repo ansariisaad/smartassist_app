@@ -151,9 +151,25 @@ class _MyTeamsState extends State<MyTeams> {
   // Method to load more records
   void _loadMoreRecords() {
     setState(() {
+      // Get the current data that's being displayed
+      List<dynamic> dataToDisplay;
+
+      if (_isComparing &&
+          selectedUserIds.isNotEmpty &&
+          _teamComparisonData.isNotEmpty) {
+        dataToDisplay = _teamComparisonData;
+      } else if (_isComparing && selectedUserIds.isNotEmpty) {
+        dataToDisplay = _membersData.where((member) {
+          return selectedUserIds.contains(member['user_id'].toString());
+        }).toList();
+      } else {
+        dataToDisplay = _membersData;
+      }
+
+      // Update display count based on the actual data being shown
       _currentDisplayCount = math.min(
         _currentDisplayCount + _incrementCount,
-        _membersData.length,
+        dataToDisplay.length,
       );
     });
   }
@@ -1763,11 +1779,12 @@ class _MyTeamsState extends State<MyTeams> {
           if (_selectedType != 'dynamic') ...[
             // Toggle area
             InkWell(
-              onTap: () {
+              onTap: () => setState(() {
                 setState(() {
                   isHide = !isHide;
                 });
-              },
+              }),
+
               child: Container(
                 decoration: BoxDecoration(
                   border: Border.all(
@@ -2227,39 +2244,45 @@ class _MyTeamsState extends State<MyTeams> {
                   ],
                 ),
 
-                child: Column(
-                  children: [
-                    Row(
-                      // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        IconButton(
-                          onPressed: () {
-                            setState(() {
-                              isHideAllcall = !isHideAllcall;
-                            });
-                          },
-                          icon: Icon(
-                            isHideAllcall
-                                ? Icons.keyboard_arrow_up_rounded
-                                : Icons.keyboard_arrow_down_rounded,
-                            size: 35,
-                            color: AppColors.iconGrey,
-                          ),
-                        ),
-                        Container(
-                          margin: const EdgeInsets.only(left: 10, bottom: 0),
-                          child: Text(
-                            'Call Analysis',
-                            style: AppFont.dropDowmLabel(context).copyWith(
+                child: InkWell(
+                  onTap: () => setState(() {
+                    setState(() {
+                      isHideAllcall = !isHideAllcall;
+                    });
+                  }),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          IconButton(
+                            onPressed: () {
+                              setState(() {
+                                isHideAllcall = !isHideAllcall;
+                              });
+                            },
+                            icon: Icon(
+                              isHideAllcall
+                                  ? Icons.keyboard_arrow_up_rounded
+                                  : Icons.keyboard_arrow_down_rounded,
+                              size: 35,
                               color: AppColors.iconGrey,
-                              fontWeight: FontWeight.w500,
-                              fontSize: 16,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                          Container(
+                            margin: const EdgeInsets.only(left: 10, bottom: 0),
+                            child: Text(
+                              'Call Analysis',
+                              style: AppFont.dropDowmLabel(context).copyWith(
+                                color: AppColors.iconGrey,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
               if (isHideAllcall) ...[
@@ -2269,7 +2292,6 @@ class _MyTeamsState extends State<MyTeams> {
                     children: [
                       _buildUserStatsCard(),
                       _buildAnalyticsTable(),
-
                       _buildShowMoreButton(),
                     ],
                   ),
@@ -2278,6 +2300,40 @@ class _MyTeamsState extends State<MyTeams> {
             ],
           ],
         ),
+      ),
+    );
+  }
+
+  // Enhanced Show More button with better text
+  Widget _buildShowMoreButton() {
+    if (_membersData.isEmpty || !_hasMoreRecords()) {
+      return const SizedBox.shrink();
+    }
+
+    int remainingRecords = _membersData.length - _currentDisplayCount;
+    int recordsToShow = math.min(_incrementCount, remainingRecords);
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 10.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          TextButton(
+            onPressed: _loadMoreRecords,
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.blue,
+              textStyle: const TextStyle(fontSize: 12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Show More ($recordsToShow more)'),
+                const SizedBox(width: 4),
+                const Icon(Icons.keyboard_arrow_down, size: 16),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -2904,240 +2960,10 @@ class _MyTeamsState extends State<MyTeams> {
     }).toList();
   }
 
-  // List<TableRow> _buildMemberRowsTeams() {
-  //   List<dynamic> dataToDisplay;
-  //   final List<Color> _bgColors = [
-  //     Colors.red,
-  //     Colors.green,
-  //     Colors.blue,
-  //     Colors.orange,
-  //     Colors.purple,
-  //     Colors.teal,
-  //     Colors.indigo,
-  //     Colors.purpleAccent,
-  //   ];
-
-  //   Color getRandomColor(String name) {
-  //     final int hash = name.codeUnits.fold(0, (prev, el) => prev + el);
-  //     return _bgColors[hash % _bgColors.length].withOpacity(0.8);
-  //   }
-
-  //   CircleAvatar buildAvatar(Map<String, dynamic> member) {
-  //     final String? imageUrl = member['profileImage'];
-  //     final String initials =
-  //         (member['name'] ?? member['name'] ?? '').toString().trim().isNotEmpty
-  //         ? (member['name'] ?? member['name'] ?? '')
-  //               .toString()
-  //               .trim()
-  //               .substring(0, 1)
-  //               .toUpperCase()
-  //         : '?';
-
-  //     final String colorSeed = (member['name'] ?? member['name'] ?? '')
-  //         .toString();
-
-  //     return CircleAvatar(
-  //       radius: 12,
-  //       backgroundColor: (imageUrl == null || imageUrl.isEmpty)
-  //           ? getRandomColor(colorSeed)
-  //           : Colors.transparent,
-  //       backgroundImage: (imageUrl != null && imageUrl.isNotEmpty)
-  //           ? NetworkImage(imageUrl)
-  //           : null,
-  //       child: (imageUrl == null || imageUrl.isEmpty)
-  //           ? Text(
-  //               initials,
-  //               style: const TextStyle(
-  //                 fontSize: 12,
-  //                 color: Colors.white,
-  //                 fontWeight: FontWeight.bold,
-  //               ),
-  //             )
-  //           : null,
-  //     );
-  //   }
-
-  //   if (_isComparing && _teamComparisonData.isNotEmpty) {
-  //     dataToDisplay = _teamComparisonData;
-  //     print('📊 Using team comparison data: ${dataToDisplay.length} members');
-  //   } else if (_isComparing && selectedUserIds.isNotEmpty) {
-  //     dataToDisplay = _membersData.where((member) {
-  //       return selectedUserIds.contains(member['user_id'].toString());
-  //     }).toList();
-  //     print('📊 Using filtered members data: ${dataToDisplay.length} members');
-  //   } else {
-  //     dataToDisplay = _membersData;
-  //     print('📊 Using regular members data: ${dataToDisplay.length} members');
-  //   }
-  //   // if (_isComparing &&
-  //   //     selectedUserIds.isNotEmpty &&
-  //   //     _teamComparisonData.isNotEmpty) {
-  //   //   dataToDisplay = _teamComparisonData;
-  //   //   print('📊 Using team comparison data: ${dataToDisplay.length} members');
-  //   // } else {
-  //   //   if (_isComparing && selectedUserIds.isNotEmpty) {
-  //   //     dataToDisplay = _membersData.where((member) {
-  //   //       return selectedUserIds.contains(member['user_id'].toString());
-  //   //     }).toList();
-  //   //     print(
-  //   //       '📊 Using filtered members data: ${dataToDisplay.length} members',
-  //   //     );
-  //   //   } else {
-  //   //     dataToDisplay = _membersData;
-  //   //     print('📊 Using regular members data: ${dataToDisplay.length} members');
-  //   //   }
-  //   // }
-
-  //   if (dataToDisplay.isEmpty) {
-  //     return [];
-  //   }
-
-  //   int safeDisplayCount = math.max(
-  //     0,
-  //     math.min(_currentDisplayCount, dataToDisplay.length),
-  //   );
-  //   List<dynamic> displayMembers = dataToDisplay
-  //       .take(safeDisplayCount)
-  //       .toList();
-
-  //   return displayMembers.asMap().entries.map((entry) {
-  //     int index = entry.key;
-  //     var member = entry.value;
-
-  //     if (member == null) return TableRow(children: List.filled(6, Text('')));
-
-  //     bool isSelected = selectedUserIds.contains(
-  //       member['user_id']?.toString() ?? '',
-  //     );
-  //     // int safeDisplayCount = math.max(
-  //     //   0,
-  //     //   math.min(_currentDisplayCount, dataToDisplay.length),
-  //     // );
-  //     // List<dynamic> displayMembers = dataToDisplay
-  //     //     .take(safeDisplayCount)
-  //     //     .toList();
-
-  //     // return displayMembers.asMap().entries.map((entry) {
-  //     //   int index = entry.key;
-  //     //   var member = entry.value;
-
-  //     //   // Safe access with null checks
-  //     //   if (member == null) return TableRow(children: []);
-
-  //     //   bool isSelected = selectedUserIds.contains(
-  //     //     member['user_id']?.toString() ?? '',
-  //     //   );
-
-  //     return _buildTableRow([
-  //       InkWell(
-  //         onTap: () {
-  //           // Navigator.push(
-  //           //   context,
-  //           //   MaterialPageRoute(
-  //           //     builder: (context) => CallAnalytics(
-  //           //       userId: member['user_id'].toString(),
-  //           //       isFromSM: true,
-  //           //     ),
-  //           //   ),
-  //           // );
-  //         },
-  //         child: Row(
-  //           children: [
-  //             Stack(
-  //               children: [
-  //                 buildAvatar(member), // 👈 using the random color avatar
-  //               ],
-  //             ),
-  //             const SizedBox(width: 6),
-  //             Expanded(
-  //               child: Text(
-  //                 member['name'].toString(),
-  //                 overflow: TextOverflow.ellipsis,
-  //                 style: AppFont.smallText10(context),
-  //               ),
-  //             ),
-  //           ],
-  //         ),
-  //       ),
-  //       Text(
-  //         member['enquiries'].toString(),
-  //         style: AppFont.smallText10(context).copyWith(
-  //           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-  //         ),
-  //       ),
-  //       Text(
-  //         member['testDrives'].toString(),
-  //         style: AppFont.smallText10(context).copyWith(
-  //           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-  //         ),
-  //       ),
-  //       Text(
-  //         member['orders'].toString(),
-  //         style: AppFont.smallText10(context).copyWith(
-  //           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-  //         ),
-  //       ),
-  //       Text(
-  //         member['cancellation'].toString(),
-  //         style: AppFont.smallText10(context).copyWith(
-  //           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-  //         ),
-  //       ),
-  //       Text(
-  //         member['retail'].toString(),
-  //         style: AppFont.smallText10(context).copyWith(
-  //           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-  //         ),
-  //       ),
-  //       // 🔥 Show target data if available (from team comparison)
-  //       Text(
-  //         (member['target_enquiries'] ?? member['retail'] ?? 0).toString(),
-  //         style: AppFont.smallText10(context).copyWith(
-  //           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-  //         ),
-  //       ),
-  //     ]);
-  //   }).toList();
-  // }
-
-  // Enhanced Show More button with better text
-  Widget _buildShowMoreButton() {
-    if (_membersData.isEmpty || !_hasMoreRecords()) {
-      return const SizedBox.shrink();
-    }
-
-    int remainingRecords = _membersData.length - _currentDisplayCount;
-    int recordsToShow = math.min(_incrementCount, remainingRecords);
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 10.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          TextButton(
-            onPressed: _loadMoreRecords,
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.blue,
-              textStyle: const TextStyle(fontSize: 12),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('Show More ($recordsToShow more)'),
-                const SizedBox(width: 4),
-                const Icon(Icons.keyboard_arrow_down, size: 16),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildShowMoreButtonTeamComparison() {
     List<dynamic> dataToDisplay;
 
-     if (_isComparing &&
+    if (_isComparing &&
         selectedUserIds.isNotEmpty &&
         _teamComparisonData.isNotEmpty) {
       dataToDisplay = _teamComparisonData;
@@ -3150,19 +2976,25 @@ class _MyTeamsState extends State<MyTeams> {
     }
 
     // Add this check - if no data, don't show anything
+    // Check if there's actually data to display
     if (dataToDisplay.isEmpty) {
       return const SizedBox.shrink();
     }
 
+    // Also check if current display count is valid
+    if (_currentDisplayCount <= 0) {
+      return const SizedBox.shrink();
+    }
+
     // Check if we can show more records
-    bool hasMoreRecords = _hasMoreRecordsTeams(dataToDisplay);
+    bool hasMoreRecords = _currentDisplayCount < dataToDisplay.length;
 
-    // Check if we can show less records (current display count is greater than initial count)
+    // Check if we can show less records - only if we're showing more than initial count
     bool canShowLess =
-        _currentDisplayCount >
-        _incrementCount; // Assuming _incrementCount is your initial display count
+        _currentDisplayCount > _incrementCount &&
+        _currentDisplayCount >= dataToDisplay.length;
 
-    // If no more records to show and can't show less, don't show button
+    // If no action is possible, don't show button
     if (!hasMoreRecords && !canShowLess) {
       return const SizedBox.shrink();
     }
@@ -3172,7 +3004,7 @@ class _MyTeamsState extends State<MyTeams> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          // Show Less button
+          // Show Less button - only when all data is displayed and we can reduce
           if (canShowLess)
             TextButton(
               onPressed: _loadLessRecords,
@@ -3190,10 +3022,7 @@ class _MyTeamsState extends State<MyTeams> {
               ),
             ),
 
-          // Add spacing between buttons if both are visible
-          if (canShowLess && hasMoreRecords) const SizedBox(width: 16),
-
-          // Show More button
+          // Show More button - only when there are more records to show
           if (hasMoreRecords)
             TextButton(
               onPressed: _loadMoreRecords,
@@ -3204,7 +3033,9 @@ class _MyTeamsState extends State<MyTeams> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('Show More (${_getRecordsToShow(dataToDisplay)} more)'),
+                  Text(
+                    'Show More (${dataToDisplay.length - _currentDisplayCount} more)',
+                  ),
                   const SizedBox(width: 4),
                   const Icon(Icons.keyboard_arrow_down, size: 16),
                 ],
@@ -3220,53 +3051,6 @@ class _MyTeamsState extends State<MyTeams> {
     int remainingRecords = dataToDisplay.length - _currentDisplayCount;
     return math.min(_incrementCount, remainingRecords);
   }
-
-  // Widget _buildShowMoreButtonTeamComparison() {
-  //   List<dynamic> dataToDisplay;
-
-  //   if (_isComparing &&
-  //       selectedUserIds.isNotEmpty &&
-  //       _teamComparisonData.isNotEmpty) {
-  //     dataToDisplay = _teamComparisonData;
-  //   } else if (_isComparing && selectedUserIds.isNotEmpty) {
-  //     dataToDisplay = _membersData.where((member) {
-  //       return selectedUserIds.contains(member['user_id'].toString());
-  //     }).toList();
-  //   } else {
-  //     dataToDisplay = _membersData;
-  //   }
-
-  //   if (dataToDisplay.isEmpty || !_hasMoreRecordsTeams(dataToDisplay)) {
-  //     return const SizedBox.shrink();
-  //   }
-
-  //   int remainingRecords = dataToDisplay.length - _currentDisplayCount;
-  //   int recordsToShow = math.min(_incrementCount, remainingRecords);
-
-  //   return Padding(
-  //     padding: const EdgeInsets.only(top: 10.0),
-  //     child: Row(
-  //       mainAxisAlignment: MainAxisAlignment.end,
-  //       children: [
-  //         TextButton(
-  //           onPressed: _loadMoreRecords,
-  //           style: TextButton.styleFrom(
-  //             foregroundColor: Colors.blue,
-  //             textStyle: const TextStyle(fontSize: 12),
-  //           ),
-  //           child: Row(
-  //             mainAxisSize: MainAxisSize.min,
-  //             children: [
-  //               Text('Show More ($recordsToShow more)'),
-  //               const SizedBox(width: 4),
-  //               const Icon(Icons.keyboard_arrow_down, size: 16),
-  //             ],
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 
   TableRow _buildTableRow(List<Widget> widgets) {
     return TableRow(

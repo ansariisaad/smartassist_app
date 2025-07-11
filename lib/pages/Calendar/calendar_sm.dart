@@ -128,7 +128,7 @@ class _CalendarSmState extends State<CalendarSm> {
         queryParams['user_id'] = _selectedUserId;
       }
       final baseUrl = Uri.parse(
-        "https://dev.smartassistapp.in/api/calendar/activities/all/asondate",
+        "https://api.smartassistapp.in/api/calendar/activities/all/asondate",
       );
       final uri = baseUrl.replace(queryParameters: queryParams);
       final response = await http.get(
@@ -155,7 +155,7 @@ class _CalendarSmState extends State<CalendarSm> {
       if (mounted) setState(() => _isLoading = false);
     }
   }
-  
+
   void _processTimeSlots() {
     _activeHours.clear();
     _timeSlotItems.clear();

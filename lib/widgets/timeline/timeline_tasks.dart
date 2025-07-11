@@ -31,6 +31,68 @@ class TimelineUpcoming extends StatelessWidget {
     }
   }
 
+  Future<void> _showAleart(
+    String eventId,
+    String gmail,
+    String leadId,
+    String mobile,
+    BuildContext context,
+  ) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // User must tap button to close dialog
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          title: Text(
+            'Ready to start test drive?',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          ),
+          content: Text(
+            'Please make sure you have all the necessary documents(license) and permissions(OTP) ready before starting test drive.',
+            style: GoogleFonts.poppins(),
+          ),
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(
+                overlayColor: Colors.grey.withOpacity(0.1),
+                foregroundColor: Colors.grey,
+              ),
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text('No', style: GoogleFonts.poppins(color: Colors.grey)),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                overlayColor: Colors.blue.withOpacity(0.1),
+                foregroundColor: Colors.blue,
+              ),
+              onPressed: () {
+                _getOtp(eventId);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => TestdriveVerifyotp(
+                      email: gmail,
+                      eventId: eventId,
+                      leadId: leadId,
+                      mobile: mobile,
+                    ),
+                  ),
+                );
+              },
+              child: Text(
+                'Yes',
+                style: GoogleFonts.poppins(color: Colors.blue),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _getOtp(String eventId) async {
     final success = await LeadsSrv.getOtp(eventId: eventId);
 
@@ -250,17 +312,24 @@ class TimelineUpcoming extends StatelessWidget {
                             launchUrl(Uri.parse('sms:$mobile'));
                           } else if (eventSubject == 'Test Drive') {
                             // Example: Open Test Drive UR
-                            _getOtp(eventId);
-                            Navigator.push(
+                            // _getOtp(eventId);
+                            // Navigator.push(
+                            //   context,
+                            //   MaterialPageRoute(
+                            //     builder: (context) => TestdriveVerifyotp(
+                            //       email: gmail,
+                            //       eventId: eventId,
+                            //       leadId: leadId,
+                            //       mobile: mobile,
+                            //     ),
+                            //   ),
+                            // );
+                            _showAleart(
+                              eventId,
+                              gmail,
+                              leadId,
+                              mobile,
                               context,
-                              MaterialPageRoute(
-                                builder: (context) => TestdriveVerifyotp(
-                                  email: gmail,
-                                  eventId: eventId,
-                                  leadId: leadId,
-                                  mobile: mobile,
-                                ),
-                              ),
                             );
                           } else {
                             // fallback action

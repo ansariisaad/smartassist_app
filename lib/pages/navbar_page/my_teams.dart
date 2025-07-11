@@ -3137,7 +3137,7 @@ class _MyTeamsState extends State<MyTeams> {
   Widget _buildShowMoreButtonTeamComparison() {
     List<dynamic> dataToDisplay;
 
-    if (_isComparing &&
+     if (_isComparing &&
         selectedUserIds.isNotEmpty &&
         _teamComparisonData.isNotEmpty) {
       dataToDisplay = _teamComparisonData;
@@ -3149,6 +3149,7 @@ class _MyTeamsState extends State<MyTeams> {
       dataToDisplay = _membersData;
     }
 
+    // Add this check - if no data, don't show anything
     if (dataToDisplay.isEmpty) {
       return const SizedBox.shrink();
     }

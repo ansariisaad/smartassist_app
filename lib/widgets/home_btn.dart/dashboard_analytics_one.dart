@@ -13,12 +13,12 @@ class BottomBtnSecond extends StatefulWidget {
   const BottomBtnSecond({super.key});
 
   @override
-  State<BottomBtnSecond> createState() => _BottomBtnSecondState();
+  State<BottomBtnSecond> createState() => BottomBtnSecondState();
 }
 
-class _BottomBtnSecondState extends State<BottomBtnSecond> {
+class BottomBtnSecondState extends State<BottomBtnSecond> {
   int _childButtonIndex = 0; // 0:MTD, 1:QTD, 2:YTD
-  int _leadButton = 0; // 0:Enquiry, 1:Test Drive, 2:Orders
+  int _leadButton = 0; 
 
   bool _isLoading = true;
   Map<String, dynamic>? _mtdData;
@@ -161,6 +161,37 @@ class _BottomBtnSecondState extends State<BottomBtnSecond> {
     });
   }
 
+  void handleExternalTabChange(int tabIndex) {
+    // No underscore = public method
+    int leadButtonIndex;
+    switch (tabIndex) {
+      case 0:
+        leadButtonIndex = 0; // Enquiries
+        break;
+      case 1:
+        leadButtonIndex = 2; // Default to Enquiries for Appointments
+        break;
+      case 2:
+        leadButtonIndex = 1; // Test Drives
+        break;
+      default:
+        leadButtonIndex = 0;
+    }
+
+    if (_leadButton != leadButtonIndex) {
+      setState(() {
+        _leadButton = leadButtonIndex;
+        if (leadButtonIndex == 0) {
+          _updateLeadsWidget();
+        } else if (leadButtonIndex == 1) {
+          _updateTestDriveWidget();
+        } else if (leadButtonIndex == 2) {
+          _updateOrdersWidget();
+        }
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -218,7 +249,7 @@ class _BottomBtnSecondState extends State<BottomBtnSecond> {
                               },
                               style: _buttonStyle(_leadButton == 1),
                               child: Text(
-                                'Test Drives',
+                                'Test Drivess',
                                 textAlign: TextAlign.center,
                                 style: AppFont.buttonwhite(context),
                               ),

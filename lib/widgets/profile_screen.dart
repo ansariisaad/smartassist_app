@@ -163,15 +163,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _profileImage = null;
       // If you want to also clear the network image URL
       profilePic = null; // or profilePic = '';
-    });
-
-    // Optional: Show confirmation snackbar
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Profile image removed'),
-        duration: Duration(seconds: 2),
-      ),
-    );
+    }); 
   }
 
   Future<void> deleteImg(BuildContext context) async {

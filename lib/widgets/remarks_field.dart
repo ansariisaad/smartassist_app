@@ -1,3 +1,408 @@
+// import 'dart:async';
+// import 'dart:io';
+
+// import 'package:flutter/material.dart';
+// import 'package:speech_to_text/speech_to_text.dart' as stt;
+// import 'package:speech_to_text/speech_recognition_result.dart' as stt;
+// import 'package:permission_handler/permission_handler.dart';
+// import 'package:flutter_sound/flutter_sound.dart';
+// import 'package:just_audio/just_audio.dart';
+// import 'package:path_provider/path_provider.dart';
+
+// class EnhancedSpeechTextField extends StatefulWidget {
+//   final bool isRequired;
+//   final String label;
+//   final TextEditingController controller;
+//   final String hint;
+//   final Function(String)? onChanged;
+//   final bool enabled;
+//   final int maxLines;
+//   final int minLines;
+//   final Color? primaryColor;
+//   final Color? backgroundColor;
+//   final Color? textColor;
+//   final double? fontSize;
+//   final EdgeInsets? contentPadding;
+//   final Duration listenDuration;
+//   final Duration pauseDuration;
+
+//   const EnhancedSpeechTextField({
+//     Key? key,
+//     required this.label,
+//     required this.controller,
+//     required this.hint,
+//     this.onChanged,
+//     this.enabled = true,
+//     this.maxLines = 5,
+//     this.minLines = 1,
+//     this.primaryColor,
+//     this.backgroundColor,
+//     this.textColor,
+//     this.fontSize = 14,
+//     this.contentPadding,
+//     this.listenDuration = const Duration(seconds: 30),
+//     this.pauseDuration = const Duration(seconds: 3), // Changed to 3 seconds
+//     this.isRequired = false,
+//   }) : super(key: key);
+
+//   @override
+//   State<EnhancedSpeechTextField> createState() =>
+//       _EnhancedSpeechTextFieldState();
+// }
+
+// class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField> {
+//   stt.SpeechToText? _speech;
+//   FlutterSoundRecorder? _recorder;
+//   AudioPlayer? _player;
+
+//   bool _isListening = false;
+//   bool _speechAvailable = false;
+//   bool _recorderInitialized = false;
+
+//   String? _recordedFilePath;
+//   Timer? _silenceTimer;
+
+//   bool _isPlaying = false;
+
+//   Color get _primaryColor => widget.primaryColor ?? Colors.blue;
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     _speech = stt.SpeechToText();
+//     _player = AudioPlayer();
+//     _recorder = FlutterSoundRecorder();
+
+//     _player!.playerStateStream.listen((state) {
+//       if (mounted) {
+//         setState(() {
+//           _isPlaying = state.playing;
+//         });
+//       }
+//     });
+
+//     _initRecorder();
+//     _initSpeech();
+//   }
+
+//   Future<void> _initRecorder() async {
+//     try {
+//       await _recorder!.openRecorder();
+//       final micStatus = await Permission.microphone.request();
+//       if (mounted) {
+//         setState(() {
+//           _recorderInitialized = micStatus.isGranted;
+//         });
+//       }
+//     } catch (e) {
+//       if (mounted) {
+//         setState(() {
+//           _recorderInitialized = false;
+//         });
+//       }
+//     }
+//   }
+
+//   Future<void> _initSpeech() async {
+//     try {
+//       bool available = await _speech!.initialize(
+//         onStatus: _onSpeechStatus,
+//         onError: _onSpeechError,
+//       );
+//       if (mounted) {
+//         setState(() {
+//           _speechAvailable = available;
+//         });
+//       }
+//     } catch (e) {
+//       if (mounted) {
+//         setState(() {
+//           _speechAvailable = false;
+//         });
+//       }
+//     }
+//   }
+
+//   @override
+//   void dispose() {
+//     _silenceTimer?.cancel();
+//     _speech?.stop();
+//     _speech = null;
+//     _player?.dispose();
+//     _recorder?.closeRecorder();
+//     _recorder = null;
+//     super.dispose();
+//   }
+
+//   void _onSpeechStatus(String status) {
+//     print("Speech Status: $status");
+//     if (status == 'done' || status == 'notListening') {
+//       _stopListeningAndRecording();
+//     }
+//   }
+
+//   void _onSpeechError(dynamic error) {
+//     print("Speech Error: $error");
+//     _stopListeningAndRecording();
+//   }
+
+//   Future<void> _startListening() async {
+//     if (!_speechAvailable || !_recorderInitialized) {
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         const SnackBar(
+//           content: Text('Microphone or speech permission not granted'),
+//         ),
+//       );
+//       return;
+//     }
+
+//     // Stop any playing audio
+//     await _player?.stop();
+
+//     // Delete old recording if exists
+//     if (_recordedFilePath != null) {
+//       final file = File(_recordedFilePath!);
+//       if (file.existsSync()) {
+//         await file.delete();
+//       }
+//     }
+
+//     // Create new recording file
+//     final docsDir = await getApplicationDocumentsDirectory();
+//     _recordedFilePath =
+//         '${docsDir.path}/speech_${DateTime.now().millisecondsSinceEpoch}.aac';
+
+//     try {
+//       // Start recording
+//       await _recorder!.startRecorder(
+//         toFile: _recordedFilePath,
+//         codec: Codec.aacADTS,
+//       );
+
+//       // Start speech recognition with continuous listening
+//       await _speech!.listen(
+//         onResult: _onSpeechResult,
+//         listenFor: widget.listenDuration,
+//         pauseFor: widget.pauseDuration,
+//         partialResults: true, // Show partial results as user speaks
+//         cancelOnError: false,
+//         listenMode: stt.ListenMode.dictation,
+//       );
+
+//       setState(() {
+//         _isListening = true;
+//         _isPlaying = false;
+//       });
+
+//       // Start silence timer
+//       _startSilenceTimer();
+//     } catch (e) {
+//       print("Error starting recording/listening: $e");
+//       ScaffoldMessenger.of(
+//         context,
+//       ).showSnackBar(SnackBar(content: Text('Error starting recording: $e')));
+//     }
+//   }
+
+//   Future<void> _stopListeningAndRecording() async {
+//     if (_isListening) {
+//       _silenceTimer?.cancel();
+
+//       if (mounted) {
+//         setState(() {
+//           _isListening = false;
+//         });
+//       }
+
+//       try {
+//         if (_speech!.isListening) {
+//           await _speech!.stop();
+//         }
+//       } catch (e) {
+//         print("Error stopping speech: $e");
+//       }
+
+//       try {
+//         if (_recorder!.isRecording) {
+//           await _recorder!.stopRecorder();
+//         }
+//       } catch (e) {
+//         print("Error stopping recorder: $e");
+//       }
+//     }
+//   }
+
+//   void _startSilenceTimer() {
+//     _silenceTimer?.cancel();
+//     _silenceTimer = Timer(const Duration(seconds: 3), () {
+//       if (_isListening && mounted) {
+//         _stopListeningAndRecording();
+//         ScaffoldMessenger.of(context).showSnackBar(
+//           const SnackBar(content: Text('Stopped due to 3 seconds of silence')),
+//         );
+//       }
+//     });
+//   }
+
+//   void _onSpeechResult(stt.SpeechRecognitionResult result) {
+//     // Reset silence timer when speech is detected
+//     if (result.recognizedWords.isNotEmpty) {
+//       _startSilenceTimer();
+//     }
+
+//     // Update text field with recognized words (both partial and final)
+//     if (result.recognizedWords.isNotEmpty) {
+//       _updateText(result.recognizedWords, result.finalResult);
+//     }
+//   }
+
+//   void _updateText(String newText, bool isFinal) {
+//     if (newText.trim().isEmpty) return;
+
+//     String currentText = widget.controller.text;
+//     String formatted = newText.trim();
+
+//     // Capitalize first letter
+//     if (formatted.isNotEmpty) {
+//       formatted = formatted[0].toUpperCase() + formatted.substring(1);
+//     }
+
+//     if (isFinal) {
+//       // For final results, add proper spacing
+//       if (currentText.isEmpty) {
+//         widget.controller.text = formatted;
+//       } else if (currentText.endsWith(' ')) {
+//         widget.controller.text = currentText + formatted;
+//       } else {
+//         widget.controller.text = currentText + ' ' + formatted;
+//       }
+//     } else {
+//       // For partial results, show live preview
+//       if (currentText.isEmpty) {
+//         widget.controller.text = formatted;
+//       } else {
+//         // Find the last sentence boundary and replace from there
+//         int lastSentenceEnd = currentText.lastIndexOf('. ');
+//         if (lastSentenceEnd == -1) {
+//           lastSentenceEnd = currentText.lastIndexOf('? ');
+//         }
+//         if (lastSentenceEnd == -1) {
+//           lastSentenceEnd = currentText.lastIndexOf('! ');
+//         }
+
+//         if (lastSentenceEnd != -1) {
+//           widget.controller.text =
+//               currentText.substring(0, lastSentenceEnd + 2) + formatted;
+//         } else {
+//           widget.controller.text = formatted;
+//         }
+//       }
+//     }
+
+//     // Move cursor to end
+//     widget.controller.selection = TextSelection.fromPosition(
+//       TextPosition(offset: widget.controller.text.length),
+//     );
+
+//     // Notify parent of change
+//     widget.onChanged?.call(widget.controller.text);
+//   }
+
+//   Widget _buildAudioPlayerControls() {
+//     if (_recordedFilePath == null || !File(_recordedFilePath!).existsSync()) {
+//       return const SizedBox.shrink();
+//     }
+
+//     return Row(
+//       mainAxisAlignment: MainAxisAlignment.start,
+//       children: [
+//         IconButton(
+//           iconSize: 32,
+//           icon: Icon(
+//             _isPlaying ? Icons.pause_circle_filled : Icons.play_circle_fill,
+//             color: _primaryColor,
+//           ),
+//           onPressed: () async {
+//             try {
+//               if (_isPlaying) {
+//                 await _player!.pause();
+//               } else {
+//                 await _player!.setFilePath(_recordedFilePath!);
+//                 await _player!.play();
+//               }
+//             } catch (e) {
+//               print("Error playing audio: $e");
+//             }
+//           },
+//         ),
+//         const SizedBox(width: 8),
+//         const Text('Play recorded audio', style: TextStyle(fontSize: 16)),
+//       ],
+//     );
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Column(
+//       crossAxisAlignment: CrossAxisAlignment.start,
+//       children: [
+//         Text.rich(
+//           TextSpan(
+//             text: widget.label,
+//             style: TextStyle(
+//               fontWeight: FontWeight.w600,
+//               fontSize: widget.fontSize,
+//               color: Colors.black,
+//             ),
+//             children: widget.isRequired
+//                 ? [
+//                     const TextSpan(
+//                       text: ' *',
+//                       style: TextStyle(color: Colors.red),
+//                     ),
+//                   ]
+//                 : null,
+//           ),
+//         ),
+//         const SizedBox(height: 8),
+//         TextField(
+//           controller: widget.controller,
+//           enabled: widget.enabled && !_isListening,
+//           maxLines: widget.maxLines,
+//           minLines: widget.minLines,
+//           keyboardType: TextInputType.multiline,
+//           decoration: InputDecoration(
+//             hintText: _isListening
+//                 ? 'Listening... (3 sec silence to stop)'
+//                 : widget.hint,
+//             border: const OutlineInputBorder(),
+//             suffixIcon: IconButton(
+//               icon: Icon(
+//                 _isListening ? Icons.stop : Icons.mic,
+//                 color: _isListening ? Colors.red : _primaryColor,
+//               ),
+//               onPressed: () {
+//                 if (_isListening) {
+//                   _stopListeningAndRecording();
+//                 } else {
+//                   _startListening();
+//                 }
+//               },
+//             ),
+//           ),
+//           style: TextStyle(
+//             fontSize: widget.fontSize,
+//             color: widget.textColor ?? Colors.black,
+//           ),
+//           onChanged: widget.onChanged,
+//         ),
+//         const SizedBox(height: 12),
+//         if (!_isListening) _buildAudioPlayerControls(),
+//       ],
+//     );
+//   }
+// }
+
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';

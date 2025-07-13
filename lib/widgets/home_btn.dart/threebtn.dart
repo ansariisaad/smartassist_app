@@ -1,4 +1,3 @@
-import 'package:animated_toggle_switch/animated_toggle_switch.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:smartassist/config/component/color/colors.dart';
@@ -9,7 +8,6 @@ import 'package:smartassist/pages/Home/All_field_bottomArrow/all_followups.dart'
 import 'package:smartassist/pages/Home/All_field_bottomArrow/all_testdrive.dart';
 import 'package:smartassist/widgets/followups/overdue_followup.dart';
 import 'package:smartassist/widgets/followups/upcoming_row.dart';
-import 'package:smartassist/widgets/oppointment/all_oppintment.dart';
 import 'package:smartassist/widgets/oppointment/overdue.dart';
 import 'package:smartassist/widgets/oppointment/upcoming.dart';
 import 'package:smartassist/widgets/testdrive/overdue.dart';
@@ -28,6 +26,8 @@ class Threebtn extends StatefulWidget {
   final List<dynamic> overdueTestDrives;
   final Future<void> Function() refreshDashboard;
   final TabControllerNew tabController;
+  final void Function(int)? onTabChanged;
+  
 
   const Threebtn({
     super.key,
@@ -42,7 +42,7 @@ class Threebtn extends StatefulWidget {
     required this.overdueTestDrivesCount,
     required this.upcomingTestDrives,
     required this.overdueTestDrives,
-    required this.tabController,
+    required this.tabController, this.onTabChanged,
   });
 
   @override
@@ -113,6 +113,7 @@ class _ThreebtnState extends State<Threebtn> {
       _childButtonIndex = 0;
     });
     widget.tabController?.changeTab(index);
+    widget.onTabChanged?.call(index); // Add this line
     _updateCurrentWidget();
   }
 
@@ -475,7 +476,6 @@ class _ThreebtnState extends State<Threebtn> {
         targetPage = AddFollowups(refreshDashboard: widget.refreshDashboard);
         break;
       case 1:
-        // targetPage = AllAppointment(refreshDashboard: widget.refreshDashboard);
         targetPage = AllAppointment(refreshDashboard: widget.refreshDashboard);
 
         break;

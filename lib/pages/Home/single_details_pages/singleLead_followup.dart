@@ -1614,20 +1614,15 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                             //   }
                             // },
                             child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
                               decoration: BoxDecoration(
-                                color: Colors.white,
-                                border: Border.all(
-                                  color: Colors.blue,
-                                  width: 1,
-                                ),
+                                color: AppColors.colorsBlue,
+                                // Green color from image
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
                                 'Follow up?',
-                                style: widget.isFromFreshlead
-                                    ? AppFont.mediumText14bluee(context)
-                                    : AppFont.mediumText14red(context),
+                                style: AppFont.mediumText14White(context),
                                 textAlign: TextAlign.center,
                               ),
                             ),
@@ -1875,7 +1870,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                     },
                   ),
                   _buildPopupItem(
-                    Icons.trending_down_sharp ,
+                    Icons.trending_down_sharp,
                     "Lost",
                     -40,
                     onTap: () {

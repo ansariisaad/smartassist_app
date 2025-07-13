@@ -51,10 +51,8 @@ class _AllLeadsState extends State<AllLeads> {
   final List<String> _statusOptions = [
     'All',
     'New',
-    'In Progress',
-    'Qualified',
-    'Contacted',
     'Follow Up',
+    'Qualified',
     'Lost',
   ];
 
@@ -734,7 +732,7 @@ class _AllLeadsState extends State<AllLeads> {
                     child: Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        'Total leads: ${_filteredTasks.length}',
+                        'Total Records: ${_filteredTasks.length}',
                         style: GoogleFonts.poppins(
                           fontSize: isTablet ? 14 : 12,
                           color: Colors.grey[600],

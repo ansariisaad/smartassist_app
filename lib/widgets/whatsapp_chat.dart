@@ -773,20 +773,6 @@ class _WhatsappChatState extends State<WhatsappChat>
           height: 220,
           child: Column(
             children: [
-              // ListTile(
-              //   leading: Icon(Icons.camera),
-              //   title: Text('Camera', style: AppFont.dropDowmLabel(context)),
-              //   onTap: () async {
-              //     Navigator.pop(context);
-              //     final XFile? image = await _picker.pickImage(
-              //       source: ImageSource.camera,
-              //       imageQuality: 70,
-              //     );
-              //     if (image != null) {
-              //       await sendImageMessage(image);
-              //     }
-              //   },
-              // ),
               ListTile(
                 leading: Icon(Icons.picture_as_pdf),
                 title: Text('Document', style: AppFont.dropDowmLabel(context)),
@@ -919,17 +905,6 @@ class _WhatsappChatState extends State<WhatsappChat>
     }
   }
 
-  // void attachment() async {
-  //   final XFile? image = await _picker.pickImage(
-  //     source: ImageSource.gallery,
-  //     imageQuality: 70,
-  //   );
-
-  //   if (image != null) {
-  //     await sendImageMessage(image);
-  //   }
-  // }
-
   Future<void> sendDocumentMessage(XFile document) async {
     if (!isWhatsAppReady) return;
 
@@ -1051,126 +1026,6 @@ class _WhatsappChatState extends State<WhatsappChat>
       });
     }
   }
-
-  // Future<void> sendDocumentMessage(XFile document) async {
-  //   if (!isWhatsAppReady) return;
-
-  //   setState(() {
-  //     isSendingDocument = true; // You'll need to add this boolean to your state
-  //   });
-
-  //   try {
-  //     // Read document as bytes
-  //     final bytes = await document.readAsBytes();
-  //     final base64String = base64Encode(bytes);
-
-  //     // Get file extension and mime type
-  //     final extension = document.path.split('.').last.toLowerCase();
-  //     String mimeType = 'application/octet-stream'; // default
-
-  //     switch (extension) {
-  //       case 'pdf':
-  //         mimeType = 'application/pdf';
-  //         break;
-  //       case 'doc':
-  //         mimeType = 'application/msword';
-  //         break;
-  //       case 'docx':
-  //         mimeType =
-  //             'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-  //         break;
-  //       case 'xls':
-  //         mimeType = 'application/vnd.ms-excel';
-  //         break;
-  //       case 'xlsx':
-  //         mimeType =
-  //             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-  //         break;
-  //       case 'ppt':
-  //         mimeType = 'application/vnd.ms-powerpoint';
-  //         break;
-  //       case 'pptx':
-  //         mimeType =
-  //             'application/vnd.openxmlformats-officedocument.presentationml.presentation';
-  //         break;
-  //       case 'txt':
-  //         mimeType = 'text/plain';
-  //         break;
-  //       case 'csv':
-  //         mimeType = 'text/csv';
-  //         break;
-  //       case 'zip':
-  //         mimeType = 'application/zip';
-  //         break;
-  //       case 'rar':
-  //         mimeType = 'application/vnd.rar';
-  //         break;
-  //       case '7z':
-  //         mimeType = 'application/x-7z-compressed';
-  //         break;
-  //       case 'mp3':
-  //         mimeType = 'audio/mpeg';
-  //         break;
-  //       case 'mp4':
-  //         mimeType = 'video/mp4';
-  //         break;
-  //       case 'avi':
-  //         mimeType = 'video/x-msvideo';
-  //         break;
-  //       case 'mov':
-  //         mimeType = 'video/quicktime';
-  //         break;
-  //     }
-
-  //     final message = {
-  //       'chatId': widget.chatId,
-  //       'message': _messageController.text.trim(), // Caption
-  //       'sessionId': spId,
-  //       'media': {
-  //         'mimetype': mimeType,
-  //         'base64': base64String,
-  //         'filename': document.name,
-  //       },
-  //     };
-
-  //     print(
-  //       'Sending document message: ${(message['media'] as Map<String, dynamic>)['filename']}',
-  //     );
-  //     print(' this is msg : $message.toString()');
-
-  //     socket.emit('send_message', message);
-
-  //     final localMessage = Message(
-  //       body: _messageController.text.trim(),
-  //       fromMe: true,
-  //       timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-  //       type: 'document',
-  //       mediaUrl: document.path, // Use local path for immediate display
-  //       media: null,
-  //     );
-
-  //     setState(() {
-  //       messages.add(localMessage);
-  //     });
-
-  //     _messageController.clear();
-  //     WidgetsBinding.instance.addPostFrameCallback((_) {
-  //       _scrollToBottom();
-  //     });
-  //   } catch (e) {
-  //     print('Error sending document: $e');
-  //     Get.snackbar(
-  //       'Error',
-  //       'Failed to send document',
-  //       backgroundColor: Colors.red,
-  //       colorText: Colors.white,
-  //     );
-  //   } finally {
-  //     setState(() {
-  //       isSendingDocument = false;
-  //     });
-  //   }
-  // }
 
   Future<void> sendImageMessage(XFile image) async {
     if (!isWhatsAppReady) return;

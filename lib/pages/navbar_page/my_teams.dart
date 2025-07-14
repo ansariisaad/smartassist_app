@@ -163,6 +163,7 @@ class _MyTeamsState extends State<MyTeams> {
   void _resetDisplayCountForNewData() {
     List<dynamic> currentData = _getCurrentDataToDisplay();
     setState(() {
+      // Always reset to initial count when data changes
       _currentDisplayCount = math.min(_incrementCount, currentData.length);
     });
   }
@@ -1650,7 +1651,7 @@ class _MyTeamsState extends State<MyTeams> {
 
   void _handleTabChange(int newTabIndex) {
     setState(() {
-      selectedTabIndex = newTabIndex; 
+      selectedTabIndex = newTabIndex;
       isLoading = true;
     });
     _fetchSingleCalllog();
@@ -2972,20 +2973,20 @@ class _MyTeamsState extends State<MyTeams> {
   Widget _buildShowMoreButtonTeamComparison() {
     List<dynamic> dataToDisplay = _getCurrentDataToDisplay();
 
+    // Add this check - if no data, don't show anything
+    if (dataToDisplay.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     // Fix invalid display count
     if (_currentDisplayCount <= 0 ||
         _currentDisplayCount > dataToDisplay.length) {
       _currentDisplayCount = math.min(_incrementCount, dataToDisplay.length);
     }
 
-    // Add this check - if no data, don't show anything
-    // Check if there's actually data to display
-    if (dataToDisplay.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    // Also check if current display count is valid
-    if (_currentDisplayCount <= 0) {
+    // 🔥 NEW: Don't show "Show More" button in comparison mode
+    // Only show it when displaying all team members (not comparing specific users)
+    if (_isComparing && selectedUserIds.isNotEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -3049,16 +3050,35 @@ class _MyTeamsState extends State<MyTeams> {
     );
   }
 
+  // List<dynamic> _getCurrentDataToDisplay() {
+  //   if (_isComparing &&
+  //       selectedUserIds.isNotEmpty &&
+  //       _teamComparisonData.isNotEmpty) {
+  //     return _teamComparisonData;
+  //   } else if (_isComparing && selectedUserIds.isNotEmpty) {
+  //     return _membersData.where((member) {
+  //       return selectedUserIds.contains(member['user_id'].toString());
+  //     }).toList();
+  //   } else {
+  //     return _membersData;
+  //   }
+  // }
+
   List<dynamic> _getCurrentDataToDisplay() {
+    // If comparing specific users and have comparison data from API
     if (_isComparing &&
         selectedUserIds.isNotEmpty &&
         _teamComparisonData.isNotEmpty) {
       return _teamComparisonData;
-    } else if (_isComparing && selectedUserIds.isNotEmpty) {
+    }
+    // If comparing but no API data, filter from members data
+    else if (_isComparing && selectedUserIds.isNotEmpty) {
       return _membersData.where((member) {
         return selectedUserIds.contains(member['user_id'].toString());
       }).toList();
-    } else {
+    }
+    // Default case: show all members data
+    else {
       return _membersData;
     }
   }

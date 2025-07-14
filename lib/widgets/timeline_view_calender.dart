@@ -591,7 +591,11 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
     if (category.toLowerCase().contains('test drive')) {
       cardColor = Color(0xFFF865AB).withOpacity(0.16); // PINK
     } else if (category.toLowerCase().contains('call') ||
-        category.toLowerCase().contains('quotation') ||
+        category.toLowerCase().contains('meeting') ||
+        category.toLowerCase().contains('showroom appointment') ||
+        category.toLowerCase().contains('trade in evaluation') ||
+        category.toLowerCase().contains('send email') ||
+        category.toLowerCase().contains('send sms') ||
         category.toLowerCase().contains('provide quotation')) {
       cardColor = Color(0xFF4A90E2).withOpacity(0.13); // BLUE
     } else {

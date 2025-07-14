@@ -4,6 +4,7 @@ import 'package:smartassist/config/component/font/font.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class Leads extends StatefulWidget {
+  final Function(String) onFormSubmit;
   final Map<String, dynamic> MtdData;
   final Map<String, dynamic> YtdData;
   final Map<String, dynamic> QtdData;
@@ -12,6 +13,7 @@ class Leads extends StatefulWidget {
     required this.MtdData,
     required this.YtdData,
     required this.QtdData,
+    required this.onFormSubmit,
   });
 
   @override
@@ -262,10 +264,12 @@ class _LeadsState extends State<Leads> {
           borderRadius: BorderRadius.circular(30),
         ),
         child: TextButton(
-          onPressed: () {
+          onPressed: () async {
             setState(() {
               _childButtonIndex = index;
             });
+
+            await widget.onFormSubmit(text);
           },
           style: TextButton.styleFrom(
             foregroundColor: isSelected ? Colors.blue : Colors.black,
@@ -273,7 +277,7 @@ class _LeadsState extends State<Leads> {
             padding: const EdgeInsets.symmetric(vertical: 5),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(30),
-            ),
+            ),  
           ),
           child: Text(
             text,

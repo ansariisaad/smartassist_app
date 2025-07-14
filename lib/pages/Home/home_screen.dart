@@ -195,8 +195,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Handle form submission from popups
   Future<void> _handleFormSubmit() async {
-    await fetchDashboardData();
-    // Don't change tab here unless you want to
+    await fetchDashboardData(); 
   }
 
   void _onTabChanged() {

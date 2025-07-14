@@ -28,6 +28,7 @@ class _MyTeamsState extends State<MyTeams> {
   // ADD THESE VARIABLES TO YOUR CLASS
   int _currentDisplayCount = 10; // Initially show 10 records
   static const int _incrementCount = 10; // Show 10 more each time
+  static const int _decrementCount = 10;
   List<dynamic> _teamComparisonData = [];
   // Your existing variables
   // List<dynamic> _membersData = []; // Your existing data list
@@ -57,6 +58,9 @@ class _MyTeamsState extends State<MyTeams> {
   Set<String> _selectedLetters = {};
   bool _isMultiSelectMode = false;
   int _upcommingButtonIndex = 0;
+  String? _sortColumn;
+  List<dynamic> _originalMembersData = [];
+  int _sortState = 0;
 
   bool isHideAllcall = false;
   bool isHideActivities = false;
@@ -100,8 +104,9 @@ class _MyTeamsState extends State<MyTeams> {
   final GlobalKey tDrives = GlobalKey();
   final GlobalKey orders = GlobalKey();
   final GlobalKey cancel = GlobalKey();
-  final GlobalKey netOrd = GlobalKey();
+  final GlobalKey net_orders = GlobalKey();
   final GlobalKey retails = GlobalKey();
+
   @override
   void initState() {
     super.initState();
@@ -144,12 +149,30 @@ class _MyTeamsState extends State<MyTeams> {
     }
   }
 
-  // Method to load more records
   void _loadMoreRecords() {
     setState(() {
+      List<dynamic> dataToDisplay = _getCurrentDataToDisplay();
+
+      // Update display count based on the actual data being shown
       _currentDisplayCount = math.min(
         _currentDisplayCount + _incrementCount,
-        _membersData.length,
+        dataToDisplay.length,
+      );
+    });
+  }
+
+  void _resetDisplayCountForNewData() {
+    List<dynamic> currentData = _getCurrentDataToDisplay();
+    setState(() {
+      _currentDisplayCount = math.min(_incrementCount, currentData.length);
+    });
+  }
+
+  void _loadLessRecords() {
+    setState(() {
+      _currentDisplayCount = math.max(
+        _incrementCount,
+        _currentDisplayCount - _incrementCount,
       );
     });
   }
@@ -582,59 +605,105 @@ class _MyTeamsState extends State<MyTeams> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('My Team', style: AppFont.appbarfontWhite(context)),
+            selectedUserIds.length >= 2
+                ? InkWell(
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      setState(() {
+                        bool allSelected =
+                            selectedUserIds.length == _teamMembers.length;
 
-            if (selectedUserIds.length >= 2)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 0,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: InkWell(
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    setState(() {
-                      _isMultiSelectMode = true;
-                      selectedUserIds.clear(); // Clear existing selections
-                      selectedUserIds.addAll(
-                        _teamMembers.map(
-                          (member) => member['user_id'].toString(),
-                        ),
-                      );
-                      // Add all unique letters to _selectedLetters
-                      _selectedLetters.clear();
-                      for (var member in _teamMembers) {
-                        String firstLetter = (member['fname'] ?? '')
-                            .toString()
-                            .toUpperCase();
-                        if (firstLetter.isNotEmpty) {
-                          _selectedLetters.add(firstLetter[0]);
+                        if (allSelected) {
+                          // If already selected all, unselect all
+                          selectedUserIds.clear();
+                          _selectedLetters.clear();
+                          _selectedType = '';
+                        } else {
+                          // Select all
+                          _isMultiSelectMode = true;
+                          selectedUserIds.clear();
+                          selectedUserIds.addAll(
+                            _teamMembers.map(
+                              (member) => member['user_id'].toString(),
+                            ),
+                          );
+                          _selectedLetters.clear();
+                          for (var member in _teamMembers) {
+                            String firstLetter = (member['fname'] ?? '')
+                                .toString()
+                                .toUpperCase();
+                            if (firstLetter.isNotEmpty) {
+                              _selectedLetters.add(firstLetter[0]);
+                            }
+                          }
+                          _selectedType = 'Letter';
                         }
-                      }
-                      _selectedType =
-                          'Letter'; // Indicate letter-based selection
-                      print(
-                        'Select All tapped, selectedUserIds: $selectedUserIds',
-                      );
-                    });
-                  },
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.white),
-                      borderRadius: BorderRadius.circular(10),
+                      });
+                    },
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(6),
+                        color: selectedUserIds.length == _teamMembers.length
+                            ? Colors.green.withOpacity(0.1)
+                            : Colors.transparent,
+                      ),
+                      child: Row(
+                        children: [
+                          Checkbox(
+                            side: BorderSide(color: Colors.white),
+                            activeColor: Colors.white,
+
+                            checkColor: Colors.blue,
+                            value:
+                                selectedUserIds.length == _teamMembers.length,
+                            onChanged: (_) {
+                              HapticFeedback.lightImpact();
+                              setState(() {
+                                bool allSelected =
+                                    selectedUserIds.length ==
+                                    _teamMembers.length;
+
+                                if (allSelected) {
+                                  selectedUserIds.clear();
+                                  _selectedLetters.clear();
+                                  _selectedType = '';
+                                } else {
+                                  _isMultiSelectMode = true;
+                                  selectedUserIds.clear();
+                                  selectedUserIds.addAll(
+                                    _teamMembers.map(
+                                      (member) => member['user_id'].toString(),
+                                    ),
+                                  );
+                                  _selectedLetters.clear();
+                                  for (var member in _teamMembers) {
+                                    String firstLetter = (member['fname'] ?? '')
+                                        .toString()
+                                        .toUpperCase();
+                                    if (firstLetter.isNotEmpty) {
+                                      _selectedLetters.add(firstLetter[0]);
+                                    }
+                                  }
+                                  _selectedType = 'Letter';
+                                }
+                              });
+                            },
+                          ),
+                          Text(
+                            'Select All',
+                            style: AppFont.appbarfontWhite(context),
+                          ),
+                        ],
+                      ),
                     ),
-                    child: Text(
-                      'Select All',
-                      style: AppFont.smallTextWhite1(context),
-                    ),
-                  ),
-                ),
-              ),
+                  )
+                : Text('My Team', style: AppFont.appbarfontWhite(context)),
+
             if (selectedUserIds.length >= 2)
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -845,7 +914,6 @@ class _MyTeamsState extends State<MyTeams> {
                   // _selectedProfileIndex = -1; // Letter selection
                 }
               }
-
               _selectedProfileIndex = -1;
             });
             // _fetchTeamDetails();  new
@@ -1098,6 +1166,7 @@ class _MyTeamsState extends State<MyTeams> {
                   selectedUserIds.add(userId);
                 }
               });
+              _resetDisplayCountForNewData();
             } else if (!_isComparing) {
               // Single select mode: your existing logic
               setState(() {
@@ -1109,6 +1178,7 @@ class _MyTeamsState extends State<MyTeams> {
                   _selectedType = 'dynamic';
                 }
               });
+              _resetDisplayCountForNewData();
               // ✅ This ensures _fetchTeamDetails runs AFTER setState completes
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 _fetchTeamDetails();
@@ -1628,22 +1698,23 @@ class _MyTeamsState extends State<MyTeams> {
     }
 
     // Calculate net orders
-    int calculateNetOrders() {
-      final orders = getTotalForKey('orders');
-      final cancellations = getTotalForKey('cancellation');
-      return math.max(0, orders - cancellations);
-    }
+    // int calculateNetOrders() {
+    //   final orders = getTotalForKey('orders');
+    //   final cancellations = getTotalForKey('cancellation');
+    //   return math.max(0, orders - cancellations);
+    // }
 
     final List<Map<String, dynamic>> metrics = [
       {'label': 'Enquiries', 'key': 'enquiries'},
       {'label': 'Test Drive', 'key': 'testDrives'},
       {'label': 'Orders', 'key': 'orders'},
       {'label': 'Cancellations', 'key': 'cancellation'},
-      {
-        'label': 'Net Orders',
-        'key': 'netOrders',
-        'value': calculateNetOrders(),
-      },
+      {'label': 'Net Orders', 'key': 'net_orders'},
+      // {
+      //   'label': 'Net Orders',
+      //   'key': 'netOrders',
+      //   'value': calculateNetOrders(),
+      // },
       {'label': 'Retails', 'key': 'retail'},
     ];
 
@@ -1703,11 +1774,12 @@ class _MyTeamsState extends State<MyTeams> {
           if (_selectedType != 'dynamic') ...[
             // Toggle area
             InkWell(
-              onTap: () {
+              onTap: () => setState(() {
                 setState(() {
                   isHide = !isHide;
                 });
-              },
+              }),
+
               child: Container(
                 decoration: BoxDecoration(
                   border: Border.all(
@@ -1864,17 +1936,15 @@ class _MyTeamsState extends State<MyTeams> {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(8),
-        // border: Border.all(color: Colors.grey.withOpacity(0.5), width: 1.0),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
             blurRadius: 1,
             spreadRadius: 1,
-            offset: Offset(0, 0), // Equal shadow on all sides
+            offset: Offset(0, 0),
           ),
         ],
       ),
-
       child: hasData
           ? Table(
               defaultVerticalAlignment: TableCellVerticalAlignment.middle,
@@ -1898,101 +1968,32 @@ class _MyTeamsState extends State<MyTeams> {
                 TableRow(
                   children: [
                     const SizedBox(), // Empty cell for name column
-                    GestureDetector(
-                      key: enquiries,
-                      onTap: () =>
-                          showBubbleTooltip(context, enquiries, 'Equiries'),
-                      child: Container(
-                        alignment: Alignment.centerLeft,
-                        margin: const EdgeInsets.symmetric(
-                          vertical: 10,
-                          horizontal: 2,
-                        ),
-                        child: Text(
-                          'EQ',
-                          style: AppFont.smallTextBold(context),
-                        ),
-                      ),
+                    _buildSortableHeader(
+                      'EQ',
+                      'enquiries',
+                      enquiries,
+                      'Enquiries',
                     ),
-                    GestureDetector(
-                      key: tDrives,
-                      onTap: () =>
-                          showBubbleTooltip(context, tDrives, 'Test Drives'),
-                      child: Container(
-                        alignment: Alignment.centerLeft,
-                        margin: const EdgeInsets.symmetric(
-                          vertical: 10,
-                          horizontal: 2,
-                        ),
-                        child: Text(
-                          'TD',
-                          style: AppFont.smallTextBold(context),
-                        ),
-                      ),
+                    _buildSortableHeader(
+                      'TD',
+                      'testDrives',
+                      tDrives,
+                      'Test Drives',
                     ),
-                    GestureDetector(
-                      key: orders,
-                      onTap: () => showBubbleTooltip(context, orders, 'Orders'),
-                      child: Container(
-                        alignment: Alignment.centerLeft,
-                        margin: const EdgeInsets.symmetric(
-                          vertical: 10,
-                          horizontal: 2,
-                        ),
-                        child: Text(
-                          'OD',
-                          style: AppFont.smallTextBold(context),
-                        ),
-                      ),
+                    _buildSortableHeader('OD', 'orders', orders, 'Orders'),
+                    _buildSortableHeader(
+                      'CL',
+                      'cancellation',
+                      cancel,
+                      'Cancellations',
                     ),
-                    GestureDetector(
-                      key: cancel,
-                      onTap: () =>
-                          showBubbleTooltip(context, cancel, 'Cancellations'),
-                      child: Container(
-                        alignment: Alignment.centerLeft,
-                        margin: const EdgeInsets.symmetric(
-                          vertical: 10,
-                          horizontal: 2,
-                        ),
-                        child: Text(
-                          'CL',
-                          style: AppFont.smallTextBold(context),
-                        ),
-                      ),
+                    _buildSortableHeader(
+                      'ND',
+                      'net_orders',
+                      net_orders,
+                      'Net Orders',
                     ),
-                    GestureDetector(
-                      key: netOrd,
-                      onTap: () =>
-                          showBubbleTooltip(context, netOrd, 'Net Orders'),
-                      child: Container(
-                        alignment: Alignment.centerLeft,
-                        margin: const EdgeInsets.symmetric(
-                          vertical: 10,
-                          horizontal: 2,
-                        ),
-                        child: Text(
-                          'ND',
-                          style: AppFont.smallTextBold(context),
-                        ),
-                      ),
-                    ),
-                    GestureDetector(
-                      key: retails,
-                      onTap: () =>
-                          showBubbleTooltip(context, retails, 'Retails'),
-                      child: Container(
-                        alignment: Alignment.centerLeft,
-                        margin: const EdgeInsets.symmetric(
-                          vertical: 10,
-                          horizontal: 2,
-                        ),
-                        child: Text(
-                          'RS',
-                          style: AppFont.smallTextBold(context),
-                        ),
-                      ),
-                    ),
+                    _buildSortableHeader('RS', 'retail', retails, 'Retails'),
                   ],
                 ),
                 ..._buildMemberRowsTeams(),
@@ -2002,7 +2003,199 @@ class _MyTeamsState extends State<MyTeams> {
     );
   }
 
-  // call ananlytics
+  Widget _buildSortableHeader(
+    String displayText,
+    String sortKey,
+    GlobalKey key,
+    String tooltipText,
+  ) {
+    bool isCurrentSortColumn = _sortColumn == sortKey;
+
+    return GestureDetector(
+      key: key,
+      onTap: () {
+        // Show tooltip
+        showBubbleTooltip(context, key, tooltipText);
+
+        // Sort logic with 3 states
+        setState(() {
+          if (_sortColumn == sortKey) {
+            // If clicking the same column, cycle through states
+            _sortState = (_sortState + 1) % 3;
+          } else {
+            // If clicking a different column, start with descending (highest first)
+            _sortColumn = sortKey;
+            _sortState = 1; // Start with descending
+          }
+        });
+
+        // Trigger data sorting
+        _sortData();
+      },
+      child: Container(
+        alignment: Alignment.centerLeft,
+        margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 2),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              displayText,
+              style: AppFont.smallTextBold(context).copyWith(
+                color: isCurrentSortColumn && _sortState != 0
+                    ? Colors.blue
+                    : null,
+              ),
+            ),
+            // Sort indicator
+            if (isCurrentSortColumn && _sortState != 0)
+              Icon(
+                _sortState == 1 ? Icons.arrow_downward : Icons.arrow_upward,
+                size: 12,
+                color: Colors.blue,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _sortData() {
+    // Store original data if not already stored
+    if (_originalMembersData.isEmpty) {
+      _originalMembersData = List.from(_membersData);
+    }
+
+    List<dynamic> dataToSort;
+
+    // Determine which data to sort
+    if (_isComparing && _teamComparisonData.isNotEmpty) {
+      dataToSort = _teamComparisonData;
+    } else if (_isComparing && selectedUserIds.isNotEmpty) {
+      dataToSort = _membersData.where((member) {
+        return selectedUserIds.contains(member['user_id'].toString());
+      }).toList();
+    } else {
+      dataToSort = _membersData;
+    }
+
+    // Sort based on current state
+    if (_sortState == 0) {
+      // Original order - restore from original data and sort by name descending
+      if (_isComparing && _teamComparisonData.isNotEmpty) {
+        // For team comparison, just sort by name
+        dataToSort.sort((a, b) {
+          String aName = (a['name'] ?? '').toString().toLowerCase();
+          String bName = (b['name'] ?? '').toString().toLowerCase();
+          return bName.compareTo(aName); // Z to A
+        });
+      } else {
+        // For regular data, restore original order first, then sort by name
+        dataToSort = List.from(_originalMembersData);
+        if (_isComparing && selectedUserIds.isNotEmpty) {
+          dataToSort = dataToSort.where((member) {
+            return selectedUserIds.contains(member['user_id'].toString());
+          }).toList();
+        }
+        dataToSort.sort((a, b) {
+          String aName = (a['name'] ?? '').toString().toLowerCase();
+          String bName = (b['name'] ?? '').toString().toLowerCase();
+          return bName.compareTo(aName); // Z to A
+        });
+      }
+    } else if (_sortColumn != null) {
+      // Sort by the selected column
+      dataToSort.sort((a, b) {
+        var aValue = a[_sortColumn];
+        var bValue = b[_sortColumn];
+
+        // Handle null values
+        if (aValue == null && bValue == null) return 0;
+        if (aValue == null) return _sortState == 1 ? 1 : -1;
+        if (bValue == null) return _sortState == 1 ? -1 : 1;
+
+        // Convert to numbers for proper sorting
+        double aNum = double.tryParse(aValue.toString()) ?? 0;
+        double bNum = double.tryParse(bValue.toString()) ?? 0;
+
+        if (_sortState == 1) {
+          // Descending order (highest first)
+          return bNum.compareTo(aNum);
+        } else {
+          // Ascending order (lowest first)
+          return aNum.compareTo(bNum);
+        }
+      });
+    }
+
+    // // Sort based on current state
+    // if (_sortState == 0) {
+    //   // Original order - sort by name descending
+    //   dataToSort.sort((a, b) {
+    //     String aName = (a['name'] ?? '').toString().toLowerCase();
+    //     String bName = (b['name'] ?? '').toString().toLowerCase();
+    //     return bName.compareTo(aName); // Z to A
+    //   });
+    // } else if (_sortColumn != null) {
+    //   // Sort by the selected column
+    //   dataToSort.sort((a, b) {
+    //     var aValue = a[_sortColumn];
+    //     var bValue = b[_sortColumn];
+
+    //     // Handle null values
+    //     if (aValue == null && bValue == null) return 0;
+    //     if (aValue == null) return _sortState == 1 ? 1 : -1;
+    //     if (bValue == null) return _sortState == 1 ? -1 : 1;
+
+    //     // Convert to numbers for proper sorting
+    //     double aNum = double.tryParse(aValue.toString()) ?? 0;
+    //     double bNum = double.tryParse(bValue.toString()) ?? 0;
+
+    //     if (_sortState == 1) {
+    //       // Descending order (highest first)
+    //       return bNum.compareTo(aNum);
+    //     } else {
+    //       // Ascending order (lowest first)
+    //       return aNum.compareTo(bNum);
+    //     }
+    //   });
+    // }
+
+    // Update the appropriate data source
+    if (_isComparing && _teamComparisonData.isNotEmpty) {
+      _teamComparisonData = dataToSort;
+    } else {
+      // For filtered data, we need to update the main data source
+      if (_isComparing && selectedUserIds.isNotEmpty) {
+        // Create a map for quick lookup of sorted positions
+        Map<String, int> sortedPositions = {};
+        for (int i = 0; i < dataToSort.length; i++) {
+          sortedPositions[dataToSort[i]['user_id'].toString()] = i;
+        }
+
+        // Sort the main data based on the sorted positions
+        _membersData.sort((a, b) {
+          String aId = a['user_id'].toString();
+          String bId = b['user_id'].toString();
+
+          // If both are in selected users, sort by their sorted positions
+          if (selectedUserIds.contains(aId) && selectedUserIds.contains(bId)) {
+            return (sortedPositions[aId] ?? 0).compareTo(
+              sortedPositions[bId] ?? 0,
+            );
+          }
+
+          // If only one is selected, prioritize selected items
+          if (selectedUserIds.contains(aId)) return -1;
+          if (selectedUserIds.contains(bId)) return 1;
+
+          // For non-selected items, maintain original order
+          return 0;
+        });
+      } else {
+        _membersData = List<Map<String, dynamic>>.from(dataToSort);
+      }
+    }
+  }
 
   Widget _callAnalyticAll(BuildContext context) {
     if (_isOnlyLetterSelected) {
@@ -2046,39 +2239,45 @@ class _MyTeamsState extends State<MyTeams> {
                   ],
                 ),
 
-                child: Column(
-                  children: [
-                    Row(
-                      // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        IconButton(
-                          onPressed: () {
-                            setState(() {
-                              isHideAllcall = !isHideAllcall;
-                            });
-                          },
-                          icon: Icon(
-                            isHideAllcall
-                                ? Icons.keyboard_arrow_up_rounded
-                                : Icons.keyboard_arrow_down_rounded,
-                            size: 35,
-                            color: AppColors.iconGrey,
-                          ),
-                        ),
-                        Container(
-                          margin: const EdgeInsets.only(left: 10, bottom: 0),
-                          child: Text(
-                            'Call Analysis',
-                            style: AppFont.dropDowmLabel(context).copyWith(
+                child: InkWell(
+                  onTap: () => setState(() {
+                    setState(() {
+                      isHideAllcall = !isHideAllcall;
+                    });
+                  }),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          IconButton(
+                            onPressed: () {
+                              setState(() {
+                                isHideAllcall = !isHideAllcall;
+                              });
+                            },
+                            icon: Icon(
+                              isHideAllcall
+                                  ? Icons.keyboard_arrow_up_rounded
+                                  : Icons.keyboard_arrow_down_rounded,
+                              size: 35,
                               color: AppColors.iconGrey,
-                              fontWeight: FontWeight.w500,
-                              fontSize: 16,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                          Container(
+                            margin: const EdgeInsets.only(left: 10, bottom: 0),
+                            child: Text(
+                              'Call Analysis',
+                              style: AppFont.dropDowmLabel(context).copyWith(
+                                color: AppColors.iconGrey,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
               if (isHideAllcall) ...[
@@ -2096,6 +2295,40 @@ class _MyTeamsState extends State<MyTeams> {
             ],
           ],
         ),
+      ),
+    );
+  }
+
+  // Enhanced Show More button with better text
+  Widget _buildShowMoreButton() {
+    if (_membersData.isEmpty || !_hasMoreRecords()) {
+      return const SizedBox.shrink();
+    }
+
+    int remainingRecords = _membersData.length - _currentDisplayCount;
+    int recordsToShow = math.min(_incrementCount, remainingRecords);
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 10.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          TextButton(
+            onPressed: _loadMoreRecords,
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.blue,
+              textStyle: const TextStyle(fontSize: 12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Show More ($recordsToShow more)'),
+                const SizedBox(width: 4),
+                const Icon(Icons.keyboard_arrow_down, size: 16),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -2596,15 +2829,15 @@ class _MyTeamsState extends State<MyTeams> {
     CircleAvatar buildAvatar(Map<String, dynamic> member) {
       final String? imageUrl = member['profileImage'];
       final String initials =
-          (member['fname'] ?? member['name'] ?? '').toString().trim().isNotEmpty
-          ? (member['fname'] ?? member['name'] ?? '')
+          (member['name'] ?? member['name'] ?? '').toString().trim().isNotEmpty
+          ? (member['name'] ?? member['name'] ?? '')
                 .toString()
                 .trim()
                 .substring(0, 1)
                 .toUpperCase()
           : '?';
 
-      final String colorSeed = (member['fname'] ?? member['name'] ?? '')
+      final String colorSeed = (member['name'] ?? member['name'] ?? '')
           .toString();
 
       return CircleAvatar(
@@ -2640,32 +2873,11 @@ class _MyTeamsState extends State<MyTeams> {
       dataToDisplay = _membersData;
       print('📊 Using regular members data: ${dataToDisplay.length} members');
     }
-    // if (_isComparing &&
-    //     selectedUserIds.isNotEmpty &&
-    //     _teamComparisonData.isNotEmpty) {
-    //   dataToDisplay = _teamComparisonData;
-    //   print('📊 Using team comparison data: ${dataToDisplay.length} members');
-    // } else {
-    //   if (_isComparing && selectedUserIds.isNotEmpty) {
-    //     dataToDisplay = _membersData.where((member) {
-    //       return selectedUserIds.contains(member['user_id'].toString());
-    //     }).toList();
-    //     print(
-    //       '📊 Using filtered members data: ${dataToDisplay.length} members',
-    //     );
-    //   } else {
-    //     dataToDisplay = _membersData;
-    //     print('📊 Using regular members data: ${dataToDisplay.length} members');
-    //   }
-    // }
 
     if (dataToDisplay.isEmpty) {
       return [];
     }
 
-    // 🔥 FIX: Use safe count calculation
-    // int safeDisplayCount = math.min(_currentDisplayCount, dataToDisplay.length);
-    // 🔥 FIX: Add safety check for _currentDisplayCount
     int safeDisplayCount = math.max(
       0,
       math.min(_currentDisplayCount, dataToDisplay.length),
@@ -2678,50 +2890,20 @@ class _MyTeamsState extends State<MyTeams> {
       int index = entry.key;
       var member = entry.value;
 
-      if (member == null) return TableRow(children: List.filled(6, Text('')));
+      if (member == null) return TableRow(children: List.filled(7, Text('')));
 
       bool isSelected = selectedUserIds.contains(
         member['user_id']?.toString() ?? '',
       );
-      // int safeDisplayCount = math.max(
-      //   0,
-      //   math.min(_currentDisplayCount, dataToDisplay.length),
-      // );
-      // List<dynamic> displayMembers = dataToDisplay
-      //     .take(safeDisplayCount)
-      //     .toList();
-
-      // return displayMembers.asMap().entries.map((entry) {
-      //   int index = entry.key;
-      //   var member = entry.value;
-
-      //   // Safe access with null checks
-      //   if (member == null) return TableRow(children: []);
-
-      //   bool isSelected = selectedUserIds.contains(
-      //     member['user_id']?.toString() ?? '',
-      //   );
 
       return _buildTableRow([
         InkWell(
           onTap: () {
-            // Navigator.push(
-            //   context,
-            //   MaterialPageRoute(
-            //     builder: (context) => CallAnalytics(
-            //       userId: member['user_id'].toString(),
-            //       isFromSM: true,
-            //     ),
-            //   ),
-            // );
+            // Your existing navigation logic
           },
           child: Row(
             children: [
-              Stack(
-                children: [
-                  buildAvatar(member), // 👈 using the random color avatar
-                ],
-              ),
+              Stack(children: [buildAvatar(member)]),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
@@ -2758,14 +2940,13 @@ class _MyTeamsState extends State<MyTeams> {
           ),
         ),
         Text(
-          member['retail'].toString(),
+          member['net_orders'].toString(),
           style: AppFont.smallText10(context).copyWith(
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
         ),
-        // 🔥 Show target data if available (from team comparison)
         Text(
-          (member['target_enquiries'] ?? member['retail'] ?? 0).toString(),
+          member['retail'].toString(),
           style: AppFont.smallText10(context).copyWith(
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
@@ -2774,85 +2955,98 @@ class _MyTeamsState extends State<MyTeams> {
     }).toList();
   }
 
-  // Enhanced Show More button with better text
-  Widget _buildShowMoreButton() {
-    if (_membersData.isEmpty || !_hasMoreRecords()) {
+  Widget _buildShowMoreButtonTeamComparison() {
+    List<dynamic> dataToDisplay = _getCurrentDataToDisplay();
+
+    // Fix invalid display count
+    if (_currentDisplayCount <= 0 ||
+        _currentDisplayCount > dataToDisplay.length) {
+      _currentDisplayCount = math.min(_incrementCount, dataToDisplay.length);
+    }
+
+    // Add this check - if no data, don't show anything
+    // Check if there's actually data to display
+    if (dataToDisplay.isEmpty) {
       return const SizedBox.shrink();
     }
 
-    int remainingRecords = _membersData.length - _currentDisplayCount;
-    int recordsToShow = math.min(_incrementCount, remainingRecords);
+    // Also check if current display count is valid
+    if (_currentDisplayCount <= 0) {
+      return const SizedBox.shrink();
+    }
+
+    // Check if we can show more records
+    bool hasMoreRecords = _currentDisplayCount < dataToDisplay.length;
+
+    // Check if we can show less records - only if we're showing more than initial count
+    bool canShowLess =
+        _currentDisplayCount > _incrementCount &&
+        _currentDisplayCount >= dataToDisplay.length;
+
+    // If no action is possible, don't show button
+    if (!hasMoreRecords && !canShowLess) {
+      return const SizedBox.shrink();
+    }
 
     return Padding(
       padding: const EdgeInsets.only(top: 10.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          TextButton(
-            onPressed: _loadMoreRecords,
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.blue,
-              textStyle: const TextStyle(fontSize: 12),
+          // Show Less button - only when all data is displayed and we can reduce
+          if (canShowLess)
+            TextButton(
+              onPressed: _loadLessRecords,
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.grey[600],
+                textStyle: const TextStyle(fontSize: 12),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Show Less'),
+                  SizedBox(width: 4),
+                  Icon(Icons.keyboard_arrow_up, size: 16),
+                ],
+              ),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('Show More ($recordsToShow more)'),
-                const SizedBox(width: 4),
-                const Icon(Icons.keyboard_arrow_down, size: 16),
-              ],
+
+          // Show More button - only when there are more records to show
+          if (hasMoreRecords)
+            TextButton(
+              onPressed: _loadMoreRecords,
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.blue,
+                textStyle: const TextStyle(fontSize: 12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Show More (${dataToDisplay.length - _currentDisplayCount} more)',
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.keyboard_arrow_down, size: 16),
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );
   }
 
-  Widget _buildShowMoreButtonTeamComparison() {
-    List<dynamic> dataToDisplay;
-
+  List<dynamic> _getCurrentDataToDisplay() {
     if (_isComparing &&
         selectedUserIds.isNotEmpty &&
         _teamComparisonData.isNotEmpty) {
-      dataToDisplay = _teamComparisonData;
+      return _teamComparisonData;
     } else if (_isComparing && selectedUserIds.isNotEmpty) {
-      dataToDisplay = _membersData.where((member) {
+      return _membersData.where((member) {
         return selectedUserIds.contains(member['user_id'].toString());
       }).toList();
     } else {
-      dataToDisplay = _membersData;
+      return _membersData;
     }
-
-    if (dataToDisplay.isEmpty || !_hasMoreRecordsTeams(dataToDisplay)) {
-      return const SizedBox.shrink();
-    }
-
-    int remainingRecords = dataToDisplay.length - _currentDisplayCount;
-    int recordsToShow = math.min(_incrementCount, remainingRecords);
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 10.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          TextButton(
-            onPressed: _loadMoreRecords,
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.blue,
-              textStyle: const TextStyle(fontSize: 12),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('Show More ($recordsToShow more)'),
-                const SizedBox(width: 4),
-                const Icon(Icons.keyboard_arrow_down, size: 16),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   TableRow _buildTableRow(List<Widget> widgets) {

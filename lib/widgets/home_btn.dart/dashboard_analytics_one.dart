@@ -13,12 +13,12 @@ class BottomBtnSecond extends StatefulWidget {
   const BottomBtnSecond({super.key});
 
   @override
-  State<BottomBtnSecond> createState() => _BottomBtnSecondState();
+  State<BottomBtnSecond> createState() => BottomBtnSecondState();
 }
 
-class _BottomBtnSecondState extends State<BottomBtnSecond> {
+class BottomBtnSecondState extends State<BottomBtnSecond> {
   int _childButtonIndex = 0; // 0:MTD, 1:QTD, 2:YTD
-  int _leadButton = 0; // 0:Enquiry, 1:Test Drive, 2:Orders
+  int _leadButton = 0;
 
   bool _isLoading = true;
   Map<String, dynamic>? _mtdData;
@@ -85,7 +85,6 @@ class _BottomBtnSecondState extends State<BottomBtnSecond> {
       final token = await Storage.getToken();
 
       final uri = Uri.parse(
-        // 'https://api.smartassistapp.in/api/users/dashboard/analytics?type=$period',
         'https://api.smartassistapp.in/api/users/analytics?type=$period',
       );
 
@@ -97,8 +96,7 @@ class _BottomBtnSecondState extends State<BottomBtnSecond> {
         },
       );
 
-      print('thi sis theerere ${uri}');
-      // print('hiii');
+      print('this the url fo the dashboard_one ${uri}');
 
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
@@ -137,6 +135,7 @@ class _BottomBtnSecondState extends State<BottomBtnSecond> {
         MtdData: _mtdData!,
         QtdData: _qtdData!,
         YtdData: _ytdData!,
+        onFormSubmit: (String period) => _fetchDashboardData(period),
       );
     });
   }
@@ -147,6 +146,7 @@ class _BottomBtnSecondState extends State<BottomBtnSecond> {
         MtdData: _mtdData!,
         QtdData: _qtdData!,
         YtdData: _ytdData!,
+        onFormSubmit: (String period) => _fetchDashboardData(period),
       );
     });
   }
@@ -157,8 +157,40 @@ class _BottomBtnSecondState extends State<BottomBtnSecond> {
         MtdData: _mtdData!,
         QtdData: _qtdData!,
         YtdData: _ytdData!,
+        onFormSubmit: (String period) => _fetchDashboardData(period),
       );
     });
+  }
+
+  void handleExternalTabChange(int tabIndex) {
+    // No underscore = public method
+    int leadButtonIndex;
+    switch (tabIndex) {
+      case 0:
+        leadButtonIndex = 0; // Enquiries
+        break;
+      case 1:
+        leadButtonIndex = 2; // Default to Enquiries for Appointments
+        break;
+      case 2:
+        leadButtonIndex = 1; // Test Drives
+        break;
+      default:
+        leadButtonIndex = 0;
+    }
+
+    if (_leadButton != leadButtonIndex) {
+      setState(() {
+        _leadButton = leadButtonIndex;
+        if (leadButtonIndex == 0) {
+          _updateLeadsWidget();
+        } else if (leadButtonIndex == 1) {
+          _updateTestDriveWidget();
+        } else if (leadButtonIndex == 2) {
+          _updateOrdersWidget();
+        }
+      });
+    }
   }
 
   @override
@@ -218,7 +250,7 @@ class _BottomBtnSecondState extends State<BottomBtnSecond> {
                               },
                               style: _buttonStyle(_leadButton == 1),
                               child: Text(
-                                'Test Drives',
+                                'Test Drivess',
                                 textAlign: TextAlign.center,
                                 style: AppFont.buttonwhite(context),
                               ),

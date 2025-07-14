@@ -34,6 +34,38 @@ class _AllLeadsState extends State<AllLeads> {
   String _query = '';
   final TextEditingController _searchController = TextEditingController();
 
+  // Filter variables
+  String _selectedSortBy = 'Date Created';
+  String _selectedStatus = 'All';
+  String _selectedTimeFilter = 'All Time';
+
+  // Filter options
+  final List<String> _sortOptions = [
+    'Date Created',
+    'Name (A-Z)',
+    'Name (Z-A)',
+    'Recently Updated',
+    'Oldest First',
+  ];
+
+  final List<String> _statusOptions = [
+    'All',
+    'New',
+    'Follow Up',
+    'Qualified',
+    'Lost',
+  ];
+
+  final List<String> _timeFilterOptions = [
+    'All Time',
+    'Today',
+    'This Week',
+    'This Month',
+    'Last 7 Days',
+    'Last 30 Days',
+    'Last 90 Days',
+  ];
+
   void _onHorizontalDragUpdate(DragUpdateDetails details, String leadId) {
     setState(() {
       _swipeOffsets[leadId] =
@@ -108,40 +140,6 @@ class _AllLeadsState extends State<AllLeads> {
   double _smallFontSize(BuildContext context) =>
       _isTablet(context) ? 14 : (_isSmallScreen(context) ? 10 : 12);
 
-  // Future<void> _toggleFavorite(String leadId, int index) async {
-  //   final token = await Storage.getToken();
-  //   try {
-  //     // Get the current favorite status before toggling
-  //     bool currentStatus = upcomingTasks[index]['favourite'] ?? false;
-  //     bool newFavoriteStatus = !currentStatus;
-
-  //     final response = await http.put(
-  //       Uri.parse(
-  //         'https://api.smartassistapp.in/api/favourites/mark-fav/lead/$leadId',
-  //       ),
-  //       headers: {
-  //         'Authorization': 'Bearer $token',
-  //         'Content-Type': 'application/json',
-  //       },
-  //     );
-
-  //     if (response.statusCode == 200) {
-  //       // Parse the response to get the updated favorite status
-  //       final responseData = json.decode(response.body);
-
-  //       // Update only the specific item in the list
-  //       setState(() {
-  //         upcomingTasks[index]['favourite'] = newFavoriteStatus;
-  //         _updateFilteredResults(); // Update filtered results
-  //       });
-  //     } else {
-  //       print('Failed to toggle favorite: ${response.statusCode}');
-  //     }
-  //   } catch (e) {
-  //     print('Error toggling favorite: $e');
-  //   }
-  // }
-
   Future<void> _toggleFavorite(String leadId, int index) async {
     final token = await Storage.getToken();
     try {
@@ -213,6 +211,7 @@ class _AllLeadsState extends State<AllLeads> {
         setState(() {
           upcomingTasks = data['data']['rows'] ?? [];
           _filteredTasks = List.from(upcomingTasks); // Initialize filtered list
+          _applyFilters(); // Apply initial filters
           isLoading = false;
         });
       } else {
@@ -225,33 +224,11 @@ class _AllLeadsState extends State<AllLeads> {
     }
   }
 
-  // Local search function for name, email, phone
-  // void _performLocalSearch(String query) {
-  //   if (query.isEmpty) {
-  //     setState(() {
-  //       _filteredTasks = List.from(upcomingTasks);
-  //     });
-  //     return;
-  //   }
-
-  //   setState(() {
-  //     _filteredTasks = upcomingTasks.where((item) {
-  //       String name = (item['lead_name'] ?? '').toString().toLowerCase();
-  //       String email = (item['email'] ?? '').toString().toLowerCase();
-  //       String phone = (item['mobile'] ?? '').toString().toLowerCase();
-  //       String searchQuery = query.toLowerCase();
-
-  //       return name.contains(searchQuery) ||
-  //           email.contains(searchQuery) ||
-  //           phone.contains(searchQuery);
-  //     }).toList();
-  //   });
-  // }
-
   void _performLocalSearch(String query) {
     if (query.isEmpty) {
       setState(() {
         _filteredTasks = List.from(upcomingTasks); // Copy without sorting
+        _applyFilters(); // Apply filters after search
       });
       return;
     }
@@ -267,21 +244,15 @@ class _AllLeadsState extends State<AllLeads> {
             email.contains(searchQuery) ||
             phone.contains(searchQuery);
       }).toList();
+      _applyFilters(); // Apply filters after search
     });
   }
-
-  // void _updateFilteredResults() {
-  //   if (_query.isEmpty) {
-  //     _filteredTasks = List.from(upcomingTasks);
-  //   } else {
-  //     _performLocalSearch(_query);
-  //   }
-  // }
 
   void _updateFilteredResults() {
     if (_query.isEmpty) {
       setState(() {
         _filteredTasks = List.from(upcomingTasks); // Copy without sorting
+        _applyFilters(); // Apply filters
       });
     } else {
       _performLocalSearch(_query);
@@ -296,6 +267,108 @@ class _AllLeadsState extends State<AllLeads> {
 
     // Perform local search immediately for better UX
     _performLocalSearch(_query);
+  }
+
+  // Filter methods
+  void _applyFilters() {
+    List<dynamic> filteredList = List.from(_filteredTasks);
+
+    // Apply status filter
+    if (_selectedStatus != 'All') {
+      filteredList = filteredList.where((item) {
+        String status = (item['status'] ?? 'New').toString();
+        return status.toLowerCase() == _selectedStatus.toLowerCase();
+      }).toList();
+    }
+
+    // Apply time filter
+    if (_selectedTimeFilter != 'All Time') {
+      DateTime now = DateTime.now();
+      filteredList = filteredList.where((item) {
+        String dateStr = item['created_at'] ?? '';
+        if (dateStr.isEmpty) return false;
+
+        try {
+          DateTime itemDate = DateTime.parse(dateStr);
+
+          switch (_selectedTimeFilter) {
+            case 'Today':
+              return itemDate.year == now.year &&
+                  itemDate.month == now.month &&
+                  itemDate.day == now.day;
+            case 'This Week':
+              DateTime startOfWeek = now.subtract(
+                Duration(days: now.weekday - 1),
+              );
+              return itemDate.isAfter(startOfWeek.subtract(Duration(days: 1)));
+            case 'This Month':
+              return itemDate.year == now.year && itemDate.month == now.month;
+            case 'Last 7 Days':
+              DateTime sevenDaysAgo = now.subtract(Duration(days: 7));
+              return itemDate.isAfter(sevenDaysAgo);
+            case 'Last 30 Days':
+              DateTime thirtyDaysAgo = now.subtract(Duration(days: 30));
+              return itemDate.isAfter(thirtyDaysAgo);
+            case 'Last 90 Days':
+              DateTime ninetyDaysAgo = now.subtract(Duration(days: 90));
+              return itemDate.isAfter(ninetyDaysAgo);
+            default:
+              return true;
+          }
+        } catch (e) {
+          print('Error parsing date: $e');
+          return false;
+        }
+      }).toList();
+    }
+
+    // Apply sorting
+    switch (_selectedSortBy) {
+      case 'Name (A-Z)':
+        filteredList.sort((a, b) {
+          String nameA = (a['lead_name'] ?? '').toString().toLowerCase();
+          String nameB = (b['lead_name'] ?? '').toString().toLowerCase();
+          return nameA.compareTo(nameB);
+        });
+        break;
+      case 'Name (Z-A)':
+        filteredList.sort((a, b) {
+          String nameA = (a['lead_name'] ?? '').toString().toLowerCase();
+          String nameB = (b['lead_name'] ?? '').toString().toLowerCase();
+          return nameB.compareTo(nameA);
+        });
+        break;
+      case 'Recently Updated':
+        filteredList.sort((a, b) {
+          String dateA = a['updated_at'] ?? a['created_at'] ?? '';
+          String dateB = b['updated_at'] ?? b['created_at'] ?? '';
+          return dateB.compareTo(dateA);
+        });
+        break;
+      case 'Oldest First':
+        filteredList.sort((a, b) {
+          String dateA = a['created_at'] ?? '';
+          String dateB = b['created_at'] ?? '';
+          return dateA.compareTo(dateB);
+        });
+        break;
+      case 'Date Created':
+      default:
+        filteredList.sort((a, b) {
+          String dateA = a['created_at'] ?? '';
+          String dateB = b['created_at'] ?? '';
+          return dateB.compareTo(dateA);
+        });
+        break;
+    }
+
+    setState(() {
+      _filteredTasks = filteredList;
+    });
+  }
+
+  void _onFilterChanged() {
+    _updateFilteredResults();
   }
 
   // Responsive helper methods
@@ -345,6 +418,76 @@ class _AllLeadsState extends State<AllLeads> {
     if (screenWidth < 400) return 45;
     if (isTablet) return 55;
     return 50;
+  }
+
+  Widget _buildDropdownFilter({
+    required String label,
+    required String value,
+    required List<String> options,
+    required Function(String?) onChanged,
+    required bool isTablet,
+  }) {
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontSize: isTablet ? 12 : 10,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[600],
+            ),
+          ),
+          SizedBox(height: 4),
+          Container(
+            height: isTablet ? 40 : 36,
+            padding: EdgeInsets.symmetric(
+              horizontal: isTablet ? 12 : 8,
+              vertical: 0,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(25),
+              border: Border.all(
+                color: Colors.grey.withOpacity(0.2),
+                width: 1.5,
+              ),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: value,
+                isExpanded: true,
+                icon: Container(
+                  margin: EdgeInsets.only(right: isTablet ? 8 : 6),
+                  child: Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    size: isTablet ? 22 : 20,
+                    color: Colors.grey[500],
+                  ),
+                ),
+                style: GoogleFonts.poppins(
+                  fontSize: isTablet ? 13 : 11,
+                  color: Colors.grey[700],
+                  fontWeight: FontWeight.w400,
+                ),
+                dropdownColor: Colors.white,
+                borderRadius: BorderRadius.circular(15),
+                elevation: 8,
+                menuMaxHeight: 250,
+                items: options.map((String option) {
+                  return DropdownMenuItem<String>(
+                    value: option,
+                    child: Text(option, overflow: TextOverflow.ellipsis),
+                  );
+                }).toList(),
+                onChanged: onChanged,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -460,6 +603,105 @@ class _AllLeadsState extends State<AllLeads> {
                   ),
                 ),
 
+                // Filter dropdowns
+                Container(
+                  margin: EdgeInsets.symmetric(
+                    horizontal: isTablet ? 15 : 10,
+                    vertical: isTablet ? 10 : 5,
+                  ),
+                  child: Row(
+                    children: [
+                      _buildDropdownFilter(
+                        label: 'Sort By',
+                        value: _selectedSortBy,
+                        options: _sortOptions,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedSortBy = value!;
+                          });
+                          _onFilterChanged();
+                        },
+                        isTablet: isTablet,
+                      ),
+                      SizedBox(width: isTablet ? 12 : 8),
+                      _buildDropdownFilter(
+                        label: 'Status',
+                        value: _selectedStatus,
+                        options: _statusOptions,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedStatus = value!;
+                          });
+                          _onFilterChanged();
+                        },
+                        isTablet: isTablet,
+                      ),
+                      SizedBox(width: isTablet ? 12 : 8),
+                      _buildDropdownFilter(
+                        label: 'Time',
+                        value: _selectedTimeFilter,
+                        options: _timeFilterOptions,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedTimeFilter = value!;
+                          });
+                          _onFilterChanged();
+                        },
+                        isTablet: isTablet,
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Active filters indicator
+                if (_selectedSortBy != 'Date Created' ||
+                    _selectedStatus != 'All' ||
+                    _selectedTimeFilter != 'All Time')
+                  Container(
+                    margin: EdgeInsets.symmetric(
+                      horizontal: isTablet ? 15 : 10,
+                      vertical: 5,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.filter_alt,
+                          size: isTablet ? 16 : 14,
+                          color: AppColors.colorsBlue,
+                        ),
+                        SizedBox(width: 5),
+                        Text(
+                          'Filters active',
+                          style: GoogleFonts.poppins(
+                            fontSize: isTablet ? 12 : 10,
+                            color: AppColors.colorsBlue,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Spacer(),
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _selectedSortBy = 'Date Created';
+                              _selectedStatus = 'All';
+                              _selectedTimeFilter = 'All Time';
+                            });
+                            _onFilterChanged();
+                          },
+                          child: Text(
+                            'Clear All',
+                            style: GoogleFonts.poppins(
+                              fontSize: isTablet ? 12 : 10,
+                              color: Colors.red,
+                              fontWeight: FontWeight.w500,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
                 // Search query indicator
                 if (_query.isNotEmpty)
                   Padding(
@@ -474,6 +716,25 @@ class _AllLeadsState extends State<AllLeads> {
                         style: GoogleFonts.poppins(
                           fontSize: isTablet ? 14 : 12,
                           fontStyle: FontStyle.italic,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                // Results count
+                if (_query.isEmpty)
+                  Padding(
+                    padding: EdgeInsets.only(
+                      left: isTablet ? 15 : 10,
+                      bottom: isTablet ? 8 : 5,
+                    ),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Total Records: ${_filteredTasks.length}',
+                        style: GoogleFonts.poppins(
+                          fontSize: isTablet ? 14 : 12,
                           color: Colors.grey[600],
                         ),
                       ),
@@ -916,158 +1177,6 @@ class _TaskItemState extends State<TaskItem>
       });
     }
   }
-  // Widget _buildFollowupCard(BuildContext context) {
-  //   final screenSize = MediaQuery.of(context).size;
-  //   final isTablet = screenSize.width > 600;
-  //   bool isFavoriteSwipe = widget.swipeOffset > 50;
-  //   bool isCallSwipe = widget.swipeOffset < -50;
-
-  //   return GestureDetector(
-  //     onTap:
-  //         widget.onTap ??
-  //         () {
-  //           if (widget.leadId.isNotEmpty) {
-  //             HapticFeedback.lightImpact();
-  //             Navigator.push(
-  //               context,
-  //               MaterialPageRoute(
-  //                 builder: (context) => FollowupsDetails(
-  //                   leadId: widget.leadId,
-  //                   isFromFreshlead: false,
-  //                   isFromManager: true,
-
-  //                   isFromTestdriveOverview: false,
-  //                   refreshDashboard: () async {},
-  //                 ),
-  //               ),
-  //             );
-  //           } else {
-  //             print("Invalid leadId");
-  //           }
-  //         },
-
-  //     child: Slidable(
-  //       key: ValueKey(widget.leadId),
-  //       startActionPane: ActionPane(
-  //         extentRatio: isTablet ? 0.15 : 0.2,
-  //         motion: const ScrollMotion(),
-  //         children: [
-  //           ReusableSlidableAction(
-  //             onPressed: () {
-  //               widget.onToggleFavorite();
-  //               _slidableController.close();
-  //               setState(() {
-  //                 _isActionPaneOpen = false;
-  //               });
-  //             },
-  //             onDismissed: () {},
-  //             backgroundColor: Colors.amber,
-  //             icon: widget.isFavorite
-  //                 ? Icons.star_rounded
-  //                 : Icons.star_border_rounded,
-  //             foregroundColor: Colors.white,
-  //             iconSize: isTablet ? 45 : 40,
-  //           ),
-  //         ],
-  //       ),
-  //       endActionPane: ActionPane(
-  //         motion: const StretchMotion(),
-  //         extentRatio: isTablet ? 0.15 : 0.2,
-  //         children: [
-  //           ReusableSlidableAction(
-  //             onPressed: () {
-  //               _mailAction();
-  //               _slidableController.close();
-  //               setState(() {
-  //                 _isActionPaneOpen = false;
-  //               });
-  //             },
-  //             onDismissed: () {
-  //               setState(() {
-  //                 _isActionPaneOpen = false;
-  //               });
-  //             },
-  //             backgroundColor: const Color.fromARGB(255, 231, 225, 225),
-  //             icon: Icons.edit,
-  //             foregroundColor: Colors.white,
-  //             iconSize: isTablet ? 45 : 40,
-  //           ),
-  //         ],
-  //       ),
-  //       child: Stack(
-  //         children: [
-  //           // Main Container
-  //           Container(
-  //             padding: EdgeInsets.symmetric(
-  //               horizontal: isTablet ? 15 : 10,
-  //               vertical: isTablet ? 20 : 15,
-  //             ),
-  //             decoration: BoxDecoration(
-  //               color: AppColors.backgroundLightGrey,
-  //               borderRadius: BorderRadius.circular(7),
-  //               border: Border(
-  //                 left: BorderSide(
-  //                   width: isTablet ? 10.0 : 8.0,
-  //                   color: isFav
-  //                       ? (isCallSwipe
-  //                             ? Colors.green.withOpacity(0.9)
-  //                             : Colors.yellow.withOpacity(
-  //                                 isFavoriteSwipe ? 0.1 : 0.9,
-  //                               ))
-  //                       : (isFavoriteSwipe
-  //                             ? Colors.yellow.withOpacity(0.1)
-  //                             : (isCallSwipe
-  //                                   ? Colors.green.withOpacity(0.1)
-  //                                   : AppColors.sideGreen)),
-  //                 ),
-  //               ),
-  //             ),
-  //             child: Opacity(
-  //               opacity: (isFavoriteSwipe || isCallSwipe) ? 0 : 1.0,
-  //               child: Row(
-  //                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //                 crossAxisAlignment: CrossAxisAlignment.center,
-  //                 children: [
-  //                   Expanded(
-  //                     child: Row(
-  //                       children: [
-  //                         SizedBox(width: isTablet ? 12 : 8),
-  //                         Expanded(
-  //                           child: Column(
-  //                             crossAxisAlignment: CrossAxisAlignment.start,
-  //                             children: [
-  //                               Row(
-  //                                 crossAxisAlignment: CrossAxisAlignment.end,
-  //                                 children: [
-  //                                   Flexible(child: _buildUserDetails(context)),
-  //                                   _buildVerticalDivider(isTablet ? 18 : 15),
-  //                                   Flexible(
-  //                                     child: _buildSubjectDetails(context),
-  //                                   ),
-  //                                 ],
-  //                               ),
-  //                               SizedBox(height: isTablet ? 6 : 4),
-  //                               Row(
-  //                                 children: [
-  //                                   Flexible(child: _buildCarModel(context)),
-  //                                 ],
-  //                               ),
-  //                             ],
-  //                           ),
-  //                         ),
-  //                       ],
-  //                     ),
-  //                   ),
-  //                   _buildNavigationButton(context),
-  //                 ],
-  //               ),
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
 
   void _mailAction() {
     print("Mail action triggered");

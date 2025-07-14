@@ -38,6 +38,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final GlobalKey<BottomBtnSecondState> _bottomBtnSecondKey =
+      GlobalKey<BottomBtnSecondState>();
   bool hasInternet = true;
   bool isRefreshing = false;
   int _currentTabIndex = 0; // Track which tab is active
@@ -193,8 +195,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Handle form submission from popups
   Future<void> _handleFormSubmit() async {
-    await fetchDashboardData();
-    // Don't change tab here unless you want to
+    await fetchDashboardData(); 
   }
 
   void _onTabChanged() {
@@ -708,9 +709,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                     ),
                                   ],
-                                ),
-
-                                /// ✅ Other UI Components (Follow-ups, Buttons, etc.)
+                                ), 
+                                
                                 // const SizedBox(height: 3),
                                 Threebtn(
                                   leadId: leadId ?? 'empty',
@@ -727,12 +727,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                   overdueTestDrivesCount:
                                       overdueTestDrivesCount,
                                   tabController: _tabController,
+                                  onTabChanged: (index) {
+                                    _bottomBtnSecondKey.currentState
+                                        ?.handleExternalTabChange(index);
+                                  },
                                 ),
-                                const BottomBtnSecond(
-                                  // MtdData: MtdData,
-                                  // QtdData: QtdData,
-                                  // YtdData: YtdData,
-                                ),
+                                BottomBtnSecond(key: _bottomBtnSecondKey),
 
                                 Padding(
                                   padding: const EdgeInsets.only(

@@ -38,6 +38,7 @@ dependencies:
   connectivity_plus: ^6.1.4
 
   # ✅ Your actual runtime app packages (should be here)
+  file_picker: ^10.2.0
   http: ^1.2.2
   table_calendar: ^3.0.9
   intl: ^0.20.1
@@ -86,8 +87,7 @@ dependencies:
   external_app_launcher: ^4.0.3
   flutter_tts: ^3.8.5
   flutter_time_picker_spinner: ^2.0.0
-  flutter_datetime_picker: ^1.5.1
-
+  flutter_datetime_picker: ^1.5.1 
 
 dev_dependencies:
   flutter_test:

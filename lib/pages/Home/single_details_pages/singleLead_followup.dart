@@ -66,6 +66,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
   String expected_date_purchase = 'Loading...';
   String pincode = 'Loading..';
   String lead_status = 'Not Converted';
+  String vehicle_id = '';
 
   bool isLoading = false;
   int _childButtonIndex = 0;
@@ -243,6 +244,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
         lead_name = leadData['data']['lead_name'] ?? 'N/A';
         pincode = leadData['data']['pincode']?.toString() ?? 'N/A';
         lead_status = leadData['data']['opp_status'] ?? 'Not Converted';
+        vehicle_id = leadData['data']['vehicle_id'] ?? '';
       });
     } catch (e) {
       print('Error fetching data: $e');
@@ -341,7 +343,6 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
   void _toggleTasks(int index) {
     setState(() {
       _childButtonIndex = index;
-
       if (index == 0) {
         // Show upcoming tasks
         _selectedTaskWidget = TimelineUpcoming(
@@ -392,70 +393,6 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
     );
   }
 
-  // Widget _buildSubTabButton(String title, int index, {bool showCount = false}) {
-  //   final isActive = _childButtonIndex == index;
-  //   final overdueCount = _getOverdueCount();
-
-  //   return Expanded(
-  //     child: TextButton(
-  //       onPressed: () => _toggleTasks(index),
-  //       style: TextButton.styleFrom(
-  //         backgroundColor: isActive
-  //             ? (index == 0 ? AppColors.borderGreen : const Color(0xFFFFF5F4))
-  //             : Colors.transparent,
-  //         foregroundColor: isActive ? Colors.white : Colors.black,
-  //         padding: EdgeInsets.symmetric(
-  //           vertical: 5.0 * _getResponsiveScale(),
-  //           horizontal: 8.0 * _getResponsiveScale(),
-  //         ),
-  //         side: BorderSide(
-  //           color: isActive
-  //               ? (index == 0 ? AppColors.borderGreen : AppColors.borderRed)
-  //               : Colors.transparent,
-  //           width: 1,
-  //         ),
-  //         shape: RoundedRectangleBorder(
-  //           borderRadius: BorderRadius.circular(30),
-  //         ),
-  //       ),
-  //       child: FittedBox(
-  //         fit: BoxFit.scaleDown,
-  //         child: Row(
-  //           mainAxisAlignment: MainAxisAlignment.center,
-  //           mainAxisSize: MainAxisSize.min,
-  //           children: [
-  //             Text(
-  //               title,
-  //               style: GoogleFonts.poppins(
-  //                 fontSize: _getSubTabFontSize(),
-  //                 fontWeight: FontWeight.w400,
-  //                 color: isActive
-  //                     ? (index == 0
-  //                           ? AppColors.containerGreen
-  //                           : AppColors.containerRed)
-  //                     : const Color(0xff000000).withOpacity(0.56),
-  //               ),
-  //             ),
-
-  //             if (showCount) ...[
-  //               SizedBox(width: 4.0 * _getResponsiveScale()),
-  //               Text(
-  //                 '($overdueCount)',
-  //                 style: GoogleFonts.poppins(
-  //                   fontSize: _getSubTabFontSize(),
-  //                   fontWeight: FontWeight.w400,
-  //                   color: isActive
-  //                       ? AppColors.containerRed
-  //                       : const Color(0xff000000).withOpacity(0.56),
-  //                 ),
-  //               ),
-  //             ],
-  //           ],
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
   // Toggle switch to toggle between 'Upcoming' and 'Completed'
   Widget _buildToggleSwitch() {
     return Row(
@@ -545,6 +482,8 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
             ),
             child: TestdriveIds(
               leadId: leadId,
+              vehicle_id: vehicle_id,
+              PMI: PMI,
               onFormSubmit: eventandtask,
             ), // Appointment modal
           ),
@@ -838,94 +777,6 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
       isFabExpanded = !isFabExpanded;
     });
   }
-
-  // Future<void> _showWhatsappDialog() async {
-  //   return showDialog<void>(
-  //     context: context,
-  //     barrierDismissible: false, // User must tap button to close dialog
-  //     builder: (BuildContext context) {
-  //       return AlertDialog(
-  //         shape: RoundedRectangleBorder(
-  //           borderRadius: BorderRadius.circular(10),
-  //         ),
-  //         title: Text(
-  //           'Check your mail?',
-  //           style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-  //         ),
-  //         content: Text(
-  //           'Are you sure you want to mark all notifications as read?',
-  //           style: GoogleFonts.poppins(),
-  //         ),
-  //         actions: [
-  //           TextButton(
-  //             style: TextButton.styleFrom(
-  //               overlayColor: Colors.grey.withOpacity(0.1),
-  //               foregroundColor: Colors.grey,
-  //             ),
-  //             onPressed: () => Navigator.of(context).pop(false),
-  //             child: Text('No', style: GoogleFonts.poppins(color: Colors.grey)),
-  //           ),
-  //           TextButton(
-  //             style: TextButton.styleFrom(
-  //               overlayColor: Colors.blue.withOpacity(0.1),
-  //               foregroundColor: Colors.blue,
-  //             ),
-  //             // onPressed: () => Navigator.of(context).pop(
-  //             // true),
-  //             onPressed: () {
-  //               initwhatsappChat(context); // Pass context to submit
-  //             },
-  //             child: Text(
-  //               'Yes',
-  //               style: GoogleFonts.poppins(color: Colors.blue),
-  //             ),
-  //           ),
-  //         ],
-  //       );
-
-  //       // return AlertDialog(
-  //       //   shape: RoundedRectangleBorder(
-  //       //     borderRadius: BorderRadius.circular(15),
-  //       //   ),
-  //       //   backgroundColor: Colors.white,
-  //       //   insetPadding: const EdgeInsets.all(10),
-  //       //   contentPadding: EdgeInsets.zero,
-  //       //   title: Column(
-  //       //     crossAxisAlignment: CrossAxisAlignment.start,
-  //       //     children: [
-  //       //       Align(
-  //       //         alignment: Alignment.bottomLeft,
-  //       //         child: Text(
-  //       //           textAlign: TextAlign.center,
-  //       //           'Share your gmail?',
-  //       //           style: AppFont.mediumText14(context),
-  //       //         ),
-  //       //       ),
-  //       //       const SizedBox(height: 10),
-  //       //     ],
-  //       //   ),
-  //       //   actions: [
-  //       //     TextButton(
-  //       //       onPressed: () {
-  //       //         Navigator.pop(context);
-  //       //       },
-  //       //       child: Text(
-  //       //         'Cancel',
-  //       //         // style: TextStyle(color: AppColors.colorsBlue),
-  //       //         style: AppFont.mediumText14blue(context),
-  //       //       ),
-  //       //     ),
-  //       //     TextButton(
-  //       //       onPressed: () {
-  //       //         whatsappChat(context); // Pass context to submit
-  //       //       },
-  //       //       child: Text('Submit', style: AppFont.mediumText14blue(context)),
-  //       //     ),
-  //       //   ],
-  //       // );
-  //     },
-  //   );
-  // }
 
   Future<void> _showSkipDialog() async {
     return showDialog<void>(
@@ -1749,34 +1600,29 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                         // Lost Button
                         Expanded(
                           child: GestureDetector(
-                            onTap: () {
-                              if (widget.isFromFreshlead) {
-                                _showFollowupPopup(context, widget.leadId);
-                              } else {
-                                if (areButtonsEnabled()) {
-                                  handleLostAction();
-                                } else {
-                                  showLostRequiredDialog(context);
-                                }
-                              }
-                            },
+                            onTap: () =>
+                                _showFollowupPopup(context, widget.leadId),
+                            // onTap: () {
+                            //   if (widget.isFromFreshlead) {
+                            //     _showFollowupPopup(context, widget.leadId);
+                            //   } else {
+                            //     if (areButtonsEnabled()) {
+                            //       handleLostAction();
+                            //     } else {
+                            //       showLostRequiredDialog(context);
+                            //     }
+                            //   }
+                            // },
                             child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
                               decoration: BoxDecoration(
-                                color: Colors.white,
-                                border: Border.all(
-                                  color: widget.isFromFreshlead
-                                      ? Colors.blue
-                                      : Colors.red,
-                                  width: 1,
-                                ),
+                                color: AppColors.colorsBlue,
+                                // Green color from image
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
-                                widget.isFromFreshlead ? 'Follow up?' : 'Lost',
-                                style: widget.isFromFreshlead
-                                    ? AppFont.mediumText14bluee(context)
-                                    : AppFont.mediumText14red(context),
+                                'Follow up?',
+                                style: AppFont.mediumText14White(context),
                                 textAlign: TextAlign.center,
                               ),
                             ),
@@ -2006,15 +1852,6 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   _buildPopupItem(
-                    Icons.call,
-                    "Followup",
-                    -40,
-                    onTap: () {
-                      fabController.closeFab();
-                      _showFollowupPopup(context, widget.leadId);
-                    },
-                  ),
-                  _buildPopupItem(
                     Icons.calendar_month_outlined,
                     "Appointment",
                     -80,
@@ -2030,6 +1867,16 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                     onTap: () {
                       fabController.closeFab();
                       _showTestdrivePopup(context, widget.leadId);
+                    },
+                  ),
+                  _buildPopupItem(
+                    Icons.trending_down_sharp,
+                    "Lost",
+                    -40,
+                    onTap: () {
+                      fabController.closeFab();
+                      handleLostAction();
+                      // _showFollowupPopup(context, widget.leadId);
                     },
                   ),
                 ],

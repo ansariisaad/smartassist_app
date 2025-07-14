@@ -42,7 +42,7 @@ class NotificationService {
       carPlay: false,
       criticalAlert: false,
     );
-
+    print('Permission settings: $settings');
     print('permission status: ${settings.authorizationStatus}');
   }
 
@@ -100,8 +100,9 @@ class NotificationService {
   Future<void> showNotification(RemoteMessage message) async {
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
+    AppleNotification? apple = message.notification?.apple;
 
-    if (notification != null && android != null) {
+    if (notification != null && android != null && apple != null) {
       await _localNotifications.show(
         notification.hashCode,
         notification.title,

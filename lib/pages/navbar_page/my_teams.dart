@@ -25,20 +25,17 @@ class MyTeams extends StatefulWidget {
 }
 
 class _MyTeamsState extends State<MyTeams> {
-  // ADD THESE VARIABLES TO YOUR CLASS
   int _currentDisplayCount = 10; // Initially show 10 records
   static const int _incrementCount = 10; // Show 10 more each time
   static const int _decrementCount = 10;
   List<dynamic> _teamComparisonData = [];
-  // Your existing variables
-  // List<dynamic> _membersData = []; // Your existing data list
 
   final ScrollController _scrollController = ScrollController();
   bool _isFabVisible = true;
   String _selectedLetter = '';
   List<Map<String, dynamic>> _filteredByLetter = [];
 
-  int _tabIndex = 0; // 0 for Individual Performance, 1 for Team Comparison
+  int _tabIndex = 0;
   int _periodIndex = 0; // ALL, MTD, QTD, YTD
   int _metricIndex = 0; // Selected metric for comparison
   int _selectedProfileIndex = 0; // Default to 'All' profile
@@ -46,6 +43,8 @@ class _MyTeamsState extends State<MyTeams> {
   bool _isComparing = false;
   int overdueCount = 0;
   String selectedTimeRange = '1D';
+  int selectedTabIndex = 0;
+
   // String userId = '';
   bool isLoading = false;
   // String _selectedCheckboxIds = '';
@@ -996,29 +995,35 @@ class _MyTeamsState extends State<MyTeams> {
 
             // Show info about total members
             int totalMembers = _teamMembers.length;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.info_outline, color: Colors.white, size: 16),
-                    SizedBox(width: 8),
-                    Text('Total $totalMembers team members'),
-                  ],
-                ),
-                duration: const Duration(seconds: 1),
-                backgroundColor: Colors.green.shade600,
-                behavior: SnackBarBehavior.floating,
-                margin: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).size.height - 150,
-                  left: 20,
-                  right: 20,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
+            Get.snackbar(
+              'Total',
+              'Total $totalMembers team members',
+              backgroundColor: Colors.green,
+              colorText: Colors.white,
             );
+            // ScaffoldMessenger.of(context).showSnackBar(
+            //   SnackBar(
+            //     content: Row(
+            //       mainAxisSize: MainAxisSize.min,
+            //       children: [
+            //         Icon(Icons.info_outline, color: Colors.white, size: 16),
+            //         SizedBox(width: 8),
+            //         Text('Total $totalMembers team members'),
+            //       ],
+            //     ),
+            //     duration: const Duration(seconds: 1),
+            //     backgroundColor: Colors.green.shade600,
+            //     behavior: SnackBarBehavior.floating,
+            //     margin: EdgeInsets.only(
+            //       bottom: MediaQuery.of(context).size.height - 150,
+            //       left: 20,
+            //       right: 20,
+            //     ),
+            //     shape: RoundedRectangleBorder(
+            //       borderRadius: BorderRadius.circular(8),
+            //     ),
+            //   ),
+            // );
           },
           child: Stack(
             children: [
@@ -1636,12 +1641,21 @@ class _MyTeamsState extends State<MyTeams> {
       dashboardData: _dashboardData,
       enquiryData: _enquiryData,
       coldCallData: _coldCallData,
+      onTabChanged: _handleTabChange,
       onTimeRangeChanged: _handleTimeRangeChange,
-      initialTimeRange: selectedTimeRange, // <- pass it here!
+      initialTimeRange: selectedTimeRange,
+      initialTabIndex: selectedTabIndex,
     );
   }
 
-  // ADD THIS METHOD
+  void _handleTabChange(int newTabIndex) {
+    setState(() {
+      selectedTabIndex = newTabIndex; 
+      isLoading = true;
+    });
+    _fetchSingleCalllog();
+  }
+
   void _handleTimeRangeChange(String newTimeRange) {
     setState(() {
       selectedTimeRange = newTimeRange;

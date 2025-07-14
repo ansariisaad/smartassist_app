@@ -5,6 +5,8 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 
 class TeamCalllogUserid extends StatefulWidget {
+  final int? initialTabIndex;
+  final Function(int)? onTabChanged;
   final Map<String, dynamic>? dashboardData;
   final Map<String, dynamic>? enquiryData;
   final Map<String, dynamic>? coldCallData;
@@ -18,6 +20,8 @@ class TeamCalllogUserid extends StatefulWidget {
     this.coldCallData,
     this.onTimeRangeChanged,
     this.initialTimeRange,
+    this.onTabChanged,
+    this.initialTabIndex,
   });
 
   @override
@@ -57,6 +61,7 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
   void initState() {
     super.initState();
     selectedTimeRange = widget.initialTimeRange ?? '1D';
+    selectedTabIndex = widget.initialTabIndex ?? 0;
     _tabController = TabController(length: tabTitles.length, vsync: this);
     _tabController.addListener(() {
       if (_tabController.indexIsChanging == false) {
@@ -96,6 +101,14 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
         selectedTimeRange = widget.initialTimeRange ?? '1D';
       });
     }
+
+    if (widget.initialTabIndex != oldWidget.initialTabIndex) {
+      // Add this block
+      setState(() {
+        selectedTabIndex = widget.initialTabIndex ?? 0;
+        _tabController.animateTo(selectedTabIndex);
+      });
+    }
   }
 
   void _updateSelectedTimeRange(String range) {
@@ -109,11 +122,23 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
     }
   }
 
+  // void _updateSelectedTab(int index) {
+  //   setState(() {
+  //     selectedTabIndex = index;
+  //     _tabController.animateTo(index);
+  //   });
+  // }
+
   void _updateSelectedTab(int index) {
     setState(() {
       selectedTabIndex = index;
       _tabController.animateTo(index);
     });
+
+    // Call the parent callback function
+    if (widget.onTabChanged != null) {
+      widget.onTabChanged!(index);
+    }
   }
 
   // Get current data based on selected tab

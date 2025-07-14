@@ -5,6 +5,7 @@ import 'package:smartassist/config/component/font/font.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class TestDrive extends StatefulWidget {
+  final Function(String) onFormSubmit;
   final Map<String, dynamic> MtdData;
   final Map<String, dynamic> YtdData;
   final Map<String, dynamic> QtdData;
@@ -12,7 +13,7 @@ class TestDrive extends StatefulWidget {
     super.key,
     required this.MtdData,
     required this.YtdData,
-    required this.QtdData,
+    required this.QtdData, required this.onFormSubmit,
   });
 
   @override
@@ -239,10 +240,11 @@ class _TestDriveState extends State<TestDrive> {
           borderRadius: BorderRadius.circular(30),
         ),
         child: TextButton(
-          onPressed: () {
+          onPressed: () async {
             setState(() {
               _childButtonIndex = index;
             });
+            await widget.onFormSubmit(text);
           },
           style: TextButton.styleFrom(
             foregroundColor: isSelected

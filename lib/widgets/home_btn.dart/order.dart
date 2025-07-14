@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:smartassist/config/component/font/font.dart';
 
 class Order extends StatefulWidget {
+  final Function(String) onFormSubmit;
   final Map<String, dynamic> MtdData;
   final Map<String, dynamic> YtdData;
   final Map<String, dynamic> QtdData;
@@ -11,6 +12,7 @@ class Order extends StatefulWidget {
     required this.MtdData,
     required this.YtdData,
     required this.QtdData,
+    required this.onFormSubmit,
   });
 
   @override
@@ -172,10 +174,11 @@ class _OrderState extends State<Order> {
           borderRadius: BorderRadius.circular(30),
         ),
         child: TextButton(
-          onPressed: () {
+          onPressed: () async {
             setState(() {
               _childButtonIndex = index;
             });
+            await widget.onFormSubmit(text);
           },
           style: TextButton.styleFrom(
             foregroundColor: isSelected

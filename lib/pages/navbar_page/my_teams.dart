@@ -106,7 +106,7 @@ class _MyTeamsState extends State<MyTeams> {
   final GlobalKey cancel = GlobalKey();
   final GlobalKey net_orders = GlobalKey();
   final GlobalKey retails = GlobalKey();
-  
+
   @override
   void initState() {
     super.initState();
@@ -149,29 +149,22 @@ class _MyTeamsState extends State<MyTeams> {
     }
   }
 
-  // Method to load more records
   void _loadMoreRecords() {
     setState(() {
-      // Get the current data that's being displayed
-      List<dynamic> dataToDisplay;
-
-      if (_isComparing &&
-          selectedUserIds.isNotEmpty &&
-          _teamComparisonData.isNotEmpty) {
-        dataToDisplay = _teamComparisonData;
-      } else if (_isComparing && selectedUserIds.isNotEmpty) {
-        dataToDisplay = _membersData.where((member) {
-          return selectedUserIds.contains(member['user_id'].toString());
-        }).toList();
-      } else {
-        dataToDisplay = _membersData;
-      }
+      List<dynamic> dataToDisplay = _getCurrentDataToDisplay();
 
       // Update display count based on the actual data being shown
       _currentDisplayCount = math.min(
         _currentDisplayCount + _incrementCount,
         dataToDisplay.length,
       );
+    });
+  }
+
+  void _resetDisplayCountForNewData() {
+    List<dynamic> currentData = _getCurrentDataToDisplay();
+    setState(() {
+      _currentDisplayCount = math.min(_incrementCount, currentData.length);
     });
   }
 
@@ -921,7 +914,6 @@ class _MyTeamsState extends State<MyTeams> {
                   // _selectedProfileIndex = -1; // Letter selection
                 }
               }
-
               _selectedProfileIndex = -1;
             });
             // _fetchTeamDetails();  new
@@ -1174,6 +1166,7 @@ class _MyTeamsState extends State<MyTeams> {
                   selectedUserIds.add(userId);
                 }
               });
+              _resetDisplayCountForNewData();
             } else if (!_isComparing) {
               // Single select mode: your existing logic
               setState(() {
@@ -1185,6 +1178,7 @@ class _MyTeamsState extends State<MyTeams> {
                   _selectedType = 'dynamic';
                 }
               });
+              _resetDisplayCountForNewData();
               // ✅ This ensures _fetchTeamDetails runs AFTER setState completes
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 _fetchTeamDetails();
@@ -2962,18 +2956,12 @@ class _MyTeamsState extends State<MyTeams> {
   }
 
   Widget _buildShowMoreButtonTeamComparison() {
-    List<dynamic> dataToDisplay;
+    List<dynamic> dataToDisplay = _getCurrentDataToDisplay();
 
-    if (_isComparing &&
-        selectedUserIds.isNotEmpty &&
-        _teamComparisonData.isNotEmpty) {
-      dataToDisplay = _teamComparisonData;
-    } else if (_isComparing && selectedUserIds.isNotEmpty) {
-      dataToDisplay = _membersData.where((member) {
-        return selectedUserIds.contains(member['user_id'].toString());
-      }).toList();
-    } else {
-      dataToDisplay = _membersData;
+    // Fix invalid display count
+    if (_currentDisplayCount <= 0 ||
+        _currentDisplayCount > dataToDisplay.length) {
+      _currentDisplayCount = math.min(_incrementCount, dataToDisplay.length);
     }
 
     // Add this check - if no data, don't show anything
@@ -3047,10 +3035,18 @@ class _MyTeamsState extends State<MyTeams> {
     );
   }
 
-  // Helper method to get the number of records to show
-  int _getRecordsToShow(List<dynamic> dataToDisplay) {
-    int remainingRecords = dataToDisplay.length - _currentDisplayCount;
-    return math.min(_incrementCount, remainingRecords);
+  List<dynamic> _getCurrentDataToDisplay() {
+    if (_isComparing &&
+        selectedUserIds.isNotEmpty &&
+        _teamComparisonData.isNotEmpty) {
+      return _teamComparisonData;
+    } else if (_isComparing && selectedUserIds.isNotEmpty) {
+      return _membersData.where((member) {
+        return selectedUserIds.contains(member['user_id'].toString());
+      }).toList();
+    } else {
+      return _membersData;
+    }
   }
 
   TableRow _buildTableRow(List<Widget> widgets) {

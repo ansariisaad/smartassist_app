@@ -18,7 +18,7 @@ class BottomBtnSecond extends StatefulWidget {
 
 class BottomBtnSecondState extends State<BottomBtnSecond> {
   int _childButtonIndex = 0; // 0:MTD, 1:QTD, 2:YTD
-  int _leadButton = 0; 
+  int _leadButton = 0;
 
   bool _isLoading = true;
   Map<String, dynamic>? _mtdData;
@@ -85,7 +85,6 @@ class BottomBtnSecondState extends State<BottomBtnSecond> {
       final token = await Storage.getToken();
 
       final uri = Uri.parse(
-        // 'https://api.smartassistapp.in/api/users/dashboard/analytics?type=$period',
         'https://api.smartassistapp.in/api/users/analytics?type=$period',
       );
 
@@ -97,8 +96,7 @@ class BottomBtnSecondState extends State<BottomBtnSecond> {
         },
       );
 
-      print('thi sis theerere ${uri}');
-      // print('hiii');
+      print('this the url fo the dashboard_one ${uri}');
 
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
@@ -137,6 +135,7 @@ class BottomBtnSecondState extends State<BottomBtnSecond> {
         MtdData: _mtdData!,
         QtdData: _qtdData!,
         YtdData: _ytdData!,
+        onFormSubmit: (String period) => _fetchDashboardData(period),
       );
     });
   }
@@ -147,6 +146,7 @@ class BottomBtnSecondState extends State<BottomBtnSecond> {
         MtdData: _mtdData!,
         QtdData: _qtdData!,
         YtdData: _ytdData!,
+        onFormSubmit: (String period) => _fetchDashboardData(period),
       );
     });
   }
@@ -157,6 +157,7 @@ class BottomBtnSecondState extends State<BottomBtnSecond> {
         MtdData: _mtdData!,
         QtdData: _qtdData!,
         YtdData: _ytdData!,
+        onFormSubmit: (String period) => _fetchDashboardData(period),
       );
     });
   }

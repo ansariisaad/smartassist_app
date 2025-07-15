@@ -2520,9 +2520,23 @@ class _CallAnalyticsState extends State<CallAnalytics>
     List<String> xLabels = [];
     Map ha = hourlyAnalysisData;
 
-    // Handle 1D special case: Always show 9AM - 9PM
+    // Helper for months in each quarter
+    List<List<String>> quarterMonths = [
+      ["Jan", "Feb", "Mar"],
+      ["Apr", "May", "Jun"],
+      ["Jul", "Aug", "Sep"],
+      ["Oct", "Nov", "Dec"],
+    ];
+
+    int currentQuarterIdx = () {
+      DateTime now = DateTime.now();
+      int q = ((now.month - 1) / 3).floor();
+      return q;
+    }();
+
+    // ==== X Axis Data/Labels for each time range =====
     if (selectedTimeRange == "1D") {
-      List<int> hours = List.generate(13, (i) => i + 9); // 9 to 21
+      List<int> hours = List.generate(13, (i) => i + 9); // 9AM to 9PM
       for (int i = 0; i < hours.length; i++) {
         String hourStr = hours[i].toString();
         var data = ha[hourStr] ?? {};
@@ -2539,9 +2553,7 @@ class _CallAnalyticsState extends State<CallAnalytics>
         hourOnClock = hourOnClock == 0 ? 12 : hourOnClock;
         xLabels.add("$hourOnClock$ampm");
       }
-    }
-    // Enquiry 1W: Mon-Sun
-    else if (selectedTabIndex == 0 && selectedTimeRange == "1W") {
+    } else if (selectedTimeRange == "1W") {
       final weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
       for (int i = 0; i < weekDays.length; i++) {
         String day = weekDays[i];
@@ -2555,9 +2567,8 @@ class _CallAnalyticsState extends State<CallAnalytics>
           FlSpot(i.toDouble(), (data['missedCalls'] ?? 0).toDouble()),
         );
       }
-    }
-    // Enquiry 1M: Week 1-4
-    else if (selectedTabIndex == 0 && selectedTimeRange == "1M") {
+    } else if ((selectedTabIndex == 0 && selectedTimeRange == "1M") ||
+        (selectedTabIndex == 1 && selectedTimeRange == "1M")) {
       final weeks = ["Week 1", "Week 2", "Week 3", "Week 4"];
       for (int i = 0; i < weeks.length; i++) {
         var week = weeks[i];
@@ -2571,14 +2582,23 @@ class _CallAnalyticsState extends State<CallAnalytics>
           FlSpot(i.toDouble(), (data['missedCalls'] ?? 0).toDouble()),
         );
       }
-    } else if (ha.keys.any(
-      (k) => ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].contains(k),
-    )) {
-      final weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-      for (int i = 0; i < weekDays.length; i++) {
-        String day = weekDays[i];
-        var data = ha[day] ?? {};
-        xLabels.add(day);
+    } else if ((selectedTabIndex == 0 && selectedTimeRange == "1Q") ||
+        (selectedTabIndex == 1 && selectedTimeRange == "1Q")) {
+      int qIdx = 0;
+      if (ha.keys.isNotEmpty) {
+        String? firstMonth = ha.keys.first;
+        int idx = quarterMonths.indexWhere(
+          (mList) => mList.contains(firstMonth),
+        );
+        if (idx != -1) qIdx = idx;
+      } else {
+        qIdx = currentQuarterIdx;
+      }
+      List<String> months = quarterMonths[qIdx];
+      for (int i = 0; i < months.length; i++) {
+        String m = months[i];
+        var data = ha[m] ?? {};
+        xLabels.add(m);
         allCallSpots.add(
           FlSpot(i.toDouble(), (data['AllCalls']?['calls'] ?? 0).toDouble()),
         );
@@ -2587,18 +2607,12 @@ class _CallAnalyticsState extends State<CallAnalytics>
           FlSpot(i.toDouble(), (data['missedCalls'] ?? 0).toDouble()),
         );
       }
-    } else if (ha.keys.isNotEmpty &&
-        ha.keys.first.toString().contains('Week')) {
-      final weeks = ha.keys.toList()
-        ..sort((a, b) {
-          int ai = int.tryParse(RegExp(r'\d+').stringMatch(a) ?? '0') ?? 0;
-          int bi = int.tryParse(RegExp(r'\d+').stringMatch(b) ?? '0') ?? 0;
-          return ai.compareTo(bi);
-        });
-      for (int i = 0; i < weeks.length; i++) {
-        var week = weeks[i];
-        var data = ha[week] ?? {};
-        xLabels.add(week);
+    } else if (selectedTimeRange == "1Y") {
+      final quarters = ["Q1", "Q2", "Q3", "Q4"];
+      for (int i = 0; i < quarters.length; i++) {
+        var q = quarters[i];
+        var data = ha[q] ?? {};
+        xLabels.add(q);
         allCallSpots.add(
           FlSpot(i.toDouble(), (data['AllCalls']?['calls'] ?? 0).toDouble()),
         );
@@ -2635,30 +2649,10 @@ class _CallAnalyticsState extends State<CallAnalytics>
         "Nov",
         "Dec",
       ];
-      final List<String> foundMonths = ha.keys
-          .map((e) => e.toString())
-          .toList();
-      List<String> monthsToShow = allMonths
-          .where((m) => foundMonths.contains(m))
-          .toList();
-      for (int i = 0; i < monthsToShow.length; i++) {
-        var m = monthsToShow[i];
+      for (int i = 0; i < allMonths.length; i++) {
+        var m = allMonths[i];
         var data = ha[m] ?? {};
         xLabels.add(m);
-        allCallSpots.add(
-          FlSpot(i.toDouble(), (data['AllCalls']?['calls'] ?? 0).toDouble()),
-        );
-        incomingSpots.add(FlSpot(i.toDouble(), getIncoming(data)));
-        missedCallSpots.add(
-          FlSpot(i.toDouble(), (data['missedCalls'] ?? 0).toDouble()),
-        );
-      }
-    } else if (ha.keys.isNotEmpty && ha.keys.first.toString().contains('Q')) {
-      final List<String> quarters = ["Q1", "Q2", "Q3", "Q4"];
-      for (int i = 0; i < quarters.length; i++) {
-        var q = quarters[i];
-        var data = ha[q] ?? {};
-        xLabels.add(q);
         allCallSpots.add(
           FlSpot(i.toDouble(), (data['AllCalls']?['calls'] ?? 0).toDouble()),
         );
@@ -2687,6 +2681,7 @@ class _CallAnalyticsState extends State<CallAnalytics>
       xLabels = ["-"];
     }
 
+    // Calculate maxY and interval with special handling for 1Q enquiry tab
     double maxY =
         ([
               ...allCallSpots,
@@ -2694,31 +2689,51 @@ class _CallAnalyticsState extends State<CallAnalytics>
               ...missedCallSpots,
             ].map((e) => e.y).fold<double>(0, (prev, e) => e > prev ? e : prev))
             .ceilToDouble();
-    if (maxY < 5) maxY = 5;
 
     double yInterval;
-    if (maxY > 2000)
-      yInterval = 1000;
-    else if (maxY > 1000)
-      yInterval = 500;
-    else if (maxY > 500)
-      yInterval = 200;
-    else if (maxY > 200)
-      yInterval = 100;
-    else if (maxY > 100)
-      yInterval = 50;
-    else if (maxY > 50)
-      yInterval = 10;
-    else if (maxY > 20)
-      yInterval = 5;
-    else
-      yInterval = 2;
-    maxY = ((maxY ~/ yInterval) + 2) * yInterval;
+
+    // Special handling for 1Q tab in enquiry (selectedTabIndex == 0)
+    if (selectedTabIndex == 0 && selectedTimeRange == "1Q") {
+      // Always show consistent scale for enquiry quarterly data
+      maxY = 400; // Fixed max value
+      yInterval = 100; // Fixed interval (100, 200, 300, 400)
+    } else {
+      // Original logic for other tabs and time ranges
+      if (maxY < 5) maxY = 5;
+
+      if (maxY > 2000)
+        yInterval = 1000;
+      else if (maxY > 1000)
+        yInterval = 500;
+      else if (maxY > 500)
+        yInterval = 200;
+      else if (maxY > 200)
+        yInterval = 100;
+      else if (maxY > 100)
+        yInterval = 50;
+      else if (maxY > 50)
+        yInterval = 10;
+      else if (maxY > 20)
+        yInterval = 5;
+      else
+        yInterval = 2;
+
+      maxY = ((maxY ~/ yInterval) + 2) * yInterval;
+    }
+
+    int labelMaxLen = selectedTimeRange == "1D" ? 4 : 7;
+    double fontSize = 11;
+    bool rotateLabel = false;
+    if (xLabels.length >= 8) {
+      fontSize = 10;
+      rotateLabel = true;
+    }
 
     return Padding(
-      padding: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.only(left: 8, right: 8, top: 10, bottom: 10),
       child: LineChart(
         LineChartData(
+          clipData: FlClipData.none(),
           lineTouchData: LineTouchData(
             touchTooltipData: LineTouchTooltipData(
               getTooltipItems: (touchedSpots) {
@@ -2729,7 +2744,7 @@ class _CallAnalyticsState extends State<CallAnalytics>
                   else if (spot.barIndex == 1)
                     callType = 'Incoming';
                   else
-                    callType = 'Missed calls'; // <-- changed from Outgoing
+                    callType = 'Missed calls';
                   String xLabel = spot.x < xLabels.length
                       ? xLabels[spot.x.toInt()]
                       : '';
@@ -2747,33 +2762,40 @@ class _CallAnalyticsState extends State<CallAnalytics>
               sideTitles: SideTitles(
                 showTitles: true,
                 interval: 1,
-                reservedSize: 44,
+                reservedSize: 50,
                 getTitlesWidget: (double value, TitleMeta meta) {
                   int idx = value.round();
                   if (idx >= 0 && idx < xLabels.length) {
+                    String label = xLabels[idx];
+                    if (label.length > labelMaxLen) {
+                      label = label.substring(0, labelMaxLen - 1) + '…';
+                    }
                     return SideTitleWidget(
                       meta: meta,
-                      child: selectedTimeRange == "1D"
+                      space: 12,
+                      child: rotateLabel || selectedTimeRange == "1D"
                           ? Transform.rotate(
                               angle: -0.7,
                               child: Text(
-                                xLabels[idx],
-                                style: const TextStyle(
-                                  fontSize: 10,
+                                label,
+                                style: TextStyle(
+                                  fontSize: fontSize,
                                   fontWeight: FontWeight.w500,
                                 ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 textAlign: TextAlign.center,
                               ),
                             )
                           : Text(
-                              xLabels[idx],
-                              style: const TextStyle(
-                                fontSize: 11,
+                              label,
+                              style: TextStyle(
+                                fontSize: fontSize,
                                 fontWeight: FontWeight.w500,
                               ),
-                              textAlign: TextAlign.center,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
                             ),
                     );
                   } else {
@@ -2786,9 +2808,32 @@ class _CallAnalyticsState extends State<CallAnalytics>
               sideTitles: SideTitles(
                 showTitles: true,
                 interval: yInterval,
-                reservedSize: 48,
+                reservedSize: 40,
                 getTitlesWidget: (double value, TitleMeta meta) {
                   if (value == 0) return const SizedBox();
+
+                  // Special handling for 1Q enquiry tab - always show skeleton numbers
+                  if (selectedTabIndex == 0 && selectedTimeRange == "1Q") {
+                    if (value % yInterval != 0) return const SizedBox();
+                    return SideTitleWidget(
+                      meta: meta,
+                      child: Text(
+                        value
+                            .toInt()
+                            .toString(), // Show exact numbers like 100, 200, 300, 400
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        textAlign: TextAlign.right,
+                      ),
+                    );
+                  }
+
+                  // Original logic for other cases
                   if (maxY > 5000 && value % (yInterval * 2) != 0)
                     return const SizedBox();
                   if (value % yInterval != 0) return const SizedBox();
@@ -2832,7 +2877,7 @@ class _CallAnalyticsState extends State<CallAnalytics>
             ),
           ),
           minX: 0,
-          maxX: xLabels.length > 0 ? (xLabels.length - 1).toDouble() : 1,
+          maxX: xLabels.length > 0 ? (xLabels.length - 1).toDouble() : 0,
           minY: 0,
           maxY: maxY,
           lineBarsData: [
@@ -2842,7 +2887,10 @@ class _CallAnalyticsState extends State<CallAnalytics>
               color: const Color(0xFF1380FE),
               barWidth: 3,
               isStrokeCapRound: true,
-              dotData: const FlDotData(show: true),
+              dotData: FlDotData(
+                show: true,
+                checkToShowDot: (spot, barData) => true,
+              ),
               belowBarData: BarAreaData(
                 show: true,
                 color: Colors.blue.withOpacity(0.2),
@@ -2854,7 +2902,10 @@ class _CallAnalyticsState extends State<CallAnalytics>
               color: Colors.green,
               barWidth: 3,
               isStrokeCapRound: true,
-              dotData: const FlDotData(show: true),
+              dotData: FlDotData(
+                show: true,
+                checkToShowDot: (spot, barData) => true,
+              ),
               belowBarData: BarAreaData(
                 show: true,
                 color: Colors.green.withOpacity(0.2),
@@ -2866,7 +2917,10 @@ class _CallAnalyticsState extends State<CallAnalytics>
               color: Colors.redAccent,
               barWidth: 3,
               isStrokeCapRound: true,
-              dotData: const FlDotData(show: true),
+              dotData: FlDotData(
+                show: true,
+                checkToShowDot: (spot, barData) => true,
+              ),
               belowBarData: BarAreaData(
                 show: true,
                 color: Colors.redAccent.withOpacity(0.2),

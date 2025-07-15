@@ -49,7 +49,7 @@ class _BottomBtnThirdState extends State<BottomBtnThird> {
       String periodParam = '';
       switch (_childButtonIndex) {
         case 1:
-          periodParam = '?type=QTD';
+          periodParam = '?type=MTD';
           break;
         case 0:
           periodParam = '?type=QTD';
@@ -61,8 +61,7 @@ class _BottomBtnThirdState extends State<BottomBtnThird> {
           periodParam = '?type=MTD';
       }
 
-      final uri = Uri.parse(
-        // 'https://api.smartassistapp.in/api/users/dashboard/analytics$periodParam',
+      final uri = Uri.parse( 
         'https://api.smartassistapp.in/api/users/analytics$periodParam',
       );
 

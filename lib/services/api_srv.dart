@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:smartassist/config/route/route_name.dart';
 import 'package:smartassist/pages/login_steps/login_page.dart';
 import 'package:smartassist/utils/connection_service.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
@@ -16,6 +17,66 @@ class LeadsSrv {
   static final ConnectionService _connectionService = ConnectionService();
 
   // ApiService(this.baseUrl);
+
+  // Add this to your API helper file
+  static Future<http.Response> makeAuthenticatedRequest(
+    String method,
+    String url, {
+    Map<String, String>? headers,
+    Object? body,
+  }) async {
+    final token = await Storage.getToken();
+
+    final defaultHeaders = {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    };
+
+    if (headers != null) {
+      defaultHeaders.addAll(headers);
+    }
+
+    http.Response response;
+
+    if (method.toUpperCase() == 'GET') {
+      response = await http.get(Uri.parse(url), headers: defaultHeaders);
+    } else if (method.toUpperCase() == 'POST') {
+      response = await http.post(
+        Uri.parse(url),
+        headers: defaultHeaders,
+        body: body,
+      );
+    } else if (method.toUpperCase() == 'PUT') {
+      response = await http.put(
+        Uri.parse(url),
+        headers: defaultHeaders,
+        body: body,
+      );
+    } else if (method.toUpperCase() == 'DELETE') {
+      response = await http.delete(Uri.parse(url), headers: defaultHeaders);
+    } else {
+      throw Exception('Unsupported HTTP method: $method');
+    }
+
+    // Handle 401 here for ALL API calls
+    if (response.statusCode == 401) {
+      await TokenManager.clearAuthData();
+      Get.offAllNamed(RoutesName.login);
+
+      Future.delayed(Duration(milliseconds: 300), () {
+        Get.snackbar(
+          'Session Expired',
+          "Please login again",
+          duration: Duration(seconds: 3),
+          snackPosition: SnackPosition.TOP,
+        );
+      });
+
+      throw Exception('Unauthorized. Redirecting to login.');
+    }
+
+    return response;
+  }
 
   static Future<Map<String, dynamic>> verifyEmail(Map body) async {
     const url = '${baseUrl}login/verify-email';
@@ -1125,39 +1186,61 @@ class LeadsSrv {
     }
   }
 
+  // static Future<Map<String, dynamic>> fetchDashboardData() async {
+  //   final token = await Storage.getToken();
+  //   try {
+  //     final response = await http.get(
+  //       Uri.parse('${baseUrl}users/dashboard?filterType=MTD&category=Leads'),
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+
+  //     if (response.statusCode == 200) {
+  //       final Map<String, dynamic> jsonResponse = json.decode(response.body);
+  //       // Dashboard data is nested under "data"
+  //       final Map<String, dynamic> data = jsonResponse['data'];
+  //       return data;
+  //     } else {
+  //       // Decode the error response
+  //       final Map<String, dynamic> errorData = json.decode(response.body);
+  //       final String errorMessage =
+  //           errorData['message'] ?? 'Failed to load dashboard data';
+  //       print("Failed to load data: $errorMessage");
+
+  //       // Check if unauthorized: status 401 or error message includes "unauthorized"
+  //       if (response.statusCode == 401 ||
+  //           errorMessage.toLowerCase().contains("unauthorized")) {
+  //         await TokenManager.clearAuthData();
+  //         // Navigate to the login page using GetX
+  //         Get.offAll(() => LoginPage(email: '', onLoginSuccess: () {}));
+  //         throw Exception('Unauthorized. Redirecting to login.');
+  //       } else {
+  //         throw Exception(errorMessage);
+  //       }
+  //     }
+  //   } catch (e) {
+  //     throw Exception(e.toString());
+  //   }
+  // }
+
   static Future<Map<String, dynamic>> fetchDashboardData() async {
-    final token = await Storage.getToken();
     try {
-      final response = await http.get(
-        Uri.parse('${baseUrl}users/dashboard?filterType=MTD&category=Leads'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
+      final response = await makeAuthenticatedRequest(
+        'GET',
+        '${baseUrl}users/dashboard?filterType=MTD&category=Leads',
       );
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonResponse = json.decode(response.body);
-        // Dashboard data is nested under "data"
         final Map<String, dynamic> data = jsonResponse['data'];
         return data;
       } else {
-        // Decode the error response
         final Map<String, dynamic> errorData = json.decode(response.body);
         final String errorMessage =
             errorData['message'] ?? 'Failed to load dashboard data';
-        print("Failed to load data: $errorMessage");
-
-        // Check if unauthorized: status 401 or error message includes "unauthorized"
-        if (response.statusCode == 401 ||
-            errorMessage.toLowerCase().contains("unauthorized")) {
-          await TokenManager.clearAuthData();
-          // Navigate to the login page using GetX
-          Get.offAll(() => LoginPage(email: '', onLoginSuccess: () {}));
-          throw Exception('Unauthorized. Redirecting to login.');
-        } else {
-          throw Exception(errorMessage);
-        }
+        throw Exception(errorMessage);
       }
     } catch (e) {
       throw Exception(e.toString());

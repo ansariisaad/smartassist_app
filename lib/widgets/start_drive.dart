@@ -3,14 +3,16 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:smartassist/config/component/color/colors.dart'; 
+import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/pages/Home/home_screen.dart';
+import 'package:smartassist/services/socket_backgroundsrv.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/feedback.dart';
 import 'package:smartassist/widgets/testdrive_overview.dart';
@@ -21,12 +23,13 @@ class StartDriveMap extends StatefulWidget {
   final String eventId;
   final String leadId;
   const StartDriveMap({super.key, required this.eventId, required this.leadId});
-// new thing
+  // new thing
   @override
   State<StartDriveMap> createState() => _StartDriveMapState();
 }
 
-class _StartDriveMapState extends State<StartDriveMap> {
+class _StartDriveMapState extends State<StartDriveMap>
+    with WidgetsBindingObserver {
   late GoogleMapController mapController;
   Marker? startMarker;
   Marker? userMarker;
@@ -42,6 +45,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
   StreamSubscription<Position>? positionStreamSubscription;
   DateTime? startTime;
   bool isSubmitting = false;
+  bool _isBackgroundServiceActive = false;
 
   // exit popup
   DateTime? _lastBackPressTime;
@@ -52,6 +56,8 @@ class _StartDriveMapState extends State<StartDriveMap> {
     super.initState();
     startTime = DateTime.now(); // Track when drive started
     totalDistance = 0.0;
+    WidgetsBinding.instance.addObserver(this);
+    _initializeBackgroundService();
     // _screenshotController = ScreenshotController();
     _determinePosition();
 
@@ -61,6 +67,119 @@ class _StartDriveMapState extends State<StartDriveMap> {
       color: Colors.blue,
       width: 5,
     );
+  }
+
+  Future<void> _initializeBackgroundService() async {
+    await BackgroundService.initializeService();
+    _setupBackgroundServiceListeners();
+  }
+
+  void _setupBackgroundServiceListeners() {
+    final service = FlutterBackgroundService();
+
+    // Listen for location updates from background service
+    service.on('location_update').listen((event) {
+      if (mounted) {
+        setState(() {
+          final position = event!['position'];
+          final newLocation = LatLng(
+            position['latitude'],
+            position['longitude'],
+          );
+
+          // Update user marker
+          userMarker = Marker(
+            markerId: const MarkerId('user'),
+            position: newLocation,
+            infoWindow: const InfoWindow(title: 'User'),
+            icon: BitmapDescriptor.defaultMarkerWithHue(
+              BitmapDescriptor.hueAzure,
+            ),
+          );
+
+          // Update total distance from background service
+          totalDistance = event['totalDistance'] ?? totalDistance;
+
+          // Update route points
+          final bgRoutePoints = event['routePoints'] as List<dynamic>?;
+          if (bgRoutePoints != null) {
+            routePoints = bgRoutePoints
+                .map((point) => LatLng(point['latitude'], point['longitude']))
+                .toList();
+            _updatePolyline();
+          }
+
+          // Update camera
+          if (mapController != null) {
+            mapController.animateCamera(CameraUpdate.newLatLng(newLocation));
+          }
+        });
+      }
+    });
+
+    // Listen for socket status from background service
+    service.on('socket_status').listen((event) {
+      print('Background socket status: ${event!['connected']}');
+      if (event['error'] != null) {
+        print('Background socket error: ${event['error']}');
+      }
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    switch (state) {
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+        _startBackgroundService();
+        break;
+      case AppLifecycleState.resumed:
+        _stopBackgroundService();
+        break;
+      default:
+        break;
+    }
+  }
+
+  void _startBackgroundService() {
+    if (!_isBackgroundServiceActive && !isDriveEnded) {
+      final service = FlutterBackgroundService();
+
+      service.startService();
+      service.invoke('start_tracking', {
+        'eventId': widget.eventId,
+        'totalDistance': totalDistance,
+      });
+
+      _isBackgroundServiceActive = true;
+
+      // Stop foreground tracking to avoid conflicts
+      if (positionStreamSubscription != null) {
+        positionStreamSubscription!.cancel();
+        positionStreamSubscription = null;
+      }
+
+      // Disconnect foreground socket
+      if (socket != null && socket!.connected) {
+        socket!.disconnect();
+      }
+    }
+  }
+
+  void _stopBackgroundService() {
+    if (_isBackgroundServiceActive) {
+      final service = FlutterBackgroundService();
+      service.invoke('stop_tracking');
+      _isBackgroundServiceActive = false;
+
+      // Restart foreground tracking
+      if (!isDriveEnded) {
+        _initializeSocket();
+        _startLocationTracking();
+      }
+    }
   }
 
   Future<void> _determinePosition() async {
@@ -227,7 +346,6 @@ class _StartDriveMapState extends State<StartDriveMap> {
       socket!.on('reconnect_error', (error) {
         print('Socket reconnection error: $error');
       });
- 
 
       socket!.on('locationUpdated', (data) {
         if (mounted) {
@@ -368,6 +486,12 @@ class _StartDriveMapState extends State<StartDriveMap> {
 
   void _cleanupResources() {
     try {
+      if (_isBackgroundServiceActive) {
+        final service = FlutterBackgroundService();
+        service.invoke('stop_tracking');
+        _isBackgroundServiceActive = false;
+      }
+
       if (socket != null) {
         socket!.disconnect();
         socket!.dispose(); // Add this line
@@ -779,13 +903,17 @@ class _StartDriveMapState extends State<StartDriveMap> {
 
   @override
   void dispose() {
-    _throttleTimer?.cancel();
-    if (socket != null && socket!.connected) {
-      socket!.disconnect();
-    }
-    if (positionStreamSubscription != null) {
-      positionStreamSubscription!.cancel();
-    }
+
+    WidgetsBinding.instance.removeObserver(this);
+    _cleanupResources();
+
+    // _throttleTimer?.cancel();
+    // if (socket != null && socket!.connected) {
+    //   socket!.disconnect();
+    // }
+    // if (positionStreamSubscription != null) {
+    //   positionStreamSubscription!.cancel();
+    // }
     super.dispose();
   }
 

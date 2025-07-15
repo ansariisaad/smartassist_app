@@ -170,7 +170,7 @@ class BottomBtnSecondState extends State<BottomBtnSecond> {
         leadButtonIndex = 0; // Enquiries
         break;
       case 1:
-        leadButtonIndex = 2; // Default to Enquiries for Appointments
+        leadButtonIndex = 0; // Default to Enquiries for Appointments
         break;
       case 2:
         leadButtonIndex = 1; // Test Drives
@@ -255,7 +255,7 @@ class BottomBtnSecondState extends State<BottomBtnSecond> {
                                 style: AppFont.buttonwhite(context),
                               ),
                             ),
-                          ),  
+                          ),
 
                           // Orders Button
                           Expanded(

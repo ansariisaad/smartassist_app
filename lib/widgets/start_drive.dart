@@ -227,73 +227,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
       socket!.on('reconnect_error', (error) {
         print('Socket reconnection error: $error');
       });
-
-      // socket!.on('locationUpdated', (data) {
-      //   if (mounted) {
-      //     if (data == null || data['newCoordinates'] == null) {
-      //       print('Received invalid location update data');
-      //       return;
-      //     }
-
-      //     // Throttle updates to once every 3 seconds
-      //     if (_throttleTimer?.isActive ?? false) return;
-      //     _throttleTimer = Timer(const Duration(seconds: 3), () {});
-
-      //     try {
-      //       setState(() {
-      //         LatLng newCoordinates = LatLng(
-      //           data['newCoordinates']['latitude'],
-      //           data['newCoordinates']['longitude'],
-      //         );
-
-      //         userMarker = Marker(
-      //           markerId: const MarkerId('user'),
-      //           position: newCoordinates,
-      //           infoWindow: const InfoWindow(title: 'User'),
-      //           icon: BitmapDescriptor.defaultMarkerWithHue(
-      //             BitmapDescriptor.hueAzure,
-      //           ),
-      //         );
-
-      //         // Only add to route if it's a significant movement
-      //         if (routePoints.isNotEmpty) {
-      //           LatLng lastPoint = routePoints.last;
-      //           double segmentDistance = _calculateDistance(
-      //             lastPoint,
-      //             newCoordinates,
-      //           );
-
-      //           if (segmentDistance > 0.005) {
-      //             // Only add if moved more than 5 meters
-      //             totalDistance = (totalDistance + segmentDistance);
-      //             routePoints.add(newCoordinates);
-      //             _updatePolyline();
-      //           }
-      //         } else {
-      //           routePoints.add(newCoordinates);
-      //           _updatePolyline();
-      //         }
-
-      //         // Use server-provided total distance if available and valid
-      //         if (data['totalDistance'] != null) {
-      //           double serverDistance =
-      //               double.tryParse(data['totalDistance'].toString()) ?? 0.0;
-      //           if (serverDistance > 0) {
-      //             totalDistance = serverDistance;
-      //           }
-      //         }
-
-      //         if (mapController != null) {
-      //           mapController.animateCamera(
-      //             CameraUpdate.newLatLng(newCoordinates),
-      //           );
-      //         }
-      //       });
-      //     } catch (e) {
-      //       print('Error processing location update: $e');
-      //     }
-      //   }
-      // });
+ 
 
       socket!.on('locationUpdated', (data) {
         if (mounted) {

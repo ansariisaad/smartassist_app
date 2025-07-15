@@ -9,13 +9,14 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:smartassist/config/component/color/colors.dart'; 
+import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/pages/Home/home_screen.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/feedback.dart';
 import 'package:smartassist/widgets/testdrive_overview.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:geolocator/geolocator.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 class StartDriveMap extends StatefulWidget {
   final String eventId;
@@ -26,7 +27,8 @@ class StartDriveMap extends StatefulWidget {
   State<StartDriveMap> createState() => _StartDriveMapState();
 }
 
-class _StartDriveMapState extends State<StartDriveMap> {
+class _StartDriveMapState extends State<StartDriveMap>
+    with WidgetsBindingObserver {
   late GoogleMapController mapController;
   Marker? startMarker;
   Marker? userMarker;
@@ -55,12 +57,47 @@ class _StartDriveMapState extends State<StartDriveMap> {
     // _screenshotController = ScreenshotController();
     _determinePosition();
 
+    WidgetsBinding.instance.addObserver(this);
+    WakelockPlus.enable(); // Keep screen awake during test drive
+
     routePolyline = Polyline(
       polylineId: const PolylineId('route'),
       points: routePoints,
       color: Colors.blue,
       width: 5,
     );
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    switch (state) {
+      case AppLifecycleState.resumed:
+        print('App resumed - reconnecting socket if needed');
+        _reconnectSocketIfNeeded();
+        break;
+      case AppLifecycleState.paused:
+        print('App paused - keeping socket alive');
+        // Don't disconnect socket, just log
+        break;
+      case AppLifecycleState.inactive:
+        print('App inactive - maintaining socket');
+        break;
+      case AppLifecycleState.detached:
+        print('App detached');
+        break;
+      case AppLifecycleState.hidden:
+        print('App hidden - maintaining socket');
+        break;
+    }
+  }
+
+  void _reconnectSocketIfNeeded() {
+    if (socket == null || !socket!.connected) {
+      print('Reconnecting socket...');
+      _initializeSocket();
+    }
   }
 
   Future<void> _determinePosition() async {
@@ -174,11 +211,14 @@ class _StartDriveMapState extends State<StartDriveMap> {
         'transports': ['websocket'],
         'autoConnect': false, // Changed to false for better control
         'reconnection': true,
-        'reconnectionAttempts': 5,
+        'reconnectionAttempts': 99999,
         'reconnectionDelay': 2000, // Increased delay
         'reconnectionDelayMax': 5000,
-        'timeout': 10000, // Added timeout
+        'timeout': 20000, // Added timeout
         'forceNew': true, // Force new connection
+        'upgrade': false, // Disable transport upgrades
+        'pingTimeout': 60000, // Increase ping timeout
+        'pingInterval': 25000, // Increase ping interval
       });
 
       socket!.onConnect((_) {
@@ -227,7 +267,6 @@ class _StartDriveMapState extends State<StartDriveMap> {
       socket!.on('reconnect_error', (error) {
         print('Socket reconnection error: $error');
       });
- 
 
       socket!.on('locationUpdated', (data) {
         if (mounted) {
@@ -779,6 +818,9 @@ class _StartDriveMapState extends State<StartDriveMap> {
 
   @override
   void dispose() {
+     WidgetsBinding.instance.removeObserver(this);
+    WakelockPlus.disable();
+    
     _throttleTimer?.cancel();
     if (socket != null && socket!.connected) {
       socket!.disconnect();

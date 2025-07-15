@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:smartassist/config/route/route.dart';
 import 'package:smartassist/config/route/route_name.dart';
 import 'package:smartassist/services/notifacation_srv.dart';
+import 'package:smartassist/services/socket_background_service.dart';
 import 'package:smartassist/utils/connection_service.dart';
 
 void main() async {
@@ -16,6 +17,8 @@ void main() async {
 
   try {
     await Firebase.initializeApp();
+    WidgetsFlutterBinding.ensureInitialized();
+    await initializeService();
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitDown,
       DeviceOrientation.portraitUp,

@@ -17,7 +17,7 @@ void main() async {
 
   try {
     await Firebase.initializeApp();
-    WidgetsFlutterBinding.ensureInitialized();
+    // await createNotificationChannel();
     await initializeService();
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitDown,

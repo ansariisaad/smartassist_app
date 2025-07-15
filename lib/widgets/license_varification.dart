@@ -691,10 +691,10 @@ class _LicenseVarificationState extends State<LicenseVarification>
                 child: Text(
                   textAlign: TextAlign.center,
                   'Select reason to skip',
-                  style: AppFont.mediumText14(context),
+                  style: AppFont.popupTitleBlack(context),
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 20),
             ],
           ),
           content: SingleChildScrollView(

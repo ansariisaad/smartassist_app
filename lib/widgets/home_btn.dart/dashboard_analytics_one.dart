@@ -250,7 +250,7 @@ class BottomBtnSecondState extends State<BottomBtnSecond> {
                               },
                               style: _buttonStyle(_leadButton == 1),
                               child: Text(
-                                'Test Drivess',
+                                'Test Drives',
                                 textAlign: TextAlign.center,
                                 style: AppFont.buttonwhite(context),
                               ),

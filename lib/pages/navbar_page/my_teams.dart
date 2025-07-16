@@ -25,8 +25,6 @@ class MyTeams extends StatefulWidget {
 }
 
 class _MyTeamsState extends State<MyTeams> {
-  int _currentDisplayCount = 10; // Initially show 10 records
-  static const int _incrementCount = 10; // Show 10 more each time
   static const int _decrementCount = 10;
   List<dynamic> _teamComparisonData = [];
 
@@ -67,6 +65,10 @@ class _MyTeamsState extends State<MyTeams> {
   bool isHideCalls = false;
   bool isSingleCall = false;
   bool isHideCheckbox = false;
+
+  int _currentDisplayCount = 10; // Initially show 10 records
+  static const int _incrementCount = 10; // Show 10 more each time
+
   // Data state
   // bool isLoading = false;
   Map<String, dynamic> _teamData = {};
@@ -151,11 +153,13 @@ class _MyTeamsState extends State<MyTeams> {
   void _loadMoreRecords() {
     setState(() {
       List<dynamic> dataToDisplay = _getCurrentDataToDisplay();
-
-      // Update display count based on the actual data being shown
-      _currentDisplayCount = math.min(
+      int newDisplayCount = math.min(
         _currentDisplayCount + _incrementCount,
         dataToDisplay.length,
+      );
+      _currentDisplayCount = newDisplayCount;
+      print(
+        '📊 Loading more records. New display count: $_currentDisplayCount',
       );
     });
   }
@@ -163,9 +167,11 @@ class _MyTeamsState extends State<MyTeams> {
   void _resetDisplayCountForNewData() {
     List<dynamic> currentData = _getCurrentDataToDisplay();
     setState(() {
-      // Always reset to initial count when data changes
       _currentDisplayCount = math.min(_incrementCount, currentData.length);
     });
+    print(
+      '📊 Reset display count to: $_currentDisplayCount for ${currentData.length} items',
+    );
   }
 
   void _loadLessRecords() {
@@ -173,6 +179,9 @@ class _MyTeamsState extends State<MyTeams> {
       _currentDisplayCount = math.max(
         _incrementCount,
         _currentDisplayCount - _incrementCount,
+      );
+      print(
+        '📊 Loading less records. New display count: $_currentDisplayCount',
       );
     });
   }
@@ -2969,6 +2978,58 @@ class _MyTeamsState extends State<MyTeams> {
       ]);
     }).toList();
   }
+  // List<TableRow> _buildMemberRowsTeams() {
+  //   List<dynamic> dataToDisplay = _getCurrentDataToDisplay();
+
+  //   // Ensure display count is valid
+  //   if (_currentDisplayCount <= 0 ||
+  //       _currentDisplayCount > dataToDisplay.length) {
+  //     _currentDisplayCount = math.min(_incrementCount, dataToDisplay.length);
+  //   }
+
+  //   // Get only the items to display based on current display count
+  //   List<dynamic> itemsToShow = dataToDisplay
+  //       .take(_currentDisplayCount)
+  //       .toList();
+
+  //   print(
+  //     '📊 Building ${itemsToShow.length} rows from ${dataToDisplay.length} total items',
+  //   );
+
+  //   return itemsToShow.map<TableRow>((member) {
+  //     return _buildTableRow([
+  //       // Name column
+  //       Container(
+  //         alignment: Alignment.centerLeft,
+  //         padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
+  //         child: Text(
+  //           member['name']?.toString() ?? 'Unknown',
+  //           style: AppFont.mediumText14(context),
+  //           overflow: TextOverflow.ellipsis,
+  //         ),
+  //       ),
+  //       // Data columns
+  //       _buildDataCell(member['enquiries']?.toString() ?? '0'),
+  //       _buildDataCell(member['testDrives']?.toString() ?? '0'),
+  //       _buildDataCell(member['orders']?.toString() ?? '0'),
+  //       _buildDataCell(member['cancellation']?.toString() ?? '0'),
+  //       _buildDataCell(member['net_orders']?.toString() ?? '0'),
+  //       _buildDataCell(member['retail']?.toString() ?? '0'),
+  //     ]);
+  //   }).toList();
+  // }
+
+  // Widget _buildDataCell(String value) {
+  //   return Container(
+  //     alignment: Alignment.center,
+  //     padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 12.0),
+  //     child: Text(
+  //       value,
+  //       style: AppFont.mediumText14(context),
+  //       textAlign: TextAlign.center,
+  //     ),
+  //   );
+  // }
 
   Widget _buildShowMoreButtonTeamComparison() {
     List<dynamic> dataToDisplay = _getCurrentDataToDisplay();
@@ -2984,19 +3045,11 @@ class _MyTeamsState extends State<MyTeams> {
       _currentDisplayCount = math.min(_incrementCount, dataToDisplay.length);
     }
 
-    // 🔥 NEW: Don't show "Show More" button in comparison mode
-    // Only show it when displaying all team members (not comparing specific users)
-    if (_isComparing && selectedUserIds.isNotEmpty) {
-      return const SizedBox.shrink();
-    }
-
     // Check if we can show more records
     bool hasMoreRecords = _currentDisplayCount < dataToDisplay.length;
 
     // Check if we can show less records - only if we're showing more than initial count
-    bool canShowLess =
-        _currentDisplayCount > _incrementCount &&
-        _currentDisplayCount >= dataToDisplay.length;
+    bool canShowLess = _currentDisplayCount > _incrementCount;
 
     // If no action is possible, don't show button
     if (!hasMoreRecords && !canShowLess) {
@@ -3008,7 +3061,7 @@ class _MyTeamsState extends State<MyTeams> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          // Show Less button - only when all data is displayed and we can reduce
+          // Show Less button - only when displaying more than initial count
           if (canShowLess)
             TextButton(
               onPressed: _loadLessRecords,
@@ -3050,37 +3103,30 @@ class _MyTeamsState extends State<MyTeams> {
     );
   }
 
-  // List<dynamic> _getCurrentDataToDisplay() {
-  //   if (_isComparing &&
-  //       selectedUserIds.isNotEmpty &&
-  //       _teamComparisonData.isNotEmpty) {
-  //     return _teamComparisonData;
-  //   } else if (_isComparing && selectedUserIds.isNotEmpty) {
-  //     return _membersData.where((member) {
-  //       return selectedUserIds.contains(member['user_id'].toString());
-  //     }).toList();
-  //   } else {
-  //     return _membersData;
-  //   }
-  // }
-
   List<dynamic> _getCurrentDataToDisplay() {
+    List<dynamic> dataToReturn = [];
+
     // If comparing specific users and have comparison data from API
     if (_isComparing &&
         selectedUserIds.isNotEmpty &&
         _teamComparisonData.isNotEmpty) {
-      return _teamComparisonData;
+      dataToReturn = List<dynamic>.from(_teamComparisonData);
     }
     // If comparing but no API data, filter from members data
     else if (_isComparing && selectedUserIds.isNotEmpty) {
-      return _membersData.where((member) {
+      dataToReturn = _membersData.where((member) {
         return selectedUserIds.contains(member['user_id'].toString());
       }).toList();
     }
     // Default case: show all members data
     else {
-      return _membersData;
+      dataToReturn = List<dynamic>.from(_membersData);
     }
+
+    print('📊 Current data to display: ${dataToReturn.length} items');
+    print('📊 Display count: $_currentDisplayCount');
+
+    return dataToReturn;
   }
 
   TableRow _buildTableRow(List<Widget> widgets) {

@@ -895,9 +895,8 @@ class _LicenseVarificationState extends State<LicenseVarification>
                           onPressed: () { 
                             Navigator.of(context).pushAndRemoveUntil(
                               MaterialPageRoute(
+                               
                                 builder: (context) => BottomNavigation(),
-
-                                // HomeScreen(greeting: '', leadId: '')
                               ),
                               (route) => false, // This clears the stack
                             );

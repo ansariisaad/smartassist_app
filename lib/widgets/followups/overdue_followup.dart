@@ -111,40 +111,7 @@ class _OverdueFollowupState extends State<OverdueFollowup> {
     }
   }
 
-  // Future<void> _toggleFavorite(String taskId, int index) async {
-  //   final token = await Storage.getToken();
-  //   try {
-  //     // Get the current favorite status before toggling
-  //     bool currentStatus =
-  //         widget.overdueeFollowups[index]['favourite'] ?? false;
-  //     bool newFavoriteStatus = !currentStatus;
-
-  //     final response = await http.put(
-  //       Uri.parse(
-  //         'https://api.smartassistapp.in/api/favourites/mark-fav/task/$taskId',
-  //       ),
-  //       headers: {
-  //         'Authorization': 'Bearer $token',
-  //         'Content-Type': 'application/json',
-  //       },
-  //     );
-
-  //     if (response.statusCode == 200) {
-  //       setState(() {
-  //         widget.overdueeFollowups[index]['favourite'] = newFavoriteStatus;
-  //       });
-
-  //       // Notify the parent if the callback is provided
-  //       if (widget.onFavoriteToggle != null) {
-  //         widget.onFavoriteToggle!(taskId, newFavoriteStatus);
-  //       }
-  //     } else {
-  //       print('Failed to toggle favorite: ${response.statusCode}');
-  //     }
-  //   } catch (e) {
-  //     print('Error toggling favorite: $e');
-  //   }
-  // }
+  
 
   @override
   Widget build(BuildContext context) {

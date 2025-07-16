@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
+import 'package:smartassist/utils/bottom_navigation.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:http/http.dart' as http;
@@ -31,6 +32,9 @@ class _FeedbackscreenState extends State<Feedbackscreen> {
   String _selectedDateType = '';
   late stt.SpeechToText _speech;
   bool _isListening = false;
+
+  DateTime? _lastBackPressTime;
+  final int _exitTimeInMillis = 2000;
 
   // Maps to store ratings for each category
   Map<String, int> ratings = {
@@ -263,173 +267,174 @@ class _FeedbackscreenState extends State<Feedbackscreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        // leading: IconButton(
-        //   onPressed: () => Get.back(),
-        //   icon: const Icon(
-        //     FontAwesomeIcons.angleLeft,
-        //     color: Colors.white,
-        //   ),
-        // ),
-        title: Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            'Test drive Feedback form',
-            style: AppFont.appbarfontblack(context),
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Test drive Feedback form',
+              style: AppFont.appbarfontblack(context),
+            ),
           ),
+          backgroundColor: Colors.white,
+          automaticallyImplyLeading: false,
         ),
-        backgroundColor: Colors.white,
-        automaticallyImplyLeading: false,
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                'On a scale of 1 to 5, 1 begin the lowest and being the highest, how would you rate us on Driving Experience?',
-                style: AppFont.mediumText14Black(context),
-              ),
-            ),
-
-            // Star rating section
-            Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: ratings.keys
-                  .map(
-                    (category) => _buildStarRating(
-                      category: category,
-                      rating: ratings[category]!,
-                      onRatingChanged: (rating) {
-                        setState(() {
-                          ratings[category] = rating;
-                        });
-                      },
-                    ),
-                  )
-                  .toList(),
-            ),
-
-            const SizedBox(height: 10),
-
-            // Padding(
-            //   padding: const EdgeInsets.only(left: 16.0, bottom: 8.0),
-            //   child: Text(
-            //     'Potential of purchase',
-            //     style: AppFont.mediumText14Black(context),
-            //   ),
-            // ),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildButtons(
-                    label: 'Potential of purchase',
-                    options: {
-                      "Definitely": "Definitely",
-                      "Very Likely": "Very Likely",
-                      "Likely": "Likely",
-                      "Not Likely": "Not Likely",
-                    },
-                    groupValue: _selectedType,
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedType = value;
-                      });
-                    },
-                  ),
+        body: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'On a scale of 1 to 5, 1 begin the lowest and being the highest, how would you rate us on Driving Experience?',
+                  style: AppFont.mediumText14Black(context),
                 ),
-              ],
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildButtons(
-                    label: 'Time frame',
-                    options: {
-                      "15 days": "15 days",
-                      "15 days - 3 month": "15 days - 3 month",
-                      "3 - 6 months": "3 - 6 months",
-                      "6 months": "6 months",
-                    },
-                    groupValue: _selectedDateType,
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedDateType = value;
-                      });
-                    },
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 0),
-            // Padding(
-            //   padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            //   child: _buildTextField(
-            //     label: 'Remarks:',
-            //     controller: descriptionController,
-            //     hint: 'Type or speak...',
-            //   ),
-            // ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: EnhancedSpeechTextField(
-                isRequired: false,
-                label: 'Remarks:',
-                controller: descriptionController,
-                hint: 'Type or speak... ',
-                onChanged: (text) {
-                  print('Text changed: $text');
-                },
               ),
-            ),
 
-            const SizedBox(height: 10),
+              // Star rating section
+              Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: ratings.keys
+                    .map(
+                      (category) => _buildStarRating(
+                        category: category,
+                        rating: ratings[category]!,
+                        onRatingChanged: (rating) {
+                          setState(() {
+                            ratings[category] = rating;
+                          });
+                        },
+                      ),
+                    )
+                    .toList(),
+              ),
 
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
+              const SizedBox(height: 10),
+
+              // Padding(
+              //   padding: const EdgeInsets.only(left: 16.0, bottom: 8.0),
+              //   child: Text(
+              //     'Potential of purchase',
+              //     style: AppFont.mediumText14Black(context),
+              //   ),
+              // ),
+              Row(
                 children: [
                   Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        elevation: 0,
-                        backgroundColor: const Color.fromRGBO(217, 217, 217, 1),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                      ),
-                      onPressed: () => Navigator.pop(context),
-                      child: Text("Cancel", style: AppFont.buttons(context)),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.colorsBlue,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                      ),
-                      onPressed: () {
-                        submitFeedback();
-                        // Navigator.push(
-                        //     context,
-                        //     MaterialPageRoute(
-                        //         builder: (context) =>
-                        //             // SingleLeadsById(leadId: widget.leadId)
-                        //             FollowupsDetails(leadId: widget.leadId)));
+                    child: _buildButtons(
+                      label: 'Potential of purchase',
+                      options: {
+                        "Definitely": "Definitely",
+                        "Very Likely": "Very Likely",
+                        "Likely": "Likely",
+                        "Not Likely": "Not Likely",
                       },
-                      child: Text("Submit", style: AppFont.buttons(context)),
+                      groupValue: _selectedType,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedType = value;
+                        });
+                      },
                     ),
                   ),
                 ],
               ),
-            ),
-          ],
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildButtons(
+                      label: 'Time frame',
+                      options: {
+                        "15 days": "15 days",
+                        "15 days - 3 month": "15 days - 3 month",
+                        "3 - 6 months": "3 - 6 months",
+                        "6 months": "6 months",
+                      },
+                      groupValue: _selectedDateType,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedDateType = value;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 0),
+              // Padding(
+              //   padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              //   child: _buildTextField(
+              //     label: 'Remarks:',
+              //     controller: descriptionController,
+              //     hint: 'Type or speak...',
+              //   ),
+              // ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: EnhancedSpeechTextField(
+                  isRequired: false,
+                  label: 'Remarks:',
+                  controller: descriptionController,
+                  hint: 'Type or speak... ',
+                  onChanged: (text) {
+                    print('Text changed: $text');
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          elevation: 0,
+                          backgroundColor: const Color.fromRGBO(
+                            217,
+                            217,
+                            217,
+                            1,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                        ),
+                        onPressed: () => Navigator.pop(context),
+                        child: Text("Cancel", style: AppFont.buttons(context)),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.colorsBlue,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                        ),
+                        onPressed: () {
+                          submitFeedback();
+                          // Navigator.push(
+                          //     context,
+                          //     MaterialPageRoute(
+                          //         builder: (context) =>
+                          //             // SingleLeadsById(leadId: widget.leadId)
+                          //             FollowupsDetails(leadId: widget.leadId)));
+                        },
+                        child: Text("Submit", style: AppFont.buttons(context)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -530,5 +535,141 @@ class _FeedbackscreenState extends State<Feedbackscreen> {
         const SizedBox(height: 10),
       ],
     );
+  }
+
+  Future<bool> _onWillPop() async {
+    final now = DateTime.now();
+    if (_lastBackPressTime == null ||
+        now.difference(_lastBackPressTime!) >
+            Duration(milliseconds: _exitTimeInMillis)) {
+      _lastBackPressTime = now;
+
+      // Show a bottom slide dialog
+      showModalBottomSheet(
+        context: context,
+        backgroundColor: Colors.transparent,
+        builder: (BuildContext context) {
+          return Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  spreadRadius: 0,
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 20),
+                Text(
+                  'Exit Testdrive',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.colorsBlue,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Are you sure you want to exit from Testdrive?',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.black54,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    children: [
+                      // Cancel button (White)
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context); // Dismiss dialog
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: AppColors.colorsBlue,
+                            side: const BorderSide(color: AppColors.colorsBlue),
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: Text(
+                            'Cancel',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 15),
+                      // Exit button (Blue)
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            // First close the bottom sheet
+                            Navigator.pop(context);
+
+                            try {
+                              // Navigate to home screen and clear the stack
+                              Navigator.of(context).pushAndRemoveUntil(
+                                MaterialPageRoute(
+                                  builder: (context) => BottomNavigation(),
+                                ),
+                                (route) => false,
+                              );
+                            } catch (e) {
+                              print("Navigation error: $e");
+                              // Fallback navigation
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => BottomNavigation(),
+                                ),
+                              );
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.colorsBlue,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: Text(
+                            'Exit',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 25),
+              ],
+            ),
+          );
+        },
+      );
+      return false;
+    }
+    return true;
   }
 }

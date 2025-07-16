@@ -143,6 +143,15 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _slidableController = SlidableController(this);
+
+    _slidableController.animation.addListener(() {
+      final isOpen = _slidableController.ratio != 0;
+      if (_isActionPaneOpen != isOpen) {
+        setState(() {
+          _isActionPaneOpen = isOpen;
+        });
+      }
+    });
   }
 
   @override
@@ -552,5 +561,3 @@ class ReusableSlidableAction extends StatelessWidget {
     );
   }
 }
-
- 

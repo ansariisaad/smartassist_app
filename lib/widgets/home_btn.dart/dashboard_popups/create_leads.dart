@@ -7,7 +7,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
-import 'package:smartassist/config/component/font/font.dart'; 
+import 'package:smartassist/config/component/font/font.dart';
+import 'package:smartassist/config/environment/environment.dart';
 import 'package:smartassist/config/getX/fab.controller.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -78,11 +79,9 @@ class _CreateLeadsState extends State<CreateLeads> {
   late RangeValues _rangeAmount;
   List<dynamic> vehicleName = [];
   String selectedSubType = 'Retail';
-  String? _locationErrorText;
-
+  String? _locationErrorText; 
   // Google Maps API key
-  final String _googleApiKey = "AIzaSyCaFZ4RXQIy86v9B24wz5l0vgDKbQSP5LE";
-  // String get _googleApiKey => Environment.googleMapsApiKey;
+  String get _googleApiKey => Environment.googleMapsApiKey;
 
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _searchControllerVehicleColor =

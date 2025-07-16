@@ -18,8 +18,8 @@ void main() async {
   try {
     await Firebase.initializeApp();
     // google env
-    // await Environment.init();
-    // Environment.validateConfig();
+    await Environment.init();
+    Environment.validateConfig();
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitDown,
       DeviceOrientation.portraitUp,

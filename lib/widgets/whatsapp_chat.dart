@@ -1198,12 +1198,12 @@ class _WhatsappChatState extends State<WhatsappChat>
               if (!isConnected || !isWhatsAppReady) {
                 socket.connect();
                 checkWhatsAppStatus();
-                Get.snackbar(
-                  'Info',
-                  'Reconnecting...',
-                  backgroundColor: Colors.blue,
-                  colorText: Colors.white,
-                );
+                // Get.snackbar(
+                //   'Info',
+                //   'Reconnecting...',
+                //   backgroundColor: Colors.blue,
+                //   colorText: Colors.white,
+                // );
               }
             },
           ),

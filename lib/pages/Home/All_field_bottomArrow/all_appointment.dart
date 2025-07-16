@@ -72,14 +72,15 @@ class _AllAppointmentState extends State<AllAppointment>
           });
         }
       },
-      onError: (errorNotification) {
+        onError: (errorNotification) {
         setState(() {
           _isListening = false;
         });
-        showErrorMessage(
-          context,
-          message: 'Speech recognition error: ${errorNotification.errorMsg}',
-        );
+        print('Speech recognition error: ${errorNotification.errorMsg}');
+        // showErrorMessage(
+        //   context,
+        //   message: 'Speech recognition error: ${errorNotification.errorMsg}',
+        // );
       },
     );
     if (!available) {
@@ -506,60 +507,60 @@ class _AllAppointmentState extends State<AllAppointment>
                   //       ),
                   //     ),
                   //   ),
-                  //   if (_isLoadingSearch)
-                  //     Container(
-                  //       margin: const EdgeInsets.symmetric(horizontal: 15),
-                  //       child: const LinearProgressIndicator(
-                  //         color: AppColors.colorsBlue,
-                  //         backgroundColor: AppColors.containerBg,
-                  //       ),
-                  //     ),
-                  //   Padding(
-                  //     padding: const EdgeInsets.only(bottom: 0),
-                  //     child: Row(
-                  //       children: [
-                  //         const SizedBox(width: 10),
-                  //         Container(
-                  //           constraints: const BoxConstraints(
-                  //             minWidth: 240,
-                  //             maxWidth: 300,
-                  //           ),
-                  //           // width: _getSubTabWidth(),
-                  //           height: _getSubTabHeight(),
-                  //           decoration: BoxDecoration(
-                  //             border: Border.all(
-                  //               color: const Color(0xFF767676).withOpacity(0.3),
-                  //               width: 0.5,
-                  //             ),
-                  //             borderRadius: BorderRadius.circular(30),
-                  //           ),
-                  //           child: Row(
-                  //             children: [
-                  //               _buildFilterButton(
-                  //                 color: AppColors.colorsBlue,
-                  //                 index: 0,
-                  //                 text: 'All',
-                  //                 activeColor: AppColors.borderblue,
-                  //               ),
-                  //               _buildFilterButton(
-                  //                 color: AppColors.containerGreen,
-                  //                 index: 1,
-                  //                 text: 'Upcoming',
-                  //                 activeColor: AppColors.borderGreen,
-                  //               ),
-                  //               _buildFilterButton(
-                  //                 color: AppColors.containerRed,
-                  //                 index: 2,
-                  //                 text: 'Overdue ($count)',
-                  //                 activeColor: AppColors.borderRed,
-                  //               ),
-                  //             ],
-                  //           ),
-                  //         ),
-                  //       ],
-                  //     ),
-                  //   ),
-                  //   const SizedBox(height: 5),
+                  if (_isLoadingSearch)
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 15),
+                      child: const LinearProgressIndicator(
+                        color: AppColors.colorsBlue,
+                        backgroundColor: AppColors.containerBg,
+                      ),
+                    ),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 0),
+                    child: Row(
+                      children: [
+                        const SizedBox(width: 10),
+                        Container(
+                          constraints: const BoxConstraints(
+                            minWidth: 240,
+                            maxWidth: 300,
+                          ),
+                          // width: _getSubTabWidth(),
+                          height: _getSubTabHeight(),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: const Color(0xFF767676).withOpacity(0.3),
+                              width: 0.5,
+                            ),
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          child: Row(
+                            children: [
+                              _buildFilterButton(
+                                color: AppColors.colorsBlue,
+                                index: 0,
+                                text: 'All',
+                                activeColor: AppColors.borderblue,
+                              ),
+                              _buildFilterButton(
+                                color: AppColors.containerGreen,
+                                index: 1,
+                                text: 'Upcoming',
+                                activeColor: AppColors.borderGreen,
+                              ),
+                              _buildFilterButton(
+                                color: AppColors.containerRed,
+                                index: 2,
+                                text: 'Overdue ($count)',
+                                activeColor: AppColors.borderRed,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 5),
                 ],
               ),
             ),

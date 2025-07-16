@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -10,7 +11,8 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:smartassist/config/component/color/colors.dart'; 
-import 'package:smartassist/pages/Home/home_screen.dart';
+import 'package:smartassist/services/socket_backgroundsrv.dart';
+import 'package:smartassist/utils/bottom_navigation.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/feedback.dart';
 import 'package:smartassist/widgets/testdrive_overview.dart';
@@ -21,12 +23,13 @@ class StartDriveMap extends StatefulWidget {
   final String eventId;
   final String leadId;
   const StartDriveMap({super.key, required this.eventId, required this.leadId});
-
+  // new thing
   @override
   State<StartDriveMap> createState() => _StartDriveMapState();
 }
 
-class _StartDriveMapState extends State<StartDriveMap> {
+class _StartDriveMapState extends State<StartDriveMap>
+    with WidgetsBindingObserver {
   late GoogleMapController mapController;
   Marker? startMarker;
   Marker? userMarker;
@@ -42,6 +45,13 @@ class _StartDriveMapState extends State<StartDriveMap> {
   StreamSubscription<Position>? positionStreamSubscription;
   DateTime? startTime;
   bool isSubmitting = false;
+  bool _isBackgroundServiceActive = false;
+  LatLng? _lastValidLocation;
+  double _totalDistanceAccumulator = 0.0;
+  Timer? _locationUpdateTimer;
+  static const double MIN_DISTANCE_THRESHOLD = 0.002; // 2 meters in km
+  static const double MAX_SPEED_THRESHOLD =
+      200.0; // 200 km/h max realistic speed
 
   // exit popup
   DateTime? _lastBackPressTime;
@@ -52,6 +62,8 @@ class _StartDriveMapState extends State<StartDriveMap> {
     super.initState();
     startTime = DateTime.now(); // Track when drive started
     totalDistance = 0.0;
+    WidgetsBinding.instance.addObserver(this);
+    _initializeBackgroundService();
     // _screenshotController = ScreenshotController();
     _determinePosition();
 
@@ -61,6 +73,119 @@ class _StartDriveMapState extends State<StartDriveMap> {
       color: Colors.blue,
       width: 5,
     );
+  }
+
+  Future<void> _initializeBackgroundService() async {
+    await BackgroundService.initializeService();
+    _setupBackgroundServiceListeners();
+  }
+
+  void _setupBackgroundServiceListeners() {
+    final service = FlutterBackgroundService();
+
+    // Listen for location updates from background service
+    service.on('location_update').listen((event) {
+      if (mounted) {
+        setState(() {
+          final position = event!['position'];
+          final newLocation = LatLng(
+            position['latitude'],
+            position['longitude'],
+          );
+
+          // Update user marker
+          userMarker = Marker(
+            markerId: const MarkerId('user'),
+            position: newLocation,
+            infoWindow: const InfoWindow(title: 'User'),
+            icon: BitmapDescriptor.defaultMarkerWithHue(
+              BitmapDescriptor.hueAzure,
+            ),
+          );
+
+          // Update total distance from background service
+          totalDistance = event['totalDistance'] ?? totalDistance;
+
+          // Update route points
+          final bgRoutePoints = event['routePoints'] as List<dynamic>?;
+          if (bgRoutePoints != null) {
+            routePoints = bgRoutePoints
+                .map((point) => LatLng(point['latitude'], point['longitude']))
+                .toList();
+            _updatePolyline();
+          }
+
+          // Update camera
+          if (mapController != null) {
+            mapController.animateCamera(CameraUpdate.newLatLng(newLocation));
+          }
+        });
+      }
+    });
+
+    // Listen for socket status from background service
+    service.on('socket_status').listen((event) {
+      print('Background socket status: ${event!['connected']}');
+      if (event['error'] != null) {
+        print('Background socket error: ${event['error']}');
+      }
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    switch (state) {
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+        _startBackgroundService();
+        break;
+      case AppLifecycleState.resumed:
+        _stopBackgroundService();
+        break;
+      default:
+        break;
+    }
+  }
+
+  void _startBackgroundService() {
+    if (!_isBackgroundServiceActive && !isDriveEnded) {
+      final service = FlutterBackgroundService();
+
+      service.startService();
+      service.invoke('start_tracking', {
+        'eventId': widget.eventId,
+        'totalDistance': totalDistance,
+      });
+
+      _isBackgroundServiceActive = true;
+
+      // Stop foreground tracking to avoid conflicts
+      if (positionStreamSubscription != null) {
+        positionStreamSubscription!.cancel();
+        positionStreamSubscription = null;
+      }
+
+      // Disconnect foreground socket
+      if (socket != null && socket!.connected) {
+        socket!.disconnect();
+      }
+    }
+  }
+
+  void _stopBackgroundService() {
+    if (_isBackgroundServiceActive) {
+      final service = FlutterBackgroundService();
+      service.invoke('stop_tracking');
+      _isBackgroundServiceActive = false;
+
+      // Restart foreground tracking
+      if (!isDriveEnded) {
+        _initializeSocket();
+        _startLocationTracking();
+      }
+    }
   }
 
   Future<void> _determinePosition() async {
@@ -159,7 +284,11 @@ class _StartDriveMapState extends State<StartDriveMap> {
       polylineId: const PolylineId('route'),
       points: routePoints,
       color: Colors.blue,
-      width: 5,
+      width: 6, // Increased width
+      patterns: [], // Solid line
+      jointType: JointType.round, // Smoother joints
+      endCap: Cap.roundCap, // Rounded end caps
+      startCap: Cap.roundCap, // Rounded start caps
     );
   }
 
@@ -228,149 +357,59 @@ class _StartDriveMapState extends State<StartDriveMap> {
         print('Socket reconnection error: $error');
       });
 
-      // socket!.on('locationUpdated', (data) {
-      //   if (mounted) {
-      //     if (data == null || data['newCoordinates'] == null) {
-      //       print('Received invalid location update data');
-      //       return;
-      //     }
-
-      //     // Throttle updates to once every 3 seconds
-      //     if (_throttleTimer?.isActive ?? false) return;
-      //     _throttleTimer = Timer(const Duration(seconds: 3), () {});
-
-      //     try {
-      //       setState(() {
-      //         LatLng newCoordinates = LatLng(
-      //           data['newCoordinates']['latitude'],
-      //           data['newCoordinates']['longitude'],
-      //         );
-
-      //         userMarker = Marker(
-      //           markerId: const MarkerId('user'),
-      //           position: newCoordinates,
-      //           infoWindow: const InfoWindow(title: 'User'),
-      //           icon: BitmapDescriptor.defaultMarkerWithHue(
-      //             BitmapDescriptor.hueAzure,
-      //           ),
-      //         );
-
-      //         // Only add to route if it's a significant movement
-      //         if (routePoints.isNotEmpty) {
-      //           LatLng lastPoint = routePoints.last;
-      //           double segmentDistance = _calculateDistance(
-      //             lastPoint,
-      //             newCoordinates,
-      //           );
-
-      //           if (segmentDistance > 0.005) {
-      //             // Only add if moved more than 5 meters
-      //             totalDistance = (totalDistance + segmentDistance);
-      //             routePoints.add(newCoordinates);
-      //             _updatePolyline();
-      //           }
-      //         } else {
-      //           routePoints.add(newCoordinates);
-      //           _updatePolyline();
-      //         }
-
-      //         // Use server-provided total distance if available and valid
-      //         if (data['totalDistance'] != null) {
-      //           double serverDistance =
-      //               double.tryParse(data['totalDistance'].toString()) ?? 0.0;
-      //           if (serverDistance > 0) {
-      //             totalDistance = serverDistance;
-      //           }
-      //         }
-
-      //         if (mapController != null) {
-      //           mapController.animateCamera(
-      //             CameraUpdate.newLatLng(newCoordinates),
-      //           );
-      //         }
-      //       });
-      //     } catch (e) {
-      //       print('Error processing location update: $e');
-      //     }
-      //   }
-      // });
-
       socket!.on('locationUpdated', (data) {
-        if (mounted) {
+        if (mounted && !_isBackgroundServiceActive) {
           if (data == null || data['newCoordinates'] == null) {
             print('Received invalid location update data');
             return;
           }
 
-          // Throttle updates to once every 3 seconds
-          if (_throttleTimer?.isActive ?? false) return;
-          _throttleTimer = Timer(const Duration(seconds: 3), () {});
-
           try {
-            setState(() {
-              LatLng newCoordinates = LatLng(
-                data['newCoordinates']['latitude'],
-                data['newCoordinates']['longitude'],
-              );
+            LatLng serverLocation = LatLng(
+              data['newCoordinates']['latitude'],
+              data['newCoordinates']['longitude'],
+            );
 
-              userMarker = Marker(
-                markerId: const MarkerId('user'),
-                position: newCoordinates,
-                infoWindow: const InfoWindow(title: 'User'),
-                icon: BitmapDescriptor.defaultMarkerWithHue(
-                  BitmapDescriptor.hueAzure,
-                ),
-              );
-
-              // Only add to route if it's a significant movement
-              if (routePoints.isNotEmpty) {
-                LatLng lastPoint = routePoints.last;
-                double segmentDistance = _calculateDistance(
-                  lastPoint,
-                  newCoordinates,
+            // Only update if server provides better accuracy or significant difference
+            if (_lastValidLocation == null ||
+                _calculateDistanceImproved(
+                      _lastValidLocation!,
+                      serverLocation,
+                    ) >
+                    0.005) {
+              setState(() {
+                userMarker = Marker(
+                  markerId: const MarkerId('user'),
+                  position: serverLocation,
+                  infoWindow: const InfoWindow(title: 'Server Location'),
+                  icon: BitmapDescriptor.defaultMarkerWithHue(
+                    BitmapDescriptor.hueAzure,
+                  ),
                 );
 
-                if (segmentDistance > 0.005) {
-                  // Only add if moved more than 5 meters
-                  totalDistance +=
-                      segmentDistance; // FIXED: Use += instead of concatenation
-                  routePoints.add(newCoordinates);
-                  _updatePolyline();
+                // Use server-provided total distance if available and reasonable
+                if (data['totalDistance'] != null) {
+                  double serverDistance =
+                      double.tryParse(data['totalDistance'].toString()) ?? 0.0;
+                  if (serverDistance > totalDistance &&
+                      serverDistance < totalDistance + 0.1) {
+                    totalDistance = serverDistance;
+                    _totalDistanceAccumulator = serverDistance;
+                  }
+                }
 
-                  // Debug print to verify calculation
-                  print(
-                    'Segment distance: ${segmentDistance.toStringAsFixed(3)} km',
-                  );
-                  print(
-                    'Total distance: ${totalDistance.toStringAsFixed(3)} km',
+                if (mapController != null) {
+                  mapController.animateCamera(
+                    CameraUpdate.newLatLng(serverLocation),
                   );
                 }
-              } else {
-                routePoints.add(newCoordinates);
-                _updatePolyline();
-              }
-
-              // Use server-provided total distance if available and valid
-              if (data['totalDistance'] != null) {
-                double serverDistance =
-                    double.tryParse(data['totalDistance'].toString()) ?? 0.0;
-                if (serverDistance > 0) {
-                  totalDistance = serverDistance;
-                }
-              }
-
-              if (mapController != null) {
-                mapController.animateCamera(
-                  CameraUpdate.newLatLng(newCoordinates),
-                );
-              }
-            });
+              });
+            }
           } catch (e) {
-            print('Error processing location update: $e');
+            print('Error processing server location update: $e');
           }
         }
       });
-
       socket!.on('testDriveEnded', (data) {
         if (mounted) {
           try {
@@ -434,6 +473,12 @@ class _StartDriveMapState extends State<StartDriveMap> {
 
   void _cleanupResources() {
     try {
+      if (_isBackgroundServiceActive) {
+        final service = FlutterBackgroundService();
+        service.invoke('stop_tracking');
+        _isBackgroundServiceActive = false;
+      }
+
       if (socket != null) {
         socket!.disconnect();
         socket!.dispose(); // Add this line
@@ -509,64 +554,217 @@ class _StartDriveMapState extends State<StartDriveMap> {
   void _startLocationTracking() {
     try {
       const LocationSettings locationSettings = LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 10, // Reduced to 10 meters for better tracking
+        accuracy: LocationAccuracy
+            .bestForNavigation, // Changed from high to bestForNavigation
+        distanceFilter: 2, // Reduced from 10 to 2 meters
+        timeLimit: Duration(seconds: 5), // Add time limit for location updates
       );
 
       positionStreamSubscription =
           Geolocator.getPositionStream(
             locationSettings: locationSettings,
-          ).listen((Position position) {
-            final LatLng newLocation = LatLng(
-              position.latitude,
-              position.longitude,
-            );
-
-            if (mounted && userMarker != null) {
-              setState(() {
-                userMarker = Marker(
-                  markerId: const MarkerId('user'),
-                  position: newLocation,
-                  infoWindow: const InfoWindow(title: 'User'),
-                  icon: BitmapDescriptor.defaultMarkerWithHue(
-                    BitmapDescriptor.hueAzure,
-                  ),
-                );
-
-                // Only calculate distance if we have previous points
-                if (routePoints.isNotEmpty) {
-                  LatLng lastPoint = routePoints.last;
-                  double segmentDistance = _calculateDistance(
-                    lastPoint,
-                    newLocation,
-                  );
-
-                  // Make sure we're adding numbers, not strings
-                  totalDistance = (totalDistance + segmentDistance);
-
-                  // Optional: Add some debugging
-                  print(
-                    'Segment distance: ${segmentDistance.toStringAsFixed(3)} km',
-                  );
-                  print(
-                    'Total distance: ${totalDistance.toStringAsFixed(3)} km',
-                  );
+          ).listen(
+            (Position position) {
+              _processLocationUpdate(position);
+            },
+            onError: (error) {
+              print('Location stream error: $error');
+              // Restart location tracking after error
+              Future.delayed(Duration(seconds: 3), () {
+                if (!isDriveEnded && mounted) {
+                  _startLocationTracking();
                 }
-
-                routePoints.add(newLocation);
-                _updatePolyline();
               });
-            }
-
-            _sendLocationUpdate(newLocation);
-          });
+            },
+          );
     } catch (e) {
       print('Error starting location tracking: $e');
     }
   }
 
+  void _processLocationUpdate(Position position) {
+    if (!mounted || isDriveEnded) return;
+
+    final LatLng newLocation = LatLng(position.latitude, position.longitude);
+
+    // Validate location accuracy
+    if (position.accuracy > 20.0) {
+      print(
+        'Location accuracy too low: ${position.accuracy}m, skipping update',
+      );
+      return;
+    }
+
+    // Check if this is a valid location update
+    if (!_isValidLocationUpdate(newLocation, position)) {
+      return;
+    }
+
+    setState(() {
+      // Update user marker
+      userMarker = Marker(
+        markerId: const MarkerId('user'),
+        position: newLocation,
+        infoWindow: InfoWindow(
+          title: 'Current Location',
+          snippet: 'Accuracy: ${position.accuracy.toStringAsFixed(1)}m',
+        ),
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+      );
+
+      // Add to route and calculate distance
+      if (_lastValidLocation != null) {
+        double segmentDistance = _calculateDistanceImproved(
+          _lastValidLocation!,
+          newLocation,
+        );
+
+        if (segmentDistance >= MIN_DISTANCE_THRESHOLD) {
+          _totalDistanceAccumulator += segmentDistance;
+          totalDistance = _totalDistanceAccumulator;
+
+          routePoints.add(newLocation);
+          _updatePolyline();
+
+          print(
+            'Valid segment: ${segmentDistance.toStringAsFixed(4)} km, Total: ${totalDistance.toStringAsFixed(3)} km',
+          );
+        }
+      } else {
+        // First location point
+        routePoints.add(newLocation);
+        _updatePolyline();
+      }
+
+      _lastValidLocation = newLocation;
+    });
+
+    // Update camera position smoothly
+    if (mapController != null) {
+      mapController.animateCamera(CameraUpdate.newLatLng(newLocation));
+    }
+
+    // Send location update to server (throttled)
+    _throttledLocationUpdate(newLocation);
+  }
+
+  bool _isValidLocationUpdate(LatLng newLocation, Position position) {
+    if (_lastValidLocation == null) return true;
+
+    // Check for unrealistic speed (prevents GPS jumps)
+    double distance = _calculateDistanceImproved(
+      _lastValidLocation!,
+      newLocation,
+    );
+    double timeElapsed = DateTime.now()
+        .difference(
+          DateTime.fromMillisecondsSinceEpoch(
+            position.timestamp?.millisecondsSinceEpoch ??
+                DateTime.now().millisecondsSinceEpoch,
+          ),
+        )
+        .inSeconds
+        .toDouble();
+
+    if (timeElapsed > 0) {
+      double speed = (distance / timeElapsed) * 3600; // km/h
+      if (speed > MAX_SPEED_THRESHOLD) {
+        print(
+          'Unrealistic speed detected: ${speed.toStringAsFixed(1)} km/h, skipping update',
+        );
+        return false;
+      }
+    }
+
+    // Check for minimum distance movement
+    if (distance < MIN_DISTANCE_THRESHOLD) {
+      return false;
+    }
+
+    return true;
+  }
+
+  // void _startLocationTracking() {
+  //   try {
+  //     const LocationSettings locationSettings = LocationSettings(
+  //       accuracy: LocationAccuracy.high,
+  //       distanceFilter: 10,
+  //     );
+
+  //     positionStreamSubscription =
+  //         Geolocator.getPositionStream(
+  //           locationSettings: locationSettings,
+  //         ).listen((Position position) {
+  //           final LatLng newLocation = LatLng(
+  //             position.latitude,
+  //             position.longitude,
+  //           );
+
+  //           if (mounted && userMarker != null) {
+  //             setState(() {
+  //               userMarker = Marker(
+  //                 markerId: const MarkerId('user'),
+  //                 position: newLocation,
+  //                 infoWindow: const InfoWindow(title: 'User'),
+  //                 icon: BitmapDescriptor.defaultMarkerWithHue(
+  //                   BitmapDescriptor.hueAzure,
+  //                 ),
+  //               );
+
+  //               // Only calculate distance if we have previous points
+  //               if (routePoints.isNotEmpty) {
+  //                 LatLng lastPoint = routePoints.last;
+  //                 double segmentDistance = _calculateDistance(
+  //                   lastPoint,
+  //                   newLocation,
+  //                 );
+
+  //                 // Make sure we're adding numbers, not strings
+  //                 totalDistance = (totalDistance + segmentDistance);
+
+  //                 // Optional: Add some debugging
+  //                 print(
+  //                   'Segment distance: ${segmentDistance.toStringAsFixed(3)} km',
+  //                 );
+  //                 print(
+  //                   'Total distance: ${totalDistance.toStringAsFixed(3)} km',
+  //                 );
+  //               }
+
+  //               routePoints.add(newLocation);
+  //               _updatePolyline();
+  //             });
+  //           }
+
+  //           _sendLocationUpdate(newLocation);
+  //         });
+  //   } catch (e) {
+  //     print('Error starting location tracking: $e');
+  //   }
+  // }
+
   // Also update your _calculateDistance method to ensure it returns a proper double:
-  double _calculateDistance(LatLng point1, LatLng point2) {
+  // double _calculateDistance(LatLng point1, LatLng point2) {
+  //   double distanceInMeters = Geolocator.distanceBetween(
+  //     point1.latitude,
+  //     point1.longitude,
+  //     point2.latitude,
+  //     point2.longitude,
+  //   );
+
+  //   // Convert to kilometers and return as double
+  //   double distanceInKm = distanceInMeters / 1000.0;
+
+  //   // Optional: Add minimum distance threshold to avoid micro-movements
+  //   if (distanceInKm < 0.001) {
+  //     // Less than 1 meter
+  //     return 0.0;
+  //   }
+
+  //   return distanceInKm;
+  // }
+
+  double _calculateDistanceImproved(LatLng point1, LatLng point2) {
     double distanceInMeters = Geolocator.distanceBetween(
       point1.latitude,
       point1.longitude,
@@ -574,16 +772,21 @@ class _StartDriveMapState extends State<StartDriveMap> {
       point2.longitude,
     );
 
-    // Convert to kilometers and return as double
+    // Convert to kilometers with higher precision
     double distanceInKm = distanceInMeters / 1000.0;
 
-    // Optional: Add minimum distance threshold to avoid micro-movements
-    if (distanceInKm < 0.001) {
-      // Less than 1 meter
-      return 0.0;
-    }
+    // Return with proper precision
+    return double.parse(distanceInKm.toStringAsFixed(6));
+  }
 
-    return distanceInKm;
+  void _throttledLocationUpdate(LatLng location) {
+    // Cancel existing timer
+    _locationUpdateTimer?.cancel();
+
+    // Set new timer for 2 seconds
+    _locationUpdateTimer = Timer(Duration(seconds: 2), () {
+      _sendLocationUpdate(location);
+    });
   }
 
   // Handle when drive ends
@@ -843,15 +1046,26 @@ class _StartDriveMapState extends State<StartDriveMap> {
     }
   }
 
+  // @override
+  // void dispose() {
+  //   WidgetsBinding.instance.removeObserver(this);
+  //   _cleanupResources();
+
+  //   // _throttleTimer?.cancel();
+  //   // if (socket != null && socket!.connected) {
+  //   //   socket!.disconnect();
+  //   // }
+  //   // if (positionStreamSubscription != null) {
+  //   //   positionStreamSubscription!.cancel();
+  //   // }
+  //   super.dispose();
+  // }
+
   @override
   void dispose() {
-    _throttleTimer?.cancel();
-    if (socket != null && socket!.connected) {
-      socket!.disconnect();
-    }
-    if (positionStreamSubscription != null) {
-      positionStreamSubscription!.cancel();
-    }
+    _locationUpdateTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    _cleanupResources();
     super.dispose();
   }
 
@@ -1340,10 +1554,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
                               // Navigate to home screen and clear the stack
                               Navigator.of(context).pushAndRemoveUntil(
                                 MaterialPageRoute(
-                                  builder: (context) => const HomeScreen(
-                                    greeting: '',
-                                    leadId: '',
-                                  ),
+                                  builder: (context) => BottomNavigation(),
                                 ),
                                 (route) => false,
                               );
@@ -1352,10 +1563,7 @@ class _StartDriveMapState extends State<StartDriveMap> {
                               // Fallback navigation
                               Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (context) => const HomeScreen(
-                                    greeting: '',
-                                    leadId: '',
-                                  ),
+                                  builder: (context) => BottomNavigation(),
                                 ),
                               );
                             }

@@ -170,7 +170,7 @@ class BottomBtnSecondState extends State<BottomBtnSecond> {
         leadButtonIndex = 0; // Enquiries
         break;
       case 1:
-        leadButtonIndex = 2; // Default to Enquiries for Appointments
+        leadButtonIndex = 0; // Default to Enquiries for Appointments
         break;
       case 2:
         leadButtonIndex = 1; // Test Drives
@@ -250,7 +250,7 @@ class BottomBtnSecondState extends State<BottomBtnSecond> {
                               },
                               style: _buttonStyle(_leadButton == 1),
                               child: Text(
-                                'Test Drivess',
+                                'Test Drives',
                                 textAlign: TextAlign.center,
                                 style: AppFont.buttonwhite(context),
                               ),

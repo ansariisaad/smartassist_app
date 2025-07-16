@@ -25,20 +25,15 @@ class MyTeams extends StatefulWidget {
 }
 
 class _MyTeamsState extends State<MyTeams> {
-  // ADD THESE VARIABLES TO YOUR CLASS
-  int _currentDisplayCount = 10; // Initially show 10 records
-  static const int _incrementCount = 10; // Show 10 more each time
   static const int _decrementCount = 10;
   List<dynamic> _teamComparisonData = [];
-  // Your existing variables
-  // List<dynamic> _membersData = []; // Your existing data list
 
   final ScrollController _scrollController = ScrollController();
   bool _isFabVisible = true;
   String _selectedLetter = '';
   List<Map<String, dynamic>> _filteredByLetter = [];
 
-  int _tabIndex = 0; // 0 for Individual Performance, 1 for Team Comparison
+  int _tabIndex = 0;
   int _periodIndex = 0; // ALL, MTD, QTD, YTD
   int _metricIndex = 0; // Selected metric for comparison
   int _selectedProfileIndex = 0; // Default to 'All' profile
@@ -46,6 +41,8 @@ class _MyTeamsState extends State<MyTeams> {
   bool _isComparing = false;
   int overdueCount = 0;
   String selectedTimeRange = '1D';
+  int selectedTabIndex = 0;
+
   // String userId = '';
   bool isLoading = false;
   // String _selectedCheckboxIds = '';
@@ -68,6 +65,10 @@ class _MyTeamsState extends State<MyTeams> {
   bool isHideCalls = false;
   bool isSingleCall = false;
   bool isHideCheckbox = false;
+
+  int _currentDisplayCount = 10; // Initially show 10 records
+  static const int _incrementCount = 10; // Show 10 more each time
+
   // Data state
   // bool isLoading = false;
   Map<String, dynamic> _teamData = {};
@@ -152,11 +153,13 @@ class _MyTeamsState extends State<MyTeams> {
   void _loadMoreRecords() {
     setState(() {
       List<dynamic> dataToDisplay = _getCurrentDataToDisplay();
-
-      // Update display count based on the actual data being shown
-      _currentDisplayCount = math.min(
+      int newDisplayCount = math.min(
         _currentDisplayCount + _incrementCount,
         dataToDisplay.length,
+      );
+      _currentDisplayCount = newDisplayCount;
+      print(
+        '📊 Loading more records. New display count: $_currentDisplayCount',
       );
     });
   }
@@ -166,6 +169,9 @@ class _MyTeamsState extends State<MyTeams> {
     setState(() {
       _currentDisplayCount = math.min(_incrementCount, currentData.length);
     });
+    print(
+      '📊 Reset display count to: $_currentDisplayCount for ${currentData.length} items',
+    );
   }
 
   void _loadLessRecords() {
@@ -173,6 +179,9 @@ class _MyTeamsState extends State<MyTeams> {
       _currentDisplayCount = math.max(
         _incrementCount,
         _currentDisplayCount - _incrementCount,
+      );
+      print(
+        '📊 Loading less records. New display count: $_currentDisplayCount',
       );
     });
   }
@@ -996,29 +1005,35 @@ class _MyTeamsState extends State<MyTeams> {
 
             // Show info about total members
             int totalMembers = _teamMembers.length;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.info_outline, color: Colors.white, size: 16),
-                    SizedBox(width: 8),
-                    Text('Total $totalMembers team members'),
-                  ],
-                ),
-                duration: const Duration(seconds: 1),
-                backgroundColor: Colors.green.shade600,
-                behavior: SnackBarBehavior.floating,
-                margin: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).size.height - 150,
-                  left: 20,
-                  right: 20,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
+            Get.snackbar(
+              'Total',
+              'Total $totalMembers team members',
+              backgroundColor: Colors.green,
+              colorText: Colors.white,
             );
+            // ScaffoldMessenger.of(context).showSnackBar(
+            //   SnackBar(
+            //     content: Row(
+            //       mainAxisSize: MainAxisSize.min,
+            //       children: [
+            //         Icon(Icons.info_outline, color: Colors.white, size: 16),
+            //         SizedBox(width: 8),
+            //         Text('Total $totalMembers team members'),
+            //       ],
+            //     ),
+            //     duration: const Duration(seconds: 1),
+            //     backgroundColor: Colors.green.shade600,
+            //     behavior: SnackBarBehavior.floating,
+            //     margin: EdgeInsets.only(
+            //       bottom: MediaQuery.of(context).size.height - 150,
+            //       left: 20,
+            //       right: 20,
+            //     ),
+            //     shape: RoundedRectangleBorder(
+            //       borderRadius: BorderRadius.circular(8),
+            //     ),
+            //   ),
+            // );
           },
           child: Stack(
             children: [
@@ -1636,12 +1651,21 @@ class _MyTeamsState extends State<MyTeams> {
       dashboardData: _dashboardData,
       enquiryData: _enquiryData,
       coldCallData: _coldCallData,
+      onTabChanged: _handleTabChange,
       onTimeRangeChanged: _handleTimeRangeChange,
-      initialTimeRange: selectedTimeRange, // <- pass it here!
+      initialTimeRange: selectedTimeRange,
+      initialTabIndex: selectedTabIndex,
     );
   }
 
-  // ADD THIS METHOD
+  void _handleTabChange(int newTabIndex) {
+    setState(() {
+      selectedTabIndex = newTabIndex;
+      isLoading = true;
+    });
+    _fetchSingleCalllog();
+  }
+
   void _handleTimeRangeChange(String newTimeRange) {
     setState(() {
       selectedTimeRange = newTimeRange;
@@ -2954,9 +2978,66 @@ class _MyTeamsState extends State<MyTeams> {
       ]);
     }).toList();
   }
+  // List<TableRow> _buildMemberRowsTeams() {
+  //   List<dynamic> dataToDisplay = _getCurrentDataToDisplay();
+
+  //   // Ensure display count is valid
+  //   if (_currentDisplayCount <= 0 ||
+  //       _currentDisplayCount > dataToDisplay.length) {
+  //     _currentDisplayCount = math.min(_incrementCount, dataToDisplay.length);
+  //   }
+
+  //   // Get only the items to display based on current display count
+  //   List<dynamic> itemsToShow = dataToDisplay
+  //       .take(_currentDisplayCount)
+  //       .toList();
+
+  //   print(
+  //     '📊 Building ${itemsToShow.length} rows from ${dataToDisplay.length} total items',
+  //   );
+
+  //   return itemsToShow.map<TableRow>((member) {
+  //     return _buildTableRow([
+  //       // Name column
+  //       Container(
+  //         alignment: Alignment.centerLeft,
+  //         padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
+  //         child: Text(
+  //           member['name']?.toString() ?? 'Unknown',
+  //           style: AppFont.mediumText14(context),
+  //           overflow: TextOverflow.ellipsis,
+  //         ),
+  //       ),
+  //       // Data columns
+  //       _buildDataCell(member['enquiries']?.toString() ?? '0'),
+  //       _buildDataCell(member['testDrives']?.toString() ?? '0'),
+  //       _buildDataCell(member['orders']?.toString() ?? '0'),
+  //       _buildDataCell(member['cancellation']?.toString() ?? '0'),
+  //       _buildDataCell(member['net_orders']?.toString() ?? '0'),
+  //       _buildDataCell(member['retail']?.toString() ?? '0'),
+  //     ]);
+  //   }).toList();
+  // }
+
+  // Widget _buildDataCell(String value) {
+  //   return Container(
+  //     alignment: Alignment.center,
+  //     padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 12.0),
+  //     child: Text(
+  //       value,
+  //       style: AppFont.mediumText14(context),
+  //       textAlign: TextAlign.center,
+  //     ),
+  //   );
+  // }
 
   Widget _buildShowMoreButtonTeamComparison() {
     List<dynamic> dataToDisplay = _getCurrentDataToDisplay();
+
+    // Add this check - if no data, don't show anything
+    if (dataToDisplay.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
     // Fix invalid display count
     if (_currentDisplayCount <= 0 ||
@@ -2964,24 +3045,11 @@ class _MyTeamsState extends State<MyTeams> {
       _currentDisplayCount = math.min(_incrementCount, dataToDisplay.length);
     }
 
-    // Add this check - if no data, don't show anything
-    // Check if there's actually data to display
-    if (dataToDisplay.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    // Also check if current display count is valid
-    if (_currentDisplayCount <= 0) {
-      return const SizedBox.shrink();
-    }
-
     // Check if we can show more records
     bool hasMoreRecords = _currentDisplayCount < dataToDisplay.length;
 
     // Check if we can show less records - only if we're showing more than initial count
-    bool canShowLess =
-        _currentDisplayCount > _incrementCount &&
-        _currentDisplayCount >= dataToDisplay.length;
+    bool canShowLess = _currentDisplayCount > _incrementCount;
 
     // If no action is possible, don't show button
     if (!hasMoreRecords && !canShowLess) {
@@ -2993,7 +3061,7 @@ class _MyTeamsState extends State<MyTeams> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          // Show Less button - only when all data is displayed and we can reduce
+          // Show Less button - only when displaying more than initial count
           if (canShowLess)
             TextButton(
               onPressed: _loadLessRecords,
@@ -3036,17 +3104,29 @@ class _MyTeamsState extends State<MyTeams> {
   }
 
   List<dynamic> _getCurrentDataToDisplay() {
+    List<dynamic> dataToReturn = [];
+
+    // If comparing specific users and have comparison data from API
     if (_isComparing &&
         selectedUserIds.isNotEmpty &&
         _teamComparisonData.isNotEmpty) {
-      return _teamComparisonData;
-    } else if (_isComparing && selectedUserIds.isNotEmpty) {
-      return _membersData.where((member) {
+      dataToReturn = List<dynamic>.from(_teamComparisonData);
+    }
+    // If comparing but no API data, filter from members data
+    else if (_isComparing && selectedUserIds.isNotEmpty) {
+      dataToReturn = _membersData.where((member) {
         return selectedUserIds.contains(member['user_id'].toString());
       }).toList();
-    } else {
-      return _membersData;
     }
+    // Default case: show all members data
+    else {
+      dataToReturn = List<dynamic>.from(_membersData);
+    }
+
+    print('📊 Current data to display: ${dataToReturn.length} items');
+    print('📊 Display count: $_currentDisplayCount');
+
+    return dataToReturn;
   }
 
   TableRow _buildTableRow(List<Widget> widgets) {

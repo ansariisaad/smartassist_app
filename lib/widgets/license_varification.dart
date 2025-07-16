@@ -32,7 +32,7 @@ class LicenseVarification extends StatefulWidget {
 }
 
 class _LicenseVarificationState extends State<LicenseVarification>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, RouteAware {
   List<CameraDescription> cameras = [];
   CameraController? cameraController;
   File? _capturedImage;
@@ -56,6 +56,10 @@ class _LicenseVarificationState extends State<LicenseVarification>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _setupCameraController();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (ModalRoute.of(context) != null) {}
+    });
   }
 
   @override
@@ -67,20 +71,68 @@ class _LicenseVarificationState extends State<LicenseVarification>
     super.dispose();
   }
 
+  // @override
+  // void didChangeAppLifecycleState(AppLifecycleState state) {
+  //   if (_isDisposed) return;
+
+  //   final CameraController? cameraController = this.cameraController;
+
+  //   if (cameraController == null || !cameraController.value.isInitialized) {
+  //     return;
+  //   }
+
+  //   if (state == AppLifecycleState.inactive) {
+  //     _disposeCamera();
+  //   } else if (state == AppLifecycleState.resumed) {
+  //     _setupCameraController();
+  //   }
+  // }
+  void _onReturnFromPreview() {
+    // This will be called when returning from LicencePreview
+    if (!_isDisposed && mounted) {
+      setState(() {
+        _capturedImage = null;
+        _isCameraInitialized = false;
+      });
+
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (!_isDisposed && mounted) {
+          _setupCameraController();
+        }
+      });
+    }
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (_isDisposed) return;
 
     final CameraController? cameraController = this.cameraController;
 
-    if (cameraController == null || !cameraController.value.isInitialized) {
-      return;
-    }
-
     if (state == AppLifecycleState.inactive) {
       _disposeCamera();
     } else if (state == AppLifecycleState.resumed) {
-      _setupCameraController();
+      // Add a small delay and then reinitialize
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (!_isDisposed && mounted) {
+          _setupCameraController();
+        }
+      });
+    } else if (state == AppLifecycleState.paused) {
+      _disposeCamera();
+    }
+  }
+
+  @override
+  void didPopNext() {
+    super.didPopNext();
+    // This is called when returning from another screen
+    if (!_isDisposed && mounted && !_isCameraInitialized) {
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (!_isDisposed && mounted) {
+          _setupCameraController();
+        }
+      });
     }
   }
 
@@ -287,6 +339,9 @@ class _LicenseVarificationState extends State<LicenseVarification>
               ),
             ),
           );
+
+          // Call the return handler
+          _onReturnFromPreview();
         }
       }
     } catch (e) {
@@ -636,10 +691,10 @@ class _LicenseVarificationState extends State<LicenseVarification>
                 child: Text(
                   textAlign: TextAlign.center,
                   'Select reason to skip',
-                  style: AppFont.mediumText14(context),
+                  style: AppFont.popupTitleBlack(context),
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 20),
             ],
           ),
           content: SingleChildScrollView(
@@ -837,13 +892,11 @@ class _LicenseVarificationState extends State<LicenseVarification>
                       // Exit button (Blue) - Modified to navigate to HomeScreen
                       Expanded(
                         child: ElevatedButton(
-                          onPressed: () {
-                            // Clear all routes and navigate to HomeScreen
+                          onPressed: () { 
                             Navigator.of(context).pushAndRemoveUntil(
                               MaterialPageRoute(
+                               
                                 builder: (context) => BottomNavigation(),
-
-                                // HomeScreen(greeting: '', leadId: '')
                               ),
                               (route) => false, // This clears the stack
                             );

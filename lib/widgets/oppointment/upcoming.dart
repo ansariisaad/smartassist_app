@@ -232,6 +232,14 @@ class _OppUpcomingItemState extends State<OppUpcomingItem>
     // Register this class as an observer to track app lifecycle changes
     WidgetsBinding.instance.addObserver(this);
     _slidableController = SlidableController(this);
+    _slidableController.animation.addListener(() {
+      final isOpen = _slidableController.ratio != 0;
+      if (_isActionPaneOpen != isOpen) {
+        setState(() {
+          _isActionPaneOpen = isOpen;
+        });
+      }
+    });
   }
 
   @override

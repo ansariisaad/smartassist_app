@@ -1,15 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter/material.dart'; 
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
-import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:smartassist/services/api_srv.dart';
-import 'package:smartassist/utils/storage.dart';
+import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart'; 
+import 'package:smartassist/services/api_srv.dart'; 
 import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/followups.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -253,6 +249,15 @@ class _overdueeFollowupsItemState extends State<overdueeFollowupsItem>
     // Register this class as an observer to track app lifecycle changes
     WidgetsBinding.instance.addObserver(this);
     _slidableController = SlidableController(this);
+
+    _slidableController.animation.addListener(() {
+      final isOpen = _slidableController.ratio != 0;
+      if (_isActionPaneOpen != isOpen) {
+        setState(() {
+          _isActionPaneOpen = isOpen;
+        });
+      }
+    });
   }
 
   @override

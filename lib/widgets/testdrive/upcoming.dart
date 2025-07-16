@@ -163,10 +163,8 @@ class _TestUpcomingState extends State<TestUpcoming> {
             startTime:
                 (item['start_time'] != null &&
                     item['start_time'].toString().isNotEmpty)
-                ? item['start_time']
-
-                      .toString() 
-                : "00:00:00", 
+                ? item['start_time'].toString()
+                : "00:00:00",
 
             eventId: item['event_id'] ?? '',
 
@@ -233,6 +231,14 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
   void initState() {
     super.initState();
     _slidableController = SlidableController(this);
+    _slidableController.animation.addListener(() {
+      final isOpen = _slidableController.ratio != 0;
+      if (_isActionPaneOpen != isOpen) {
+        setState(() {
+          _isActionPaneOpen = isOpen;
+        });
+      }
+    });
   }
 
   @override

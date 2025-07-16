@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -8,7 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
-import 'package:smartassist/config/component/font/font.dart';
+import 'package:smartassist/config/component/font/font.dart'; 
 import 'package:smartassist/config/getX/fab.controller.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -83,6 +82,7 @@ class _CreateLeadsState extends State<CreateLeads> {
 
   // Google Maps API key
   final String _googleApiKey = "AIzaSyCaFZ4RXQIy86v9B24wz5l0vgDKbQSP5LE";
+  // String get _googleApiKey => Environment.googleMapsApiKey;
 
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _searchControllerVehicleColor =

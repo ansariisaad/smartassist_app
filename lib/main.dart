@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/services.dart';
+import 'package:smartassist/config/environment/environment.dart';
 import 'package:smartassist/config/route/route.dart';
 import 'package:smartassist/config/route/route_name.dart';
 import 'package:smartassist/services/notifacation_srv.dart';
@@ -16,6 +17,9 @@ void main() async {
 
   try {
     await Firebase.initializeApp();
+    // google env
+    // await Environment.init();
+    // Environment.validateConfig();
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitDown,
       DeviceOrientation.portraitUp,

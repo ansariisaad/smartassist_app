@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -8,7 +9,6 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
-import 'package:smartassist/config/environment/environment.dart';
 import 'package:smartassist/config/getX/fab.controller.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -79,9 +79,10 @@ class _CreateLeadsState extends State<CreateLeads> {
   late RangeValues _rangeAmount;
   List<dynamic> vehicleName = [];
   String selectedSubType = 'Retail';
-  String? _locationErrorText; 
+  String? _locationErrorText;
+
   // Google Maps API key
-  String get _googleApiKey => Environment.googleMapsApiKey;
+  final String _googleApiKey = "AIzaSyCaFZ4RXQIy86v9B24wz5l0vgDKbQSP5LE";
 
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _searchControllerVehicleColor =
@@ -2573,7 +2574,7 @@ class _CreateLeadsState extends State<CreateLeads> {
       }
     } catch (e, stackTrace) {
       print("Exception Occurred: $e"); // ✅ Log any unexpected exceptions
-      print("Stack Trace: $stackTrace"); // ✅ Print stack trace for debugging
+      print("Stack Trace: $stackTrace"); // ✅ Print stack  trace for debugging
 
       Get.snackbar(
         'Error',

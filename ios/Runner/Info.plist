@@ -7,6 +7,10 @@
     <string>remote-notification</string>
 </array>
 
+<!-- api keys -->
+<key>GoogleMapsAPIKey</key>
+<string>$(GOOGLE_MAPS_API_KEY)</string>
+
 <!-- CALL LOG PERMISSION (for call_log package) -->
 <key>NSContactsUsageDescription</key>
 <string>This app needs access to contacts to display call history and manage contacts.</string>

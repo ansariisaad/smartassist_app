@@ -727,6 +727,7 @@ class _CreateFollowupsPopupsState extends State<CreateFollowupsPopups> {
             ),
 
             const SizedBox(height: 10),
+
             // _buildTextField(
             //   label: 'Remarks:',
             //   controller: descriptionController,
@@ -742,6 +743,20 @@ class _CreateFollowupsPopupsState extends State<CreateFollowupsPopups> {
                 print('Text changed: $text');
               },
             ),
+            // EnhancedSpeechTextField(
+            //   label: "Message",
+            //   controller: descriptionController,
+            //   hint: "Tap mic to speak...",
+            //   isRequired: true,
+            //   enableRecording: true, // Save speech audio
+            //   showRecordingsList: true, // Show saved recordings
+            //   onTextGenerated: (text) {
+            //     print("Generated text: $text");
+            //   },
+            //   onRecordingComplete: (path) {
+            //     print("Audio saved: $path");
+            //   },
+            // ),
             const SizedBox(height: 10),
             Row(
               children: [

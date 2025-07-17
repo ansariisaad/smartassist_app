@@ -92,6 +92,7 @@ dependencies:
   flutter_tts: ^3.8.5
   flutter_background_service: ^5.1.0
   flutter_sound: ^9.28.0  
+  video_player: ^2.10.0
 
 dev_dependencies:
   flutter_test:

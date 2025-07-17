@@ -22,7 +22,7 @@ class Environment {
   // API Configuration
   static String get apiBaseUrl => dotenv.env['API_BASE_URL'] ?? '';
   static String get socketUrl => dotenv.env['SOCKET_URL'] ?? '';
-  static String get googleMapsApiKey => dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
+  static String get googleMapsApiKey => dotenv.   env['GOOGLE_MAPS_API_KEY'] ?? '';
   static String get appName => dotenv.env['APP_NAME'] ?? 'SmartAssist';
 
   // Validation methods

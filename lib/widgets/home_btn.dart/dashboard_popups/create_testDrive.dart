@@ -2,12 +2,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-// import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:smartassist/config/environment/environment.dart';
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/widgets/google_location.dart';
@@ -61,7 +61,8 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
   List<dynamic> vehicleName = [];
 
   // Google Maps API key
-  final String _googleApiKey = "AIzaSyCaFZ4RXQIy86v9B24wz5l0vgDKbQSP5LE";
+  // final String _googleApiKey = "AIzaSyCaFZ4RXQIy86v9B24wz5l0vgDKbQSP5LE";
+  String get _googleApiKey => Environment.googleMapsApiKey;
 
   final TextEditingController _locationController = TextEditingController();
   TextEditingController startDateController = TextEditingController();
@@ -137,74 +138,75 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
     }
   }
 
-void _submit() async {
-  if (isSubmitting) return;
+  void _submit() async {
+    if (isSubmitting) return;
 
-  bool isValid = true;
+    bool isValid = true;
 
-  setState(() {
-    isSubmitting = true;
-    _errors = {};
+    setState(() {
+      isSubmitting = true;
+      _errors = {};
 
-    if (_leadId == null || _leadId!.isEmpty) {
-      _errors['select lead name'] = 'Please select a lead name';
-      isValid = false;
-    }
+      if (_leadId == null || _leadId!.isEmpty) {
+        _errors['select lead name'] = 'Please select a lead name';
+        isValid = false;
+      }
 
-    if (slotData == null) {
-      _errors['select_slot'] = 'Please select a date and time slot';
-      isValid = false;
-    }
+      if (slotData == null) {
+        _errors['select_slot'] = 'Please select a date and time slot';
+        isValid = false;
+      }
 
-    // 👇 ADD THIS CHECK FOR END TIME
-    if (slotData != null && 
-        (slotData!['end_time_slot'] == null || slotData!['end_time_slot'].toString().isEmpty)) {
-      _errors['select_end_time'] = 'Please select End Time';
-      isValid = false;
-    }
-  });
+      // 👇 ADD THIS CHECK FOR END TIME
+      if (slotData != null &&
+          (slotData!['end_time_slot'] == null ||
+              slotData!['end_time_slot'].toString().isEmpty)) {
+        _errors['select_end_time'] = 'Please select End Time';
+        isValid = false;
+      }
+    });
 
-  if (!isValid) {
-    setState(() => isSubmitting = false);
+    if (!isValid) {
+      setState(() => isSubmitting = false);
 
-    // Custom error for end time
-    if (_errors.containsKey('select_end_time')) {
+      // Custom error for end time
+      if (_errors.containsKey('select_end_time')) {
+        Get.snackbar(
+          'Validation Error',
+          _errors['select_end_time']!,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return;
+      }
+
+      // Otherwise, show all other error messages
+      String errorMessages = _errors.values.join('\n');
       Get.snackbar(
         'Validation Error',
-        _errors['select_end_time']!,
+        errorMessages,
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
       return;
     }
 
-    // Otherwise, show all other error messages
-    String errorMessages = _errors.values.join('\n');
-    Get.snackbar(
-      'Validation Error',
-      errorMessages,
-      backgroundColor: Colors.red,
-      colorText: Colors.white,
-    );
-    return;
+    // Continue with your submission...
+    try {
+      print('Submitting form with slotData: $slotData'); // Debug log
+      await submitForm(); // ✅ Only call if valid
+    } catch (e) {
+      print('Submission error: $e'); // Debug log
+      Get.snackbar(
+        'Error',
+        'Submission failed: ${e.toString()}',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      setState(() => isSubmitting = false);
+    }
   }
-
-  // Continue with your submission...
-  try {
-    print('Submitting form with slotData: $slotData'); // Debug log
-    await submitForm(); // ✅ Only call if valid
-  } catch (e) {
-    print('Submission error: $e'); // Debug log
-    Get.snackbar(
-      'Error',
-      'Submission failed: ${e.toString()}',
-      backgroundColor: Colors.red,
-      colorText: Colors.white,
-    );
-  } finally {
-    setState(() => isSubmitting = false);
-  }
-}
 
   @override
   Widget build(BuildContext context) {

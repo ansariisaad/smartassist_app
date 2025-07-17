@@ -61,7 +61,6 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
   List<dynamic> vehicleName = [];
 
   // Google Maps API key
-  // final String _googleApiKey = "AIzaSyCaFZ4RXQIy86v9B24wz5l0vgDKbQSP5LE";
   String get _googleApiKey => Environment.googleMapsApiKey;
 
   final TextEditingController _locationController = TextEditingController();
@@ -157,7 +156,6 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
         isValid = false;
       }
 
-      // 👇 ADD THIS CHECK FOR END TIME
       if (slotData != null &&
           (slotData!['end_time_slot'] == null ||
               slotData!['end_time_slot'].toString().isEmpty)) {

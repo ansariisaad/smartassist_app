@@ -31,8 +31,19 @@ android {
         targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-
         multiDexEnabled = true
+
+         // Load from local.properties
+        val properties = Properties()
+        val localPropertiesFile = project.rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            properties.load(FileInputStream(localPropertiesFile))
+        }
+        
+        val googleMapsApiKey = properties.getProperty("GOOGLE_MAPS_API_KEY") ?: ""
+        
+        // ✅ Use manifestPlaceholders (more secure than buildConfigField)
+        manifestPlaceholders["googleMapsApiKey"] = googleMapsApiKey 
     } 
 
     buildTypes {

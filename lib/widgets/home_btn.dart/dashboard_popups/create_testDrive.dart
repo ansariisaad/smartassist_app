@@ -137,56 +137,74 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
     }
   }
 
-  void _submit() async {
-    if (isSubmitting) return;
+void _submit() async {
+  if (isSubmitting) return;
 
-    bool isValid = true;
+  bool isValid = true;
 
-    setState(() {
-      isSubmitting = true;
-      _errors = {};
+  setState(() {
+    isSubmitting = true;
+    _errors = {};
 
-      if (_leadId == null || _leadId!.isEmpty) {
-        _errors['select lead name'] = 'Please select a lead name';
-        isValid = false;
-      }
+    if (_leadId == null || _leadId!.isEmpty) {
+      _errors['select lead name'] = 'Please select a lead name';
+      isValid = false;
+    }
 
-      if (slotData == null) {
-        _errors['select_slot'] = 'Please select a date and time slot';
-        isValid = false;
-      }
-    });
+    if (slotData == null) {
+      _errors['select_slot'] = 'Please select a date and time slot';
+      isValid = false;
+    }
 
-    // 💡 Check validity before calling the API
-    if (!isValid) {
-      setState(() => isSubmitting = false);
+    // 👇 ADD THIS CHECK FOR END TIME
+    if (slotData != null && 
+        (slotData!['end_time_slot'] == null || slotData!['end_time_slot'].toString().isEmpty)) {
+      _errors['select_end_time'] = 'Please select End Time';
+      isValid = false;
+    }
+  });
 
-      // Show error message to user
-      String errorMessages = _errors.values.join('\n');
+  if (!isValid) {
+    setState(() => isSubmitting = false);
+
+    // Custom error for end time
+    if (_errors.containsKey('select_end_time')) {
       Get.snackbar(
         'Validation Error',
-        errorMessages,
+        _errors['select_end_time']!,
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
       return;
     }
 
-    try {
-      print('Submitting form with slotData: $slotData'); // Debug log
-      await submitForm(); // ✅ Only call if valid
-    } catch (e) {
-      print('Submission error: $e'); // Debug log
-      Get.snackbar(
-        'Error',
-        'Submission failed: ${e.toString()}',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-    } finally {
-      setState(() => isSubmitting = false);
-    }
+    // Otherwise, show all other error messages
+    String errorMessages = _errors.values.join('\n');
+    Get.snackbar(
+      'Validation Error',
+      errorMessages,
+      backgroundColor: Colors.red,
+      colorText: Colors.white,
+    );
+    return;
   }
+
+  // Continue with your submission...
+  try {
+    print('Submitting form with slotData: $slotData'); // Debug log
+    await submitForm(); // ✅ Only call if valid
+  } catch (e) {
+    print('Submission error: $e'); // Debug log
+    Get.snackbar(
+      'Error',
+      'Submission failed: ${e.toString()}',
+      backgroundColor: Colors.red,
+      colorText: Colors.white,
+    );
+  } finally {
+    setState(() => isSubmitting = false);
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -703,3 +721,7 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
   //     );
   //   }
   // }
+
+
+
+

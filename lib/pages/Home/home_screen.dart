@@ -437,7 +437,9 @@ class _HomeScreenState extends State<HomeScreen> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: CreateLeads(onFormSubmit: fetchDashboardData),
+            child: CreateLeads(onFormSubmit: fetchDashboardData ,
+            // dashboardRefresh : _loadDashboardAnalytics,
+            ),
           ),
         );
       },

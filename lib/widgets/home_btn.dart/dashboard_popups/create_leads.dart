@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:get/get.dart';  
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -21,7 +21,12 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class CreateLeads extends StatefulWidget {
   final Function onFormSubmit;
-  const CreateLeads({super.key, required this.onFormSubmit});
+  // final Function? dashboardRefresh;
+  const CreateLeads({
+    super.key,
+    required this.onFormSubmit,
+    // this.dashboardRefresh,
+  });
 
   @override
   State<CreateLeads> createState() => _CreateLeadsState();
@@ -2500,7 +2505,8 @@ class _CreateLeadsState extends State<CreateLeads> {
             Get.find<FabController>().temporarilyDisableFab();
 
             Navigator.pop(context);
-            // widget.onFormSubmit();
+            widget.onFormSubmit();
+            // widget.dashboardRefresh!();
             Navigator.push(
               context,
               MaterialPageRoute(

@@ -1324,7 +1324,6 @@
 //   }
 // }
 
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -1347,7 +1346,6 @@ class AllLeads extends StatefulWidget {
 
   @override
   State<AllLeads> createState() => _AllLeadsState();
-  
 }
 
 class _AllLeadsState extends State<AllLeads> {
@@ -1455,9 +1453,9 @@ class _AllLeadsState extends State<AllLeads> {
       MediaQuery.of(context).size.width;
 
   EdgeInsets _responsivePadding(BuildContext context) => EdgeInsets.symmetric(
-        horizontal: _isTablet(context) ? 20 : (_isSmallScreen(context) ? 8 : 10),
-        vertical: _isTablet(context) ? 12 : 8,
-      );
+    horizontal: _isTablet(context) ? 20 : (_isSmallScreen(context) ? 8 : 10),
+    vertical: _isTablet(context) ? 12 : 8,
+  );
 
   double _titleFontSize(BuildContext context) =>
       _isTablet(context) ? 20 : (_isSmallScreen(context) ? 16 : 18);
@@ -1512,13 +1510,12 @@ class _AllLeadsState extends State<AllLeads> {
     _searchController.addListener(_onSearchChanged);
   }
 
-@override
-void dispose() {
-  _searchController.dispose();
-  _scrollController.dispose();  // <-- add this!
-  super.dispose();
-}
-
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _scrollController.dispose(); // <-- add this!
+    super.dispose();
+  }
 
   Future<void> fetchTasksData() async {
     final token = await Storage.getToken();
@@ -1630,8 +1627,12 @@ void dispose() {
                     itemDate.month == now.month &&
                     itemDate.day == now.day;
               case 'This Week':
-                DateTime startOfWeek = now.subtract(Duration(days: now.weekday - 1));
-                return itemDate.isAfter(startOfWeek.subtract(Duration(days: 1)));
+                DateTime startOfWeek = now.subtract(
+                  Duration(days: now.weekday - 1),
+                );
+                return itemDate.isAfter(
+                  startOfWeek.subtract(Duration(days: 1)),
+                );
               case 'This Month':
                 return itemDate.year == now.year && itemDate.month == now.month;
               case 'Last 7 Days':
@@ -1675,7 +1676,9 @@ void dispose() {
                   itemDate.month == now.month &&
                   itemDate.day == now.day;
             case 'This Week':
-              DateTime startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+              DateTime startOfWeek = now.subtract(
+                Duration(days: now.weekday - 1),
+              );
               return itemDate.isAfter(startOfWeek.subtract(Duration(days: 1)));
             case 'This Month':
               return itemDate.year == now.year && itemDate.month == now.month;
@@ -1738,7 +1741,8 @@ void dispose() {
     }
 
     // PATCH 2: Update _hasActiveFilters
-    _hasActiveFilters = _selectedSortBy != 'Date Created' ||
+    _hasActiveFilters =
+        _selectedSortBy != 'Date Created' ||
         _selectedStatus != 'All' ||
         _selectedTimeFilter != 'All Time';
 
@@ -1762,43 +1766,43 @@ void dispose() {
   }
 
   // PATCH 4/5: Build Filter Chips row
-Widget _buildFilterChips(bool isTablet) {
-  if (!_hasActiveFilters) return SizedBox.shrink();
+  Widget _buildFilterChips(bool isTablet) {
+    if (!_hasActiveFilters) return SizedBox.shrink();
 
-  return Container(
-    margin: EdgeInsets.only(
-      left: isTablet ? 15 : 10,
-      right: isTablet ? 15 : 10,
-      top: 5,
-      bottom: 5,
-    ),
-    child: Row(
-      children: [
-        Text(
-          '${(_selectedStatus != 'All' ? 1 : 0) + (_selectedTimeFilter != 'All Time' ? 1 : 0) + (_selectedSortBy != 'Date Created' ? 1 : 0)} filter(s) active',
-          style: GoogleFonts.poppins(
-                                fontSize: isTablet ? 12 : 10,
-                                  color: Colors.grey[600],
-                                  fontStyle: FontStyle.italic,fontWeight: FontWeight.w500,
-          ),
-        ),
-        Spacer(),
-        GestureDetector(
-          onTap: _clearAllFilters,
-          child: Text(
-            'Clear All',
+    return Container(
+      margin: EdgeInsets.only(
+        left: isTablet ? 15 : 10,
+        right: isTablet ? 15 : 10,
+        top: 5,
+        bottom: 5,
+      ),
+      child: Row(
+        children: [
+          Text(
+            '${(_selectedStatus != 'All' ? 1 : 0) + (_selectedTimeFilter != 'All Time' ? 1 : 0) + (_selectedSortBy != 'Date Created' ? 1 : 0)} filter(s) active',
             style: GoogleFonts.poppins(
-              fontSize: isTablet ? 13 : 11,
-              color: AppColors.colorsBlue,
+              fontSize: isTablet ? 12 : 10,
+              color: Colors.grey[600],
+              fontStyle: FontStyle.italic,
               fontWeight: FontWeight.w500,
             ),
           ),
-        ),
-      ],
-    ),
-  );
-}
-
+          Spacer(),
+          GestureDetector(
+            onTap: _clearAllFilters,
+            child: Text(
+              'Clear All',
+              style: GoogleFonts.poppins(
+                fontSize: isTablet ? 13 : 11,
+                color: AppColors.colorsBlue,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   // PATCH 5: FilterChip UI
   Widget _buildFilterChip({
@@ -1818,10 +1822,7 @@ Widget _buildFilterChips(bool isTablet) {
         decoration: BoxDecoration(
           color: AppColors.colorsBlue.withOpacity(0.1),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: AppColors.colorsBlue,
-            width: 1,
-          ),
+          border: Border.all(color: AppColors.colorsBlue, width: 1),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -1862,18 +1863,16 @@ Widget _buildFilterChips(bool isTablet) {
     }
 
     List<String> activeFilters = [];
-    if (_selectedSortBy != 'Date Created') activeFilters.add('Sort: $_selectedSortBy');
+    if (_selectedSortBy != 'Date Created')
+      activeFilters.add('Sort: $_selectedSortBy');
     if (_selectedStatus != 'All') activeFilters.add('Status: $_selectedStatus');
-    if (_selectedTimeFilter != 'All Time') activeFilters.add('Time: $_selectedTimeFilter');
+    if (_selectedTimeFilter != 'All Time')
+      activeFilters.add('Time: $_selectedTimeFilter');
 
     return Container(
       width: double.infinity,
       alignment: Alignment.centerLeft,
-      margin: EdgeInsets.only(
-        left: isTablet ? 15 : 10,
-        top: 6,
-        bottom: 4,
-      ),
+      margin: EdgeInsets.only(left: isTablet ? 15 : 10, top: 6, bottom: 4),
       child: Text(
         'Filtered by: ${activeFilters.join(' | ')} (${_filteredTasks.length} results)',
         style: GoogleFonts.poppins(
@@ -1886,113 +1885,121 @@ Widget _buildFilterChips(bool isTablet) {
   }
 
   // ---------------------- DROPDOWN WIDGET STYLE (unchanged) ----------------------
- Widget _buildDropdownFilter({
-  required String label,
-  required String value,
-  required List<String> options,
-  required Function(String?) onChanged,
-  required bool isTablet,
-}) {
-  // Decide which value is considered "not selected" (change logic as needed)
-  String defaultValue = label == 'Sort By'
-      ? 'Date Created'
-      : label == 'Status'
-          ? 'All'
-          : label == 'Time'
-              ? 'All Time'
-              : options.first;
+  Widget _buildDropdownFilter({
+    required String label,
+    required String value,
+    required List<String> options,
+    required Function(String?) onChanged,
+    required bool isTablet,
+  }) {
+    // Decide which value is considered "not selected" (change logic as needed)
+    String defaultValue = label == 'Sort By'
+        ? 'Date Created'
+        : label == 'Status'
+        ? 'All'
+        : label == 'Time'
+        ? 'All Time'
+        : options.first;
 
-  bool isSelected = value != defaultValue;
+    bool isSelected = value != defaultValue;
 
-  return Expanded(
-    child: Container(
-      margin: EdgeInsets.only(right: isTablet ? 12 : 8),
-      decoration: BoxDecoration(
-        color: isSelected ? AppColors.colorsBlue.withOpacity(0.13) : Colors.white,
-        borderRadius: BorderRadius.circular(25),
-        border: Border.all(
-          color: isSelected ? AppColors.colorsBlue : Colors.grey.shade300,
-          width: 2.0,
+    return Expanded(
+      child: Container(
+        margin: EdgeInsets.only(right: isTablet ? 12 : 8),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.colorsBlue.withOpacity(0.13)
+              : Colors.white,
+          borderRadius: BorderRadius.circular(25),
+          border: Border.all(
+            color: isSelected ? AppColors.colorsBlue : Colors.grey.shade300,
+            width: 2.0,
+          ),
         ),
-      ),
-      height: isTablet ? 35 : 31,
-      padding: EdgeInsets.symmetric(
-        horizontal: isTablet ? 12 : 8,
-        vertical: isTablet ? 3 : 2,
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: value,
-          isExpanded: true,
-          icon: Icon(
-            Icons.keyboard_arrow_down_rounded,
-            size: isTablet ? 22 : 20,
-            color: isSelected ? AppColors.colorsBlue : Colors.grey.shade500,
-          ),
-          style: GoogleFonts.poppins(
-            fontSize: isTablet ? 15 : 13,
-            color: isSelected ? AppColors.colorsBlue : Colors.grey.shade700,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-          ),
-          dropdownColor: Colors.white,
-          borderRadius: BorderRadius.circular(15),
-          elevation: 8,
-          menuMaxHeight: 250,
-          selectedItemBuilder: (BuildContext context) {
-            return options.map<Widget>((String item) {
-              bool itemIsSelected = item == value && isSelected;
-              return Row(
-                children: [
-                  if (itemIsSelected)
-                    Container(
-                      width: isTablet ? 8 : 7,
-                      height: isTablet ? 8 : 7,
-                      margin: EdgeInsets.only(right: isTablet ? 6 : 5, left: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.colorsBlue,
-                        shape: BoxShape.circle,
+        height: isTablet ? 35 : 31,
+        padding: EdgeInsets.symmetric(
+          horizontal: isTablet ? 12 : 8,
+          vertical: isTablet ? 3 : 2,
+        ),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<String>(
+            value: value,
+            isExpanded: true,
+            icon: Icon(
+              Icons.keyboard_arrow_down_rounded,
+              size: isTablet ? 22 : 20,
+              color: isSelected ? AppColors.colorsBlue : Colors.grey.shade500,
+            ),
+            style: GoogleFonts.poppins(
+              fontSize: isTablet ? 15 : 13,
+              color: isSelected ? AppColors.colorsBlue : Colors.grey.shade700,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+            ),
+            dropdownColor: Colors.white,
+            borderRadius: BorderRadius.circular(15),
+            elevation: 8,
+            menuMaxHeight: 250,
+            selectedItemBuilder: (BuildContext context) {
+              return options.map<Widget>((String item) {
+                bool itemIsSelected = item == value && isSelected;
+                return Row(
+                  children: [
+                    if (itemIsSelected)
+                      Container(
+                        width: isTablet ? 8 : 7,
+                        height: isTablet ? 8 : 7,
+                        margin: EdgeInsets.only(
+                          right: isTablet ? 6 : 5,
+                          left: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.colorsBlue,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    Flexible(
+                      child: Text(
+                        item,
+                        style: GoogleFonts.poppins(
+                          fontSize: isTablet ? 15 : 13,
+                          color: isSelected
+                              ? AppColors.colorsBlue
+                              : Colors.grey.shade700,
+                          fontWeight: isSelected
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                  Flexible(
-                    child: Text(
-                      item,
-                      style: GoogleFonts.poppins(
-                        fontSize: isTablet ? 15 : 13,
-                        color: isSelected ? AppColors.colorsBlue : Colors.grey.shade700,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                  ],
+                );
+              }).toList();
+            },
+            items: options.map((String option) {
+              return DropdownMenuItem<String>(
+                value: option,
+                child: Text(
+                  option,
+                  style: GoogleFonts.poppins(
+                    fontSize: isTablet ? 15 : 13,
+                    color: option == value && isSelected
+                        ? AppColors.colorsBlue
+                        : Colors.grey.shade700,
+                    fontWeight: option == value && isSelected
+                        ? FontWeight.w500
+                        : FontWeight.w400,
                   ),
-                ],
-              );
-            }).toList();
-          },
-          items: options.map((String option) {
-            return DropdownMenuItem<String>(
-              value: option,
-              child: Text(
-                option,
-                style: GoogleFonts.poppins(
-                  fontSize: isTablet ? 15 : 13,
-                  color: option == value && isSelected
-                      ? AppColors.colorsBlue
-                      : Colors.grey.shade700,
-                  fontWeight: option == value && isSelected
-                      ? FontWeight.w500
-                      : FontWeight.w400,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            );
-          }).toList(),
-          onChanged: onChanged,
+              );
+            }).toList(),
+            onChanged: onChanged,
+          ),
         ),
       ),
-    ),
-  );
-}
-
+    );
+  }
 
   // ---------------------- MAIN BUILD ----------------------
   @override
@@ -2034,10 +2041,7 @@ Widget _buildFilterChips(bool isTablet) {
                 Container(
                   margin: EdgeInsets.all(isTablet ? 15 : 10),
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: 38,
-                      maxHeight: 38,
-                    ),
+                    constraints: BoxConstraints(minHeight: 38, maxHeight: 38),
                     child: TextField(
                       autofocus: false,
                       controller: _searchController,
@@ -2122,11 +2126,11 @@ Widget _buildFilterChips(bool isTablet) {
                         },
                         isTablet: isTablet,
                       ),
-                      SizedBox(width: isTablet ? 12 : 8), 
+                      SizedBox(width: isTablet ? 12 : 8),
                       _buildDropdownFilter(
                         label: 'Time',
                         value: _selectedTimeFilter,
-                        options: _timeFilterOptions, 
+                        options: _timeFilterOptions,
                         onChanged: (value) {
                           setState(() {
                             _selectedTimeFilter = value!;
@@ -2138,7 +2142,7 @@ Widget _buildFilterChips(bool isTablet) {
                     ],
                   ),
                 ),
-                
+
                 // PATCH 7: Filter Chips Row
                 _buildFilterChips(isTablet),
                 // PATCH 6: Filtered By indicator text
@@ -2146,17 +2150,17 @@ Widget _buildFilterChips(bool isTablet) {
                 // Results count or query indicator (unchanged)
                 // _buildResultsCount(isTablet),
                 // Results list - using filtered local results
-              Expanded(
-                     child: Scrollbar(
-                       controller: _scrollController,
-                        thumbVisibility: false,
-    trackVisibility: false,
-    thickness: 7.0, 
-    radius: const Radius.circular(4.0),
-    interactive: true,
-    child: _buildTasksList(_filteredTasks),
-  ),
-),
+                Expanded(
+                  child: Scrollbar(
+                    controller: _scrollController,
+                    thumbVisibility: false,
+                    trackVisibility: false,
+                    thickness: 7.0,
+                    radius: const Radius.circular(4.0),
+                    interactive: true,
+                    child: _buildTasksList(_filteredTasks),
+                  ),
+                ),
               ],
             ),
     );
@@ -2222,7 +2226,7 @@ Widget _buildFilterChips(bool isTablet) {
                 'Try searching with different keywords',
                 style: GoogleFonts.poppins(
                   fontSize: isTablet ? 14 : 12,
-                   fontStyle: FontStyle.italic,
+                  fontStyle: FontStyle.italic,
                   color: Colors.grey[400],
                 ),
               ),
@@ -2233,7 +2237,7 @@ Widget _buildFilterChips(bool isTablet) {
     }
 
     return ListView.builder(
-       controller: _scrollController,
+      controller: _scrollController,
       physics: const AlwaysScrollableScrollPhysics(),
       itemCount: tasks.length,
       itemBuilder: (context, index) {

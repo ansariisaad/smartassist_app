@@ -1503,7 +1503,7 @@ class _CreateFollowupsPopupsState extends State<CreateFollowupsPopups> {
     // Check validity before calling the API
     if (!isValid) {
       setState(() => isSubmitting = false);
-      
+
       // Show specific error snackbar for time validation
       if (_errors.containsKey('time')) {
         _showTimeValidationSnackbar();
@@ -1533,10 +1533,7 @@ class _CreateFollowupsPopupsState extends State<CreateFollowupsPopups> {
       snackPosition: SnackPosition.TOP,
       backgroundColor: Colors.orange,
       colorText: Colors.white,
-      icon: Icon(
-        Icons.access_time,
-        color: Colors.white,
-      ),
+      icon: Icon(Icons.access_time, color: Colors.white),
       duration: Duration(seconds: 3),
       margin: EdgeInsets.all(10),
       borderRadius: 8,
@@ -1559,20 +1556,14 @@ class _CreateFollowupsPopupsState extends State<CreateFollowupsPopups> {
       final rawStartTime = DateFormat(
         'hh:mm a',
       ).parse(startTimeController.text);
-      final rawEndTime = DateFormat(
-        'hh:mm a',
-      ).parse(endTimeController.text);
+      final rawEndTime = DateFormat('hh:mm a').parse(endTimeController.text);
 
       // Format for API
       final formattedStartDate = DateFormat('dd-MM-yyyy').format(rawStartDate);
-      final formattedEndDate = DateFormat(
-        'dd/MM/yyyy',
-      ).format(rawEndDate);
+      final formattedEndDate = DateFormat('dd/MM/yyyy').format(rawEndDate);
 
       final formattedStartTime = DateFormat('hh:mm a').format(rawStartTime);
-      final formattedEndTime = DateFormat(
-        'HH:mm:ss',
-      ).format(rawEndTime);
+      final formattedEndTime = DateFormat('HH:mm:ss').format(rawEndTime);
 
       final newTaskForLead = {
         'subject': _selectedSubject,
@@ -1793,7 +1784,7 @@ class _CreateFollowupsPopupsState extends State<CreateFollowupsPopups> {
               ],
             ),
             const SizedBox(height: 10),
-            
+
             LeadTextfield(
               isRequired: true,
               onChanged: (value) {
@@ -1839,7 +1830,8 @@ class _CreateFollowupsPopupsState extends State<CreateFollowupsPopups> {
 
             // FIXED: Only pass error text when there's a date error (not time error)
             DateButton(
-              errorText: _errors['date'], // Only show date error, not time error
+              errorText:
+                  _errors['date'], // Only show date error, not time error
               isRequired: true,
               label: 'When?',
               dateController: startDateController,
@@ -1860,7 +1852,7 @@ class _CreateFollowupsPopupsState extends State<CreateFollowupsPopups> {
                 print('Text changed: $text');
               },
             ),
-            
+
             const SizedBox(height: 10),
             Row(
               children: [

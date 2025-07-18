@@ -1286,7 +1286,18 @@ class _AppointmentTeamsState extends State<AppointmentTeams> {
           Navigator.pop(context, true);
         }
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Form Submit Successful.')),
+          SnackBar(
+            content: Text(
+              'Appointment created successfully',
+              style: GoogleFonts.poppins(),
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
         );
         widget.onFormSubmit();
       } else {

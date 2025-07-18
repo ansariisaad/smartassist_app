@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:get/get.dart';  
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -2515,15 +2515,29 @@ class _CreateLeadsState extends State<CreateLeads> {
             );
           }
 
-          String successMessage =
-              response['message'] ?? 'Enquiry created successfully';
-          Get.snackbar(
-            'Success',
-            successMessage,
-            backgroundColor: Colors.green,
-            colorText: Colors.white,
+          // String successMessage =
+          //     response['message'] ?? 'Enquiry created successfully';
+          // Get.snackbar(
+          //   'Success',
+          //   successMessage,
+          //   backgroundColor: Colors.green,
+          //   colorText: Colors.white,
+          //   snackPosition: SnackPosition.BOTTOM,
+          // );
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Enquiry created successfully',
+                style: GoogleFonts.poppins(),
+              ),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
           );
-
           widget.onFormSubmit();
         } else if (response.containsKey('error') ||
             response.containsKey('message')) {

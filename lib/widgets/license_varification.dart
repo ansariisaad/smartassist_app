@@ -892,10 +892,9 @@ class _LicenseVarificationState extends State<LicenseVarification>
                       // Exit button (Blue) - Modified to navigate to HomeScreen
                       Expanded(
                         child: ElevatedButton(
-                          onPressed: () { 
+                          onPressed: () {
                             Navigator.of(context).pushAndRemoveUntil(
                               MaterialPageRoute(
-                               
                                 builder: (context) => BottomNavigation(),
                               ),
                               (route) => false, // This clears the stack

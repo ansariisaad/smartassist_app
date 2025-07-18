@@ -1328,9 +1328,20 @@ class _TestdriveTeamsState extends State<TestdriveTeams> {
       if (context.mounted) {
         Navigator.pop(context, true); // Close the modal on success.
       }
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Form Submit Successful.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Test drive created successfully',
+            style: GoogleFonts.poppins(),
+          ),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
       widget.onFormSubmit();
     } else {
       showErrorMessage(context, message: 'Failed to submit appointment.');

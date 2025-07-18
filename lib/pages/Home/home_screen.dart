@@ -135,7 +135,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> uploadCallLogsAfterLogin() async {
     // Request permission
     if (!await Permission.phone.isGranted) {
-      var status =  await Permission.phone.request();
+      var status = await Permission.phone.request();
       if (!status.isGranted) {
         print('Permission denied');
         return;

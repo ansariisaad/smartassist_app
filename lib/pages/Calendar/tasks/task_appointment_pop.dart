@@ -304,9 +304,20 @@ class _TaskAppointmentPopState extends State<TaskAppointmentPop> {
       if (context.mounted) {
         Navigator.pop(context);
       }
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Form Submit Successful.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Follow up created successfully',
+            style: GoogleFonts.poppins(),
+          ),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
     } else {
       print('Failed to submit lead.');
     }

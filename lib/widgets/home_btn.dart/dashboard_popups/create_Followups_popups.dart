@@ -250,10 +250,7 @@ void _submit() async {
       snackPosition: SnackPosition.TOP,
       backgroundColor: Colors.red[500],
       colorText: Colors.white,
-      icon: Icon(
-        Icons.access_time,
-        color: Colors.white,
-      ),
+      icon: Icon(Icons.access_time, color: Colors.white),
       duration: Duration(seconds: 3),
       margin: EdgeInsets.all(10),
       borderRadius: 8,
@@ -276,20 +273,14 @@ void _submit() async {
       final rawStartTime = DateFormat(
         'hh:mm a',
       ).parse(startTimeController.text);
-      final rawEndTime = DateFormat(
-        'hh:mm a',
-      ).parse(endTimeController.text);
+      final rawEndTime = DateFormat('hh:mm a').parse(endTimeController.text);
 
       // Format for API
       final formattedStartDate = DateFormat('dd-MM-yyyy').format(rawStartDate);
-      final formattedEndDate = DateFormat(
-        'dd/MM/yyyy',
-      ).format(rawEndDate);
+      final formattedEndDate = DateFormat('dd/MM/yyyy').format(rawEndDate);
 
       final formattedStartTime = DateFormat('hh:mm a').format(rawStartTime);
-      final formattedEndTime = DateFormat(
-        'HH:mm:ss',
-      ).format(rawEndTime);
+      final formattedEndTime = DateFormat('HH:mm:ss').format(rawEndTime);
 
       final newTaskForLead = {
         'subject': _selectedSubject,
@@ -510,7 +501,7 @@ void _submit() async {
               ],
             ),
             const SizedBox(height: 10),
-            
+
             LeadTextfield(
               isRequired: true,
               onChanged: (value) {
@@ -556,7 +547,8 @@ void _submit() async {
 
             // FIXED: Only pass error text when there's a date error (not time error)
             DateButton(
-              errorText: _errors['date'], // Only show date error, not time error
+              errorText:
+                  _errors['date'], // Only show date error, not time error
               isRequired: true,
               label: 'When?',
               dateController: startDateController,
@@ -577,7 +569,7 @@ void _submit() async {
                 print('Text changed: $text');
               },
             ),
-            
+
             const SizedBox(height: 10),
             Row(
               children: [

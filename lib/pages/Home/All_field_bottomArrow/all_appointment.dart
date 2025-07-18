@@ -72,7 +72,7 @@ class _AllAppointmentState extends State<AllAppointment>
           });
         }
       },
-        onError: (errorNotification) {
+      onError: (errorNotification) {
         setState(() {
           _isListening = false;
         });

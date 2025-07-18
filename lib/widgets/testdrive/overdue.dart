@@ -182,7 +182,12 @@ class _TestOverdueState extends State<TestOverdue> {
             date: item['start_date'],
             leadId: item['lead_id'],
             taskId: item['task_id'] ?? '',
-            startTime: item['start_time'],
+            // startTime: item['start_time'],
+            startTime:
+                (item['start_time'] != null &&
+                    item['start_time'].toString().isNotEmpty)
+                ? item['start_time'].toString()
+                : "00:00:00",
             eventId: item['event_id'],
             isFavorite: item['favourite'] ?? false,
             swipeOffset: swipeOffset,

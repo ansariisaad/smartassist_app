@@ -67,7 +67,7 @@ class FabController extends GetxController {
     isFabExpanded.value = false;
 
     // Enable after 10 seconds
-    Future.delayed(const Duration(seconds: 10), () {
+    Future.delayed(const Duration(seconds: 2), () {
       // Check if controller is still initialized
       if (!isClosed) {
         isFabDisabled.value = false;

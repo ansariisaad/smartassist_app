@@ -1,14 +1,14 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart';  
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
+import 'package:smartassist/config/environment/environment.dart';
 import 'package:smartassist/config/getX/fab.controller.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -80,9 +80,8 @@ class _CreateLeadsState extends State<CreateLeads> {
   List<dynamic> vehicleName = [];
   String selectedSubType = 'Retail';
   String? _locationErrorText;
-
   // Google Maps API key
-  final String _googleApiKey = "AIzaSyCaFZ4RXQIy86v9B24wz5l0vgDKbQSP5LE";
+  String get _googleApiKey => Environment.googleMapsApiKey;
 
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _searchControllerVehicleColor =
@@ -101,6 +100,7 @@ class _CreateLeadsState extends State<CreateLeads> {
   @override
   void initState() {
     super.initState();
+    print('this is the key :${Environment.googleMapsApiKey}');
     _rangeAmount = RangeValues(_minValue, _maxValue);
     // fetchVehicleData();
     _searchController.addListener(_onSearchChanged);
@@ -1053,6 +1053,7 @@ class _CreateLeadsState extends State<CreateLeads> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // if (_isGoogleApiKeyValid)
                       CustomGooglePlacesField(
                         controller: _locationController,
                         hintText: 'Enter location',
@@ -1062,11 +1063,10 @@ class _CreateLeadsState extends State<CreateLeads> {
                           //   _validateLocation();
                           // }
                         },
-                        googleApiKey:
-                            _googleApiKey, // Replace with your actual API key
+                        googleApiKey: _googleApiKey,
                         isRequired: true,
-                        // errorText: _locationError,
                       ),
+
                       _buildDatePicker(
                         // isRequired: true,
                         label: 'Expected purchase date',
@@ -2574,7 +2574,7 @@ class _CreateLeadsState extends State<CreateLeads> {
       }
     } catch (e, stackTrace) {
       print("Exception Occurred: $e"); // ✅ Log any unexpected exceptions
-      print("Stack Trace: $stackTrace"); // ✅ Print stack  trace for debugging
+      print("Stack Trace: $stackTrace"); // ✅ Print stack trace for debugging
 
       Get.snackbar(
         'Error',

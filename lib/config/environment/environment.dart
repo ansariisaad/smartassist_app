@@ -6,9 +6,9 @@ class Environment {
     const flavor = String.fromEnvironment('FLAVOR', defaultValue: 'dev');
     switch (flavor) {
       case 'prod':
-        return '.env.prod';
+        return '.env';
       case 'dev':
-        return '.env.dev';
+        return '.env';
       default:
         return '.env';
     }
@@ -16,6 +16,7 @@ class Environment {
 
   static Future<void> init() async {
     await dotenv.load(fileName: fileName);
+    print('this is the key :${googleMapsApiKey}');
   }
 
   // API Configuration

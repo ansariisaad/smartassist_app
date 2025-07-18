@@ -20,6 +20,9 @@ void main() async {
     // google env
     await Environment.init();
     Environment.validateConfig();
+
+    // Add this debug check
+    print("🔍 Environment loaded: ${Environment.googleMapsApiKey}");
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitDown,
       DeviceOrientation.portraitUp,

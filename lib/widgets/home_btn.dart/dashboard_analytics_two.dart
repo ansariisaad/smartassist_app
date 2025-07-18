@@ -61,7 +61,7 @@ class _BottomBtnThirdState extends State<BottomBtnThird> {
           periodParam = '?type=MTD';
       }
 
-      final uri = Uri.parse( 
+      final uri = Uri.parse(
         'https://api.smartassistapp.in/api/users/analytics$periodParam',
       );
 

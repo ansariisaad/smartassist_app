@@ -163,7 +163,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _profileImage = null;
       // If you want to also clear the network image URL
       profilePic = null; // or profilePic = '';
-    }); 
+    });
   }
 
   Future<void> deleteImg(BuildContext context) async {

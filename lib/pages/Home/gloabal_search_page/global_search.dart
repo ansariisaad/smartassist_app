@@ -201,7 +201,7 @@ class _GlobalSearchState extends State<GlobalSearch> {
               onTap: () => FocusScope.of(context).unfocus(),
               child: Center(
                 child: Text(
-                  "No Matching Record found...!",
+                  "Type something...",
                   style: AppFont.dropDowmLabel(context),
                 ),
               ),

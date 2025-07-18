@@ -225,7 +225,7 @@ class _LeadsState extends State<Leads> {
                     context,
                     'Follow ups done by you per lost digital enquiry',
                     'Follow ups recommended for order',
-                    '3',
+                    '2',
                     '${selectedData['followupsPerLostDigitalEnquiry'] ?? '0'}',
                     screenWidth,
                     Colors.red,
@@ -277,7 +277,7 @@ class _LeadsState extends State<Leads> {
             padding: const EdgeInsets.symmetric(vertical: 5),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(30),
-            ),  
+            ),
           ),
           child: Text(
             text,

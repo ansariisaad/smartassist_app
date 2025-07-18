@@ -12,7 +12,9 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/utils/token_manager.dart';
-import 'package:smartassist/widgets/reusable/whatsapp_fullscreen.dart';
+import 'package:smartassist/widgets/reusable/whatsapp_fullscreen.dart'
+    as fullscreen;
+import 'package:smartassist/widgets/reusable/whatsapp_video.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -107,11 +109,18 @@ class _MessageBubbleState extends State<MessageBubble> {
           children: [
             if (widget.message.type == 'image' &&
                 widget.message.mediaUrl != null)
-              ClickableMessageImage(
+              fullscreen.ClickableMessageImage(
                 imageUrl: widget.message.mediaUrl!,
                 heroTag: widget.message.id ?? widget.message.mediaUrl,
               ),
 
+            // Video handling - ADD THIS NEW SECTION
+            if (widget.message.type == 'video' &&
+                widget.message.mediaUrl != null)
+              ClickableMessageVideo(
+                videoUrl: widget.message.mediaUrl!,
+                heroTag: widget.message.id ?? widget.message.mediaUrl,
+              ),
             // Document handling
             if (widget.message.type == 'document' &&
                 widget.message.media != null)
@@ -132,6 +141,81 @@ class _MessageBubbleState extends State<MessageBubble> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildVideoWidget() {
+    return Container(
+      width: 200,
+      height: 150,
+      decoration: BoxDecoration(
+        color: Colors.black,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Video thumbnail placeholder
+          Container(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.grey[800],
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(Icons.videocam, size: 40, color: Colors.white),
+          ),
+          // Play button overlay
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.black54,
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: Icon(Icons.play_arrow, color: Colors.white, size: 30),
+              onPressed: () {
+                // Handle video playback
+                _playVideo();
+              },
+            ),
+          ),
+          // Duration badge (optional)
+          Positioned(
+            bottom: 8,
+            right: 8,
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.black54,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                'Video',
+                style: TextStyle(color: Colors.white, fontSize: 10),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _playVideo() {
+    // You can implement video playback here
+    // For now, show a message or navigate to video player
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Video playback not implemented yet'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+
+    // Or you can implement actual video playback using video_player package
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => WhatsappVideo(videoUrl: widget.message.mediaUrl!),
       ),
     );
   }
@@ -777,8 +861,9 @@ class _WhatsappChatState extends State<WhatsappChat>
                 leading: Icon(Icons.picture_as_pdf),
                 title: Text('Document', style: AppFont.dropDowmLabel(context)),
                 onTap: () async {
-                  Navigator.pop(context);
-                  // Use file_picker for documents instead of image_picker
+                  Navigator.pop(
+                    context,
+                  ); // ✅ This is correct - we're in a modal
                   FilePickerResult? result = await FilePicker.platform
                       .pickFiles(type: FileType.any, allowMultiple: false);
 
@@ -792,7 +877,9 @@ class _WhatsappChatState extends State<WhatsappChat>
                 leading: Icon(Icons.photo),
                 title: Text('Photo', style: AppFont.dropDowmLabel(context)),
                 onTap: () async {
-                  Navigator.pop(context);
+                  Navigator.pop(
+                    context,
+                  ); // ✅ This is correct - we're in a modal
                   final XFile? image = await _picker.pickImage(
                     source: ImageSource.gallery,
                     imageQuality: 70,
@@ -806,7 +893,9 @@ class _WhatsappChatState extends State<WhatsappChat>
                 leading: Icon(Icons.videocam),
                 title: Text('Video', style: AppFont.dropDowmLabel(context)),
                 onTap: () async {
-                  Navigator.pop(context);
+                  Navigator.pop(
+                    context,
+                  ); // ✅ This is correct - we're in a modal
                   final XFile? video = await _picker.pickVideo(
                     source: ImageSource.gallery,
                   );
@@ -821,6 +910,63 @@ class _WhatsappChatState extends State<WhatsappChat>
       },
     );
   }
+
+  // void attachment() async {
+  //   showModalBottomSheet(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return Container(
+  //         height: 220,
+  //         child: Column(
+  //           children: [
+  //             ListTile(
+  //               leading: Icon(Icons.picture_as_pdf),
+  //               title: Text('Document', style: AppFont.dropDowmLabel(context)),
+  //               onTap: () async {
+  //                 Navigator.pop(context);
+  //                 // Use file_picker for documents instead of image_picker
+  //                 FilePickerResult? result = await FilePicker.platform
+  //                     .pickFiles(type: FileType.any, allowMultiple: false);
+
+  //                 if (result != null && result.files.single.path != null) {
+  //                   final file = XFile(result.files.single.path!);
+  //                   await sendDocumentMessage(file);
+  //                 }
+  //               },
+  //             ),
+  //             ListTile(
+  //               leading: Icon(Icons.photo),
+  //               title: Text('Photo', style: AppFont.dropDowmLabel(context)),
+  //               onTap: () async {
+  //                 Navigator.pop(context);
+  //                 final XFile? image = await _picker.pickImage(
+  //                   source: ImageSource.gallery,
+  //                   imageQuality: 70,
+  //                 );
+  //                 if (image != null) {
+  //                   await sendImageMessage(image);
+  //                 }
+  //               },
+  //             ),
+  //             ListTile(
+  //               leading: Icon(Icons.videocam),
+  //               title: Text('Video', style: AppFont.dropDowmLabel(context)),
+  //               onTap: () async {
+  //                 Navigator.pop(context);
+  //                 final XFile? video = await _picker.pickVideo(
+  //                   source: ImageSource.gallery,
+  //                 );
+  //                 if (video != null) {
+  //                   await sendVideoMessage(video);
+  //                 }
+  //               },
+  //             ),
+  //           ],
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 
   Future<void> sendVideoMessage(XFile video) async {
     if (!isWhatsAppReady) return;
@@ -1486,7 +1632,7 @@ class _WhatsappChatState extends State<WhatsappChat>
                             icon: const Icon(Icons.camera_alt_rounded),
                             color: Colors.white,
                             onPressed: () async {
-                              Navigator.pop(context);
+                              // Navigator.pop(context);
                               final XFile? image = await _picker.pickImage(
                                 source: ImageSource.camera,
                                 imageQuality: 70,

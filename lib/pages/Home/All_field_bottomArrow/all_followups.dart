@@ -77,10 +77,11 @@ class _AddFollowupsState extends State<AddFollowups>
         setState(() {
           _isListening = false;
         });
-        showErrorMessage(
-          context,
-          message: 'Speech recognition error: ${errorNotification.errorMsg}',
-        );
+        print('Speech recognition error: ${errorNotification.errorMsg}');
+        // showErrorMessage(
+        //   context,
+        //   message: 'Speech recognition error: ${errorNotification.errorMsg}',
+        // );
       },
     );
     if (!available) {

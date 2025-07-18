@@ -44,22 +44,6 @@ class FullScreenImageViewer extends StatelessWidget {
               ),
             ),
           ),
-          // Positioned(
-          //   top: MediaQuery.of(context).padding.top + 10,
-          //   right: 10,
-          //   child: Container(
-          //     decoration: BoxDecoration(
-          //       color: Colors.black.withOpacity(0.5),
-          //       borderRadius: BorderRadius.circular(20),
-          //     ),
-          //     child: IconButton(
-          //       icon: const Icon(Icons.share, color: Colors.white),
-          //       onPressed: () {
-          //         // Add share functionality if needed
-          //       },
-          //     ),
-          //   ),
-          // ),
         ],
       ),
     );

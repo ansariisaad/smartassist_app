@@ -7,6 +7,7 @@ import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
+import 'package:smartassist/utils/bottom_navigation.dart';
 // import 'package:smartassist/pages/home/single_details_pages/singleLead_followup.dart';
 import 'dart:convert';
 
@@ -38,6 +39,9 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
   String avg_rating = '';
   // Map<String, dynamic> ratings = {};
   Map<String, dynamic>? ratings;
+
+  DateTime? _lastBackPressTime;
+  final int _exitTimeInMillis = 2000;
 
   @override
   void initState() {
@@ -185,446 +189,463 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
   @override
   Widget build(BuildContext context) {
     String formattedTime = formatTime(startTime);
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: AppColors.colorsBlue,
-        title: Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            'Test Drive summary',
-            style: GoogleFonts.poppins(
-              fontSize: _titleFontSize(context),
-              fontWeight: FontWeight.w400,
-              color: Colors.white,
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: AppColors.colorsBlue,
+          title: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Test Drive summary',
+              style: GoogleFonts.poppins(
+                fontSize: _titleFontSize(context),
+                fontWeight: FontWeight.w400,
+                color: Colors.white,
+              ),
             ),
           ),
-        ),
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios_new_outlined,
-            color: Colors.white,
-            size: _isSmallScreen(context) ? 18 : 20,
-          ),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => FollowupsDetails(
-                  leadId: widget.leadId,
-                  isFromFreshlead: false,
-                  isFromManager: false,
-                  refreshDashboard: () async {},
-                  isFromTestdriveOverview: true,
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios_new_outlined,
+              color: Colors.white,
+              size: _isSmallScreen(context) ? 18 : 20,
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => FollowupsDetails(
+                    leadId: widget.leadId,
+                    isFromFreshlead: false,
+                    isFromManager: false,
+                    refreshDashboard: () async {},
+                    isFromTestdriveOverview: true,
+                  ),
                 ),
-              ),
-            );
-            // MaterialPageRoute(
-            //     builder: (context) => FollowupsDetails(leadId: widget.leadId));
-          },
+              );
+              // MaterialPageRoute(
+              //     builder: (context) => FollowupsDetails(leadId: widget.leadId));
+            },
+          ),
+          elevation: 0,
         ),
-        elevation: 0,
-      ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Scaffold(
-              backgroundColor: AppColors.backgroundLightGrey,
-              body: Container(
-                width: double.infinity, // ✅ Ensures full width
-                height: double.infinity,
-                decoration: BoxDecoration(color: AppColors.backgroundLightGrey),
-                child: Padding(
-                  padding: const EdgeInsets.all(0),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Map
-                        const SizedBox(height: 20),
+        body: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : Scaffold(
+                backgroundColor: AppColors.backgroundLightGrey,
+                body: Container(
+                  width: double.infinity, // ✅ Ensures full width
+                  height: double.infinity,
+                  decoration: BoxDecoration(
+                    color: AppColors.backgroundLightGrey,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(0),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Map
+                          const SizedBox(height: 20),
 
-                        // Your main display section
-                        // ignore: unnecessary_null_comparison
-                        ratings == null
-                            ? Center(
-                                child: Container(
-                                  margin: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                  ),
-                                  width: MediaQuery.sizeOf(context).width,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 10,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.white,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Text(
-                                    textAlign: TextAlign.center,
-                                    'Feedback not submitted yet.',
-                                    style: AppFont.dropDowmLabel(context),
-                                  ),
-                                ),
-                              )
-                            : Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10.0,
-                                    ),
-                                    child: Container(
-                                      padding: const EdgeInsets.all(15),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.white,
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: [
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Row(
-                                                    children: [
-                                                      Text(
-                                                        avg_rating,
-                                                        style:
-                                                            AppFont.popupTitleBlack(
-                                                              context,
-                                                            ),
-                                                      ),
-                                                      const Icon(
-                                                        Icons.star_rounded,
-                                                        color: AppColors
-                                                            .starBorderColor,
-                                                        size: 20,
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  Text(
-                                                    getRatingLabel(
-                                                      double.tryParse(
-                                                            avg_rating,
-                                                          ) ??
-                                                          0,
-                                                    ),
-                                                    style: AppFont.mediumText14(
-                                                      context,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              const SizedBox(height: 10),
-                                              Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    'Potential of Purchase',
-                                                    style:
-                                                        AppFont.dropDowmLabel(
-                                                          context,
-                                                        ),
-                                                  ),
-                                                  Text(
-                                                    potentialPurchase,
-                                                    style:
-                                                        AppFont.mediumText14blue(
-                                                          context,
-                                                        ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 10),
-                                          Column(
-                                            children: [
-                                              _buildRatingRow(
-                                                'Overall Ambience',
-                                                ratings?['ambience'],
-                                              ),
-                                              _buildRatingRow(
-                                                'Features',
-                                                ratings?['features'],
-                                              ),
-                                              _buildRatingRow(
-                                                'Ride and Comfort',
-                                                ratings?['ride_comfort'],
-                                              ),
-                                              _buildRatingRow(
-                                                'Quality',
-                                                ratings?['quality'],
-                                              ),
-                                              _buildRatingRow(
-                                                'Dynamics',
-                                                ratings?['dynamics'],
-                                              ),
-                                              _buildRatingRow(
-                                                'Driving Experience',
-                                                ratings?['driving_experience'],
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-
-                        // Start time
-                        Container(
-                          margin: const EdgeInsets.fromLTRB(10, 20, 10, 0),
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            // crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Column(
-                                    children: [
-                                      Container(
-                                        margin: const EdgeInsets.all(10),
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(
-                                            30,
-                                          ),
-                                          color: AppColors.backgroundLightGrey,
-                                        ),
-                                        child: const Padding(
-                                          padding: EdgeInsets.all(8.0),
-                                          child: Icon(
-                                            FontAwesomeIcons.clock,
-                                            size: 20,
-                                            color: AppColors.colorsBlue,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Duration',
-                                        style: AppFont.dropDowmLabel(context),
-                                      ),
-                                      Text(
-                                        '${startTime} m',
-                                        style: AppFont.mediumText14(context),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              // const SizedBox(width: 5),
-                              Row(
-                                children: [
-                                  Column(
-                                    children: [
-                                      Container(
-                                        margin: const EdgeInsets.all(10),
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(
-                                            30,
-                                          ),
-                                          color: AppColors.backgroundLightGrey,
-                                        ),
-                                        child: const Padding(
-                                          padding: EdgeInsets.all(8.0),
-                                          child: Icon(
-                                            FontAwesomeIcons.locationDot,
-                                            size: 20,
-                                            color: AppColors.colorsBlue,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                        margin: const EdgeInsets.only(
-                                          right: 10,
-                                        ),
-                                        child: Text(
-                                          'Distance covered',
-                                          style: AppFont.mediumText14Black(
-                                            context,
-                                          ),
-                                        ),
-                                      ),
-                                      Text(
-                                        distanceCovered,
-                                        style: AppFont.mediumText14(context),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // const SizedBox(height: 20),
-                        Container(
-                          margin: const EdgeInsets.fromLTRB(10, 20, 10, 0),
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Column(
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 15.0),
-                                    child: Text(
-                                      'Map',
-                                      style: AppFont.popupTitleBlack16(context),
-                                    ),
-                                  ),
-                                  IconButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        _isHidden = !_isHidden;
-                                      });
-                                    },
-                                    icon: Icon(
-                                      _isHidden
-                                          ? Icons.keyboard_arrow_down_rounded
-                                          : Icons.keyboard_arrow_up_rounded,
-                                      size: 30,
-                                      color: AppColors.fontColor,
-                                      // style: AppFont.smallText(context),
-                                    ),
-                                  ),
-                                ],
-                              ),
-
-                              // if (!_isHidden) ...[
-                              //   if (mapImgUrl.isNotEmpty)
-                              //     Column(
-                              //       children: [
-                              //         Container(
-                              //           margin: const EdgeInsets.symmetric(
-                              //             horizontal: 10,
-                              //           ),
-                              //           decoration: BoxDecoration(
-                              //             borderRadius: BorderRadius.circular(
-                              //               30,
-                              //             ),
-                              //           ),
-                              //           child: Image.network(mapImgUrl),
-                              //         ),
-                              //       ],
-                              //     ),
-                              // ],
-                              if (!_isHidden) ...[
-                                if (mapImgUrl.isNotEmpty)
-                                  Column(
-                                    children: [
-                                      Container(
-                                        margin: const EdgeInsets.symmetric(
-                                          horizontal: 10,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(
-                                            30,
-                                          ),
-                                        ),
-                                        child: Image.network(
-                                          mapImgUrl,
-                                          errorBuilder:
-                                              (context, error, stackTrace) {
-                                                return Container(
-                                                  height:
-                                                      200, // Set a fixed height for the placeholder
-                                                  width: double.infinity,
-                                                  color: Colors.grey[200],
-                                                  child: const Center(
-                                                    child: Text(
-                                                      'Failed to load map image',
-                                                      style: TextStyle(
-                                                        color: Colors.red,
-                                                        fontSize: 16,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                );
-                                              },
-                                          loadingBuilder:
-                                              (
-                                                context,
-                                                child,
-                                                loadingProgress,
-                                              ) {
-                                                if (loadingProgress == null)
-                                                  return child;
-                                                return const Center(
-                                                  child:
-                                                      CircularProgressIndicator(),
-                                                );
-                                              },
-                                        ),
-                                      ),
-                                    ],
-                                  )
-                                else
-                                  Container(
+                          // Your main display section
+                          // ignore: unnecessary_null_comparison
+                          ratings == null
+                              ? Center(
+                                  child: Container(
                                     margin: const EdgeInsets.symmetric(
                                       horizontal: 10,
                                     ),
-                                    height: 200,
-                                    width: double.infinity,
-                                    color: Colors.grey[200],
-                                    child: const Center(
-                                      child: Text(
-                                        'No map image available',
-                                        style: TextStyle(
-                                          color: Colors.black54,
-                                          fontSize: 16,
+                                    width: MediaQuery.sizeOf(context).width,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 10,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.white,
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Text(
+                                      textAlign: TextAlign.center,
+                                      'Feedback not submitted yet.',
+                                      style: AppFont.dropDowmLabel(context),
+                                    ),
+                                  ),
+                                )
+                              : Column(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10.0,
+                                      ),
+                                      child: Container(
+                                        padding: const EdgeInsets.all(15),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.white,
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                        ),
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Row(
+                                                      children: [
+                                                        Text(
+                                                          avg_rating,
+                                                          style:
+                                                              AppFont.popupTitleBlack(
+                                                                context,
+                                                              ),
+                                                        ),
+                                                        const Icon(
+                                                          Icons.star_rounded,
+                                                          color: AppColors
+                                                              .starBorderColor,
+                                                          size: 20,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    Text(
+                                                      getRatingLabel(
+                                                        double.tryParse(
+                                                              avg_rating,
+                                                            ) ??
+                                                            0,
+                                                      ),
+                                                      style:
+                                                          AppFont.mediumText14(
+                                                            context,
+                                                          ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                const SizedBox(height: 10),
+                                                Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      'Potential of Purchase',
+                                                      style:
+                                                          AppFont.dropDowmLabel(
+                                                            context,
+                                                          ),
+                                                    ),
+                                                    Text(
+                                                      potentialPurchase,
+                                                      style:
+                                                          AppFont.mediumText14blue(
+                                                            context,
+                                                          ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 10),
+                                            Column(
+                                              children: [
+                                                _buildRatingRow(
+                                                  'Overall Ambience',
+                                                  ratings?['ambience'],
+                                                ),
+                                                _buildRatingRow(
+                                                  'Features',
+                                                  ratings?['features'],
+                                                ),
+                                                _buildRatingRow(
+                                                  'Ride and Comfort',
+                                                  ratings?['ride_comfort'],
+                                                ),
+                                                _buildRatingRow(
+                                                  'Quality',
+                                                  ratings?['quality'],
+                                                ),
+                                                _buildRatingRow(
+                                                  'Dynamics',
+                                                  ratings?['dynamics'],
+                                                ),
+                                                _buildRatingRow(
+                                                  'Driving Experience',
+                                                  ratings?['driving_experience'],
+                                                ),
+                                              ],
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ),
-                                  ),
-                              ],
-                            ],
-                          ),
-                        ),
+                                  ],
+                                ),
 
-                        const SizedBox(height: 10),
-                      ],
+                          // Start time
+                          Container(
+                            margin: const EdgeInsets.fromLTRB(10, 20, 10, 0),
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              // crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Column(
+                                      children: [
+                                        Container(
+                                          margin: const EdgeInsets.all(10),
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(
+                                              30,
+                                            ),
+                                            color:
+                                                AppColors.backgroundLightGrey,
+                                          ),
+                                          child: const Padding(
+                                            padding: EdgeInsets.all(8.0),
+                                            child: Icon(
+                                              FontAwesomeIcons.clock,
+                                              size: 20,
+                                              color: AppColors.colorsBlue,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Duration',
+                                          style: AppFont.dropDowmLabel(context),
+                                        ),
+                                        Text(
+                                          '${startTime} m',
+                                          style: AppFont.mediumText14(context),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                // const SizedBox(width: 5),
+                                Row(
+                                  children: [
+                                    Column(
+                                      children: [
+                                        Container(
+                                          margin: const EdgeInsets.all(10),
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(
+                                              30,
+                                            ),
+                                            color:
+                                                AppColors.backgroundLightGrey,
+                                          ),
+                                          child: const Padding(
+                                            padding: EdgeInsets.all(8.0),
+                                            child: Icon(
+                                              FontAwesomeIcons.locationDot,
+                                              size: 20,
+                                              color: AppColors.colorsBlue,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          margin: const EdgeInsets.only(
+                                            right: 10,
+                                          ),
+                                          child: Text(
+                                            'Distance covered',
+                                            style: AppFont.mediumText14Black(
+                                              context,
+                                            ),
+                                          ),
+                                        ),
+                                        Text(
+                                          distanceCovered,
+                                          style: AppFont.mediumText14(context),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // const SizedBox(height: 20),
+                          Container(
+                            margin: const EdgeInsets.fromLTRB(10, 20, 10, 0),
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        left: 15.0,
+                                      ),
+                                      child: Text(
+                                        'Map',
+                                        style: AppFont.popupTitleBlack16(
+                                          context,
+                                        ),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          _isHidden = !_isHidden;
+                                        });
+                                      },
+                                      icon: Icon(
+                                        _isHidden
+                                            ? Icons.keyboard_arrow_down_rounded
+                                            : Icons.keyboard_arrow_up_rounded,
+                                        size: 30,
+                                        color: AppColors.fontColor,
+                                        // style: AppFont.smallText(context),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                // if (!_isHidden) ...[
+                                //   if (mapImgUrl.isNotEmpty)
+                                //     Column(
+                                //       children: [
+                                //         Container(
+                                //           margin: const EdgeInsets.symmetric(
+                                //             horizontal: 10,
+                                //           ),
+                                //           decoration: BoxDecoration(
+                                //             borderRadius: BorderRadius.circular(
+                                //               30,
+                                //             ),
+                                //           ),
+                                //           child: Image.network(mapImgUrl),
+                                //         ),
+                                //       ],
+                                //     ),
+                                // ],
+                                if (!_isHidden) ...[
+                                  if (mapImgUrl.isNotEmpty)
+                                    Column(
+                                      children: [
+                                        Container(
+                                          margin: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(
+                                              30,
+                                            ),
+                                          ),
+                                          child: Image.network(
+                                            mapImgUrl,
+                                            errorBuilder:
+                                                (context, error, stackTrace) {
+                                                  return Container(
+                                                    height:
+                                                        200, // Set a fixed height for the placeholder
+                                                    width: double.infinity,
+                                                    color: Colors.grey[200],
+                                                    child: const Center(
+                                                      child: Text(
+                                                        'Failed to load map image',
+                                                        style: TextStyle(
+                                                          color: Colors.red,
+                                                          fontSize: 16,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                            loadingBuilder:
+                                                (
+                                                  context,
+                                                  child,
+                                                  loadingProgress,
+                                                ) {
+                                                  if (loadingProgress == null)
+                                                    return child;
+                                                  return const Center(
+                                                    child:
+                                                        CircularProgressIndicator(),
+                                                  );
+                                                },
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  else
+                                    Container(
+                                      margin: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                      ),
+                                      height: 200,
+                                      width: double.infinity,
+                                      color: Colors.grey[200],
+                                      child: const Center(
+                                        child: Text(
+                                          'No map image available',
+                                          style: TextStyle(
+                                            color: Colors.black54,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 10),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
+      ),
     );
   }
 
@@ -712,5 +733,141 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
         ],
       ),
     );
+  }
+
+  Future<bool> _onWillPop() async {
+    final now = DateTime.now();
+    if (_lastBackPressTime == null ||
+        now.difference(_lastBackPressTime!) >
+            Duration(milliseconds: _exitTimeInMillis)) {
+      _lastBackPressTime = now;
+
+      // Show a bottom slide dialog
+      showModalBottomSheet(
+        context: context,
+        backgroundColor: Colors.transparent,
+        builder: (BuildContext context) {
+          return Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  spreadRadius: 0,
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 20),
+                Text(
+                  'Exit Testdrive',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.colorsBlue,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Are you sure you want to exit from Testdrive?',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.black54,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    children: [
+                      // Cancel button (White)
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context); // Dismiss dialog
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: AppColors.colorsBlue,
+                            side: const BorderSide(color: AppColors.colorsBlue),
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: Text(
+                            'Cancel',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 15),
+                      // Exit button (Blue)
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            // First close the bottom sheet
+                            Navigator.pop(context);
+
+                            try {
+                              // Navigate to home screen and clear the stack
+                              Navigator.of(context).pushAndRemoveUntil(
+                                MaterialPageRoute(
+                                  builder: (context) => BottomNavigation(),
+                                ),
+                                (route) => false,
+                              );
+                            } catch (e) {
+                              print("Navigation error: $e");
+                              // Fallback navigation
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => BottomNavigation(),
+                                ),
+                              );
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.colorsBlue,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: Text(
+                            'Exit',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 25),
+              ],
+            ),
+          );
+        },
+      );
+      return false;
+    }
+    return true;
   }
 }

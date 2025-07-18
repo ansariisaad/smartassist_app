@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
+import 'package:smartassist/config/environment/environment.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
+import 'package:smartassist/widgets/google_location.dart';
 import 'package:smartassist/widgets/popups_widget/vehicleSearch_textfield.dart';
 import 'package:smartassist/widgets/remarks_field.dart';
 import 'package:smartassist/widgets/reusable/slot_calendar.dart';
@@ -59,7 +60,11 @@ class _TestdriveIdsState extends State<TestdriveIds> {
   String _query1 = '';
   List<dynamic> _searchResults = [];
   List<dynamic> _searchResults1 = [];
+
+  String get _googleApiKey => Environment.googleMapsApiKey;
+
   final TextEditingController _searchController1 = TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
 
   final TextEditingController _searchController = TextEditingController();
   TextEditingController startDateController = TextEditingController();
@@ -409,6 +414,15 @@ class _TestdriveIdsState extends State<TestdriveIds> {
                   print("Selected Brand: ${selectedBrand ?? 'No Brand'}");
                 },
               ),
+              const SizedBox(height: 5),
+              CustomGooglePlacesField(
+                controller: _locationController,
+                hintText: 'Enter location',
+                label: 'Location',
+                onChanged: (value) {},
+                googleApiKey: _googleApiKey,
+                isRequired: true,
+              ),
               const SizedBox(height: 15),
               // Row(
               //   children: [
@@ -555,6 +569,8 @@ class _TestdriveIdsState extends State<TestdriveIds> {
       'start_time_slot': slotData!['start_time_slot'],
       'end_time_slot': slotData!['end_time_slot'],
       'remarks': descriptionController.text,
+
+      'location': _locationController.text.trim(),
       'sp_id': spId,
     };
 

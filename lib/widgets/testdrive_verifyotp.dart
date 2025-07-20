@@ -583,7 +583,6 @@
 //   }
 // }
 
-
 import 'dart:convert';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
@@ -597,7 +596,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'package:sms_autofill/sms_autofill.dart';  
+import 'package:sms_autofill/sms_autofill.dart';
 
 class TestdriveVerifyotp extends StatefulWidget {
   static const int _otpLength = 6;
@@ -644,7 +643,7 @@ class _TestdriveVerifyotpState extends State<TestdriveVerifyotp>
   void initState() {
     super.initState();
     _startResendTimer();
-    _initSmsListener(); 
+    _initSmsListener();
   }
 
   @override

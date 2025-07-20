@@ -26,15 +26,14 @@ class FabController extends GetxController {
   void _scrollListener() {
     if (!scrollController.hasClients) return;
 
-    final currentScrollPosition = scrollController.offset;
-    final scrollDifference = (currentScrollPosition - lastScrollPosition).abs();
+    final scrollDifference = (scrollController.offset - lastScrollPosition);
 
     // Only process if scroll difference is significant enough
     if (scrollDifference < scrollThreshold) return;
 
     // If scrolling down significantly
-    if (currentScrollPosition > lastScrollPosition &&
-        currentScrollPosition > 50) {
+    if (scrollController.offset > lastScrollPosition &&
+        scrollController.offset > 50) {
       if (isFabVisible.value) {
         isFabVisible.value = false;
         // Only close FAB if it was expanded, but don't force it
@@ -44,13 +43,13 @@ class FabController extends GetxController {
       }
     }
     // If scrolling up
-    else if (currentScrollPosition < lastScrollPosition) {
+    else if (scrollController.offset < lastScrollPosition) {
       if (!isFabVisible.value) {
         isFabVisible.value = true;
       }
     }
 
-    lastScrollPosition = currentScrollPosition;
+    lastScrollPosition = scrollController.offset;
   }
 
   void toggleFab() {

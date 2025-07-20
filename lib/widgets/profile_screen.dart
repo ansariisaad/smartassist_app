@@ -783,6 +783,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
@@ -1064,334 +1065,517 @@ class _ProfileScreenState extends State<ProfileScreen>
     }
   }
 
+  //   @override
+  //   Widget build(BuildContext context) {
+  //     return Scaffold(
+  //       appBar: AppBar(
+  //         leading: IconButton(
+  //           onPressed: () {
+  //             Get.back();
+  //             widget.refreshDashboard();
+  //           },
+  //           icon: Container(
+  //             padding: const EdgeInsets.all(8),
+  //             decoration: BoxDecoration(
+  //               color: Colors.white.withOpacity(0.1),
+  //               borderRadius: BorderRadius.circular(12),
+  //             ),
+  //             child: const Icon(
+  //               Icons.keyboard_arrow_left_rounded,
+  //               color: Colors.white,
+  //               size: 32,
+  //             ),
+  //           ),
+  //         ),
+  //         title: Row(
+  //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //           children: [
+  //             Text('Your Profile', style: AppFont.appbarfontWhite(context)),
+  //             Container(
+  //               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+  //               decoration: BoxDecoration(
+  //                 color: Colors.white.withOpacity(0.2),
+  //                 borderRadius: BorderRadius.circular(20),
+  //                 border: Border.all(color: Colors.white.withOpacity(0.3)),
+  //               ),
+  //               child: InkWell(
+  //                 onTap: _shareFullBodyScreenshot,
+  //                 child: Text('Share', style: AppFont.mediumText14white(context)),
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //         backgroundColor: AppColors.colorsBlue,
+  //         automaticallyImplyLeading: false,
+  //       ),
+  //       body: isLoading
+  //           ? const Center(child: CircularProgressIndicator())
+  //           : Screenshot(
+  //               controller: _screenshotController,
+  //               child: Container(
+  //                 color: Colors.white,
+  //                 child: SingleChildScrollView(
+  //                   physics: const BouncingScrollPhysics(),
+  //                   child: Column(
+  //                     children: [
+  //                       // Profile Header Section
+  //                       Container(
+  //                         width: double.infinity,
+  //                         padding: const EdgeInsets.symmetric(vertical: 24.0),
+  //                         child: FadeTransition(
+  //                           opacity: _fadeAnimation,
+  //                           child: SlideTransition(
+  //                             position: _slideAnimation,
+  //                             child: Column(
+  //                               children: [
+  //                                 // Profile Image Section
+  //                                 Center(
+  //                                   child: GestureDetector(
+  //                                     child: Stack(
+  //                                       alignment: Alignment.center,
+  //                                       children: [
+  //                                         Container(
+  //                                           decoration: BoxDecoration(
+  //                                             shape: BoxShape.circle,
+  //                                             boxShadow: [
+  //                                               BoxShadow(
+  //                                                 color: Colors.grey.withOpacity(
+  //                                                   0.3,
+  //                                                 ),
+  //                                                 blurRadius: 15,
+  //                                                 offset: const Offset(0, 5),
+  //                                               ),
+  //                                             ],
+  //                                           ),
+  //                                           child: _profileImage != null
+  //                                               ? CircleAvatar(
+  //                                                   radius: 60,
+  //                                                   backgroundImage: FileImage(
+  //                                                     _profileImage!,
+  //                                                   ),
+  //                                                 )
+  //                                               : (profilePic != null &&
+  //                                                         profilePic!.isNotEmpty
+  //                                                     ? CircleAvatar(
+  //                                                         radius: 60,
+  //                                                         backgroundImage:
+  //                                                             NetworkImage(
+  //                                                               profilePic!,
+  //                                                             ),
+  //                                                       )
+  //                                                     : CircleAvatar(
+  //                                                         radius: 60,
+  //                                                         backgroundColor:
+  //                                                             AppColors
+  //                                                                 .containerBg,
+  //                                                         child: Text(
+  //                                                           (name?.isNotEmpty ??
+  //                                                                   false)
+  //                                                               ? name![0]
+  //                                                                     .toUpperCase()
+  //                                                               : '?',
+  //                                                           style: TextStyle(
+  //                                                             fontSize: 70,
+  //                                                             color: Colors
+  //                                                                 .grey[700],
+  //                                                             fontWeight:
+  //                                                                 FontWeight
+  //                                                                     .normal,
+  //                                                           ),
+  //                                                         ),
+  //                                                       )),
+  //                                         ),
+
+  //                                         if (_isUploading)
+  //                                           const CircularProgressIndicator(),
+
+  //                                         // Positioned Action Buttons
+  //                                         if (_profileImage != null ||
+  //                                             (profilePic != null &&
+  //                                                 profilePic!.isNotEmpty))
+  //                                           Positioned(
+  //                                             bottom: 0,
+  //                                             right: 0,
+  //                                             child: Container(
+  //                                               decoration: BoxDecoration(
+  //                                                 color: Colors.red,
+  //                                                 shape: BoxShape.circle,
+  //                                                 boxShadow: [
+  //                                                   BoxShadow(
+  //                                                     color: Colors.red
+  //                                                         .withOpacity(0.3),
+  //                                                     blurRadius: 8,
+  //                                                     offset: const Offset(0, 3),
+  //                                                   ),
+  //                                                 ],
+  //                                               ),
+  //                                               child: IconButton(
+  //                                                 onPressed: _removeImage,
+  //                                                 icon: const Icon(
+  //                                                   Icons.delete,
+  //                                                   color: Colors.white,
+  //                                                   size: 20,
+  //                                                 ),
+  //                                               ),
+  //                                             ),
+  //                                           )
+  //                                         else if (!_isUploading)
+  //                                           Positioned(
+  //                                             bottom: 0,
+  //                                             right: 0,
+  //                                             child: Container(
+  //                                               decoration: BoxDecoration(
+  //                                                 color: AppColors.fontColor,
+  //                                                 shape: BoxShape.circle,
+  //                                                 boxShadow: [
+  //                                                   BoxShadow(
+  //                                                     color: AppColors.fontColor
+  //                                                         .withOpacity(0.3),
+  //                                                     blurRadius: 8,
+  //                                                     offset: const Offset(0, 3),
+  //                                                   ),
+  //                                                 ],
+  //                                               ),
+  //                                               child: IconButton(
+  //                                                 onPressed: _pickImage,
+  //                                                 icon: const Icon(
+  //                                                   Icons.add_a_photo,
+  //                                                   color: Colors.white,
+  //                                                   size: 20,
+  //                                                 ),
+  //                                               ),
+  //                                             ),
+  //                                           ),
+  //                                       ],
+  //                                     ),
+  //                                   ),
+  //                                 ),
+
+  //                                 const SizedBox(height: 16),
+
+  //                                 // Name and Role - Centered
+  //                                 Text(
+  //                                   name ?? '',
+  //                                   style: AppFont.popupTitleBlack(context),
+  //                                   textAlign: TextAlign.center,
+  //                                 ),
+  //                                 const SizedBox(height: 8),
+  //                                 Text(
+  //                                   userRole ?? 'User',
+  //                                   style: AppFont.mediumText14(context),
+  //                                   textAlign: TextAlign.center,
+  //                                 ),
+
+  //                                 const SizedBox(height: 16),
+
+  //                                 // Rating Section - Centered
+  //                                 Row(
+  //                                   mainAxisAlignment: MainAxisAlignment.center,
+  //                                   children: List.generate(5, (index) {
+  //                                     return AnimatedContainer(
+  //                                       duration: Duration(
+  //                                         milliseconds: 300 + (index * 100),
+  //                                       ),
+  //                                       child: Icon(
+  //                                         index < rating
+  //                                             ? Icons.star_rounded
+  //                                             : Icons.star_outline_rounded,
+  //                                         color: index < rating
+  //                                             ? AppColors.starColorsYellow
+  //                                             : Colors.grey,
+  //                                         size: 38,
+  //                                       ),
+  //                                     );
+  //                                   }),
+  //                                 ),
+
+  //                                 const SizedBox(height: 8),
+
+  //                                 Text(
+  //                                   '(0 reviews)',
+  //                                   style: AppFont.mediumText14(context),
+  //                                   textAlign: TextAlign.center,
+  //                                 ),
+  //                               ],
+  //                             ),
+  //                           ),
+  //                         ),
+  //                       ),
+
+  //                       // Content Section with Symmetric Padding
+  //                       Padding(
+  //                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
+  //                         child: Column(
+  //                           children: [
+  //                             // Profile Details Section
+  //                             AnimatedContainer(
+  //                               duration: const Duration(milliseconds: 600),
+  //                               width: double.infinity,
+  //                               decoration: BoxDecoration(
+  //                                 color: AppColors.backgroundLightGrey,
+  //                                 borderRadius: BorderRadius.circular(15),
+  //                                 boxShadow: [
+  //                                   BoxShadow(
+  //                                     color: Colors.grey.withOpacity(0.1),
+  //                                     blurRadius: 10,
+  //                                     offset: const Offset(0, 5),
+  //                                   ),
+  //                                 ],
+  //                               ),
+  //                               child: Padding(
+  //                                 padding: const EdgeInsets.all(20.0),
+  //                                 child: Column(
+  //                                   crossAxisAlignment: CrossAxisAlignment.start,
+  //                                   children: [
+  //                                     _buildProfileItem('Email', email ?? ''),
+  //                                     const SizedBox(height: 16),
+  //                                     _buildProfileItem(
+  //                                       'Location',
+  //                                       location ?? '',
+  //                                     ),
+  //                                     const SizedBox(height: 16),
+  //                                     _buildProfileItem('Mobile', mobile ?? ''),
+  //                                   ],
+  //                                 ),
+  //                               ),
+  //                             ),
+
+  //                             const SizedBox(height: 20),
+
+  //                             // Evaluation Section
+  //                             AnimatedContainer(
+  //                               duration: const Duration(milliseconds: 800),
+  //                               width: double.infinity,
+  //                               decoration: BoxDecoration(
+  //                                 color: AppColors.backgroundLightGrey,
+  //                                 borderRadius: BorderRadius.circular(15),
+  //                                 boxShadow: [
+  //                                   BoxShadow(
+  //                                     color: Colors.grey.withOpacity(0.1),
+  //                                     blurRadius: 10,
+  //                                     offset: const Offset(0, 5),
+  //                                   ),
+  //                                 ],
+  //                               ),
+  //                               child: Padding(
+  //                                 padding: const EdgeInsets.all(20.0),
+  //                                 child: Column(
+  //                                   crossAxisAlignment: CrossAxisAlignment.start,
+  //                                   children: [
+  //                                     Text(
+  //                                       'Evaluation',
+  //                                       style: AppFont.popupTitleBlack16(context),
+  //                                     ),
+  //                                     const SizedBox(height: 20),
+  //                                     _buildEvaluationProgress(
+  //                                       'Professionalism',
+  //                                       professionalism,
+  //                                     ),
+  //                                     const SizedBox(height: 16),
+  //                                     _buildEvaluationProgress(
+  //                                       'Efficiency of service call handling',
+  //                                       efficiency,
+  //                                     ),
+  //                                     const SizedBox(height: 16),
+  //                                     _buildEvaluationProgress(
+  //                                       'Response time of service calls',
+  //                                       responseTime,
+  //                                     ),
+  //                                     const SizedBox(height: 16),
+  //                                     _buildEvaluationProgress(
+  //                                       'Product Knowledge & Brand Representation',
+  //                                       productKnowledge,
+  //                                     ),
+  //                                   ],
+  //                                 ),
+  //                               ),
+  //                             ),
+
+  //                             const SizedBox(height: 24),
+  //                           ],
+  //                         ),
+  //                       ),
+  //                     ],
+  //                   ),
+  //                 ),
+  //               ),
+  //             ),
+  //     );
+  //   }
+
+  //   Widget _buildProfileItem(String label, String value) {
+  //     return Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         Text(label, style: AppFont.mediumText14(context)),
+  //         const SizedBox(height: 6),
+  //         Text(value, style: AppFont.dropDowmLabel(context)),
+  //       ],
+  //     );
+  //   }
+
+  //   Widget _buildEvaluationProgress(String label, double percentage) {
+  //     return Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         Text(label, style: AppFont.dropDowmLabel(context)),
+  //         const SizedBox(height: 6),
+  //         Row(
+  //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //           children: [
+  //             Expanded(
+  //               child: LinearPercentIndicator(
+  //                 lineHeight: 16.0,
+  //                 percent: percentage,
+  //                 backgroundColor: Colors.grey[200]!,
+  //                 barRadius: const Radius.circular(8),
+  //                 linearGradient: LinearGradient(
+  //                   colors: _getGradientForProgress(percentage),
+  //                   begin: Alignment.centerLeft,
+  //                   end: Alignment.centerRight,
+  //                 ),
+  //                 padding: EdgeInsets.zero,
+  //               ),
+  //             ),
+  //             const SizedBox(width: 12),
+  //             Text(
+  //               '${(percentage * 100).toStringAsFixed(0)}%',
+  //               style: TextStyle(
+  //                 fontSize: 14,
+  //                 fontWeight: FontWeight.w600,
+  //                 color: _getGradientForProgress(percentage).last,
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //       ],
+  //     );
+  //   }
+
+  //   List<Color> _getGradientForProgress(double percentage) {
+  //     if (percentage >= 0.8) {
+  //       return [
+  //         Color.fromRGBO(255, 237, 215, 0.9),
+  //         Color.fromRGBO(83, 157, 243, 1),
+  //         Color.fromRGBO(144, 109, 250, 1),
+  //       ];
+  //     } else if (percentage >= 0.6) {
+  //       return [
+  //         Color.fromRGBO(229, 208, 210, 1),
+  //         Color.fromRGBO(255, 150, 165, 1),
+  //         Color.fromRGBO(255, 122, 113, 1),
+  //       ];
+  //     } else if (percentage >= 0.3) {
+  //       return [
+  //         Color.fromRGBO(254, 221, 176, 1),
+  //         Color.fromRGBO(144, 109, 250, 1),
+  //         Color.fromRGBO(255, 122, 113, 1),
+  //       ];
+  //     } else {
+  //       return [
+  //         Color.fromRGBO(182, 247, 249, 1),
+  //         Color.fromRGBO(168, 230, 251, 1),
+  //         Color.fromRGBO(196, 201, 255, 1),
+  //       ];
+  //     }
+  //   }
+  // }
+
+  bool _isTablet(BuildContext context) =>
+      MediaQuery.of(context).size.width > 768;
+  bool _isSmallScreen(BuildContext context) =>
+      MediaQuery.of(context).size.width < 400;
+  double _screenWidth(BuildContext context) =>
+      MediaQuery.of(context).size.width;
+
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isTablet = screenWidth > 600;
+    final isDesktop = screenWidth > 1200;
+
+    // Responsive padding and sizing
+    final horizontalPadding = isDesktop
+        ? 40.0
+        : isTablet
+        ? 24.0
+        : 16.0;
+    final cardPadding = isDesktop
+        ? 32.0
+        : isTablet
+        ? 24.0
+        : 20.0;
+    final profileImageRadius = isDesktop
+        ? 80.0
+        : isTablet
+        ? 70.0
+        : 60.0;
+
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        leading: IconButton(
-          onPressed: () {
-            Get.back();
-            widget.refreshDashboard();
-          },
-          icon: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.keyboard_arrow_left_rounded,
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        leading: Container(
+          margin: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.colorsBlue,
+            // borderRadius: BorderRadius.circular(8),
+          ),
+
+          child: InkWell(
+            onTap: () {
+              Get.back();
+              widget.refreshDashboard();
+            },
+            child: Icon(
+              FontAwesomeIcons.angleLeft,
               color: Colors.white,
-              size: 32,
+              size: _isSmallScreen(context) ? 18 : 20,
             ),
           ),
         ),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Your Profile', style: AppFont.appbarfontWhite(context)),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white.withOpacity(0.3)),
-              ),
-              child: InkWell(
-                onTap: _shareFullBodyScreenshot,
-                child: Text('Share', style: AppFont.mediumText14white(context)),
+            Text(
+              'Your Profile',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: isDesktop
+                    ? 24
+                    : isTablet
+                    ? 20
+                    : 18,
+                fontWeight: FontWeight.w500,
               ),
             ),
-          ],
-        ),
-        backgroundColor: AppColors.colorsBlue,
-        automaticallyImplyLeading: false,
-      ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Screenshot(
-              controller: _screenshotController,
-              child: Container(
-                color: Colors.white,
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  child: Column(
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: isDesktop ? 16 : 12,
+                vertical: isDesktop ? 8 : 6,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: _shareFullBodyScreenshot,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Profile Header Section
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 24.0),
-                        child: FadeTransition(
-                          opacity: _fadeAnimation,
-                          child: SlideTransition(
-                            position: _slideAnimation,
-                            child: Column(
-                              children: [
-                                // Profile Image Section
-                                Center(
-                                  child: GestureDetector(
-                                    child: Stack(
-                                      alignment: Alignment.center,
-                                      children: [
-                                        Container(
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.grey.withOpacity(
-                                                  0.3,
-                                                ),
-                                                blurRadius: 15,
-                                                offset: const Offset(0, 5),
-                                              ),
-                                            ],
-                                          ),
-                                          child: _profileImage != null
-                                              ? CircleAvatar(
-                                                  radius: 60,
-                                                  backgroundImage: FileImage(
-                                                    _profileImage!,
-                                                  ),
-                                                )
-                                              : (profilePic != null &&
-                                                        profilePic!.isNotEmpty
-                                                    ? CircleAvatar(
-                                                        radius: 60,
-                                                        backgroundImage:
-                                                            NetworkImage(
-                                                              profilePic!,
-                                                            ),
-                                                      )
-                                                    : CircleAvatar(
-                                                        radius: 60,
-                                                        backgroundColor:
-                                                            AppColors
-                                                                .containerBg,
-                                                        child: Text(
-                                                          (name?.isNotEmpty ??
-                                                                  false)
-                                                              ? name![0]
-                                                                    .toUpperCase()
-                                                              : '?',
-                                                          style: TextStyle(
-                                                            fontSize: 70,
-                                                            color: Colors
-                                                                .grey[700],
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .normal,
-                                                          ),
-                                                        ),
-                                                      )),
-                                        ),
-
-                                        if (_isUploading)
-                                          const CircularProgressIndicator(),
-
-                                        // Positioned Action Buttons
-                                        if (_profileImage != null ||
-                                            (profilePic != null &&
-                                                profilePic!.isNotEmpty))
-                                          Positioned(
-                                            bottom: 0,
-                                            right: 0,
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                color: Colors.red,
-                                                shape: BoxShape.circle,
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.red
-                                                        .withOpacity(0.3),
-                                                    blurRadius: 8,
-                                                    offset: const Offset(0, 3),
-                                                  ),
-                                                ],
-                                              ),
-                                              child: IconButton(
-                                                onPressed: _removeImage,
-                                                icon: const Icon(
-                                                  Icons.delete,
-                                                  color: Colors.white,
-                                                  size: 20,
-                                                ),
-                                              ),
-                                            ),
-                                          )
-                                        else if (!_isUploading)
-                                          Positioned(
-                                            bottom: 0,
-                                            right: 0,
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                color: AppColors.fontColor,
-                                                shape: BoxShape.circle,
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: AppColors.fontColor
-                                                        .withOpacity(0.3),
-                                                    blurRadius: 8,
-                                                    offset: const Offset(0, 3),
-                                                  ),
-                                                ],
-                                              ),
-                                              child: IconButton(
-                                                onPressed: _pickImage,
-                                                icon: const Icon(
-                                                  Icons.add_a_photo,
-                                                  color: Colors.white,
-                                                  size: 20,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-
-                                const SizedBox(height: 16),
-
-                                // Name and Role - Centered
-                                Text(
-                                  name ?? '',
-                                  style: AppFont.popupTitleBlack(context),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  userRole ?? 'User',
-                                  style: AppFont.mediumText14(context),
-                                  textAlign: TextAlign.center,
-                                ),
-
-                                const SizedBox(height: 16),
-
-                                // Rating Section - Centered
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: List.generate(5, (index) {
-                                    return AnimatedContainer(
-                                      duration: Duration(
-                                        milliseconds: 300 + (index * 100),
-                                      ),
-                                      child: Icon(
-                                        index < rating
-                                            ? Icons.star_rounded
-                                            : Icons.star_outline_rounded,
-                                        color: index < rating
-                                            ? AppColors.starColorsYellow
-                                            : Colors.grey,
-                                        size: 38,
-                                      ),
-                                    );
-                                  }),
-                                ),
-
-                                const SizedBox(height: 8),
-
-                                Text(
-                                  '(0 reviews)',
-                                  style: AppFont.mediumText14(context),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      // Content Section with Symmetric Padding
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Column(
-                          children: [
-                            // Profile Details Section
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 600),
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                color: AppColors.backgroundLightGrey,
-                                borderRadius: BorderRadius.circular(15),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.1),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 5),
-                                  ),
-                                ],
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(20.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    _buildProfileItem('Email', email ?? ''),
-                                    const SizedBox(height: 16),
-                                    _buildProfileItem(
-                                      'Location',
-                                      location ?? '',
-                                    ),
-                                    const SizedBox(height: 16),
-                                    _buildProfileItem('Mobile', mobile ?? ''),
-                                  ],
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(height: 20),
-
-                            // Evaluation Section
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 800),
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                color: AppColors.backgroundLightGrey,
-                                borderRadius: BorderRadius.circular(15),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.1),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 5),
-                                  ),
-                                ],
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(20.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Evaluation',
-                                      style: AppFont.popupTitleBlack16(context),
-                                    ),
-                                    const SizedBox(height: 20),
-                                    _buildEvaluationProgress(
-                                      'Professionalism',
-                                      professionalism,
-                                    ),
-                                    const SizedBox(height: 16),
-                                    _buildEvaluationProgress(
-                                      'Efficiency of service call handling',
-                                      efficiency,
-                                    ),
-                                    const SizedBox(height: 16),
-                                    _buildEvaluationProgress(
-                                      'Response time of service calls',
-                                      responseTime,
-                                    ),
-                                    const SizedBox(height: 16),
-                                    _buildEvaluationProgress(
-                                      'Product Knowledge & Brand Representation',
-                                      productKnowledge,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(height: 24),
-                          ],
+                      const Icon(Icons.share, color: Colors.white, size: 16),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Share',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
@@ -1399,83 +1583,453 @@ class _ProfileScreenState extends State<ProfileScreen>
                 ),
               ),
             ),
-    );
-  }
-
-  Widget _buildProfileItem(String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: AppFont.mediumText14(context)),
-        const SizedBox(height: 6),
-        Text(value, style: AppFont.dropDowmLabel(context)),
-      ],
-    );
-  }
-
-  Widget _buildEvaluationProgress(String label, double percentage) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: AppFont.dropDowmLabel(context)),
-        const SizedBox(height: 6),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: LinearPercentIndicator(
-                lineHeight: 16.0,
-                percent: percentage,
-                backgroundColor: Colors.grey[200]!,
-                barRadius: const Radius.circular(8),
-                linearGradient: LinearGradient(
-                  colors: _getGradientForProgress(percentage),
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                ),
-                padding: EdgeInsets.zero,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              '${(percentage * 100).toStringAsFixed(0)}%',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: _getGradientForProgress(percentage).last,
-              ),
-            ),
           ],
+        ),
+        automaticallyImplyLeading: false,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(color: AppColors.colorsBlue),
+        ),
+      ),
+      body: isLoading
+          ? Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.colorsBlue),
+                strokeWidth: 2,
+              ),
+            )
+          : Screenshot(
+              controller: _screenshotController,
+              child: Container(
+                color: Colors.grey[50],
+                child: CustomScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  slivers: [
+                    // Profile Header
+                    SliverToBoxAdapter(
+                      child: Container(
+                        color: Colors.white,
+                        padding: EdgeInsets.only(
+                          top:
+                              kToolbarHeight +
+                              MediaQuery.of(context).padding.top +
+                              20,
+                          bottom: 24,
+                          left: horizontalPadding,
+                          right: horizontalPadding,
+                        ),
+                        child: _buildCleanProfileHeader(
+                          profileImageRadius,
+                          isDesktop,
+                          isTablet,
+                        ),
+                      ),
+                    ),
+
+                    // Content Cards
+                    SliverPadding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: horizontalPadding,
+                        vertical: 16,
+                      ),
+                      sliver: SliverList(
+                        delegate: SliverChildListDelegate([
+                          // Profile Details Card
+                          _buildCleanCard(
+                            child: _buildProfileDetails(cardPadding, isDesktop),
+                          ),
+
+                          SizedBox(height: 16),
+
+                          // Evaluation Card
+                          _buildCleanCard(
+                            child: _buildEvaluationSection(
+                              cardPadding,
+                              isDesktop,
+                              isTablet,
+                            ),
+                          ),
+
+                          SizedBox(height: 32),
+                        ]),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+    );
+  }
+
+  Widget _buildCleanProfileHeader(
+    double radius,
+    bool isDesktop,
+    bool isTablet,
+  ) {
+    return Column(
+      children: [
+        // Profile Image with Clean Styling
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            // Simple profile image container
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.grey[200]!, width: 2),
+              ),
+              child: _profileImage != null
+                  ? CircleAvatar(
+                      radius: radius,
+                      backgroundImage: FileImage(_profileImage!),
+                    )
+                  : (profilePic != null && profilePic!.isNotEmpty
+                        ? CircleAvatar(
+                            radius: radius,
+                            backgroundImage: NetworkImage(profilePic!),
+                          )
+                        : CircleAvatar(
+                            radius: radius,
+                            backgroundColor: Colors.grey[100],
+                            child: Text(
+                              (name?.isNotEmpty ?? false)
+                                  ? name![0].toUpperCase()
+                                  : '?',
+                              style: TextStyle(
+                                fontSize: radius * 0.6,
+                                color: Colors.grey[600],
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          )),
+            ),
+
+            if (_isUploading)
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.colorsBlue),
+                strokeWidth: 2,
+              ),
+
+            // Clean action buttons
+            if (_profileImage != null ||
+                (profilePic != null && profilePic!.isNotEmpty))
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(20),
+                      onTap: _removeImage,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        child: const Icon(
+                          Icons.delete_outline,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            else if (!_isUploading)
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.fontColor,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(20),
+                      onTap: _pickImage,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        child: const Icon(
+                          Icons.camera_alt_outlined,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+
+        SizedBox(height: isDesktop ? 20 : 16),
+
+        // Name with clean typography
+        Text(
+          name ?? '',
+          style: TextStyle(
+            fontSize: isDesktop
+                ? 24
+                : isTablet
+                ? 22
+                : 20,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey[900],
+          ),
+          textAlign: TextAlign.center,
+        ),
+
+        const SizedBox(height: 6),
+
+        Text(
+          userRole ?? 'User',
+          style: TextStyle(
+            fontSize: isDesktop ? 16 : 14,
+            fontWeight: FontWeight.w400,
+            color: Colors.grey[600],
+          ),
+          textAlign: TextAlign.center,
+        ),
+
+        SizedBox(height: isDesktop ? 16 : 12),
+
+        // Simple star rating
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(5, (index) {
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 1),
+              child: Icon(
+                index < rating ? Icons.star : Icons.star_border,
+                color: index < rating ? Colors.amber[600] : Colors.grey[300],
+                size: isDesktop
+                    ? 28
+                    : isTablet
+                    ? 26
+                    : 24,
+              ),
+            );
+          }),
+        ),
+
+        const SizedBox(height: 6),
+
+        Text(
+          '(0 reviews)',
+          style: TextStyle(
+            fontSize: 13,
+            color: Colors.grey[500],
+            fontWeight: FontWeight.w400,
+          ),
+          textAlign: TextAlign.center,
         ),
       ],
     );
   }
 
-  List<Color> _getGradientForProgress(double percentage) {
-    if (percentage >= 0.8) {
-      return [
-        Color.fromRGBO(255, 237, 215, 0.9),
-        Color.fromRGBO(83, 157, 243, 1),
-        Color.fromRGBO(144, 109, 250, 1),
-      ];
-    } else if (percentage >= 0.6) {
-      return [
-        Color.fromRGBO(229, 208, 210, 1),
-        Color.fromRGBO(255, 150, 165, 1),
-        Color.fromRGBO(255, 122, 113, 1),
-      ];
-    } else if (percentage >= 0.3) {
-      return [
-        Color.fromRGBO(254, 221, 176, 1),
-        Color.fromRGBO(144, 109, 250, 1),
-        Color.fromRGBO(255, 122, 113, 1),
-      ];
-    } else {
-      return [
-        Color.fromRGBO(182, 247, 249, 1),
-        Color.fromRGBO(168, 230, 251, 1),
-        Color.fromRGBO(196, 201, 255, 1),
-      ];
-    }
+  Widget _buildCleanCard({required Widget child}) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[200]!, width: 1),
+      ),
+      child: child,
+    );
+  }
+
+  Widget _buildProfileDetails(double padding, bool isDesktop) {
+    return Padding(
+      padding: EdgeInsets.all(padding),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Personal Information',
+            style: TextStyle(
+              fontSize: isDesktop ? 18 : 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[900],
+            ),
+          ),
+
+          SizedBox(height: 20),
+
+          _buildCleanProfileItem(
+            'Email',
+            email ?? '',
+            Icons.email_outlined,
+            isDesktop,
+          ),
+          const SizedBox(height: 12),
+          _buildCleanProfileItem(
+            'Location',
+            location ?? '',
+            Icons.location_on_outlined,
+            isDesktop,
+          ),
+          const SizedBox(height: 12),
+          _buildCleanProfileItem(
+            'Mobile',
+            mobile ?? '',
+            Icons.phone_outlined,
+            isDesktop,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCleanProfileItem(
+    String label,
+    String value,
+    IconData icon,
+    bool isDesktop,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 0),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 20, color: Colors.grey[600]),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: isDesktop ? 16 : 15,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[900],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEvaluationSection(
+    double padding,
+    bool isDesktop,
+    bool isTablet,
+  ) {
+    return Padding(
+      padding: EdgeInsets.all(padding),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Performance Evaluation',
+            style: TextStyle(
+              fontSize: isDesktop ? 18 : 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[900],
+            ),
+          ),
+
+          SizedBox(height: 20),
+
+          _buildCleanEvaluationProgress(
+            'Professionalism',
+            professionalism,
+            isDesktop,
+          ),
+          const SizedBox(height: 16),
+          _buildCleanEvaluationProgress(
+            'Service Efficiency',
+            efficiency,
+            isDesktop,
+          ),
+          const SizedBox(height: 16),
+          _buildCleanEvaluationProgress(
+            'Response Time',
+            responseTime,
+            isDesktop,
+          ),
+          const SizedBox(height: 16),
+          _buildCleanEvaluationProgress(
+            'Product Knowledge',
+            productKnowledge,
+            isDesktop,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCleanEvaluationProgress(
+    String label,
+    double percentage,
+    bool isDesktop,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: isDesktop ? 15 : 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[700],
+              ),
+            ),
+            Text(
+              '${(percentage * 100).toStringAsFixed(0)}%',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.colorsBlue,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Container(
+          height: 6,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(3),
+            color: Colors.grey[200],
+          ),
+          child: FractionallySizedBox(
+            alignment: Alignment.centerLeft,
+            widthFactor: percentage,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(3),
+                color: AppColors.colorsBlue,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

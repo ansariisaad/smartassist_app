@@ -8,14 +8,11 @@ plugins {
     id("com.google.gms.google-services")
 }
 
-
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
-
- 
 
 android {
     namespace = "com.smartassist.app"
@@ -34,26 +31,14 @@ android {
 
     defaultConfig {
         applicationId = "com.smartassist.app"
-        minSdk = 24
+        minSdk = 23
         targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
         multiDexEnabled = true
-
-         // Load from local.properties
-        val properties = Properties()
-        val localPropertiesFile = project.rootProject.file("local.properties")
-        if (localPropertiesFile.exists()) {
-            properties.load(FileInputStream(localPropertiesFile))
-        }
-        
-        val googleMapsApiKey = properties.getProperty("GOOGLE_MAPS_API_KEY") ?: ""
-        
-        // ✅ Use manifestPlaceholders (more secure than buildConfigField)
-        manifestPlaceholders["googleMapsApiKey"] = googleMapsApiKey 
-    } 
-
-      signingConfigs {
+    }
+    signingConfigs {
         create("release") {
             keyAlias = keystoreProperties["keyAlias"] as String
             keyPassword = keystoreProperties["keyPassword"] as String
@@ -77,8 +62,6 @@ dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4") // ✅ Required for Java 8+ features
     implementation("androidx.multidex:multidex:2.0.1")
 }
-
-
 // import java.util.Properties
 // import java.io.FileInputStream
 

@@ -22,33 +22,31 @@ class FabController extends GetxController {
     scrollController.addListener(_scrollListener);
   }
 
-  // Fixed scroll listener
   void _scrollListener() {
-    if (!scrollController.hasClients) return;
+  if (!scrollController.hasClients) return;
 
-    final currentScrollPosition = scrollController.offset;
-    final scrollDifference = (currentScrollPosition - lastScrollPosition).abs();
+  final currentScrollPosition = scrollController.offset;
+  final scrollDifference = (currentScrollPosition - lastScrollPosition).abs();
 
-    // Add debouncing to prevent rapid state changes
-    if (scrollDifference < scrollThreshold) return;
+  // Add debouncing to prevent rapid state changes
+  if (scrollDifference < scrollThreshold) return;
 
-    // The issue might be here - rapid visibility changes
-    if (currentScrollPosition > lastScrollPosition &&
-        currentScrollPosition > 50) {
-      if (isFabVisible.value) {
-        isFabVisible.value = false;
-        if (isFabExpanded.value) {
-          isFabExpanded.value = false;
-        }
-      }
-    } else if (currentScrollPosition < lastScrollPosition) {
-      if (!isFabVisible.value) {
-        isFabVisible.value = true;
+  // The issue might be here - rapid visibility changes
+  if (currentScrollPosition > lastScrollPosition && currentScrollPosition > 50) {
+    if (isFabVisible.value) {
+      isFabVisible.value = false;
+      if (isFabExpanded.value) {
+        isFabExpanded.value = false;
       }
     }
-
-    lastScrollPosition = currentScrollPosition;
+  } else if (currentScrollPosition < lastScrollPosition) {
+    if (!isFabVisible.value) {
+      isFabVisible.value = true;
+    }
   }
+
+  lastScrollPosition = currentScrollPosition;
+}
 
   
   // void _scrollListener() {

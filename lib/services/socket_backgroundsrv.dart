@@ -12,7 +12,7 @@ class BackgroundService {
     await service.configure(
       iosConfiguration: IosConfiguration(
         autoStart: false,
-        onForeground: onStart,  
+        onForeground: onStart,
         onBackground: onIosBackground,
       ),
       androidConfiguration: AndroidConfiguration(

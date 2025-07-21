@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/pages/login_steps/login_page.dart';
 import 'package:get/get.dart'; // Make sure to import get
 

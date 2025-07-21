@@ -272,7 +272,7 @@ class _MessageBubbleState extends State<MessageBubble> {
           Icon(
             getDocumentIcon(mimetype, filename),
             size: 32,
-            color: AppColors.colorsBlue[600],
+            color: AppColors.colorsBlue,
           ),
           const SizedBox(width: 12),
           Expanded(

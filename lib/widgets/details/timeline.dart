@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smartassist/config/component/color/colors.dart';
 import 'package:timeline_tile/timeline_tile.dart';
 
 class Timeline extends StatelessWidget {

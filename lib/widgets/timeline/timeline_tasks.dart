@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/widgets/testdrive_verifyotp.dart';
@@ -168,7 +169,7 @@ class TimelineUpcoming extends StatelessWidget {
               drawGap: true,
               indicator: Container(
                 decoration: const BoxDecoration(
-                  color: AppColors.colorsBlueAccent,
+                  color: AppColors.colorsBlue,
                   shape: BoxShape.circle,
                 ),
                 child: IconButton(
@@ -288,7 +289,7 @@ class TimelineUpcoming extends StatelessWidget {
               drawGap: true,
               indicator: Container(
                 decoration: const BoxDecoration(
-                  color: AppColors.colorsBlueAccent,
+                  color: AppColors.colorsBlue,
                   shape: BoxShape.circle,
                 ),
                 child: IconButton(

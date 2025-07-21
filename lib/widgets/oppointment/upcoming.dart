@@ -329,7 +329,7 @@ class _OppUpcomingItemState extends State<OppUpcomingItem>
           if (widget.subject == 'Quetations')
             ReusableSlidableAction(
               onPressed: _messageAction,
-              backgroundColor: AppColors.colorsBlueGrey,
+              backgroundColor: AppColors.colorsBlue,
               icon: Icons.message_rounded,
               foregroundColor: Colors.white,
             ),

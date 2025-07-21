@@ -385,7 +385,7 @@ class _TaskItemState extends State<TaskItem>
           if (widget.subject == 'Send SMS')
             ReusableSlidableAction(
               onPressed: _messageAction,
-              backgroundColor: AppColors.colorsBlueGrey,
+              backgroundColor: AppColors.colorsBlue,
               icon: Icons.message_rounded,
               foregroundColor: Colors.white,
             ),

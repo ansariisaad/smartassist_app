@@ -29,22 +29,19 @@ class FabController extends GetxController {
     final currentScrollPosition = scrollController.offset;
     final scrollDifference = (currentScrollPosition - lastScrollPosition).abs();
 
-    // Only process if scroll difference is significant enough
+    // Add debouncing to prevent rapid state changes
     if (scrollDifference < scrollThreshold) return;
 
-    // If scrolling down significantly
+    // The issue might be here - rapid visibility changes
     if (currentScrollPosition > lastScrollPosition &&
         currentScrollPosition > 50) {
       if (isFabVisible.value) {
         isFabVisible.value = false;
-        // Only close FAB if it was expanded, but don't force it
         if (isFabExpanded.value) {
           isFabExpanded.value = false;
         }
       }
-    }
-    // If scrolling up
-    else if (currentScrollPosition < lastScrollPosition) {
+    } else if (currentScrollPosition < lastScrollPosition) {
       if (!isFabVisible.value) {
         isFabVisible.value = true;
       }
@@ -52,6 +49,37 @@ class FabController extends GetxController {
 
     lastScrollPosition = currentScrollPosition;
   }
+
+  
+  // void _scrollListener() {
+  //   if (!scrollController.hasClients) return;
+
+  //   final currentScrollPosition = scrollController.offset;
+  //   final scrollDifference = (currentScrollPosition - lastScrollPosition).abs();
+
+  //   // Only process if scroll difference is significant enough
+  //   if (scrollDifference < scrollThreshold) return;
+
+  //   // If scrolling down significantly
+  //   if (currentScrollPosition > lastScrollPosition &&
+  //       currentScrollPosition > 50) {
+  //     if (isFabVisible.value) {
+  //       isFabVisible.value = false;
+  //       // Only close FAB if it was expanded, but don't force it
+  //       if (isFabExpanded.value) {
+  //         isFabExpanded.value = false;
+  //       }
+  //     }
+  //   }
+  //   // If scrolling up
+  //   else if (currentScrollPosition < lastScrollPosition) {
+  //     if (!isFabVisible.value) {
+  //       isFabVisible.value = true;
+  //     }
+  //   }
+
+  //   lastScrollPosition = currentScrollPosition;
+  // }
 
   void toggleFab() {
     // Simplified condition - only check if visible

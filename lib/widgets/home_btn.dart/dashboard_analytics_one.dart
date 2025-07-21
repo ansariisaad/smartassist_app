@@ -10,6 +10,7 @@ import 'package:smartassist/widgets/home_btn.dart/test_drive.dart';
 import 'package:http/http.dart' as http;
 
 class BottomBtnSecond extends StatefulWidget {
+  
   const BottomBtnSecond({super.key});
 
   @override
@@ -17,6 +18,17 @@ class BottomBtnSecond extends StatefulWidget {
 }
 
 class BottomBtnSecondState extends State<BottomBtnSecond> {
+  // Expose refresh method
+  Future<void> refreshData() async {
+    await _fetchAllPeriodData();
+    _setInitialWidget();
+  }
+
+  Future<void> refreshDashboardData() async {
+    await _fetchAllPeriodData();
+    _setInitialWidget();
+  }
+
   int _childButtonIndex = 0; // 0:MTD, 1:QTD, 2:YTD
   int _leadButton = 0;
 

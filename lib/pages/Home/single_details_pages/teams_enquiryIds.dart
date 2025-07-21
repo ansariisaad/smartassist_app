@@ -1844,7 +1844,7 @@ class _ContactRowState extends State<ContactRow> {
               borderRadius: BorderRadius.circular(10),
               color: const Color.fromARGB(255, 241, 248, 255),
             ),
-            child: Icon(widget.icon, size: 25, color: Colors.blue),
+            child: Icon(widget.icon, size: 25, color: AppColors.colorsBlue),
           ),
           const SizedBox(width: 10),
           Expanded(

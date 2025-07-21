@@ -1259,7 +1259,7 @@ class _CallAnalyticsState extends State<CallAnalytics>
               ),
               belowBarData: BarAreaData(
                 show: true,
-                color: Colors.blue.withOpacity(0.2),
+                color: AppColors.colorsBlue.withOpacity(0.2),
               ),
             ),
             LineChartBarData(

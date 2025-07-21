@@ -431,7 +431,7 @@ class _CalendarSmState extends State<CalendarSm> {
             height: 40,
             margin: const EdgeInsets.symmetric(horizontal: 4),
             decoration: BoxDecoration(
-              color: AppColors.colorsBlue.withOpacity(0.4),
+              color: AppColors.colorsBlue,
               borderRadius: BorderRadius.circular(1),
             ),
           ),
@@ -460,7 +460,7 @@ class _CalendarSmState extends State<CalendarSm> {
             height: 40,
             margin: const EdgeInsets.symmetric(horizontal: 4),
             decoration: BoxDecoration(
-              color: AppColors.colorsBlue.withOpacity(0.4),
+              color: AppColors.colorsBlue,
               borderRadius: BorderRadius.circular(1),
             ),
           ),
@@ -766,7 +766,7 @@ class _CalendarSmState extends State<CalendarSm> {
     final isTestDrive = category.toLowerCase().contains('test drive');
     final verticalBarColor = isTestDrive
         ? Color(0xFFA674D4)
-        : Color(0xFF3497F9);
+        : AppColors.colorsBlue;
 
     return InkWell(
       onTap: () {

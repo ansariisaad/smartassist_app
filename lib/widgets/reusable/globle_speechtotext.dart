@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:smartassist/config/component/color/colors.dart';
 import 'package:speech_to_text/speech_recognition_result.dart' as stt;
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -67,7 +68,7 @@ class _SpeechSearchWidgetState extends State<SpeechSearchWidget>
   Timer? _stateCheckTimer;
   String? _lastError;
 
-  Color get _primaryColor => widget.primaryColor ?? Colors.blue;
+  Color get _primaryColor => widget.primaryColor ?? AppColors.colorsBlue;
   Color get _errorColor => Colors.red;
 
   @override

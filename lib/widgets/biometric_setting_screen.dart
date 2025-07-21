@@ -154,7 +154,7 @@
 //                             Switch(
 //                               value: _isBiometricEnabled,
 //                               onChanged: _toggleBiometric,
-//                               activeColor: Colors.blueAccent,
+//                               activeColor: AppColors.colorsBlueAccent,
 //                             ),
 //                           ],
 //                         ),
@@ -172,6 +172,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/utils/biometric_prefrence.dart';
 
@@ -359,7 +360,7 @@ class _BiometricSettingsScreenState extends State<BiometricSettingsScreen> {
                 Icon(
                   icon,
                   size: 24.w,
-                  color: isAvailable ? Colors.blue : Colors.grey,
+                  color: isAvailable ? AppColors.colorsBlue : Colors.grey,
                 ),
                 SizedBox(width: 12.w),
                 Column(
@@ -384,7 +385,7 @@ class _BiometricSettingsScreenState extends State<BiometricSettingsScreen> {
             Switch(
               value: value && isAvailable,
               onChanged: isAvailable ? onChanged : null,
-              activeColor: Colors.blueAccent,
+              activeColor: AppColors.colorsBlue,
             ),
           ],
         ),
@@ -486,14 +487,14 @@ class _BiometricSettingsScreenState extends State<BiometricSettingsScreen> {
                     if (_isBiometricEnabled) ...[
                       SizedBox(height: 20.h),
                       Card(
-                        color: Colors.blue.shade50,
+                        color: AppColors.colorsBlue,
                         child: Padding(
                           padding: EdgeInsets.all(16.w),
                           child: Row(
                             children: [
                               Icon(
                                 Icons.info_outline,
-                                color: Colors.blue,
+                                color: AppColors.colorsBlue,
                                 size: 20.w,
                               ),
                               SizedBox(width: 10.w),
@@ -502,7 +503,7 @@ class _BiometricSettingsScreenState extends State<BiometricSettingsScreen> {
                                   'Preferred method: ${_preferredBiometricType == 'face' ? 'Face ID' : 'Fingerprint'}',
                                   style: TextStyle(
                                     fontSize: 14.sp,
-                                    color: Colors.blue.shade700,
+                                    color: AppColors.colorsBlue,
                                   ),
                                 ),
                               ),

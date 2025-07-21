@@ -469,7 +469,7 @@ class _BiometricScreenState extends State<BiometricScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // Show appropriate icon based on available biometrics
-          Icon(_getSetupIcon(), size: 80.w, color: Colors.blue),
+          Icon(_getSetupIcon(), size: 80.w, color: AppColors.colorsBlue),
           SizedBox(height: 24.h),
           Text(
             'Enable Biometric Authentication?',
@@ -547,7 +547,7 @@ class _BiometricScreenState extends State<BiometricScreen> {
           Icon(
             _getCurrentAuthIcon(),
             size: 80.w,
-            color: isAuthenticating ? Colors.blue : Colors.white,
+            color: isAuthenticating ? AppColors.colorsBlue : Colors.white,
           ),
           SizedBox(height: 24.h),
           Text(
@@ -558,7 +558,7 @@ class _BiometricScreenState extends State<BiometricScreen> {
           SizedBox(height: 24.h),
           if (isAuthenticating)
             CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.colorsBlue),
             )
           else
             ElevatedButton(

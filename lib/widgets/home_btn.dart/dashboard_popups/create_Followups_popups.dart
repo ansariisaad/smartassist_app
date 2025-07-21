@@ -116,73 +116,74 @@ class _CreateFollowupsPopupsState extends State<CreateFollowupsPopups> {
       );
     }
   }
-void _submit() async {
-  if (isSubmitting) return;
 
-  bool isValid = true;
+  void _submit() async {
+    if (isSubmitting) return;
 
-  setState(() {
-    isSubmitting = true;
-    _errors = {};
+    bool isValid = true;
 
-    // Validate lead selection
-    if (_leadId == null || _leadId!.isEmpty) {
-      _errors['select lead name'] = 'Please select a lead name';
-      isValid = false;
+    setState(() {
+      isSubmitting = true;
+      _errors = {};
+
+      // Validate lead selection
+      if (_leadId == null || _leadId!.isEmpty) {
+        _errors['select lead name'] = 'Please select a lead name';
+        isValid = false;
+      }
+
+      // Validate action selection
+      if (_selectedSubject == null || _selectedSubject!.isEmpty) {
+        _errors['subject'] = 'Please select an action';
+        isValid = false;
+      }
+
+      // Validate date selection
+      if (startDateController.text.isEmpty) {
+        _errors['date'] = 'Please select a date';
+        isValid = false;
+      }
+
+      // Validate time selection - Only highlight time tab, not date
+      if (startTimeController.text.isEmpty) {
+        _errors['time'] = 'Please select a time for the follow-up';
+        isValid = false;
+      }
+    });
+
+    // Check validity before calling the API
+    if (!isValid) {
+      setState(() => isSubmitting = false);
+
+      // Show specific error snackbar for time validation ONLY if:
+      // 1. Time is missing AND
+      // 2. Lead is selected AND
+      // 3. Action is selected AND
+      // 4. Date is selected
+      // This means user has filled the form but just missing the time
+      if (_errors.containsKey('time') &&
+          _leadId != null &&
+          _leadId!.isNotEmpty &&
+          _selectedSubject.isNotEmpty &&
+          startDateController.text.isNotEmpty) {
+        _showTimeValidationSnackbar();
+      }
+      return;
     }
 
-    // Validate action selection
-    if (_selectedSubject == null || _selectedSubject!.isEmpty) {
-      _errors['subject'] = 'Please select an action';
-      isValid = false;
+    try {
+      await submitForm();
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Submission failed: ${e.toString()}',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      setState(() => isSubmitting = false);
     }
-
-    // Validate date selection
-    if (startDateController.text.isEmpty) {
-      _errors['date'] = 'Please select a date';
-      isValid = false;
-    }
-
-    // Validate time selection - Only highlight time tab, not date
-    if (startTimeController.text.isEmpty) {
-      _errors['time'] = 'Please select a time for the follow-up';
-      isValid = false;
-    }
-  });
-
-  // Check validity before calling the API
-  if (!isValid) {
-    setState(() => isSubmitting = false);
-    
-    // Show specific error snackbar for time validation ONLY if:
-    // 1. Time is missing AND
-    // 2. Lead is selected AND 
-    // 3. Action is selected AND
-    // 4. Date is selected
-    // This means user has filled the form but just missing the time
-    if (_errors.containsKey('time') && 
-        _leadId != null && 
-        _leadId!.isNotEmpty && 
-        _selectedSubject.isNotEmpty && 
-        startDateController.text.isNotEmpty) {
-      _showTimeValidationSnackbar();
-    }
-    return;
   }
-
-  try {
-    await submitForm();
-  } catch (e) {
-    Get.snackbar(
-      'Error',
-      'Submission failed: ${e.toString()}',
-      backgroundColor: Colors.red,
-      colorText: Colors.white,
-    );
-  } finally {
-    setState(() => isSubmitting = false);
-  }
-}
   // void _submit() async {
   //   if (isSubmitting) return;
 
@@ -220,7 +221,7 @@ void _submit() async {
   //   // Check validity before calling the API
   //   if (!isValid) {
   //     setState(() => isSubmitting = false);
-      
+
   //     // Show specific error snackbar for time validation
   //     if (_errors.containsKey('time')) {
   //       _showTimeValidationSnackbar();
@@ -782,18 +783,20 @@ void _submit() async {
                   ),
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: isSelected ? Colors.blue : Colors.black,
+                      color: isSelected ? AppColors.colorsBlue : Colors.black,
                       width: .5,
                     ),
                     borderRadius: BorderRadius.circular(15),
                     color: isSelected
-                        ? Colors.blue.withOpacity(0.2)
+                        ? AppColors.colorsBlue.withOpacity(0.2)
                         : AppColors.innerContainerBg,
                   ),
                   child: Text(
                     shortText,
                     style: TextStyle(
-                      color: isSelected ? Colors.blue : AppColors.fontColor,
+                      color: isSelected
+                          ? AppColors.colorsBlue
+                          : AppColors.fontColor,
                       fontSize: 14,
                       fontWeight: FontWeight.w400,
                     ),

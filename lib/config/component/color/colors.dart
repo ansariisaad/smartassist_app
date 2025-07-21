@@ -11,9 +11,12 @@ class AppColors {
   static const Color searchBar = Color(0xffE8F3FF);
   static const Color fontBlack = Color(0xff000000);
   static const Color homeContainerLeads = Color(0xffE1EFFF);
-  static const Color colorsBlue = Color(0xFF1380FE);
-  static const Color colorsBlueButton = Color.fromRGBO(19, 128, 254, 1);
-  static final Color colorsBlueBar = Color(0xFF1380FE).withOpacity(0.6);
+  // static const Color colorsBlue = Color(0xFF1380FE);
+  static const Color colorsBlue = Color(0xFF222fb9);
+  // static const Color colorsBlueButton = Color.fromRGBO(19, 128, 254, 1);
+
+  static const Color colorsBlueButton = Color(0xFF222fb9);
+  static final Color colorsBlueBar = Color(0xFF222fb9);
   static final Color borderGreen = Color(0xFF51DF79).withOpacity(0.29);
   static final Color borderRed = Color.fromRGBO(
     236,
@@ -21,7 +24,7 @@ class AppColors {
     81,
     1,
   ).withOpacity(0.29);
-  static final Color borderblue = AppColors.colorsBlue.withOpacity(0.29);
+  static final Color borderblue = AppColors.colorsBlue;
   static final Color containerGreen = Color.fromARGB(255, 81, 223, 121);
   static final Color containerRed = Color.fromRGBO(236, 81, 81, 1);
   static final Color containerblue = AppColors.colorsBlue;

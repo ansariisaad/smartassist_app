@@ -38,7 +38,7 @@
 //               Icons.arrow_back_ios_outlined,
 //               color: Colors.white,
 //             )),
-//         backgroundColor: Colors.blue,
+//         backgroundColor: AppColors.colorsBlue,
 //         title: const Text(
 //           'Test Drive',
 //           style: TextStyle(
@@ -74,7 +74,7 @@
 //             const Text(
 //               'End Test Drive',
 //               style: TextStyle(
-//                   color: Colors.blue,
+//                   color: AppColors.colorsBlue,
 //                   fontSize: 24,
 //                   fontWeight: FontWeight.w500),
 //             ),
@@ -114,7 +114,7 @@
 //                         ),
 //                       ),
 //                       focusedBorder: OutlineInputBorder(
-//                         borderSide: BorderSide(color: Colors.blue),
+//                         borderSide: BorderSide(color: AppColors.colorsBlue),
 //                       ),
 //                     ),
 //                     onChanged: (value) {
@@ -150,11 +150,11 @@
 //                       child: const Text(
 //                         'Resend',
 //                         style: TextStyle(
-//                             color: Colors.blue, // Blue text like a link
+//                             color: AppColors.colorsBlue, // Blue text like a link
 //                             fontSize: 16,
 //                             fontWeight: FontWeight.w500,
 //                             decoration: TextDecoration.underline,
-//                             decorationColor: Colors.blue),
+//                             decorationColor: AppColors.colorsBlue),
 //                       ),
 //                     )
 //                   ],
@@ -193,7 +193,7 @@
 //                     child: Container(
 //                       height: 45,
 //                       decoration: BoxDecoration(
-//                         color: Colors.blue,
+//                         color: AppColors.colorsBlue,
 //                         borderRadius: BorderRadius.circular(8),
 //                       ),
 //                       child: TextButton(

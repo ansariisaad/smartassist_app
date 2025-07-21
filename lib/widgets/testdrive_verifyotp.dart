@@ -229,7 +229,7 @@
 //                     borderRadius: BorderRadius.circular(8),
 //                   ),
 //                   focusedBorder: OutlineInputBorder(
-//                     borderSide: const BorderSide(color: Colors.blue, width: 2),
+//                     borderSide: const BorderSide(color: AppColors.colorsBlue, width: 2),
 //                     borderRadius: BorderRadius.circular(8),
 //                   ),
 //                   errorBorder: OutlineInputBorder(
@@ -824,7 +824,10 @@ class _TestdriveVerifyotpState extends State<TestdriveVerifyotp>
                     borderRadius: BorderRadius.circular(8),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: Colors.blue, width: 2),
+                    borderSide: const BorderSide(
+                      color: AppColors.colorsBlue,
+                      width: 2,
+                    ),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   errorBorder: OutlineInputBorder(
@@ -887,7 +890,7 @@ class _TestdriveVerifyotpState extends State<TestdriveVerifyotp>
   //                   borderRadius: BorderRadius.circular(8),
   //                 ),
   //                 focusedBorder: OutlineInputBorder(
-  //                   borderSide: const BorderSide(color: Colors.blue, width: 2),
+  //                   borderSide: const BorderSide(color: AppColors.colorsBlue, width: 2),
   //                   borderRadius: BorderRadius.circular(8),
   //                 ),
   //                 errorBorder: OutlineInputBorder(

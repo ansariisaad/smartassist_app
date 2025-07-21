@@ -398,7 +398,7 @@ class _MyteamState extends State<Myteam> {
                 child: _buildMetricCard(
                   "${stats['Enquiries']}",
                   "Enquiries",
-                  Colors.blue,
+                  AppColors.colorsBlue,
                   isSelected: _selectedMetric == "Enquiries",
                   onTap: () {
                     setState(() {
@@ -412,7 +412,7 @@ class _MyteamState extends State<Myteam> {
                 child: _buildMetricCard(
                   "${stats['TestDrives']}",
                   "Test Drive\nDone",
-                  Colors.blue,
+                  AppColors.colorsBlue,
                   isSelected: _selectedMetric == "TestDrives",
                   onTap: () {
                     setState(() {
@@ -433,7 +433,7 @@ class _MyteamState extends State<Myteam> {
                 child: _buildMetricCard(
                   "${stats['Orders']}",
                   "Order Taken",
-                  Colors.blue,
+                  AppColors.colorsBlue,
                   isSelected: _selectedMetric == "Orders",
                   onTap: () {
                     setState(() {
@@ -447,7 +447,7 @@ class _MyteamState extends State<Myteam> {
                 child: _buildMetricCard(
                   "${stats['Cancellation']}",
                   "Cancellations",
-                  Colors.blue,
+                  AppColors.colorsBlue,
                   isSelected: _selectedMetric == "Cancellation",
                   onTap: () {
                     setState(() {
@@ -468,7 +468,7 @@ class _MyteamState extends State<Myteam> {
                 child: _buildMetricCard(
                   "${(stats['Orders'] ?? 0) - (stats['Cancellation'] ?? 0)}", // Net orders calculation
                   "Net Order",
-                  Colors.blue,
+                  AppColors.colorsBlue,
                   isSelected: _selectedMetric == "Net Order",
                   onTap: () {
                     setState(() {
@@ -482,7 +482,7 @@ class _MyteamState extends State<Myteam> {
                 child: _buildMetricCard(
                   "0", // Replace with actual data if available
                   "Retails",
-                  Colors.blue,
+                  AppColors.colorsBlue,
                   isSelected: _selectedMetric == "Retails",
                   onTap: () {
                     setState(() {
@@ -521,7 +521,7 @@ class _MyteamState extends State<Myteam> {
               shape: BoxShape.circle,
               color: AppColors.backgroundLightGrey,
               border: _selectedProfileIndex == index
-                  ? Border.all(color: Colors.blue, width: 2)
+                  ? Border.all(color: AppColors.colorsBlue, width: 2)
                   : null,
             ),
             child: Center(
@@ -1002,7 +1002,7 @@ class _MyteamState extends State<Myteam> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.blue,
+        backgroundColor: AppColors.colorsBlue,
         title: Align(
           alignment: Alignment.centerLeft,
           child: Text('My team', style: AppFont.appbarfontWhite(context)),
@@ -1264,7 +1264,8 @@ class _MyteamState extends State<Myteam> {
                                                   style:
                                                       ElevatedButton.styleFrom(
                                                         backgroundColor:
-                                                            Colors.blue,
+                                                            AppColors
+                                                                .colorsBlue,
                                                         foregroundColor:
                                                             Colors.white,
                                                       ),
@@ -1772,7 +1773,7 @@ class _MyteamState extends State<Myteam> {
               shape: BoxShape.circle,
               color: AppColors.backgroundLightGrey,
               border: _selectedProfileIndex == index
-                  ? Border.all(color: Colors.blue, width: 2)
+                  ? Border.all(color: AppColors.colorsBlue, width: 2)
                   : null,
             ),
             child: Center(
@@ -1803,15 +1804,17 @@ class _MyteamState extends State<Myteam> {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
         decoration: BoxDecoration(
           border: Border.all(
-            color: _periodIndex == index ? Colors.blue : Colors.transparent,
+            color: _periodIndex == index
+                ? AppColors.colorsBlue
+                : Colors.transparent,
           ),
-          // color: _periodIndex == index ? Colors.blue : Colors.transparent,
+          // color: _periodIndex == index ? AppColors.colorsBlue : Colors.transparent,
           borderRadius: BorderRadius.circular(30),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: _periodIndex == index ? Colors.blue : Colors.black,
+            color: _periodIndex == index ? AppColors.colorsBlue : Colors.black,
             fontWeight: FontWeight.w500,
             fontSize: 14,
           ),
@@ -1878,7 +1881,7 @@ class _MyteamState extends State<Myteam> {
           color: backgroundColor,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isSelected ? Colors.blue : Colors.transparent,
+            color: isSelected ? AppColors.colorsBlue : Colors.transparent,
             width: 2,
           ),
           boxShadow: [

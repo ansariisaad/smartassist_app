@@ -327,14 +327,14 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
               //   widget.handleTestDrive();
               //   widget.otpTrigger();
               // },
-              backgroundColor: Colors.blue,
+              backgroundColor: AppColors.colorsBlue,
               icon: Icons.directions_car,
               foregroundColor: Colors.white,
             ),
           if (widget.subject == 'Send SMS')
             ReusableSlidableAction(
               onPressed: _messageAction,
-              backgroundColor: Colors.blueGrey,
+              backgroundColor: AppColors.colorsBlue,
               icon: Icons.message_rounded,
               foregroundColor: Colors.white,
             ),
@@ -442,7 +442,7 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
                   width: 8.0,
                   color: widget.isFavorite
                       ? (isCallSwipe
-                            ? Colors.blue.withOpacity(
+                            ? AppColors.colorsBlue.withOpacity(
                                 0.2,
                               ) // Green when swiping for a call
                             : Colors.yellow.withOpacity(
@@ -451,7 +451,7 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
                       : (isFavoriteSwipe
                             ? Colors.yellow.withOpacity(0.1)
                             : (isCallSwipe
-                                  ? Colors.blue.withOpacity(0.2)
+                                  ? AppColors.colorsBlue.withOpacity(0.2)
                                   : AppColors.sideRed)),
                 ),
               ),
@@ -525,8 +525,8 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
             ),
             TextButton(
               style: TextButton.styleFrom(
-                overlayColor: Colors.blue.withOpacity(0.1),
-                foregroundColor: Colors.blue,
+                overlayColor: AppColors.colorsBlue.withOpacity(0.1),
+                foregroundColor: AppColors.colorsBlue,
               ),
               // onPressed: () => Navigator.of(context).pop(
               // true),
@@ -537,7 +537,7 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
               },
               child: Text(
                 'Yes',
-                style: GoogleFonts.poppins(color: Colors.blue),
+                style: GoogleFonts.poppins(color: AppColors.colorsBlue),
               ),
             ),
           ],
@@ -630,7 +630,7 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Icon(Icons.directions_car, color: Colors.blue, size: 18),
+        const Icon(Icons.directions_car, color: AppColors.colorsBlue, size: 18),
         const SizedBox(width: 5),
         Text('${widget.subject},', style: AppFont.smallText(context)),
       ],

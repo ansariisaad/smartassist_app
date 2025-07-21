@@ -512,12 +512,12 @@ class _FeedbackscreenState extends State<Feedbackscreen> {
                   ),
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: isSelected ? Colors.blue : Colors.grey,
+                      color: isSelected ? AppColors.colorsBlue : Colors.grey,
                       // width: 1,
                       strokeAlign: 1,
                     ),
                     borderRadius: BorderRadius.circular(20),
-                    color: isSelected ? Colors.blue : Colors.white,
+                    color: isSelected ? AppColors.colorsBlue : Colors.white,
                   ),
                   child: Text(
                     shortText,

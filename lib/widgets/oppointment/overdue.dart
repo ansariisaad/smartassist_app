@@ -45,7 +45,7 @@ class _OppOverdueState extends State<OppOverdue> {
     print('this is widget.overdue appointmnet');
     print(widget.overdueeOpp);
   }
- 
+
   // void _handleCall(dynamic item) {
   //   print("Call action triggered for ${item['name']}");
 
@@ -279,14 +279,14 @@ class _overdueeOppItemState extends State<overdueeOppItem>
           if (widget.subject == 'Call')
             ReusableSlidableAction(
               onPressed: _phoneAction,
-              backgroundColor: Colors.blue,
+              backgroundColor: AppColors.colorsBlue,
               icon: Icons.phone,
               foregroundColor: Colors.white,
             ),
           if (widget.subject == 'Send SMS')
             ReusableSlidableAction(
               onPressed: _messageAction,
-              backgroundColor: Colors.blueGrey,
+              backgroundColor: AppColors.colorsBlue,
               icon: Icons.message_rounded,
               foregroundColor: Colors.white,
             ),
@@ -436,7 +436,7 @@ class _overdueeOppItemState extends State<overdueeOppItem>
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: Colors.blue, size: 18),
+        Icon(icon, color: AppColors.colorsBlue, size: 18),
         const SizedBox(width: 5),
         Text('${widget.subject},', style: AppFont.smallText(context)),
       ],

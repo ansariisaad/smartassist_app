@@ -1377,18 +1377,20 @@ class _FollowupsTeamsState extends State<FollowupsTeams> {
                 ),
                 decoration: BoxDecoration(
                   border: Border.all(
-                    color: isSelected ? Colors.blue : Colors.black,
+                    color: isSelected ? AppColors.colorsBlue : Colors.black,
                     width: .5,
                   ),
                   borderRadius: BorderRadius.circular(15),
                   color: isSelected
-                      ? Colors.blue.withOpacity(0.2)
+                      ? AppColors.colorsBlue.withOpacity(0.2)
                       : AppColors.innerContainerBg,
                 ),
                 child: Text(
                   shortText, // ✅ Only show short text
                   style: TextStyle(
-                    color: isSelected ? Colors.blue : AppColors.fontColor,
+                    color: isSelected
+                        ? AppColors.colorsBlue
+                        : AppColors.fontColor,
                     fontSize: 14,
                     fontWeight: FontWeight.w400,
                   ),
@@ -2181,18 +2183,18 @@ class _FollowupsTeamsState extends State<FollowupsTeams> {
 //                     const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
 //                 decoration: BoxDecoration(
 //                   border: Border.all(
-//                     color: isSelected ? Colors.blue : Colors.black,
+//                     color: isSelected ? AppColors.colorsBlue : Colors.black,
 //                     width: .5,
 //                   ),
 //                   borderRadius: BorderRadius.circular(15),
 //                   color: isSelected
-//                       ? Colors.blue.withOpacity(0.2)
+//                       ? AppColors.colorsBlue.withOpacity(0.2)
 //                       : AppColors.innerContainerBg,
 //                 ),
 //                 child: Text(
 //                   shortText, // ✅ Only show short text
 //                   style: TextStyle(
-//                     color: isSelected ? Colors.blue : AppColors.fontColor,
+//                     color: isSelected ? AppColors.colorsBlue : AppColors.fontColor,
 //                     fontSize: 14,
 //                     fontWeight: FontWeight.w400,
 //                   ),

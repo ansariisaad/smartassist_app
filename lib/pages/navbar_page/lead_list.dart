@@ -66,7 +66,7 @@ class LeadsListState extends State<LeadsList> {
           ),
         ),
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.blue,
+        backgroundColor: AppColors.colorsBlue,
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -219,7 +219,7 @@ class _TaskItemState extends State<TaskItem> {
               //       Row(
               //         children: [
               //           const Icon(Icons.calendar_today,
-              //               color: Colors.blue, size: 14),
+              //               color: AppColors.colorsBlue, size: 14),
               //           const SizedBox(width: 8),
               //           Text(
               //             widget.date,
@@ -291,7 +291,7 @@ class _TaskItemState extends State<TaskItem> {
     }
     return Row(
       children: [
-        const Icon(Icons.phone_in_talk, color: Colors.blue, size: 14),
+        const Icon(Icons.phone_in_talk, color: AppColors.colorsBlue, size: 14),
         const SizedBox(width: 5),
         Text(
           formattedDate,

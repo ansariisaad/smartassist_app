@@ -207,7 +207,7 @@ class _NotificationPageState extends State<NotificationPage> {
       height: MediaQuery.of(context).size.height * .034,
       decoration: BoxDecoration(
         border: _selectedButtonIndex == idx
-            ? Border.all(color: Colors.blue)
+            ? Border.all(color: AppColors.colorsBlue)
             : Border.all(color: Colors.transparent),
         borderRadius: BorderRadius.circular(15),
       ),
@@ -226,7 +226,7 @@ class _NotificationPageState extends State<NotificationPage> {
           name,
           style: GoogleFonts.poppins(
             color: _selectedButtonIndex == idx
-                ? Colors.blue
+                ? AppColors.colorsBlue
                 : AppColors.fontColor,
             fontSize: 14,
             fontWeight: FontWeight.w500,
@@ -379,7 +379,7 @@ class _NotificationPageState extends State<NotificationPage> {
                           ),
                           leading: Icon(
                             Icons.circle,
-                            color: isRead ? Colors.grey : Colors.blue,
+                            color: isRead ? Colors.grey : AppColors.colorsBlue,
                             size: 10,
                           ),
                           title: Text(

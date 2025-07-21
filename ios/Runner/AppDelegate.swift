@@ -19,7 +19,7 @@ import FirebaseCore
         return false
     } 
     GMSServices.provideAPIKey(apiKey)
-    GeneratedPluginRegistrant.register(with: self)  // ✅ Registers plugins
+    GeneratedPluginRegistrant.register(with: self)   
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }

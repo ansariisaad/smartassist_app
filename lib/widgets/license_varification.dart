@@ -583,19 +583,19 @@ class _LicenseVarificationState extends State<LicenseVarification>
                   decoration: BoxDecoration(
                     color: _isCapturing ? Colors.grey : Colors.white,
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.blue, width: 3),
+                    border: Border.all(color: AppColors.colorsBlue, width: 3),
                   ),
                   child: Center(
                     child: _isCapturing
                         ? const CircularProgressIndicator(
-                            color: Colors.blue,
+                            color: AppColors.colorsBlue,
                             strokeWidth: 2,
                           )
                         : Container(
                             width: 50,
                             height: 50,
                             decoration: const BoxDecoration(
-                              color: Colors.blue,
+                              color: AppColors.colorsBlue,
                               shape: BoxShape.circle,
                             ),
                           ),

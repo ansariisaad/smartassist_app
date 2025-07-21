@@ -393,14 +393,14 @@ class _TaskItemState extends State<TaskItem>
           if (widget.subject == 'Showroom appointment')
             ReusableSlidableAction(
               onPressed: _phoneAction,
-              backgroundColor: Colors.blue,
+              backgroundColor: AppColors.colorsBlue,
               icon: Icons.phone,
               foregroundColor: Colors.white,
             ),
           if (widget.subject == 'Provide Quotation')
             ReusableSlidableAction(
               onPressed: _messageAction,
-              backgroundColor: Colors.blueGrey,
+              backgroundColor: AppColors.colorsBlue,
               icon: Icons.message_rounded,
               foregroundColor: Colors.white,
             ),
@@ -494,14 +494,14 @@ class _TaskItemState extends State<TaskItem>
   //         // if (widget.subject == 'Meeting')
   //         ReusableSlidableAction(
   //           onPressed: _phoneAction,
-  //           backgroundColor: Colors.blue,
+  //           backgroundColor: AppColors.colorsBlue,
   //           icon: Icons.phone,
   //           foregroundColor: Colors.white,
   //         ),
   //         if (widget.subject == 'Quetations')
   //           ReusableSlidableAction(
   //             onPressed: _messageAction,
-  //             backgroundColor: Colors.blueGrey,
+  //             backgroundColor: AppColors.colorsBlueGrey,
   //             icon: Icons.message_rounded,
   //             foregroundColor: Colors.white,
   //           ),
@@ -585,7 +585,7 @@ class _TaskItemState extends State<TaskItem>
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: Colors.blue, size: 18),
+        Icon(icon, color: AppColors.colorsBlue, size: 18),
         const SizedBox(width: 5),
         Text('${widget.subject},', style: AppFont.smallText(context)),
       ],

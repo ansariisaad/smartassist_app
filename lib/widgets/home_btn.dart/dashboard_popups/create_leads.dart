@@ -21,11 +21,11 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class CreateLeads extends StatefulWidget {
   final Function onFormSubmit;
-  // final Function? dashboardRefresh;
+  final Function? dashboardRefresh;
   const CreateLeads({
     super.key,
     required this.onFormSubmit,
-    // this.dashboardRefresh,
+    this.dashboardRefresh,
   });
 
   @override
@@ -2506,7 +2506,7 @@ class _CreateLeadsState extends State<CreateLeads> {
 
             Navigator.pop(context);
             widget.onFormSubmit();
-            // widget.dashboardRefresh!();
+            widget.dashboardRefresh!();
             Navigator.push(
               context,
               MaterialPageRoute(

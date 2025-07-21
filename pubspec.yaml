@@ -93,7 +93,7 @@ dependencies:
   flutter_background_service: ^5.1.0
   flutter_sound: ^9.28.0  
   video_player: ^2.10.0
-  sms_autofill: ^2.4.1
+  sms_autofill: ^2.4.1 
 
 dev_dependencies:
   flutter_test:

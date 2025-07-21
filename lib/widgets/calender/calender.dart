@@ -211,7 +211,7 @@ class _CalenderWidgetState extends State<CalenderWidget> {
 //         calendarStyle: CalendarStyle(
 //             isTodayHighlighted: true,
 //             selectedDecoration: const BoxDecoration(
-//               color: Colors.blue,
+//               color: AppColors.colorsBlue,
 //               shape: BoxShape.circle,
 //             ),
 //             todayDecoration: BoxDecoration(
@@ -278,7 +278,7 @@ class _CalenderWidgetState extends State<CalenderWidget> {
 //         calendarStyle: CalendarStyle(
 //           isTodayHighlighted: true,
 //           selectedDecoration: BoxDecoration(
-//             color: Colors.blue,
+//             color: AppColors.colorsBlue,
 //             shape: BoxShape.circle,
 //           ),
 //           todayDecoration: BoxDecoration(

@@ -40,7 +40,7 @@ class Timeline extends StatelessWidget {
           ? IndicatorStyle(
               width: 30,
               height: 30,
-              color: Colors.blue, // Default indicator color
+              color: AppColors.colorsBlue, // Default indicator color
               iconStyle: icon != null
                   ? IconStyle(
                       iconData: icon!,

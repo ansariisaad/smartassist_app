@@ -80,7 +80,9 @@ class _CalenderTaskState extends State<CalenderTask> {
         if (snapshot.connectionState != ConnectionState.done) {
           return const SizedBox(
             height: 100,
-            child: Center(child: CircularProgressIndicator(color: Colors.blue)),
+            child: Center(
+              child: CircularProgressIndicator(color: AppColors.colorsBlue),
+            ),
           );
         }
         if (widget.tasks.isEmpty) {

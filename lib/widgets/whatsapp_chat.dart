@@ -272,7 +272,7 @@ class _MessageBubbleState extends State<MessageBubble> {
           Icon(
             getDocumentIcon(mimetype, filename),
             size: 32,
-            color: Colors.blue[600],
+            color: AppColors.colorsBlue[600],
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -1347,7 +1347,7 @@ class _WhatsappChatState extends State<WhatsappChat>
                 // Get.snackbar(
                 //   'Info',
                 //   'Reconnecting...',
-                //   backgroundColor: Colors.blue,
+                //   backgroundColor: AppColors.colorsBlue,
                 //   colorText: Colors.white,
                 // );
               }

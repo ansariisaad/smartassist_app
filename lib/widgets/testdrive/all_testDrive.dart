@@ -162,7 +162,7 @@ class _AllFollowupsItemState extends State<AllTestrive>
           if (widget.subject == 'Test Drive')
             ReusableSlidableAction(
               onPressed: _showAleart,
-              backgroundColor: Colors.blue,
+              backgroundColor: AppColors.colorsBlue,
               icon: Icons.directions_car,
               foregroundColor: Colors.white,
               handleTestDrive: '',
@@ -171,7 +171,7 @@ class _AllFollowupsItemState extends State<AllTestrive>
           if (widget.subject == 'Send SMS')
             ReusableSlidableAction(
               onPressed: _messageAction,
-              backgroundColor: Colors.blueGrey,
+              backgroundColor: AppColors.colorsBlueGrey,
               icon: Icons.message_rounded,
               foregroundColor: Colors.white,
               handleTestDrive: '',
@@ -279,8 +279,8 @@ class _AllFollowupsItemState extends State<AllTestrive>
             ),
             TextButton(
               style: TextButton.styleFrom(
-                overlayColor: Colors.blue.withOpacity(0.1),
-                foregroundColor: Colors.blue,
+                overlayColor: AppColors.colorsBlue.withOpacity(0.1),
+                foregroundColor: AppColors.colorsBlue,
               ),
               // onPressed: () => Navigator.of(context).pop(
               // true),
@@ -291,7 +291,7 @@ class _AllFollowupsItemState extends State<AllTestrive>
               },
               child: Text(
                 'Yes',
-                style: GoogleFonts.poppins(color: Colors.blue),
+                style: GoogleFonts.poppins(color: AppColors.colorsBlue),
               ),
             ),
           ],
@@ -411,7 +411,7 @@ class _AllFollowupsItemState extends State<AllTestrive>
 
     return Row(
       children: [
-        Icon(icon, color: Colors.blue, size: 18),
+        Icon(icon, color: AppColors.colorsBlue, size: 18),
         const SizedBox(width: 5),
         Text('${widget.subject},', style: AppFont.smallText(context)),
       ],
@@ -421,7 +421,7 @@ class _AllFollowupsItemState extends State<AllTestrive>
   // Widget _buildSubjectDetails(BuildContext context) {
   //   return Row(
   //     children: [
-  //       const Icon(Icons.phone_in_talk, color: Colors.blue, size: 18),
+  //       const Icon(Icons.phone_in_talk, color: AppColors.colorsBlue, size: 18),
   //       const SizedBox(width: 5),
   //       Text('${widget.subject},', style: AppFont.smallText(context)),
   //     ],

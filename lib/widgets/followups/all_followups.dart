@@ -140,14 +140,14 @@ class _AllFollowupsItemState extends State<AllFollowupItem>
           if (widget.subject == 'Call')
             ReusableSlidableAction(
               onPressed: _phoneAction,
-              backgroundColor: Colors.blue,
+              backgroundColor: AppColors.colorsBlue,
               icon: Icons.phone,
               foregroundColor: Colors.white,
             ),
           if (widget.subject == 'Send SMS')
             ReusableSlidableAction(
               onPressed: _messageAction,
-              backgroundColor: Colors.blueGrey,
+              backgroundColor: AppColors.colorsBlueGrey,
               icon: Icons.message_rounded,
               foregroundColor: Colors.white,
             ),
@@ -331,7 +331,7 @@ class _AllFollowupsItemState extends State<AllFollowupItem>
 
     return Row(
       children: [
-        Icon(icon, color: Colors.blue, size: 18),
+        Icon(icon, color: AppColors.colorsBlue, size: 18),
         const SizedBox(width: 5),
         Text('${widget.subject},', style: AppFont.smallText(context)),
       ],
@@ -341,7 +341,7 @@ class _AllFollowupsItemState extends State<AllFollowupItem>
   // Widget _buildSubjectDetails(BuildContext context) {
   //   return Row(
   //     children: [
-  //       const Icon(Icons.phone_in_talk, color: Colors.blue, size: 18),
+  //       const Icon(Icons.phone_in_talk, color: AppColors.colorsBlue, size: 18),
   //       const SizedBox(width: 5),
   //       Text('${widget.subject},', style: AppFont.smallText(context)),
   //     ],

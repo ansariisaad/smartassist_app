@@ -1,11 +1,11 @@
-import 'package:flutter/material.dart'; 
+import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
-import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart'; 
-import 'package:smartassist/services/api_srv.dart'; 
+import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
+import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/followups.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -110,8 +110,6 @@ class _OverdueFollowupState extends State<OverdueFollowup> {
       }
     }
   }
-
-  
 
   @override
   Widget build(BuildContext context) {
@@ -310,14 +308,14 @@ class _overdueeFollowupsItemState extends State<overdueeFollowupsItem>
           if (widget.subject == 'Call')
             ReusableSlidableAction(
               onPressed: _phoneAction,
-              backgroundColor: Colors.blue,
+              backgroundColor: AppColors.colorsBlue,
               icon: Icons.phone,
               foregroundColor: Colors.white,
             ),
           if (widget.subject == 'Send SMS')
             ReusableSlidableAction(
               onPressed: _messageAction,
-              backgroundColor: Colors.blueGrey,
+              backgroundColor: AppColors.colorsBlueGrey,
               icon: Icons.message_rounded,
               foregroundColor: Colors.white,
             ),
@@ -487,7 +485,7 @@ class _overdueeFollowupsItemState extends State<overdueeFollowupsItem>
 
     return Row(
       children: [
-        Icon(icon, color: Colors.blue, size: 18),
+        Icon(icon, color: AppColors.colorsBlue, size: 18),
         const SizedBox(width: 5),
         Text('${widget.subject},', style: AppFont.smallText(context)),
       ],
@@ -497,7 +495,7 @@ class _overdueeFollowupsItemState extends State<overdueeFollowupsItem>
   // Widget _buildSubjectDetails(BuildContext context) {
   //   return Row(
   //     children: [
-  //       const Icon(Icons.phone_in_talk, color: Colors.blue, size: 18),
+  //       const Icon(Icons.phone_in_talk, color: AppColors.colorsBlue, size: 18),
   //       const SizedBox(width: 5),
   //       Text('${widget.subject},', style: AppFont.smallText(context)),
   //     ],
@@ -920,7 +918,7 @@ class ReusableSlidableAction extends StatelessWidget {
 //     return Row(
 //       crossAxisAlignment: CrossAxisAlignment.start,
 //       children: [
-//         const Icon(Icons.phone_in_talk, color: Colors.blue, size: 18),
+//         const Icon(Icons.phone_in_talk, color: AppColors.colorsBlue, size: 18),
 //         const SizedBox(width: 5),
 //         Text('${widget.subject},', style: AppFont.smallText(context)),
 //       ],

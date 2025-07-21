@@ -190,7 +190,7 @@ class _CallLogsState extends State<CallLogs> {
       case "incoming":
         return Colors.green;
       case "outgoing":
-        return Colors.blue;
+        return AppColors.colorsBlue;
       case "missed":
         return Colors.red;
       case "rejected":
@@ -514,7 +514,7 @@ class _CallLogsState extends State<CallLogs> {
               width: 60,
               child: FloatingActionButton(
                 // focusColor: Colors.white,
-                backgroundColor: Colors.blue,
+                backgroundColor: AppColors.colorsBlue,
                 onPressed: _excludeSelectedCalls,
                 child: const Icon(Icons.check, color: Colors.white),
                 tooltip: 'Exclude Selected Calls',

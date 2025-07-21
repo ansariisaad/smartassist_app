@@ -183,7 +183,7 @@ class _ForgetOtpscreenState extends State<ForgetOtpscreen> {
   //               borderRadius: BorderRadius.circular(8),
   //             ),
   //             focusedBorder: OutlineInputBorder(
-  //               borderSide: const BorderSide(color: Colors.blue, width: 2),
+  //               borderSide: const BorderSide(color: AppColors.colorsBlue, width: 2),
   //               borderRadius: BorderRadius.circular(8),
   //             ),
   //             errorBorder: OutlineInputBorder(
@@ -243,7 +243,10 @@ class _ForgetOtpscreenState extends State<ForgetOtpscreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: Colors.blue, width: 2),
+                    borderSide: const BorderSide(
+                      color: AppColors.colorsBlue,
+                      width: 2,
+                    ),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   errorBorder: OutlineInputBorder(
@@ -539,7 +542,7 @@ class _ForgetOtpscreenState extends State<ForgetOtpscreen> {
 //                             TextSpan(
 //                               text: ' Change',
 //                               style: const TextStyle(
-//                                 color: Colors.blue, // Link-like color
+//                                 color: AppColors.colorsBlue, // Link-like color
 //                                 decoration: TextDecoration
 //                                     .underline, // Underline the "Change" text
 //                               ),
@@ -585,7 +588,7 @@ class _ForgetOtpscreenState extends State<ForgetOtpscreen> {
 //                                 borderSide: BorderSide(color: Colors.grey),
 //                               ),
 //                               focusedBorder: OutlineInputBorder(
-//                                 borderSide: BorderSide(color: Colors.blue),
+//                                 borderSide: BorderSide(color: AppColors.colorsBlue),
 //                               ),
 //                             ),
 //                             onChanged: (value) {
@@ -615,7 +618,7 @@ class _ForgetOtpscreenState extends State<ForgetOtpscreen> {
 //                           TextSpan(
 //                             text: 'Resend',
 //                             style: const TextStyle(
-//                               color: Colors.blue,
+//                               color: AppColors.colorsBlue,
 //                               decoration: TextDecoration
 //                                   .underline, // Underline the link
 //                             ),

@@ -13,7 +13,8 @@ class TestDrive extends StatefulWidget {
     super.key,
     required this.MtdData,
     required this.YtdData,
-    required this.QtdData, required this.onFormSubmit,
+    required this.QtdData,
+    required this.onFormSubmit,
   });
 
   @override
@@ -110,7 +111,7 @@ class _TestDriveState extends State<TestDrive> {
             controller: _pageController,
             count: 2,
             effect: WormEffect(
-              activeDotColor: Colors.blue,
+              activeDotColor: AppColors.colorsBlue,
               dotColor: Colors.grey.shade300,
               dotHeight: 8,
               dotWidth: 8,
@@ -155,7 +156,7 @@ class _TestDriveState extends State<TestDrive> {
                         'more Test Drives to achive your target',
                         '${selectedData['remainingTestDrives'] ?? 0}',
                         screenWidth,
-                        Colors.blue,
+                        AppColors.colorsBlue,
                       ),
                     ),
                   ],
@@ -233,7 +234,7 @@ class _TestDriveState extends State<TestDrive> {
         decoration: BoxDecoration(
           border: Border.all(
             color: isSelected
-                ? Colors.blue
+                ? AppColors.colorsBlue
                 : Colors.transparent, // Only selected has blue border
             width: 1,
           ),
@@ -248,7 +249,7 @@ class _TestDriveState extends State<TestDrive> {
           },
           style: TextButton.styleFrom(
             foregroundColor: isSelected
-                ? Colors.blue
+                ? AppColors.colorsBlue
                 : Colors.black, // Selected text blue, others black
             backgroundColor: Colors.transparent, // No background color change
             padding: const EdgeInsets.symmetric(vertical: 5),
@@ -261,7 +262,7 @@ class _TestDriveState extends State<TestDrive> {
             style: GoogleFonts.poppins(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: isSelected ? Colors.blue : Colors.black,
+              color: isSelected ? AppColors.colorsBlue : Colors.black,
             ),
           ),
         ),
@@ -354,7 +355,7 @@ class _TestDriveState extends State<TestDrive> {
             style: GoogleFonts.inter(
               fontSize: 30,
               fontWeight: FontWeight.w700,
-              color: Colors.blue,
+              color: AppColors.colorsBlue,
             ),
           ),
           Text(value1, style: AppFont.dropDowmLabel(context)),
@@ -398,7 +399,7 @@ class _TestDriveState extends State<TestDrive> {
             style: GoogleFonts.inter(
               fontSize: 30,
               fontWeight: FontWeight.w700,
-              color: Colors.blue,
+              color: AppColors.colorsBlue,
             ),
           ),
           // const SizedBox(height: 2),

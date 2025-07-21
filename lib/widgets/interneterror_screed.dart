@@ -41,7 +41,7 @@ class InternetErrorWidget extends StatelessWidget {
             message,
             textAlign: TextAlign.center,
             style: theme.textTheme.headlineSmall?.copyWith(
-              color: Colors.blueGrey[800],
+              color: AppColors.colorsBlueGrey[800],
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -50,7 +50,7 @@ class InternetErrorWidget extends StatelessWidget {
             description,
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyLarge?.copyWith(
-              color: Colors.blueGrey[600],
+              color: AppColors.colorsBlueGrey[600],
             ),
           ),
           const SizedBox(height: 40),

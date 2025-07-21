@@ -488,7 +488,9 @@ class _BottomBtnThirdState extends State<BottomBtnThird> {
           style: TextButton.styleFrom(
             alignment: Alignment.center,
             foregroundColor: isSelected ? Colors.white : Colors.black,
-            backgroundColor: isSelected ? Colors.blue : Colors.transparent,
+            backgroundColor: isSelected
+                ? AppColors.colorsBlue
+                : Colors.transparent,
             padding: const EdgeInsets.symmetric(vertical: 0),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(30),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/utils/bottom_navigation.dart';
 
 class AppSetting extends StatelessWidget {
@@ -31,7 +32,7 @@ class AppSetting extends StatelessWidget {
             ),
           ),
         ),
-        backgroundColor: Colors.blue,
+        backgroundColor: AppColors.colorsBlue,
         automaticallyImplyLeading: false,
       ),
       body: Column(

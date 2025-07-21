@@ -533,7 +533,7 @@ class _CallHistoryState extends State<CallHistory> {
       child: Container(
         decoration: BoxDecoration(
           border: Border.all(
-            color: isSelected ? Colors.blue : Colors.transparent,
+            color: isSelected ? AppColors.colorsBlue : Colors.transparent,
             width: 1,
           ),
           borderRadius: BorderRadius.circular(30),
@@ -548,7 +548,7 @@ class _CallHistoryState extends State<CallHistory> {
             ); // Update the date filter based on the selected button
           },
           style: TextButton.styleFrom(
-            foregroundColor: isSelected ? Colors.blue : Colors.black,
+            foregroundColor: isSelected ? AppColors.colorsBlue : Colors.black,
             backgroundColor: Colors.transparent,
             padding: const EdgeInsets.symmetric(vertical: 5),
             shape: RoundedRectangleBorder(
@@ -560,7 +560,7 @@ class _CallHistoryState extends State<CallHistory> {
             style: GoogleFonts.poppins(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: isSelected ? Colors.blue : Colors.black,
+              color: isSelected ? AppColors.colorsBlue : Colors.black,
             ),
           ),
         ),

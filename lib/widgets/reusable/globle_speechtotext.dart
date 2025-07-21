@@ -67,7 +67,7 @@ class _SpeechSearchWidgetState extends State<SpeechSearchWidget>
   Timer? _stateCheckTimer;
   String? _lastError;
 
-  Color get _primaryColor => widget.primaryColor ?? Colors.blue;
+  Color get _primaryColor => widget.primaryColor ?? AppColors.colorsBlue;
   Color get _errorColor => Colors.red;
 
   @override

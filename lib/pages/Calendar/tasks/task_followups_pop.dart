@@ -245,7 +245,7 @@ class _TaskFollowupsPopState extends State<TaskFollowupsPop> {
                     child: Container(
                       height: 45,
                       decoration: BoxDecoration(
-                        color: Colors.blue,
+                        color: AppColors.colorsBlue,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: TextButton(
@@ -301,7 +301,7 @@ class _TaskFollowupsPopState extends State<TaskFollowupsPop> {
     bool success = await LeadsSrv.submitFollowups(
       newTaskForLead,
       widget.leadId,
-      context
+      context,
     );
 
     if (success) {

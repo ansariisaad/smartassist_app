@@ -50,7 +50,7 @@ class _AllFollowupsItemState extends State<allOppointment>
     // Register this class as an observer to track app lifecycle changes
     WidgetsBinding.instance.addObserver(this);
     _slidableController = SlidableController(this);
-     _slidableController.animation.addListener(() {
+    _slidableController.animation.addListener(() {
       final isOpen = _slidableController.ratio != 0;
       if (_isActionPaneOpen != isOpen) {
         setState(() {
@@ -140,14 +140,14 @@ class _AllFollowupsItemState extends State<allOppointment>
           if (widget.subject == 'Call')
             ReusableSlidableAction(
               onPressed: _phoneAction,
-              backgroundColor: Colors.blue,
+              backgroundColor: AppColors.colorsBlue,
               icon: Icons.phone,
               foregroundColor: Colors.white,
             ),
           if (widget.subject == 'Send SMS')
             ReusableSlidableAction(
               onPressed: _messageAction,
-              backgroundColor: Colors.blueGrey,
+              backgroundColor: AppColors.colorsBlueGrey,
               icon: Icons.message_rounded,
               foregroundColor: Colors.white,
             ),
@@ -336,7 +336,7 @@ class _AllFollowupsItemState extends State<allOppointment>
 
     return Row(
       children: [
-        Icon(icon, color: Colors.blue, size: 18),
+        Icon(icon, color: AppColors.colorsBlue, size: 18),
         const SizedBox(width: 5),
         // Text('${widget.subject},', style: AppFont.smallText(context)),
         ConstrainedBox(
@@ -359,7 +359,7 @@ class _AllFollowupsItemState extends State<allOppointment>
   // Widget _buildSubjectDetails(BuildContext context) {
   //   return Row(
   //     children: [
-  //       const Icon(Icons.phone_in_talk, color: Colors.blue, size: 18),
+  //       const Icon(Icons.phone_in_talk, color: AppColors.colorsBlue, size: 18),
   //       const SizedBox(width: 5),
   //       Text('${widget.subject},', style: AppFont.smallText(context)),
   //     ],

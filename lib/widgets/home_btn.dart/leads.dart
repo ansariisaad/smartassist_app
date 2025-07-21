@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
@@ -102,7 +103,7 @@ class _LeadsState extends State<Leads> {
                       '${getSelectedData()['enquiryBank'] ?? 0}',
                       style: AppFont.smallTextBold(
                         context,
-                      ).copyWith(color: Colors.blue),
+                      ).copyWith(color: AppColors.colorsBlue),
                     ),
                   ],
                 ),
@@ -132,7 +133,7 @@ class _LeadsState extends State<Leads> {
           controller: _pageController,
           count: 2,
           effect: WormEffect(
-            activeDotColor: Colors.blue,
+            activeDotColor: AppColors.colorsBlue,
             dotColor: Colors.grey.shade300,
             dotHeight: 8,
             dotWidth: 8,
@@ -258,7 +259,7 @@ class _LeadsState extends State<Leads> {
       child: Container(
         decoration: BoxDecoration(
           border: Border.all(
-            color: isSelected ? Colors.blue : Colors.transparent,
+            color: isSelected ? AppColors.colorsBlue : Colors.transparent,
             width: 1,
           ),
           borderRadius: BorderRadius.circular(30),
@@ -272,7 +273,7 @@ class _LeadsState extends State<Leads> {
             await widget.onFormSubmit(text);
           },
           style: TextButton.styleFrom(
-            foregroundColor: isSelected ? Colors.blue : Colors.black,
+            foregroundColor: isSelected ? AppColors.colorsBlue : Colors.black,
             backgroundColor: Colors.transparent,
             padding: const EdgeInsets.symmetric(vertical: 5),
             shape: RoundedRectangleBorder(
@@ -284,7 +285,7 @@ class _LeadsState extends State<Leads> {
             style: GoogleFonts.poppins(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: isSelected ? Colors.blue : Colors.black,
+              color: isSelected ? AppColors.colorsBlue : Colors.black,
             ),
           ),
         ),
@@ -460,7 +461,7 @@ class _LeadsState extends State<Leads> {
             style: GoogleFonts.inter(
               fontSize: 28,
               fontWeight: FontWeight.w700,
-              color: Colors.blue,
+              color: AppColors.colorsBlue,
             ),
           ),
           const SizedBox(height: 5),
@@ -509,7 +510,7 @@ class _LeadsState extends State<Leads> {
             style: GoogleFonts.inter(
               fontSize: 28,
               fontWeight: FontWeight.w700,
-              color: Colors.blue,
+              color: AppColors.colorsBlue,
             ),
           ),
           const SizedBox(height: 5),

@@ -167,7 +167,7 @@ class _OrderState extends State<Order> {
         decoration: BoxDecoration(
           border: Border.all(
             color: isSelected
-                ? Colors.blue
+                ? AppColors.colorsBlue
                 : Colors.transparent, // Only selected has blue border
             width: 1,
           ),
@@ -182,7 +182,7 @@ class _OrderState extends State<Order> {
           },
           style: TextButton.styleFrom(
             foregroundColor: isSelected
-                ? Colors.blue
+                ? AppColors.colorsBlue
                 : Colors.black, // Selected text blue, others black
             backgroundColor: Colors.transparent, // No background color change
             padding: const EdgeInsets.symmetric(vertical: 5),
@@ -195,7 +195,7 @@ class _OrderState extends State<Order> {
             style: GoogleFonts.poppins(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: isSelected ? Colors.blue : Colors.black,
+              color: isSelected ? AppColors.colorsBlue : Colors.black,
             ),
           ),
         ),

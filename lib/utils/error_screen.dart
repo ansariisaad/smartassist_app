@@ -41,7 +41,7 @@ class ErrorScreen extends StatelessWidget {
                 },
                 style: ElevatedButton.styleFrom(
                   padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                  backgroundColor: Colors.blue,
+                  backgroundColor: AppColors.colorsBlue,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),

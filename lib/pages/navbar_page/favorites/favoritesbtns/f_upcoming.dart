@@ -378,14 +378,14 @@ class _TaskItemState extends State<TaskItem>
           if (widget.subject == 'Call')
             ReusableSlidableAction(
               onPressed: _phoneAction,
-              backgroundColor: Colors.blue,
+              backgroundColor: AppColors.colorsBlue,
               icon: Icons.phone,
               foregroundColor: Colors.white,
             ),
           if (widget.subject == 'Send SMS')
             ReusableSlidableAction(
               onPressed: _messageAction,
-              backgroundColor: Colors.blueGrey,
+              backgroundColor: AppColors.colorsBlueGrey,
               icon: Icons.message_rounded,
               foregroundColor: Colors.white,
             ),
@@ -521,7 +521,7 @@ class _TaskItemState extends State<TaskItem>
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Icon(Icons.phone_in_talk, color: Colors.blue, size: 18),
+        const Icon(Icons.phone_in_talk, color: AppColors.colorsBlue, size: 18),
         const SizedBox(width: 5),
         Text(widget.subject, style: AppFont.smallText(context)),
       ],
@@ -935,7 +935,7 @@ class ReusableSlidableAction extends StatelessWidget {
 //     }
 //     return Row(
 //       children: [
-//         const Icon(Icons.phone_in_talk, color: Colors.blue, size: 14),
+//         const Icon(Icons.phone_in_talk, color: AppColors.colorsBlue, size: 14),
 //         const SizedBox(width: 5),
 //         Text(formattedDate,
 //             style: const TextStyle(fontSize: 12, color: Colors.grey)),

@@ -101,7 +101,7 @@
 //                     'a',
 //                     style: GoogleFonts.poppins(
 //                       fontSize: 40,
-//                       color: Colors.blue,
+//                       color: AppColors.colorsBlue,
 //                       fontWeight: FontWeight.w600,
 //                     ),
 //                   ),
@@ -125,7 +125,7 @@
 //                     'i',
 //                     style: GoogleFonts.poppins(
 //                       fontSize: 40,
-//                       color: Colors.blue,
+//                       color: AppColors.colorsBlue,
 //                       fontWeight: FontWeight.w600,
 //                     ),
 //                   ),
@@ -154,6 +154,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/route/route_name.dart';
 import 'package:smartassist/pages/login_steps/biometric_screen.dart';
 import 'package:smartassist/pages/login_steps/login_page.dart';
@@ -487,7 +488,7 @@ class _SplashScreenState extends State<SplashScreen>
                         'a',
                         style: GoogleFonts.poppins(
                           fontSize: 40,
-                          color: Colors.blue,
+                          color: AppColors.colorsBlue,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -509,7 +510,7 @@ class _SplashScreenState extends State<SplashScreen>
                         'i',
                         style: GoogleFonts.poppins(
                           fontSize: 40,
-                          color: Colors.blue,
+                          color: AppColors.colorsBlue,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -540,7 +541,7 @@ class _SplashScreenState extends State<SplashScreen>
                           'a',
                           style: GoogleFonts.poppins(
                             fontSize: _aiSizeAnimation.value,
-                            color: Colors.blue,
+                            color: AppColors.colorsBlue,
                             fontWeight: FontWeight.w600,
                           ),
                         );
@@ -561,7 +562,7 @@ class _SplashScreenState extends State<SplashScreen>
                           'i',
                           style: GoogleFonts.poppins(
                             fontSize: _aiSizeAnimation.value,
-                            color: Colors.blue,
+                            color: AppColors.colorsBlue,
                             fontWeight: FontWeight.w600,
                           ),
                         );

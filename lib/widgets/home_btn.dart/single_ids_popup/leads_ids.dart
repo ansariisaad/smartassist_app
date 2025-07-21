@@ -952,7 +952,7 @@ class _LeadsIdsState extends State<LeadsIds> {
             activeTrackColor: AppColors.colorsBlue,
             inactiveTrackColor: Colors.grey.withOpacity(0.3),
             thumbColor: AppColors.colorsBlue,
-            overlayColor: Colors.blue.withOpacity(0.2),
+            overlayColor: AppColors.colorsBlue.withOpacity(0.2),
             showValueIndicator: ShowValueIndicator.always,
           ),
           child: RangeSlider(

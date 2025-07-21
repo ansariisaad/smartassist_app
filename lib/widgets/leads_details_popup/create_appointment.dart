@@ -261,7 +261,7 @@ class _CreateAppointmentState extends State<CreateAppointment> {
                     child: Container(
                       height: 45,
                       decoration: BoxDecoration(
-                        color: Colors.blue,
+                        color: AppColors.colorsBlue,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: TextButton(

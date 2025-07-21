@@ -70,7 +70,7 @@ class _StartDriveMapState extends State<StartDriveMap>
     routePolyline = Polyline(
       polylineId: const PolylineId('route'),
       points: routePoints,
-      color: Colors.blue,
+      color: AppColors.colorsBlue,
       width: 5,
     );
   }
@@ -283,7 +283,7 @@ class _StartDriveMapState extends State<StartDriveMap>
     routePolyline = Polyline(
       polylineId: const PolylineId('route'),
       points: routePoints,
-      color: Colors.blue,
+      color: AppColors.colorsBlue,
       width: 6, // Increased width
       patterns: [], // Solid line
       jointType: JointType.round, // Smoother joints

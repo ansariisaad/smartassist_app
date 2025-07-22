@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smartassist/config/component/color/colors.dart';
@@ -415,7 +416,7 @@ class _CallAnalyticsState extends State<CallAnalytics>
                     MaterialPageRoute(builder: (context) => const CallLogs()),
                   );
                 },
-                tooltip: 'Exclude your numbers..',
+                tooltip: 'Exclude unwanted numbers',
                 child: Text(
                   'Exclude',
                   style: TextStyle(
@@ -664,22 +665,29 @@ class _CallAnalyticsState extends State<CallAnalytics>
   }
 
   Widget _buildTabBar() {
-    return Container(
-      height: _isTablet ? 40 : (_isSmallScreen ? 25 : 30),
-      padding: EdgeInsets.zero,
-      margin: EdgeInsets.symmetric(
-        horizontal: _responsivePadding.horizontal,
-        vertical: 8,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.backgroundLightGrey,
-        borderRadius: BorderRadius.circular(22),
-      ),
-      child: Row(
-        children: [
-          for (int i = 0; i < tabTitles.length; i++)
-            Expanded(child: _buildTab(tabTitles[i], i == selectedTabIndex, i)),
-        ],
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.heavyImpact(); // Dismiss keyboard on tap
+      },
+      child: Container(
+        height: _isTablet ? 40 : (_isSmallScreen ? 35 : 50),
+        padding: EdgeInsets.zero,
+        margin: EdgeInsets.symmetric(
+          horizontal: _isSmallScreen ? 60 : 70,
+          vertical: 8,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.backgroundLightGrey,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          children: [
+            for (int i = 0; i < tabTitles.length; i++)
+              Expanded(
+                child: _buildTab(tabTitles[i], i == selectedTabIndex, i),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -791,7 +799,12 @@ class _CallAnalyticsState extends State<CallAnalytics>
     return GestureDetector(
       onTap: () => _updateSelectedTab(index),
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: _isSmallScreen ? 3 : 5),
+        height: 48.0, // <-- Explicitly set a fixed height for the container
+        alignment: Alignment
+            .center, // <-- Center the text vertically within the container
+        padding: EdgeInsets.symmetric(
+          horizontal: 24,
+        ), // Adjust horizontal padding as needed
         decoration: BoxDecoration(
           color: isActive ? AppColors.colorsBlue : Colors.transparent,
           borderRadius: BorderRadius.circular(10),

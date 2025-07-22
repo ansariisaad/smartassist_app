@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:external_app_launcher/external_app_launcher.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
@@ -18,11 +20,17 @@ import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/utils/token_manager.dart';
 import 'package:smartassist/widgets/reusable/whatsapp_fullscreen.dart'
     as fullscreen;
-import 'package:smartassist/widgets/reusable/whatsapp_video.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'dart:convert';
+
+class FileProcessingData {
+  final String base64Data;
+  final String filePath;
+
+  FileProcessingData({required this.base64Data, required this.filePath});
+}
 
 class Message {
   final String body;
@@ -264,23 +272,62 @@ class _MessageBubbleState extends State<MessageBubble> {
       }
     }
 
-    // Function to get file size from base64
+    // Enhanced file size calculation with better formatting
     String getFileSize(String? base64Data) {
       if (base64Data == null) return 'Unknown size';
 
-      // Calculate approximate size from base64
       final bytes = (base64Data.length * 0.75).round();
       if (bytes < 1024) {
         return '$bytes B';
       } else if (bytes < 1024 * 1024) {
         return '${(bytes / 1024).toStringAsFixed(1)} KB';
-      } else {
+      } else if (bytes < 1024 * 1024 * 1024) {
         return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+      } else {
+        return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
       }
     }
 
+    // Check if file is large
+    bool isLargeFile(String? base64Data) {
+      if (base64Data == null) return false;
+      final bytes = (base64Data.length * 0.75).round();
+      return bytes > 10 * 1024 * 1024; // 10MB threshold for warning
+    }
+
     return GestureDetector(
-      onTap: () => _openDocument(media),
+      onTap: () async {
+        if (isLargeFile(base64Data)) {
+          // Show confirmation dialog for large files
+          final shouldProceed = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text('Large File'),
+              content: Text(
+                'This file is ${getFileSize(base64Data)}. '
+                'Opening large files may take some time and use memory. '
+                'Do you want to continue?',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: Text('Open'),
+                ),
+              ],
+            ),
+          );
+
+          if (shouldProceed == true) {
+            _openDocument(media);
+          }
+        } else {
+          _openDocument(media);
+        }
+      },
       child: Container(
         decoration: BoxDecoration(
           color: Colors.grey[100],
@@ -311,18 +358,152 @@ class _MessageBubbleState extends State<MessageBubble> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    getFileSize(base64Data),
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  Row(
+                    children: [
+                      Text(
+                        getFileSize(base64Data),
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
+                      if (isLargeFile(base64Data)) ...[
+                        const SizedBox(width: 8),
+                        Icon(
+                          Icons.warning_amber,
+                          size: 14,
+                          color: Colors.orange,
+                        ),
+                      ],
+                    ],
                   ),
                 ],
               ),
             ),
-            Icon(Icons.download, size: 20, color: AppColors.colorsBlue),
+            Icon(Icons.open_in_new, size: 20, color: AppColors.colorsBlue),
           ],
         ),
       ),
     );
+  }
+
+  // Future<void> _openDocument(Map<String, dynamic>? media) async {
+  //   if (media == null || media['base64'] == null) {
+  //     _showSnackBar('Document data not available', Colors.red);
+  //     return;
+  //   }
+
+  //   try {
+  //     // Show loading indicator
+  //     _showLoadingDialog('Opening document...');
+
+  //     // Request storage permission
+  //     if (await _requestStoragePermission()) {
+  //       // Decode base64 data
+  //       final base64Data = media['base64'] as String;
+  //       final bytes = base64Decode(base64Data);
+
+  //       // Get filename and ensure it has an extension
+  //       String filename = media['filename'] ?? 'document';
+  //       if (!filename.contains('.')) {
+  //         final mimetype = media['mimetype'] ?? '';
+  //         final extension = _getExtensionFromMimeType(mimetype);
+  //         filename = '$filename.$extension';
+  //       }
+
+  //       // Get temporary directory
+  //       final directory = await getTemporaryDirectory();
+  //       final filePath = '${directory.path}/$filename';
+
+  //       // Write file to temporary directory
+  //       final file = File(filePath);
+  //       await file.writeAsBytes(bytes);
+
+  //       // Close loading dialog
+  //       Navigator.of(context).pop();
+
+  //       // Open the file
+  //       final result = await OpenFile.open(filePath);
+
+  //       if (result.type != ResultType.done) {
+  //         _showSnackBar(
+  //           'Could not open file: ${result.message}',
+  //           Colors.orange,
+  //         );
+  //       }
+  //     } else {
+  //       Navigator.of(context).pop(); // Close loading dialog
+  //       _showSnackBar(
+  //         'Storage permission required to open documents',
+  //         Colors.red,
+  //       );
+  //     }
+  //   } catch (e) {
+  //     Navigator.of(context).pop(); // Close loading dialog
+  //     print('Error opening document: $e');
+  //     _showSnackBar('Failed to open document', Colors.red);
+  //   }
+  // }
+
+  static Future<bool> _processLargeFileInIsolate(
+    FileProcessingData data,
+  ) async {
+    try {
+      // Decode base64 in chunks to avoid memory issues
+      final bytes = await _decodeBase64InChunks(data.base64Data);
+
+      // Write file
+      final file = File(data.filePath);
+      await file.writeAsBytes(bytes);
+      return true;
+    } catch (e) {
+      print('Error in isolate: $e');
+      return false;
+    }
+  }
+
+  // Decode base64 in chunks to handle large files
+  static Future<Uint8List> _decodeBase64InChunks(String base64Data) async {
+    const int chunkSize = 1024 * 1024; // 1MB chunks
+    final List<int> bytes = [];
+
+    for (int i = 0; i < base64Data.length; i += chunkSize) {
+      final end = (i + chunkSize < base64Data.length)
+          ? i + chunkSize
+          : base64Data.length;
+      final chunk = base64Data.substring(i, end);
+
+      // Yield control back to the event loop periodically
+      if (i % (chunkSize * 4) == 0) {
+        await Future.delayed(Duration.zero);
+      }
+
+      try {
+        final chunkBytes = base64Decode(chunk);
+        bytes.addAll(chunkBytes);
+      } catch (e) {
+        // Handle partial chunk at the end
+        if (i + chunkSize >= base64Data.length) {
+          // This might be the last chunk, try to decode what we have
+          try {
+            final paddedChunk = _addBase64Padding(chunk);
+            final chunkBytes = base64Decode(paddedChunk);
+            bytes.addAll(chunkBytes);
+          } catch (paddingError) {
+            print('Error decoding final chunk: $paddingError');
+          }
+        } else {
+          throw e;
+        }
+      }
+    }
+
+    return Uint8List.fromList(bytes);
+  }
+
+  static String _addBase64Padding(String base64) {
+    final padding = 4 - (base64.length % 4);
+    if (padding != 4) {
+      return base64 + ('=' * padding);
+    }
+    return base64;
   }
 
   Future<void> _openDocument(Map<String, dynamic>? media) async {
@@ -333,13 +514,14 @@ class _MessageBubbleState extends State<MessageBubble> {
 
     try {
       // Show loading indicator
-      _showLoadingDialog('Opening document...');
+      _showLoadingDialog('Processing document...');
 
       // Request storage permission
       if (await _requestStoragePermission()) {
-        // Decode base64 data
-        final base64Data = media['base64'] as String;
-        final bytes = base64Decode(base64Data);
+        String base64Data = media['base64'] as String;
+        if (base64Data.startsWith('data:')) {
+          base64Data = base64Data.split(',').last;
+        }
 
         // Get filename and ensure it has an extension
         String filename = media['filename'] ?? 'document';
@@ -353,21 +535,51 @@ class _MessageBubbleState extends State<MessageBubble> {
         final directory = await getTemporaryDirectory();
         final filePath = '${directory.path}/$filename';
 
-        // Write file to temporary directory
-        final file = File(filePath);
-        await file.writeAsBytes(bytes);
+        // Check file size and process accordingly
+        final estimatedSize = (base64Data.length * 0.75).round();
+        const largeSizeThreshold = 5 * 1024 * 1024; // 5MB threshold
+
+        bool success = false;
+
+        if (estimatedSize > largeSizeThreshold) {
+          // Process large files in isolate
+          _updateLoadingDialog('Processing large file...');
+
+          try {
+            success = await compute(
+              _processLargeFileInIsolate,
+              FileProcessingData(base64Data: base64Data, filePath: filePath),
+            );
+          } catch (e) {
+            print('Isolate processing failed, trying direct method: $e');
+            success = await _processFileDirectly(base64Data, filePath);
+          }
+        } else {
+          // Process smaller files directly
+          success = await _processFileDirectly(base64Data, filePath);
+        }
 
         // Close loading dialog
         Navigator.of(context).pop();
 
-        // Open the file
-        final result = await OpenFile.open(filePath);
+        if (success) {
+          // Verify file exists and has content
+          final file = File(filePath);
+          if (await file.exists() && await file.length() > 0) {
+            // Open the file
+            final result = await OpenFile.open(filePath);
 
-        if (result.type != ResultType.done) {
-          _showSnackBar(
-            'Could not open file: ${result.message}',
-            Colors.orange,
-          );
+            if (result.type != ResultType.done) {
+              _showSnackBar(
+                'Could not open file: ${result.message}',
+                Colors.orange,
+              );
+            }
+          } else {
+            _showSnackBar('Failed to create file', Colors.red);
+          }
+        } else {
+          _showSnackBar('Failed to process document', Colors.red);
         }
       } else {
         Navigator.of(context).pop(); // Close loading dialog
@@ -379,8 +591,51 @@ class _MessageBubbleState extends State<MessageBubble> {
     } catch (e) {
       Navigator.of(context).pop(); // Close loading dialog
       print('Error opening document: $e');
-      _showSnackBar('Failed to open document', Colors.red);
+      _showSnackBar('Failed to open document: ${e.toString()}', Colors.red);
     }
+  }
+
+  // Process file directly (for smaller files or fallback)
+  Future<bool> _processFileDirectly(String base64Data, String filePath) async {
+    try {
+      final bytes = await _decodeBase64InChunks(base64Data);
+      final file = File(filePath);
+      await file.writeAsBytes(bytes);
+      return true;
+    } catch (e) {
+      print('Direct processing error: $e');
+      return false;
+    }
+  }
+
+  // Updated loading dialog that can be updated
+  void _updateLoadingDialog(String message) {
+    // You might need to implement a stateful dialog or use a different approach
+    // For now, we'll just print the update
+    print('Loading update: $message');
+  }
+
+  // Enhanced loading dialog with progress indication
+  void _showLoadingDialog(String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(color: AppColors.colorsBlue),
+            const SizedBox(height: 16),
+            Text(message),
+            const SizedBox(height: 8),
+            Text(
+              'This may take a moment for large files',
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   // Helper method to requ  est storage permission
@@ -438,21 +693,21 @@ class _MessageBubbleState extends State<MessageBubble> {
   }
 
   // Helper method to show loading dialog
-  void _showLoadingDialog(String message) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        content: Row(
-          children: [
-            CircularProgressIndicator(color: AppColors.colorsBlue),
-            const SizedBox(width: 16),
-            Text(message),
-          ],
-        ),
-      ),
-    );
-  }
+  // void _showLoadingDialog(String message) {
+  //   showDialog(
+  //     context: context,
+  //     barrierDismissible: false,
+  //     builder: (context) => AlertDialog(
+  //       content: Row(
+  //         children: [
+  //           CircularProgressIndicator(color: AppColors.colorsBlue),
+  //           const SizedBox(width: 16),
+  //           Text(message),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   // Helper method to show snack bar
   void _showSnackBar(String message, Color color) {
@@ -1118,9 +1373,7 @@ class _WhatsappChatState extends State<WhatsappChat>
                 leading: Icon(Icons.photo),
                 title: Text('Photo', style: AppFont.dropDowmLabel(context)),
                 onTap: () async {
-                  Navigator.pop(
-                    context,
-                  ); // ✅ This is correct - we're in a modal
+                  Navigator.pop(context);
                   final XFile? image = await _picker.pickImage(
                     source: ImageSource.gallery,
                     imageQuality: 70,

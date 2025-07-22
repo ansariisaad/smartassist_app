@@ -305,36 +305,6 @@ class LeadsSrv {
     }
   }
 
-  // static Future<Map<String, dynamic>> setPwd(Map body) async {
-  //   const url = 'https://api.smartassistapp.in/api/login/create-pwd';
-  //   final uri = Uri.parse(url);
-
-  //   try {
-  //     final response = await http.put(
-  //       uri,
-  //       body: jsonEncode(body),
-  //       headers: {'Content-Type': 'application/json'},
-  //     );
-
-  //     // Log the response for debugging
-  //     print('API Status Code: ${response.statusCode}');
-  //     print('API Response Body: ${response.body}');
-
-  //     if (response.statusCode == 200) {
-  //       final responseData = jsonDecode(response.body);
-  //       print(responseData);
-  //       return {'isSuccess': true, 'data': responseData};
-  //     } else {
-  //       final errorData = jsonDecode(response.body);
-  //       return {'isSuccess': false, 'data': errorData};
-  //     }
-  //   } catch (error) {
-  //     // Log any error that occurs during the API call
-  //     print('Error: $error');
-  //     return {'isSuccess': false, 'error': error.toString()};
-  //   }
-  // }
-
   static Future<List?> loadFollowups(Map body) async {
     const url = '${baseUrl}admin/leads/all';
 

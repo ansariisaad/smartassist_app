@@ -6,21 +6,16 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
 import 'package:smartassist/services/api_srv.dart';
+import 'package:smartassist/widgets/testdrive/upcoming.dart';
 import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/testdrive.dart';
+// import 'package:smartassist/widgets/testdrive/overdue.dart';
 import 'package:smartassist/widgets/testdrive_verifyotp.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class AllTestrive extends StatefulWidget {
-  final String name, mobile, taskId, eventId, startTime;
-  final String subject;
-  final String date;
-  final String vehicle;
-  final String leadId;
-  final double swipeOffset;
+  final String name, date, vehicle, subject, leadId, eventId, startTime, email;
   final bool isFavorite;
   final VoidCallback onToggleFavorite;
   final VoidCallback handleTestDrive;
-  // final dynamic item;
   final VoidCallback otpTrigger;
 
   const AllTestrive({
@@ -30,16 +25,13 @@ class AllTestrive extends StatefulWidget {
     required this.date,
     required this.vehicle,
     required this.leadId,
-    this.swipeOffset = 0.0,
     this.isFavorite = false,
     required this.onToggleFavorite,
-    required this.mobile,
-    required this.taskId,
     required this.startTime,
     required this.eventId,
     required this.handleTestDrive,
-    // this.item,
     required this.otpTrigger,
+    required this.email,
   });
 
   @override
@@ -132,9 +124,6 @@ class _AllFollowupsItemState extends State<AllTestrive>
   }
 
   Widget _buildOverdueCard(BuildContext context) {
-    bool isFavoriteSwipe = widget.swipeOffset > 50;
-    bool isCallSwipe = widget.swipeOffset < -50;
-
     return Slidable(
       key: ValueKey(widget.leadId), // Always good to set keys
       controller: _slidableController,
@@ -142,6 +131,16 @@ class _AllFollowupsItemState extends State<AllTestrive>
         extentRatio: 0.2,
         motion: const ScrollMotion(),
         children: [
+          // ReusableSlidableAction(
+          //   onPressed: widget.onToggleFavorite, // handle fav toggle
+          //   backgroundColor: Colors.amber,
+          //   icon: widget.isFavorite
+          //       ? Icons.star_rounded
+          //       : Icons.star_border_rounded,
+          //   foregroundColor: Colors.white,
+          //   handleTestDrive: '',
+          //   otpTrigger: '',
+          // ),
           ReusableSlidableAction(
             onPressed: widget.onToggleFavorite, // handle fav toggle
             backgroundColor: Colors.amber,
@@ -190,60 +189,51 @@ class _AllFollowupsItemState extends State<AllTestrive>
       ),
       child: Stack(
         children: [
-          // Favorite Swipe Overlay
-          if (isFavoriteSwipe) Positioned.fill(child: _buildFavoriteOverlay()),
-
-          // Call Swipe Overlay
-          if (isCallSwipe) Positioned.fill(child: _buildCallOverlay()),
-
           // Main Card
-          Opacity(
-            opacity: (isFavoriteSwipe || isCallSwipe) ? 0 : 1.0,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-              decoration: BoxDecoration(
-                color: AppColors.containerBg,
-                borderRadius: BorderRadius.circular(5),
-                border: Border(
-                  left: BorderSide(
-                    width: 8.0,
-                    color: widget.isFavorite
-                        ? Colors.yellow
-                        : AppColors.colorsBlueBar,
-                  ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+            decoration: BoxDecoration(
+              color: AppColors.containerBg,
+              borderRadius: BorderRadius.circular(5),
+              border: Border(
+                left: BorderSide(
+                  width: 8.0,
+                  color: widget.isFavorite
+                      ? Colors.yellow
+                      : AppColors.colorsBlueBar,
                 ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      const SizedBox(width: 8),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              _buildUserDetails(context),
-                              _buildVerticalDivider(15),
-                              _buildCarModel(context),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              _buildSubjectDetails(context),
-                              _date(context),
-                              _time(),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  _buildNavigationButton(context),
-                ],
-              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const SizedBox(width: 8),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            _buildUserDetails(context),
+                            _buildVerticalDivider(15),
+                            _buildCarModel(context),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            _buildSubjectDetails(context),
+                            _date(context),
+                            _time(),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                _buildNavigationButton(context),
+              ],
             ),
           ),
         ],
@@ -317,69 +307,6 @@ class _AllFollowupsItemState extends State<AllTestrive>
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildFavoriteOverlay() {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Colors.yellow.withOpacity(0.2),
-            Colors.yellow.withOpacity(0.8),
-          ],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        children: [
-          const SizedBox(width: 15),
-          Icon(
-            widget.isFavorite ? Icons.star_outline_rounded : Icons.star_rounded,
-            color: const Color.fromRGBO(226, 195, 34, 1),
-            size: 40,
-          ),
-          const SizedBox(width: 10),
-          Text(
-            widget.isFavorite ? 'Unfavorite' : 'Favorite',
-            style: GoogleFonts.poppins(
-              color: const Color.fromRGBO(187, 158, 0, 1),
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCallOverlay() {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.green, Colors.green],
-          begin: Alignment.centerRight,
-          end: Alignment.centerLeft,
-        ),
-        borderRadius: BorderRadius.all(Radius.circular(10)),
-      ),
-      child: Row(
-        children: [
-          const SizedBox(width: 10),
-          const Icon(Icons.phone_in_talk, color: Colors.white, size: 30),
-          const SizedBox(width: 10),
-          Text(
-            'Call',
-            style: GoogleFonts.poppins(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -533,42 +460,42 @@ class _AllFollowupsItemState extends State<AllTestrive>
     );
   }
 
-  void _phoneAction() {
-    print("Call action triggered for ${widget.mobile}");
+  // void _phoneAction() {
+  //   print("Call action triggered for ${widget.mobile}");
 
-    // String mobile = item['mobile'] ?? '';
+  //   // String mobile = item['mobile'] ?? '';
 
-    if (widget.mobile.isNotEmpty) {
-      try {
-        // Set flag that we're making a phone call
-        _wasCallingPhone = true;
+  //   if (widget.mobile.isNotEmpty) {
+  //     try {
+  //       // Set flag that we're making a phone call
+  //       _wasCallingPhone = true;
 
-        // Simple approach without canLaunchUrl check
-        final phoneNumber = 'tel:${widget.mobile}';
-        launchUrl(
-          Uri.parse(phoneNumber),
-          mode: LaunchMode.externalNonBrowserApplication,
-        );
-      } catch (e) {
-        print('Error launching phone app: $e');
+  //       // Simple approach without canLaunchUrl check
+  //       final phoneNumber = 'tel:${widget.mobile}';
+  //       launchUrl(
+  //         Uri.parse(phoneNumber),
+  //         mode: LaunchMode.externalNonBrowserApplication,
+  //       );
+  //     } catch (e) {
+  //       print('Error launching phone app: $e');
 
-        // Reset flag if there was an error
-        _wasCallingPhone = false;
-        // Show error message to user
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Could not launch phone dialer')),
-          );
-        }
-      }
-    } else {
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('No phone number available')));
-      }
-    }
-  }
+  //       // Reset flag if there was an error
+  //       _wasCallingPhone = false;
+  //       // Show error message to user
+  //       if (context.mounted) {
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           SnackBar(content: Text('Could not launch phone dialer')),
+  //         );
+  //       }
+  //     }
+  //   } else {
+  //     if (context.mounted) {
+  //       ScaffoldMessenger.of(
+  //         context,
+  //       ).showSnackBar(SnackBar(content: Text('No phone number available')));
+  //     }
+  //   }
+  // }
 
   void _messageAction() {
     print("Message action triggered");
@@ -694,10 +621,27 @@ class _AllTestDriveState extends State<AllTestDrive> {
     );
   }
 
-  void _toggleFavorite(int index) {
-    setState(() {
-      _favorites[index] = !_favorites[index];
-    });
+  // void _toggleFavorite(int index) {
+  //   setState(() {
+  //     _favorites[index] = !_favorites[index];
+  //   });
+  // }
+
+  Future<void> _toggleFavorite(String eventId, int index) async {
+    bool currentStatus = widget.allTestDrive[index]['favourite'] ?? false;
+    bool newFavoriteStatus = !currentStatus;
+
+    final success = await LeadsSrv.favoriteTestDrive(eventId: eventId);
+
+    if (success) {
+      setState(() {
+        widget.allTestDrive[index]['favourite'] = newFavoriteStatus;
+      });
+
+      // if (widget.onFavoriteToggle != null) {
+      //   widget.onFavoriteToggle!(eventId, newFavoriteStatus);
+      // }
+    }
   }
 
   @override
@@ -714,54 +658,120 @@ class _AllTestDriveState extends State<AllTestDrive> {
       );
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (!widget.isNested)
-          const Padding(
-            padding: EdgeInsets.fromLTRB(15, 15, 0, 0),
-            child: Text(
-              "All Followups",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-            ),
+    //    return ListView.builder(
+    //     shrinkWrap: true,
+    //     physics: widget.isNested
+    //         ? const NeverScrollableScrollPhysics()
+    //         : const AlwaysScrollableScrollPhysics(),
+    //     itemCount: widget.allTestDrive.length,
+    //     itemBuilder: (context, index) {
+    //       var item = widget.allTestDrive[index];
+
+    //       if (!(item.containsKey('assigned_to') &&
+    //           item.containsKey('start_date') &&
+    //           item.containsKey('lead_id') &&
+    //           item.containsKey('event_id'))) {
+    //         return ListTile(title: Text('Invalid data at index $index'));
+    //       }
+
+    //       String eventId = item['event_id'];
+    //       // double swipeOffset = _swipeOffsets[eventId] ?? 0;
+
+    //       return GestureDetector(
+    //         child: upcomingTestDrivesItem(
+    //           key: ValueKey(item['event_id']),
+    //           name: item['name'],
+    //           vehicle: item['PMI'] ?? 'Range Rover Velar',
+    //           subject: item['subject'] ?? 'Meeting',
+
+    //           date: item['start_date'],
+    //           email: item['updated_by'],
+    //           leadId: item['lead_id'],
+    //           startTime:
+    //               (item['start_time'] != null &&
+    //                   item['start_time'].toString().isNotEmpty)
+    //               ? item['start_time'].toString()
+    //               : "00:00:00",
+
+    //           eventId: item['event_id'] ?? '',
+
+    //           isFavorite: item['favourite'] ?? false,
+    //           swipeOffset: swipeOffset,
+    //           onToggleFavorite: () {
+    //             _toggleFavorite(eventId, index);
+    //           },
+    //           otpTrigger: () {
+    //             _getOtp(eventId);
+    //           },
+    //           fetchDashboardData: () {},
+    //           handleTestDrive: () {
+    //             _handleTestDrive(item);
+    //           },
+    //           refreshDashboard: widget.refreshDashboard,
+
+    //           // Placeholder, replace with actual method
+    //         ),
+    //       );
+    //     },
+    //   );
+    // }
+
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: widget.isNested
+          ? const NeverScrollableScrollPhysics()
+          : const AlwaysScrollableScrollPhysics(),
+      itemCount: widget.allTestDrive.length,
+      itemBuilder: (context, index) {
+        var item = widget.allTestDrive[index];
+
+        if (!(item.containsKey('assigned_to') &&
+            item.containsKey('start_date') &&
+            item.containsKey('lead_id') &&
+            item.containsKey('event_id'))) {
+          return ListTile(title: Text('Invalid data at index $index'));
+        }
+
+        String eventId = item['event_id'];
+        // double swipeOffset = _swipeOffsets[eventId] ?? 0;
+
+        return GestureDetector(
+          child: upcomingTestDrivesItem(
+            key: ValueKey(item['event_id']),
+            name: item['name'],
+            vehicle: item['PMI'] ?? 'Range Rover Velar',
+            subject: item['subject'] ?? 'Meeting',
+
+            date: item['start_date'],
+            // email: item['updated_by'], // Removed because 'email' is not a defined parameter
+            leadId: item['lead_id'],
+            startTime:
+                (item['start_time'] != null &&
+                    item['start_time'].toString().isNotEmpty)
+                ? item['start_time'].toString()
+                : "00:00:00",
+
+            eventId: item['event_id'] ?? '',
+
+            isFavorite: item['favourite'] ?? false,
+            // swipeOffset: swipeOffset,
+            onToggleFavorite: () {
+              _toggleFavorite(eventId, index);
+            },
+            otpTrigger: () {
+              _getOtp(eventId);
+            },
+            fetchDashboardData: () {},
+            handleTestDrive: () {
+              _handleTestDrive(item);
+            },
+            swipeOffset: 0,
+            // taskId: '',
+            refreshDashboard: () async {},
+            email: '',
           ),
-
-        ListView.builder(
-          physics: const NeverScrollableScrollPhysics(),
-          shrinkWrap: true,
-          itemCount: widget.allTestDrive.length,
-          itemBuilder: (context, index) {
-            final item = widget.allTestDrive[index];
-            return AllTestrive(
-              name: item['name'] ?? '',
-              subject: item['subject'] ?? '',
-              date: item['due_date'] ?? '',
-              vehicle: item['PMI'] ?? '',
-              leadId: item['lead_id'] ?? '',
-              mobile: item['mobile'] ?? '',
-              taskId: item['task_id'] ?? '',
-
-              // startTime: item['start_time'],
-              startTime:
-                  (item['start_time'] != null &&
-                      item['start_time'].toString().isNotEmpty)
-                  ? item['start_time'].toString()
-                  : "00:00:00",
-
-              eventId: item['event_id'],
-              isFavorite: _favorites[index],
-              onToggleFavorite: () => _toggleFavorite(index),
-
-              handleTestDrive: () {
-                _handleTestDrive(item);
-              },
-              otpTrigger: () {
-                _getOtp(item['event_id'] ?? '');
-              },
-            );
-          },
-        ),
-      ],
+        );
+      },
     );
   }
 }

@@ -94,6 +94,8 @@ dependencies:
   flutter_sound: ^9.28.0  
   video_player: ^2.10.0
   sms_autofill: ^2.4.1 
+  open_file: ^3.5.10
+  device_info_plus: ^11.5.0
 
 dev_dependencies:
   flutter_test:

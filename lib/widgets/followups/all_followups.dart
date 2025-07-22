@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
+import 'package:smartassist/services/leads_srv.dart';
 import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/followups.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -112,9 +113,6 @@ class _AllFollowupsItemState extends State<AllFollowupItem>
   }
 
   Widget _buildOverdueCard(BuildContext context) {
-    bool isFavoriteSwipe = widget.swipeOffset > 50;
-    bool isCallSwipe = widget.swipeOffset < -50;
-
     return Slidable(
       key: ValueKey(widget.leadId), // Always good to set keys
       controller: _slidableController,
@@ -162,122 +160,50 @@ class _AllFollowupsItemState extends State<AllFollowupItem>
       ),
       child: Stack(
         children: [
-          // Favorite Swipe Overlay
-          if (isFavoriteSwipe) Positioned.fill(child: _buildFavoriteOverlay()),
-
-          // Call Swipe Overlay
-          if (isCallSwipe) Positioned.fill(child: _buildCallOverlay()),
-
           // Main Card
-          Opacity(
-            opacity: (isFavoriteSwipe || isCallSwipe) ? 0 : 1.0,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-              decoration: BoxDecoration(
-                color: AppColors.containerBg,
-                borderRadius: BorderRadius.circular(5),
-                border: Border(
-                  left: BorderSide(
-                    width: 8.0,
-                    color: widget.isFavorite
-                        ? Colors.yellow
-                        : AppColors.colorsBlueBar,
-                  ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+            decoration: BoxDecoration(
+              color: AppColors.containerBg,
+              borderRadius: BorderRadius.circular(5),
+              border: Border(
+                left: BorderSide(
+                  width: 8.0,
+                  color: widget.isFavorite
+                      ? Colors.yellow
+                      : AppColors.colorsBlueBar,
                 ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      const SizedBox(width: 8),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              _buildUserDetails(context),
-                              _buildVerticalDivider(15),
-                              _buildCarModel(context),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              _buildSubjectDetails(context),
-                              _date(context),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  _buildNavigationButton(context),
-                ],
-              ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFavoriteOverlay() {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Colors.yellow.withOpacity(0.2),
-            Colors.yellow.withOpacity(0.8),
-          ],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        children: [
-          const SizedBox(width: 15),
-          Icon(
-            widget.isFavorite ? Icons.star_outline_rounded : Icons.star_rounded,
-            color: const Color.fromRGBO(226, 195, 34, 1),
-            size: 40,
-          ),
-          const SizedBox(width: 10),
-          Text(
-            widget.isFavorite ? 'Unfavorite' : 'Favorite',
-            style: GoogleFonts.poppins(
-              color: const Color.fromRGBO(187, 158, 0, 1),
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCallOverlay() {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.green, Colors.green],
-          begin: Alignment.centerRight,
-          end: Alignment.centerLeft,
-        ),
-        borderRadius: BorderRadius.all(Radius.circular(10)),
-      ),
-      child: Row(
-        children: [
-          const SizedBox(width: 10),
-          const Icon(Icons.phone_in_talk, color: Colors.white, size: 30),
-          const SizedBox(width: 10),
-          Text(
-            'Call',
-            style: GoogleFonts.poppins(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const SizedBox(width: 8),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            _buildUserDetails(context),
+                            _buildVerticalDivider(15),
+                            _buildCarModel(context),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            _buildSubjectDetails(context),
+                            _date(context),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                _buildNavigationButton(context),
+              ],
             ),
           ),
         ],
@@ -590,10 +516,27 @@ class _AllFollowupState extends State<AllFollowup> {
     );
   }
 
-  void _toggleFavorite(int index) {
-    setState(() {
-      _favorites[index] = !_favorites[index];
-    });
+  // void _toggleFavorite(int index) {
+  //   setState(() {
+  //     _favorites[index] = !_favorites[index];
+  //   });
+  // }
+
+  Future<void> _toggleFavorite(String taskId, int index) async {
+    bool currentStatus = widget.allFollowups[index]['favourite'] ?? false;
+    bool newFavoriteStatus = !currentStatus;
+
+    final success = await LeadsSrv.favorite(taskId: taskId);
+
+    if (success) {
+      setState(() {
+        widget.allFollowups[index]['favourite'] = newFavoriteStatus;
+      });
+
+      // if (widget.onFavoriteToggle != null) {
+      //   widget.onFavoriteToggle!(taskId, newFavoriteStatus);
+      // }
+    }
   }
 
   @override
@@ -622,21 +565,40 @@ class _AllFollowupState extends State<AllFollowup> {
             ),
           ),
         ListView.builder(
-          physics: const NeverScrollableScrollPhysics(),
           shrinkWrap: true,
+          physics: widget.isNested
+              ? const NeverScrollableScrollPhysics()
+              : const AlwaysScrollableScrollPhysics(),
           itemCount: widget.allFollowups.length,
           itemBuilder: (context, index) {
-            final item = widget.allFollowups[index];
-            return AllFollowupItem(
-              name: item['name'] ?? '',
-              subject: item['subject'] ?? '',
-              date: item['due_date'] ?? '',
-              vehicle: item['PMI'] ?? '',
-              leadId: item['lead_id'] ?? '',
-              mobile: item['mobile'] ?? '',
-              taskId: item['task_id'] ?? '',
-              isFavorite: _favorites[index],
-              onToggleFavorite: () => _toggleFavorite(index),
+            var item = widget.allFollowups[index];
+
+            if (!(item.containsKey('name') &&
+                item.containsKey('due_date') &&
+                item.containsKey('lead_id') &&
+                item.containsKey('task_id'))) {
+              return ListTile(title: Text('Invalid data at index $index'));
+            }
+
+            String taskId = item['task_id'];
+            // double swipeOffset = _swipeOffsets[taskId] ?? 0;
+
+            return GestureDetector(
+              child: AllFollowupItem(
+                key: ValueKey(item['task_id']),
+                name: item['name'],
+                date: item['due_date'],
+                mobile: item['mobile'],
+                subject: item['subject'] ?? '',
+                vehicle: item['PMI'] ?? 'Range Rover Velar',
+                leadId: item['lead_id'],
+                taskId: taskId,
+                isFavorite: item['favourite'] ?? false,
+                // refreshDashboard: widget.refreshDashboard,
+                onToggleFavorite: () {
+                  _toggleFavorite(taskId, index);
+                },
+              ),
             );
           },
         ),

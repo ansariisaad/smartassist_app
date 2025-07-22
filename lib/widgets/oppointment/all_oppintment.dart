@@ -5,8 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
-import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/appointments.dart';
-import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/followups.dart';
+import 'package:smartassist/services/api_srv.dart';
+import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/appointments.dart'; 
 import 'package:url_launcher/url_launcher.dart';
 
 class allOppointment extends StatefulWidget {
@@ -604,10 +604,26 @@ class _AllOppintmentState extends State<AllOppintment> {
     );
   }
 
-  void _toggleFavorite(int index) {
-    setState(() {
-      _favorites[index] = !_favorites[index];
-    });
+  // void _toggleFavorite(int index) {
+  //   setState(() {
+  //     _favorites[index] = !_favorites[index];
+  //   });
+  // }
+
+  Future<void> _toggleFavorite(String taskId, int index) async {
+    bool currentStatus = widget.allFollowups[index]['favourite'] ?? false;
+    bool newFavoriteStatus = !currentStatus;
+
+    final success = await LeadsSrv.favoriteEvent(taskId: taskId);
+    if (success) {
+      setState(() {
+        widget.allFollowups[index]['favourite'] = newFavoriteStatus;
+      });
+
+      // if (widget.onFavoriteToggle != null) {
+      //   widget.onFavoriteToggle!(taskId, newFavoriteStatus);
+      // }
+    }
   }
 
   @override
@@ -631,27 +647,41 @@ class _AllOppintmentState extends State<AllOppintment> {
           const Padding(
             padding: EdgeInsets.fromLTRB(15, 15, 0, 0),
             child: Text(
-              "All Followups",
+              "All Appointment",
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
           ),
         ListView.builder(
-          physics: const NeverScrollableScrollPhysics(),
           shrinkWrap: true,
+          physics: widget.isNested
+              ? const NeverScrollableScrollPhysics()
+              : const AlwaysScrollableScrollPhysics(),
           itemCount: widget.allFollowups.length,
           itemBuilder: (context, index) {
-            final item = widget.allFollowups[index];
-            return allOppointment(
-              name: item['name'] ?? '',
-              time: item['time'] ?? '',
-              subject: item['subject'] ?? '',
-              date: item['due_date'] ?? '',
-              vehicle: item['PMI'] ?? '',
-              leadId: item['lead_id'] ?? '',
-              mobile: item['mobile'] ?? '',
-              taskId: item['task_id'] ?? '',
-              isFavorite: _favorites[index],
-              onToggleFavorite: () => _toggleFavorite(index),
+            var item = widget.allFollowups[index];
+            print('Item at index $index: $item');
+
+            String eventId = item['task_id'];
+
+            return GestureDetector(
+              child: allOppointment(
+                key: ValueKey(eventId),
+                name: item['name'],
+                subject: item['subject'] ?? 'Meeting',
+                date: item['due_date'] ?? '',
+                vehicle: item['PMI'] ?? 'Range Rover Velar',
+                leadId: item['lead_id'],
+                mobile: item['mobile'] ?? '',
+                time: item['time'] ?? '',
+                taskId: item['task_id'] ?? '',
+                // refreshDashboard: widget.refreshDashboard,
+                isFavorite: item['favourite'] ?? false,
+                // swipeOffset: swipeOffset,
+                // fetchDashboardData: () {},
+                onToggleFavorite: () {
+                  _toggleFavorite(eventId, index);
+                },
+              ),
             );
           },
         ),

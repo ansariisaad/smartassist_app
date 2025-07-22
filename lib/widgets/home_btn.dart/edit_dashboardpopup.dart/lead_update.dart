@@ -223,7 +223,7 @@ class _LeadUpdateState extends State<LeadUpdate> {
             mobileController.text = mobile;
 
             // Set dropdown values
-            _selectedBrand = data['data']['brand'] ?? '';
+            // _selectedBrand = data['data']['brand'] ?? '';
             _selectedEnquiryType = data['data']['enquiry_type'] ?? '';
 
             // Set model interest
@@ -293,10 +293,10 @@ class _LeadUpdateState extends State<LeadUpdate> {
       _errors = {}; // Clear previous errors
 
       // Validate brand
-      if (_selectedBrand.isEmpty) {
-        _errors['brand'] = 'Please select a brand';
-        isValid = false;
-      }
+      // if (_selectedBrand.isEmpty) {
+      //   _errors['brand'] = 'Please select a brand';
+      //   isValid = false;
+      // }
 
       // Validate enquiry type if needed
       if (_selectedEnquiryType.isEmpty) {
@@ -557,24 +557,24 @@ class _LeadUpdateState extends State<LeadUpdate> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const SizedBox(height: 10),
-                            _buildButtonsFloat(
-                              options: {
-                                "Jaguar": "Jaguar",
-                                "Land Rover": "Land Rover",
-                              },
-                              groupValue: _selectedBrand,
-                              label: 'Brand',
-                              errorText: _errors['brand'],
-                              isRequired: true,
-                              onChanged: (value) {
-                                setState(() {
-                                  _selectedBrand = value;
-                                  if (_errors.containsKey('brand')) {
-                                    _errors.remove('brand');
-                                  }
-                                });
-                              },
-                            ),
+                            // _buildButtonsFloat(
+                            //   options: {
+                            //     "Jaguar": "Jaguar",
+                            //     "Land Rover": "Land Rover",
+                            //   },
+                            //   groupValue: _selectedBrand,
+                            //   label: 'Brand',
+                            //   errorText: _errors['brand'],
+                            //   isRequired: true,
+                            //   onChanged: (value) {
+                            //     setState(() {
+                            //       _selectedBrand = value;
+                            //       if (_errors.containsKey('brand')) {
+                            //         _errors.remove('brand');
+                            //       }
+                            //     });
+                            //   },
+                            // ),
                             const SizedBox(height: 15),
                             _buildEnquiryTypeSelector(
                               options: {
@@ -1191,7 +1191,7 @@ class _LeadUpdateState extends State<LeadUpdate> {
         'lead_name': nameController.text,
         'email': emailController.text,
         'mobile': mobileNumber,
-        'brand': _selectedBrand,
+        // 'brand': _selectedBrand,
         'sp_id': spId,
         'PMI': modelInterestController.text,
         'enquiry_type': _selectedEnquiryType,

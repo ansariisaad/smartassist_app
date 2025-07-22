@@ -1781,8 +1781,8 @@ class _AllLeadsState extends State<AllLeads> {
           Text(
             '${(_selectedStatus != 'All' ? 1 : 0) + (_selectedTimeFilter != 'All Time' ? 1 : 0) + (_selectedSortBy != 'Date Created' ? 1 : 0)} filter(s) active',
             style: GoogleFonts.poppins(
-              fontSize: isTablet ? 12 : 10,
-              color: Colors.grey[600],
+              fontSize: isTablet ? 13 : 11,
+              color: Colors.grey[700],
               fontStyle: FontStyle.italic,
               fontWeight: FontWeight.w500,
             ),
@@ -1791,10 +1791,10 @@ class _AllLeadsState extends State<AllLeads> {
           GestureDetector(
             onTap: _clearAllFilters,
             child: Text(
-              'Clear All',
+              'Clear filter(s)',
               style: GoogleFonts.poppins(
                 fontSize: isTablet ? 13 : 11,
-                color: AppColors.colorsBlue,
+                color: AppColors.sideRed,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -1908,11 +1908,13 @@ class _AllLeadsState extends State<AllLeads> {
         margin: EdgeInsets.only(right: isTablet ? 12 : 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.colorsBlue.withOpacity(0.13)
+              ? AppColors.colorsBlue.withOpacity(0.08)
               : Colors.white,
           borderRadius: BorderRadius.circular(25),
           border: Border.all(
-            color: isSelected ? AppColors.colorsBlue : Colors.grey.shade300,
+            color: isSelected
+                ? AppColors.colorsBlue
+                : Colors.grey.withOpacity(0.2),
             width: 2.0,
           ),
         ),
@@ -1928,11 +1930,11 @@ class _AllLeadsState extends State<AllLeads> {
             icon: Icon(
               Icons.keyboard_arrow_down_rounded,
               size: isTablet ? 22 : 20,
-              color: isSelected ? AppColors.colorsBlue : Colors.grey.shade500,
+              color: isSelected ? AppColors.colorsBlue : Colors.grey[500],
             ),
             style: GoogleFonts.poppins(
-              fontSize: isTablet ? 15 : 13,
-              color: isSelected ? AppColors.colorsBlue : Colors.grey.shade700,
+              fontSize: isTablet ? 13 : 11,
+              color: isSelected ? AppColors.colorsBlue : Colors.grey[700],
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
             ),
             dropdownColor: Colors.white,

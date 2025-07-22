@@ -2520,16 +2520,6 @@ class _CreateLeadsState extends State<CreateLeads> {
               ),
             );
           }
-
-          // String successMessage =
-          //     response['message'] ?? 'Enquiry created successfully';
-          // Get.snackbar(
-          //   'Success',
-          //   successMessage,
-          //   backgroundColor: Colors.green,
-          //   colorText: Colors.white,
-          //   snackPosition: SnackPosition.BOTTOM,
-          // );
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(

@@ -1234,7 +1234,7 @@ class _AllEnqState extends State<AllEnq> {
                                   'Clear All',
                                   style: GoogleFonts.poppins(
                                     fontSize: isTablet ? 14 : 12,
-                                    color: AppColors.colorsBlue,
+                                    color: AppColors.sideRed,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -1256,14 +1256,14 @@ class _AllEnqState extends State<AllEnq> {
                     ),
                     child: Align(
                       alignment: Alignment.centerLeft,
-                      child: Text(
-                        _buildFilterSummary(),
-                        style: GoogleFonts.poppins(
-                          fontSize: isTablet ? 14 : 12,
-                          fontStyle: FontStyle.italic,
-                          color: Colors.grey[600],
-                        ),
-                      ),
+                      // child: Text(
+                      //   _buildFilterSummary(),
+                      //   style: GoogleFonts.poppins(
+                      //     fontSize: isTablet ? 14 : 12,
+                      //     fontStyle: FontStyle.italic,
+                      //     color: Colors.grey[600],
+                      //   ),
+                      // ),
                     ),
                   ),
 
@@ -1447,25 +1447,25 @@ class _AllEnqState extends State<AllEnq> {
     );
   }
 
-  String _buildFilterSummary() {
-    List<String> activeSummary = [];
+  // String _buildFilterSummary() {
+  //   List<String> activeSummary = [];
 
-    if (_query.isNotEmpty) {
-      activeSummary.add('Search: "$_query"');
-    }
-    if (_selectedBrand != 'All') {
-      activeSummary.add('Brand: $_selectedBrand');
-    }
-    if (_selectedAssignee != 'All') {
-      activeSummary.add('Assignee: $_selectedAssignee');
-    }
-    if (_selectedTimeFrame != 'All') {
-      activeSummary.add('Time: $_selectedTimeFrame');
-    }
+  //   if (_query.isNotEmpty) {
+  //     activeSummary.add('Search: "$_query"');
+  //   }
+  //   if (_selectedBrand != 'All') {
+  //     activeSummary.add('Brand: $_selectedBrand');
+  //   }
+  //   if (_selectedAssignee != 'All') {
+  //     activeSummary.add('Assignee: $_selectedAssignee');
+  //   }
+  //   if (_selectedTimeFrame != 'All') {
+  //     activeSummary.add('Time: $_selectedTimeFrame');
+  //   }
 
-    String summary = activeSummary.join(' | ');
-    return 'Filtered by: $summary (${_filteredTasks.length} results)';
-  }
+  //   String summary = activeSummary.join(' | ');
+  //   return 'Filtered by: $summary (${_filteredTasks.length} results)';
+  // }
 
   Widget _buildTasksList(List<dynamic> tasks) {
     if (tasks.isEmpty) {
@@ -1513,7 +1513,7 @@ class _AllEnqState extends State<AllEnq> {
                   'Clear All Filters',
                   style: GoogleFonts.poppins(
                     fontSize: isTablet ? 14 : 12,
-                    color: AppColors.colorsBlue,
+                    color: AppColors.sideRed,
                     fontWeight: FontWeight.w500,
                   ),
                 ),

@@ -9,7 +9,6 @@ plugins {
 }
 
 
-
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
 if (keystorePropertiesFile.exists()) {
@@ -46,7 +45,6 @@ android {
         val localPropertiesFile = project.rootProject.file("local.properties")
         if (localPropertiesFile.exists()) {
             properties.load(FileInputStream(localPropertiesFile))
-
         }
         
         val googleMapsApiKey = properties.getProperty("GOOGLE_MAPS_API_KEY") ?: ""
@@ -61,19 +59,12 @@ android {
             keyPassword = keystoreProperties["keyPassword"] as String
             storeFile = keystoreProperties["storeFile"]?.let { file(it) }
             storePassword = keystoreProperties["storePassword"] as String
-
         }
-        
-        val googleMapsApiKey = properties.getProperty("GOOGLE_MAPS_API_KEY") ?: ""
-        
-        // ✅ Use manifestPlaceholders (more secure than buildConfigField)
-        manifestPlaceholders["googleMapsApiKey"] = googleMapsApiKey 
-    } 
-
+    }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }

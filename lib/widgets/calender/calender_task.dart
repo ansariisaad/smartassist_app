@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:smartassist/config/component/color/colors.dart';
 
 class CalenderTask extends StatefulWidget {
   final List<dynamic> tasks;
@@ -80,7 +81,9 @@ class _CalenderTaskState extends State<CalenderTask> {
         if (snapshot.connectionState != ConnectionState.done) {
           return const SizedBox(
             height: 100,
-            child: Center(child: CircularProgressIndicator(color: Colors.blue)),
+            child: Center(
+              child: CircularProgressIndicator(color: AppColors.colorsBlue),
+            ),
           );
         }
         if (widget.tasks.isEmpty) {

@@ -63,8 +63,8 @@ class timelineOverdue extends StatelessWidget {
             ),
             TextButton(
               style: TextButton.styleFrom(
-                overlayColor: Colors.blue.withOpacity(0.1),
-                foregroundColor: Colors.blue,
+                overlayColor: AppColors.colorsBlue.withOpacity(0.1),
+                foregroundColor: AppColors.colorsBlue,
               ),
               onPressed: () {
                 _getOtp(eventId);
@@ -82,7 +82,7 @@ class timelineOverdue extends StatelessWidget {
               },
               child: Text(
                 'Yes',
-                style: GoogleFonts.poppins(color: Colors.blue),
+                style: GoogleFonts.poppins(color: AppColors.colorsBlue),
               ),
             ),
           ],

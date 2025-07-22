@@ -40,6 +40,11 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<BottomBtnSecondState> _bottomBtnSecondKey =
       GlobalKey<BottomBtnSecondState>();
+
+  Future<void> _refreshDashboard() async {
+    _bottomBtnSecondKey.currentState?.refreshData();
+  }
+
   bool hasInternet = true;
   bool isRefreshing = false;
   int _currentTabIndex = 0; // Track which tab is active
@@ -95,6 +100,15 @@ class _HomeScreenState extends State<HomeScreen> {
       uploadCallLogsAfterLogin();
     });
   }
+
+  // Call this method when FAB seems disabled
+  // void debugFabState() {
+  //   fabController.logFabState();
+  //   if (fabController.isFabDisabled.value) {
+  //     print('FAB is disabled - forcing re-enable');
+  //     fabController.isFabDisabled.value = false;
+  //   }
+  // }
 
   Future<void> _loadDashboardAnalytics() async {
     setState(() {
@@ -203,6 +217,13 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         // Just trigger rebuild, no need to change any state
       });
+    }
+  }
+
+  Future<void> reloadanalysis() async {
+    // Refresh the BottomBtnSecond widget data
+    if (_bottomBtnSecondKey.currentState != null) {
+      await _bottomBtnSecondKey.currentState!.refreshDashboardData();
     }
   }
 
@@ -439,7 +460,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             child: CreateLeads(
               onFormSubmit: fetchDashboardData,
-              // dashboardRefresh : _loadDashboardAnalytics,
+
+              dashboardRefresh: reloadanalysis,
+ 
             ),
           ),
         );
@@ -735,7 +758,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ?.handleExternalTabChange(index);
                                   },
                                 ),
-                                BottomBtnSecond(key: _bottomBtnSecondKey),
+                                BottomBtnSecond(
+                                  key: _bottomBtnSecondKey, 
+                                ),
 
                                 Padding(
                                   padding: const EdgeInsets.only(
@@ -811,17 +836,34 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // FAB Builder
   Widget _buildFloatingActionButton(BuildContext context) {
-    return Obx(
-      () => GestureDetector(
-        onTap: fabController.toggleFab,
+    return Obx(() {
+      // Add debugging info
+      if (!fabController.isFabVisible.value) {
+        print('FAB not visible - hiding');
+      }
+      if (fabController.isFabDisabled.value) {
+        print('FAB is disabled');
+      }
+
+      return GestureDetector(
+        onTap: () {
+          print(
+            'FAB tapped - Current state: Visible(${fabController.isFabVisible.value}), Disabled(${fabController.isFabDisabled.value})',
+          );
+          fabController.toggleFab();
+        },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           width: MediaQuery.of(context).size.width * .15,
           height: MediaQuery.of(context).size.height * .08,
           decoration: BoxDecoration(
-            color: fabController.isFabExpanded.value
-                ? Colors.red
-                : AppColors.colorsBlue,
+            color: fabController.isFabDisabled.value
+                ? Colors.grey.withOpacity(
+                    0.5,
+                  ) // Visual indication when disabled
+                : (fabController.isFabExpanded.value
+                      ? Colors.red
+                      : AppColors.colorsBlue),
             shape: BoxShape.circle,
           ),
           child: Center(
@@ -830,15 +872,46 @@ class _HomeScreenState extends State<HomeScreen> {
               duration: const Duration(milliseconds: 300),
               child: Icon(
                 fabController.isFabExpanded.value ? Icons.close : Icons.add,
-                color: Colors.white,
+                color: fabController.isFabDisabled.value
+                    ? Colors.grey
+                    : Colors.white,
                 size: 30,
               ),
             ),
           ),
         ),
-      ),
-    );
+      );
+    });
   }
+  // Widget _buildFloatingActionButton(BuildContext context) {
+  //   return Obx(
+  //     () => GestureDetector(
+  //       onTap: fabController.toggleFab,
+  //       child: AnimatedContainer(
+  //         duration: const Duration(milliseconds: 300),
+  //         width: MediaQuery.of(context).size.width * .15,
+  //         height: MediaQuery.of(context).size.height * .08,
+  //         decoration: BoxDecoration(
+  //           color: fabController.isFabExpanded.value
+  //               ? Colors.red
+  //               : AppColors.colorsBlue,
+  //           shape: BoxShape.circle,
+  //         ),
+  //         child: Center(
+  //           child: AnimatedRotation(
+  //             turns: fabController.isFabExpanded.value ? 0.25 : 0.0,
+  //             duration: const Duration(milliseconds: 300),
+  //             child: Icon(
+  //               fabController.isFabExpanded.value ? Icons.close : Icons.add,
+  //               color: Colors.white,
+  //               size: 30,
+  //             ),
+  //           ),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget _buildPopupMenu(BuildContext context) {
     return GestureDetector(

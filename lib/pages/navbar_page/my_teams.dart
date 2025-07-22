@@ -78,7 +78,7 @@ class _MyTeamsState extends State<MyTeams> {
   // call log all
   Map<String, dynamic> _analyticsData = {};
   List<Map<String, dynamic>> _membersData = [];
-
+  bool _isLoadingComparison = false;
   // Activity lists
   List<Map<String, dynamic>> _upcomingFollowups = [];
   List<Map<String, dynamic>> _upcomingAppointments = [];
@@ -389,6 +389,26 @@ class _MyTeamsState extends State<MyTeams> {
     }
   }
 
+  void _clearUsersFromLetter(String letter) {
+    // Remove all users from selectedUserIds that belong to this letter
+    List<String> usersToRemove = [];
+    for (String userId in selectedUserIds) {
+      var member = _teamMembers.firstWhere(
+        (m) => m['user_id'] == userId,
+        orElse: () => {},
+      );
+      if (member.isNotEmpty) {
+        String firstName = (member['fname'] ?? '').toString().toUpperCase();
+        if (firstName.startsWith(letter)) {
+          usersToRemove.add(userId);
+        }
+      }
+    }
+    for (String userId in usersToRemove) {
+      selectedUserIds.remove(userId);
+    }
+  }
+
   // Create a helper method to properly clear all selections
   void _clearAllSelections() {
     setState(() {
@@ -411,12 +431,18 @@ class _MyTeamsState extends State<MyTeams> {
   Future<void> _fetchTeamDetails() async {
     try {
       setState(() {
-        isLoading = true; // Set loading state
+        isLoading = true;
       });
 
+      if (_isComparing && selectedUserIds.isEmpty) {
+        setState(() {
+          _isComparing = false;
+          _teamComparisonData = [];
+          isLoading = false;
+        });
+        return; // Exit early
+      }
       final token = await Storage.getToken();
-      // ... (rest of your existing API call logic)
-
       // Build period parameter
       String? periodParam;
       switch (_periodIndex) {
@@ -479,8 +505,17 @@ class _MyTeamsState extends State<MyTeams> {
         setState(() {
           _isComparing = false;
           _teamComparisonData = [];
+          _membersData = [];
         });
+        return; // Exit early as there's nothing to compare
       }
+
+      // if (_isComparing && selectedUserIds.isEmpty) {
+      //   setState(() {
+      //     _isComparing = false;
+      //     _teamComparisonData = [];
+      //   });
+      // }
       // ✅ If "All" is selected (_selectedProfileIndex == 0), no user parameters are added
 
       final baseUri = Uri.parse(
@@ -505,6 +540,16 @@ class _MyTeamsState extends State<MyTeams> {
 
         setState(() {
           _teamData = data['data'] ?? {};
+
+          // if (_isComparing) {
+          //   _teamComparisonData = [];
+          //   _membersData = [];
+          // }
+
+          // Team comparison data
+          if (_isComparing) {
+            _teamComparisonData = [];
+          }
 
           // Team comparison data
           if (_teamData.containsKey('teamComparsion')) {
@@ -667,7 +712,7 @@ class _MyTeamsState extends State<MyTeams> {
                             side: BorderSide(color: Colors.white),
                             activeColor: Colors.white,
 
-                            checkColor: Colors.blue,
+                            checkColor: AppColors.colorsBlue,
                             value:
                                 selectedUserIds.length == _teamMembers.length,
                             onChanged: (_) {
@@ -713,6 +758,7 @@ class _MyTeamsState extends State<MyTeams> {
                   )
                 : Text('My Team', style: AppFont.appbarfontWhite(context)),
 
+            // _buildCompareButton(),
             if (selectedUserIds.length >= 2)
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -724,13 +770,15 @@ class _MyTeamsState extends State<MyTeams> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: InkWell(
-                  onTap: () {
+                  onTap: () async {
                     setState(() {
                       _isComparing = true;
+                      _teamComparisonData = []; // 🔥 ADD THIS
                     });
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      _fetchTeamDetails();
-                    });
+                    await Future.delayed(
+                      Duration(milliseconds: 50),
+                    ); // 🔥 ADD THIS
+                    _fetchTeamDetails();
                   },
                   child: Text(
                     'Compare',
@@ -796,6 +844,35 @@ class _MyTeamsState extends State<MyTeams> {
         ),
       ),
     );
+  }
+
+  Widget _buildCompareButton() {
+    if (selectedUserIds.length >= 2) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+        decoration: BoxDecoration(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: InkWell(
+          onTap: () async {
+            setState(() {
+              _isComparing = true;
+              _isLoadingComparison = true;
+              // Clear previous comparison data
+              _teamComparisonData = [];
+              _membersData = [];
+            });
+
+            // 🔥 FIXED: Ensure state is updated before API call
+            await Future.delayed(Duration(milliseconds: 100));
+            await _fetchTeamDetails();
+          },
+          child: Text('Compare', style: AppFont.mediumText14white(context)),
+        ),
+      );
+    }
+    return SizedBox.shrink();
   }
 
   Widget _buildProfileAvatars() {
@@ -896,6 +973,7 @@ class _MyTeamsState extends State<MyTeams> {
                 // In multi-select mode, toggle selection
                 if (isSelected) {
                   _selectedLetters.remove(letter);
+                  _clearUsersFromLetter(letter);
                   // If no letters selected, exit multi-select mode
                   if (_selectedLetters.isEmpty) {
                     _isMultiSelectMode = false;
@@ -2066,7 +2144,7 @@ class _MyTeamsState extends State<MyTeams> {
               displayText,
               style: AppFont.smallTextBold(context).copyWith(
                 color: isCurrentSortColumn && _sortState != 0
-                    ? Colors.blue
+                    ? AppColors.colorsBlue
                     : null,
               ),
             ),
@@ -2075,7 +2153,7 @@ class _MyTeamsState extends State<MyTeams> {
               Icon(
                 _sortState == 1 ? Icons.arrow_downward : Icons.arrow_upward,
                 size: 12,
-                color: Colors.blue,
+                color: AppColors.colorsBlue,
               ),
           ],
         ),
@@ -2340,7 +2418,7 @@ class _MyTeamsState extends State<MyTeams> {
           TextButton(
             onPressed: _loadMoreRecords,
             style: TextButton.styleFrom(
-              foregroundColor: Colors.blue,
+              foregroundColor: AppColors.colorsBlue,
               textStyle: const TextStyle(fontSize: 12),
             ),
             child: Row(
@@ -2700,7 +2778,7 @@ class _MyTeamsState extends State<MyTeams> {
       final List<Color> _bgColors = [
         Colors.red,
         Colors.green,
-        Colors.blue,
+        AppColors.colorsBlue,
         Colors.orange,
         Colors.purple,
         Colors.teal,
@@ -2837,7 +2915,7 @@ class _MyTeamsState extends State<MyTeams> {
     final List<Color> _bgColors = [
       Colors.red,
       Colors.green,
-      Colors.blue,
+      AppColors.colorsBlue,
       Colors.orange,
       Colors.purple,
       Colors.teal,
@@ -3084,7 +3162,7 @@ class _MyTeamsState extends State<MyTeams> {
             TextButton(
               onPressed: _loadMoreRecords,
               style: TextButton.styleFrom(
-                foregroundColor: Colors.blue,
+                foregroundColor: AppColors.colorsBlue,
                 textStyle: const TextStyle(fontSize: 12),
               ),
               child: Row(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smartassist/config/component/color/colors.dart';
 
 class InternetErrorWidget extends StatelessWidget {
   final VoidCallback onRetry;
@@ -41,7 +42,7 @@ class InternetErrorWidget extends StatelessWidget {
             message,
             textAlign: TextAlign.center,
             style: theme.textTheme.headlineSmall?.copyWith(
-              color: Colors.blueGrey[800],
+              color: AppColors.colorsBlue,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -50,7 +51,7 @@ class InternetErrorWidget extends StatelessWidget {
             description,
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyLarge?.copyWith(
-              color: Colors.blueGrey[600],
+              color: AppColors.colorsBlue,
             ),
           ),
           const SizedBox(height: 40),

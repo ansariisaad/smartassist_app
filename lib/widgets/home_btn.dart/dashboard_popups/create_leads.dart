@@ -21,11 +21,11 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class CreateLeads extends StatefulWidget {
   final Function onFormSubmit;
-  // final Function? dashboardRefresh;
+  final Function? dashboardRefresh;
   const CreateLeads({
     super.key,
     required this.onFormSubmit,
-    // this.dashboardRefresh,
+    this.dashboardRefresh,
   });
 
   @override
@@ -1789,7 +1789,7 @@ class _CreateLeadsState extends State<CreateLeads> {
                   },
                   fillColor: MaterialStateProperty.resolveWith<Color>((states) {
                     if (states.contains(MaterialState.selected)) {
-                      return checkboxFillColor ?? Colors.blue;
+                      return checkboxFillColor ?? AppColors.colorsBlue;
                     }
                     return Colors.transparent;
                   }),
@@ -2279,7 +2279,7 @@ class _CreateLeadsState extends State<CreateLeads> {
             activeTrackColor: AppColors.colorsBlue,
             inactiveTrackColor: Colors.grey.withOpacity(0.3),
             thumbColor: AppColors.colorsBlue,
-            overlayColor: Colors.blue.withOpacity(0.2),
+            overlayColor: AppColors.colorsBlue.withOpacity(0.2),
             showValueIndicator: ShowValueIndicator.always,
           ),
           child: RangeSlider(
@@ -2363,7 +2363,7 @@ class _CreateLeadsState extends State<CreateLeads> {
   //           activeTrackColor: AppColors.colorsBlue,
   //           inactiveTrackColor: Colors.grey.withOpacity(0.3),
   //           thumbColor: AppColors.colorsBlue,
-  //           overlayColor: Colors.blue.withOpacity(0.2),
+  //           overlayColor: AppColors.colorsBlue.withOpacity(0.2),
   //           showValueIndicator: ShowValueIndicator.always,
   //         ),
   //         child: RangeSlider(
@@ -2506,7 +2506,7 @@ class _CreateLeadsState extends State<CreateLeads> {
 
             Navigator.pop(context);
             widget.onFormSubmit();
-            // widget.dashboardRefresh!();
+            widget.dashboardRefresh!();
             Navigator.push(
               context,
               MaterialPageRoute(

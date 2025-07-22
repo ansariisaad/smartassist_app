@@ -5,8 +5,7 @@ import 'package:smartassist/pages/login_steps/biometric_screen.dart'
     as loginStep;
 import 'package:smartassist/pages/login_steps/login_page.dart';
 import 'package:smartassist/pages/login_steps/splash_screen.dart';
-import 'package:smartassist/utils/bottom_navigation.dart';
-import 'package:smartassist/widgets/biometric_setting_screen.dart';
+import 'package:smartassist/utils/bottom_navigation.dart'; 
 
 // class Routes {
 //   static Route<dynamic> generateRoute(RouteSettings settings) {

@@ -331,7 +331,7 @@ class _SlotCalendarState extends State<SlotCalendar> {
               ),
               highlightedTextStyle: const TextStyle(
                 fontSize: 18,
-                color: Colors.blue,
+                color: AppColors.colorsBlue,
               ),
               spacing: 20,
               itemWidth: 60,
@@ -772,16 +772,16 @@ class _CalenderWidgetState extends State<CalenderWidget> {
         calendarStyle: CalendarStyle(
           isTodayHighlighted: true,
           selectedDecoration: const BoxDecoration(
-            color: Colors.blue,
+            color: AppColors.colorsBlue,
             shape: BoxShape.circle,
           ),
           todayDecoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: Colors.blue, width: 1),
-            color: Colors.blue.withOpacity(0.1),
+            border: Border.all(color: AppColors.colorsBlue, width: 1),
+            color: AppColors.colorsBlue.withOpacity(0.1),
           ),
           todayTextStyle: const TextStyle(
-            color: Colors.blue,
+            color: AppColors.colorsBlue,
             fontWeight: FontWeight.bold,
           ),
           disabledDecoration: BoxDecoration(
@@ -1371,16 +1371,16 @@ class _CalenderWidgetState extends State<CalenderWidget> {
 //         calendarStyle: CalendarStyle(
 //           isTodayHighlighted: true,
 //           selectedDecoration: const BoxDecoration(
-//             color: Colors.blue,
+//             color: AppColors.colorsBlue,
 //             shape: BoxShape.circle,
 //           ),
 //           todayDecoration: BoxDecoration(
 //             shape: BoxShape.circle,
-//             border: Border.all(color: Colors.blue, width: 1),
-//             color: Colors.blue.withOpacity(0.1),
+//             border: Border.all(color: AppColors.colorsBlue, width: 1),
+//             color: AppColors.colorsBlue.withOpacity(0.1),
 //           ),
 //           todayTextStyle: const TextStyle(
-//             color: Colors.blue,
+//             color: AppColors.colorsBlue,
 //             fontWeight: FontWeight.bold,
 //           ),
 //           disabledDecoration: BoxDecoration(

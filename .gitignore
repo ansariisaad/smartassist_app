@@ -3,7 +3,8 @@ android/local.properties
 *.properties
 !gradle-wrapper.properties
 .env
-
+key.properties
+app/upload-keystore.jks
 # Miscellaneous
 *.class
 *.log

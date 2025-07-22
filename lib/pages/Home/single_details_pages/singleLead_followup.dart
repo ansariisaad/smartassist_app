@@ -1477,7 +1477,8 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                                             vertical: 5,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: Colors.blue.withOpacity(0.2),
+                                            color: AppColors.colorsBlue
+                                                .withOpacity(0.2),
                                             borderRadius: BorderRadius.circular(
                                               15,
                                             ),
@@ -2013,7 +2014,7 @@ class _ContactRowState extends State<ContactRow> {
               borderRadius: BorderRadius.circular(10),
               color: const Color.fromARGB(255, 241, 248, 255),
             ),
-            child: Icon(widget.icon, size: 25, color: Colors.blue),
+            child: Icon(widget.icon, size: 25, color: AppColors.colorsBlue),
           ),
           const SizedBox(width: 10),
           Expanded(

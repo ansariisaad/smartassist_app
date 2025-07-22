@@ -625,7 +625,7 @@ class _LeadsearchTestdriveState extends State<LeadsearchTestdrive> {
                       vehicle['vehicle_name'] ?? 'No Name',
                       style: TextStyle(
                         color: selectedVehicleName == vehicle['vehicle_name']
-                            ? Colors.blue.shade700
+                            ? AppColors.colorsBlue
                             : AppColors.fontBlack,
                         fontWeight:
                             selectedVehicleName == vehicle['vehicle_name']
@@ -658,12 +658,12 @@ class _LeadsearchTestdriveState extends State<LeadsearchTestdrive> {
                     leading: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.blue.shade50,
+                        color: AppColors.colorsBlue,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
                         Icons.directions_car,
-                        color: Colors.blue.shade700,
+                        color: AppColors.colorsBlue,
                         size: 20,
                       ),
                     ),

@@ -185,7 +185,7 @@ class _OpportunityState extends State<Opportunity> {
       //               children: [
       //                 Icon(
       //                   FontAwesomeIcons.fireFlameCurved,
-      //                   color: Colors.blue,
+      //                   color: AppColors.colorsBlue,
       //                 ),
       //                 // Image.asset('assets/Opportunity.png', height: 25, width: 30),
       //                 Text(
@@ -193,7 +193,7 @@ class _OpportunityState extends State<Opportunity> {
       //                   style: GoogleFonts.poppins(
       //                       fontSize: 12,
       //                       fontWeight: FontWeight.w400,
-      //                       color: Colors.blue),
+      //                       color: AppColors.colorsBlue),
       //                 ),
       //               ],
       //             ),

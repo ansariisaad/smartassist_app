@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/pages/login_steps/login_page.dart';
 import 'package:get/get.dart'; // Make sure to import get
 
@@ -41,7 +42,7 @@ class ErrorScreen extends StatelessWidget {
                 },
                 style: ElevatedButton.styleFrom(
                   padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                  backgroundColor: Colors.blue,
+                  backgroundColor: AppColors.colorsBlue,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),

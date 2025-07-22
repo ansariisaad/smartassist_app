@@ -1781,7 +1781,7 @@ class _LeadTeamsState extends State<LeadTeams> {
                   },
                   fillColor: MaterialStateProperty.resolveWith<Color>((states) {
                     if (states.contains(MaterialState.selected)) {
-                      return checkboxFillColor ?? Colors.blue;
+                      return checkboxFillColor ?? AppColors.colorsBlue;
                     }
                     return Colors.transparent;
                   }),
@@ -2114,7 +2114,7 @@ class _LeadTeamsState extends State<LeadTeams> {
             activeTrackColor: AppColors.colorsBlue,
             inactiveTrackColor: Colors.grey.withOpacity(0.3),
             thumbColor: AppColors.colorsBlue,
-            overlayColor: Colors.blue.withOpacity(0.2),
+            overlayColor: AppColors.colorsBlue.withOpacity(0.2),
             showValueIndicator: ShowValueIndicator.always,
           ),
           child: RangeSlider(

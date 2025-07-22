@@ -2354,7 +2354,14 @@ class _TaskItemState extends State<TaskItem>
   void initState() {
     super.initState();
     _slidableController = SlidableController(this);
-
+    _slidableController.animation.addListener(() {
+      final isOpen = _slidableController.ratio != 0;
+      if (_isActionPaneOpen != isOpen) {
+        setState(() {
+          _isActionPaneOpen = isOpen;
+        });
+      }
+    });
     isFav = widget.isFavorite;
   }
 

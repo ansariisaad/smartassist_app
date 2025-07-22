@@ -42,7 +42,6 @@ class _CallLogsState extends State<CallLogs> {
           'No calls selected',
           'Please select calls to exclude',
           Colors.amber,
-          // Icons.warning_rounded,
         );
         return;
       }
@@ -51,14 +50,25 @@ class _CallLogsState extends State<CallLogs> {
       Get.dialog(
         Center(
           child: Card(
+            margin: EdgeInsets.all(16.w),
             child: Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: EdgeInsets.all(24.w),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const CircularProgressIndicator(),
-                  const SizedBox(height: 16),
-                  Text('Excluding calls...'),
+                  SizedBox(
+                    width: 24.w,
+                    height: 24.w,
+                    child: const CircularProgressIndicator(),
+                  ),
+                  SizedBox(height: 16.h),
+                  Text(
+                    'Excluding calls...',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -95,7 +105,6 @@ class _CallLogsState extends State<CallLogs> {
         // Update local state immediately
         setState(() {
           for (String key in selectedKeys) {
-            // Find the call log with this unique key and update its excluded status
             for (var log in callLogs) {
               if (log['unique_key'] == key) {
                 log['is_excluded'] = true;
@@ -107,14 +116,8 @@ class _CallLogsState extends State<CallLogs> {
           selectedCalls.clear();
         });
 
-        _showSnackbar(
-          'Success!',
-          message,
-          Colors.green,
-          // Icons.check_circle_rounded,
-        );
+        _showSnackbar('Success!', message, Colors.green);
 
-        // Then refresh from server to confirm
         await Future.delayed(const Duration(milliseconds: 500));
         _fetchCallLog();
       } else {
@@ -122,16 +125,14 @@ class _CallLogsState extends State<CallLogs> {
           'Error',
           'Failed to exclude calls: ${response.statusCode}',
           Colors.red,
-          // Icons.error_rounded,
         );
       }
     } catch (e) {
-      Get.back(); // Close loading dialog if open
+      Get.back();
       _showSnackbar(
         'Error',
         'Failed to exclude calls: ${e.toString()}',
         Colors.red,
-        // Icons.error_rounded,
       );
     }
   }
@@ -140,7 +141,6 @@ class _CallLogsState extends State<CallLogs> {
     Color backgroundColor;
     Color textColor;
 
-    // Define static colors for different types
     switch (color) {
       case Colors.green:
         backgroundColor = const Color(0xFF4CAF50);
@@ -164,9 +164,24 @@ class _CallLogsState extends State<CallLogs> {
       message,
       backgroundColor: backgroundColor,
       colorText: textColor,
-      borderRadius: 12,
-      margin: const EdgeInsets.all(16),
-      // icon: Icon(icon, color: textColor),
+      borderRadius: 12.r,
+      margin: EdgeInsets.all(16.w),
+      titleText: Text(
+        title,
+        style: GoogleFonts.poppins(
+          fontSize: 14.sp,
+          fontWeight: FontWeight.w600,
+          color: textColor,
+        ),
+      ),
+      messageText: Text(
+        message,
+        style: GoogleFonts.poppins(
+          fontSize: 12.sp,
+          fontWeight: FontWeight.w400,
+          color: textColor,
+        ),
+      ),
       snackPosition: SnackPosition.TOP,
       duration: const Duration(seconds: 3),
     );
@@ -186,51 +201,81 @@ class _CallLogsState extends State<CallLogs> {
     });
   }
 
-  // Responsive size calculations
-  Map<String, double> _getResponsiveSizes(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
+  // Fixed responsive size calculations
+  Map<String, double> _getResponsiveSizes() {
+    return {
+      'avatar_size': 45.w,
+      'avatar_font_size': 16.sp,
+      'name_font_size': 15.sp,
+      'number_font_size': 13.sp,
+      'time_font_size': 12.sp,
+      'status_font_size': 10.sp,
+      'padding_horizontal': 16.w,
+      'padding_vertical': 10.h,
+      'card_margin_vertical': 4.h,
+      'card_margin_horizontal': 16.w,
+      'icon_size': 16.w,
+      'checkbox_size': 20.w,
+      'status_padding_horizontal': 8.w,
+      'status_padding_vertical': 4.h,
+    };
+  }
 
-    if (screenWidth < 400) {
-      return {
-        'avatar_size': 40.0,
-        'avatar_font_size': 16.0,
-        'name_font_size': 14.0,
-        'number_font_size': 12.0,
-        'padding_horizontal': 12.0,
-        'padding_vertical': 8.0,
-        'card_margin_vertical': 4.0,
-        'card_margin_horizontal': 12.0,
-      };
-    } else if (screenWidth < 768) {
-      return {
-        'avatar_size': 48.0,
-        'avatar_font_size': 18.0,
-        'name_font_size': 16.0,
-        'number_font_size': 14.0,
-        'padding_horizontal': 16.0,
-        'padding_vertical': 10.0,
-        'card_margin_vertical': 6.0,
-        'card_margin_horizontal': 16.0,
-      };
-    } else {
-      return {
-        'avatar_size': 56.0,
-        'avatar_font_size': 20.0,
-        'name_font_size': 18.0,
-        'number_font_size': 16.0,
-        'padding_horizontal': 20.0,
-        'padding_vertical': 12.0,
-        'card_margin_vertical': 8.0,
-        'card_margin_horizontal': 20.0,
-      };
+  String _formatTime(String? timestamp) {
+    if (timestamp == null || timestamp.isEmpty) return '';
+
+    try {
+      DateTime dateTime;
+
+      if (timestamp.contains('T') || timestamp.contains('Z')) {
+        dateTime = DateTime.parse(timestamp);
+      } else if (timestamp.contains('-')) {
+        dateTime = DateTime.parse(timestamp);
+      } else {
+        int? unixTimestamp = int.tryParse(timestamp);
+        if (unixTimestamp != null) {
+          dateTime = DateTime.fromMillisecondsSinceEpoch(
+            unixTimestamp * (unixTimestamp.toString().length == 10 ? 1000 : 1),
+          );
+        } else {
+          return '';
+        }
+      }
+
+      final now = DateTime.now();
+      final difference = now.difference(dateTime);
+
+      if (difference.inDays == 0) {
+        return DateFormat('HH:mm').format(dateTime);
+      } else if (difference.inDays == 1) {
+        return 'Yesterday';
+      } else if (difference.inDays < 7) {
+        return DateFormat('EEE').format(dateTime);
+      } else {
+        return DateFormat('dd/MM').format(dateTime);
+      }
+    } catch (e) {
+      return '';
     }
   }
 
-  double _titleFontSize(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
-    if (screenWidth < 400) return 16;
-    if (screenWidth < 768) return 18;
-    return 20;
+  String _formatDuration(String? duration) {
+    if (duration == null || duration.isEmpty) return '';
+
+    try {
+      int seconds = int.parse(duration);
+      if (seconds < 60) {
+        return '${seconds}s';
+      } else {
+        int minutes = seconds ~/ 60;
+        int remainingSeconds = seconds % 60;
+        return remainingSeconds > 0
+            ? '${minutes}m ${remainingSeconds}s'
+            : '${minutes}m';
+      }
+    } catch (e) {
+      return duration;
+    }
   }
 
   Future<void> _fetchCallLog() async {
@@ -290,7 +335,6 @@ class _CallLogsState extends State<CallLogs> {
             'Error',
             'Failed to load call logs: ${response.statusCode}',
             Colors.red,
-            // Icons.error_rounded,
           );
         }
       }
@@ -304,7 +348,6 @@ class _CallLogsState extends State<CallLogs> {
         'Error',
         'Failed to load call logs: ${e.toString()}',
         Colors.red,
-        // Icons.error_rounded,
       );
     }
   }
@@ -312,11 +355,39 @@ class _CallLogsState extends State<CallLogs> {
   void _toggleSelection(String uniqueKey) {
     setState(() {
       selectedCalls[uniqueKey] = !(selectedCalls[uniqueKey] ?? false);
-
-      // Check if any items are selected to show/hide selection mode
       bool hasSelectedItems = selectedCalls.values.contains(true);
       isSelectionMode = hasSelectedItems;
     });
+  }
+
+  IconData _getCallTypeIcon(String callType) {
+    switch (callType.toLowerCase()) {
+      case 'incoming':
+      case 'in':
+        return Icons.call_received_rounded;
+      case 'outgoing':
+      case 'out':
+        return Icons.call_made_rounded;
+      case 'missed':
+        return Icons.call_received_rounded;
+      default:
+        return Icons.phone_rounded;
+    }
+  }
+
+  Color _getCallTypeColor(String callType) {
+    switch (callType.toLowerCase()) {
+      case 'incoming':
+      case 'in':
+        return const Color(0xFF10B981);
+      case 'outgoing':
+      case 'out':
+        return const Color(0xFF3B82F6);
+      case 'missed':
+        return const Color(0xFFEF4444);
+      default:
+        return const Color(0xFF6B7280);
+    }
   }
 
   Widget _buildContactCard(Map<String, dynamic> log, int index) {
@@ -327,7 +398,13 @@ class _CallLogsState extends State<CallLogs> {
     bool isSelected = selectedCalls[uniqueKey] ?? false;
     bool isExcluded = log['is_excluded'] == true;
 
-    final sizes = _getResponsiveSizes(context);
+    String callTime = _formatTime(
+      log['timestamp'] ?? log['call_time'] ?? log['date'],
+    );
+    String duration = _formatDuration(log['duration']);
+    String callType = log['call_type'] ?? log['type'] ?? '';
+
+    final sizes = _getResponsiveSizes();
 
     return Container(
       margin: EdgeInsets.symmetric(
@@ -336,13 +413,13 @@ class _CallLogsState extends State<CallLogs> {
       ),
       child: Material(
         elevation: isSelected ? 4 : 2,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         shadowColor: isSelected
             ? AppColors.colorsBlue.withOpacity(0.3)
             : Colors.black.withOpacity(0.1),
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(12.r),
             color: isSelected
                 ? AppColors.colorsBlue.withOpacity(0.05)
                 : Colors.white,
@@ -353,117 +430,212 @@ class _CallLogsState extends State<CallLogs> {
                   )
                 : null,
           ),
-          child: ListTile(
-            dense: true,
-            contentPadding: EdgeInsets.symmetric(
+          child: Padding(
+            padding: EdgeInsets.symmetric(
               horizontal: sizes['padding_horizontal']!,
               vertical: sizes['padding_vertical']!,
             ),
-            onTap: () => _toggleSelection(uniqueKey),
-            onLongPress: () => _toggleSelection(uniqueKey),
-            leading: Stack(
-              children: [
-                Container(
-                  height: sizes['avatar_size']!,
-                  width: sizes['avatar_size']!,
-                  decoration: BoxDecoration(
-                    color: AppColors.colorsBlue,
-                    borderRadius: BorderRadius.circular(
-                      sizes['avatar_size']! / 2,
-                    ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      firstLetter,
-                      style: GoogleFonts.poppins(
-                        fontSize: sizes['avatar_font_size']!,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-                if (isSelected)
-                  Positioned(
-                    right: -2,
-                    top: -2,
-                    child: Container(
-                      height: 18,
-                      width: 18,
-                      decoration: BoxDecoration(
-                        color: Colors.green,
-                        borderRadius: BorderRadius.circular(9),
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
-                      child: Icon(Icons.check, size: 10, color: Colors.white),
-                    ),
-                  ),
-              ],
-            ),
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.poppins(
-                    fontSize: sizes['name_font_size']!,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF2D3748),
-                  ),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  mobile,
-                  style: GoogleFonts.poppins(
-                    fontSize: sizes['number_font_size']!,
-                    color: const Color(0xFF718096),
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-                if (isExcluded) ...[
-                  SizedBox(height: 6),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Colors.red.withOpacity(0.3),
-                        width: 1,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.block_rounded, size: 12, color: Colors.red),
-                        SizedBox(width: 4),
-                        Text(
-                          "Excluded",
-                          style: GoogleFonts.poppins(
-                            fontSize: 10,
-                            color: Colors.red,
-                            fontWeight: FontWeight.w600,
+            child: InkWell(
+              onTap: () => _toggleSelection(uniqueKey),
+              onLongPress: () => _toggleSelection(uniqueKey),
+              borderRadius: BorderRadius.circular(12.r),
+              child: Row(
+                children: [
+                  // Avatar Section
+                  Stack(
+                    children: [
+                      Container(
+                        height: sizes['avatar_size']!,
+                        width: sizes['avatar_size']!,
+                        decoration: BoxDecoration(
+                          color: AppColors.colorsBlue,
+                          borderRadius: BorderRadius.circular(
+                            sizes['avatar_size']! / 2,
                           ),
                         ),
+                        child: Center(
+                          child: Text(
+                            firstLetter,
+                            style: GoogleFonts.poppins(
+                              fontSize: sizes['avatar_font_size']!,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (isSelected)
+                        Positioned(
+                          right: -2,
+                          top: -2,
+                          child: Container(
+                            height: 18.w,
+                            width: 18.w,
+                            decoration: BoxDecoration(
+                              color: Colors.green,
+                              borderRadius: BorderRadius.circular(9.r),
+                              border: Border.all(color: Colors.white, width: 2),
+                            ),
+                            child: Icon(
+                              Icons.check,
+                              size: 10.w,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  SizedBox(width: 12.w),
+
+                  // Content Section - VERTICAL LAYOUT
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Name Row
+                        Text(
+                          name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.poppins(
+                            fontSize: sizes['name_font_size']!,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF2D3748),
+                          ),
+                        ),
+
+                        SizedBox(height: 4.h),
+
+                        // Phone Number Row with Call Type Icon
+                        Row(
+                          children: [
+                            if (callType.isNotEmpty) ...[
+                              Icon(
+                                _getCallTypeIcon(callType),
+                                size: sizes['icon_size']!,
+                                color: _getCallTypeColor(callType),
+                              ),
+                              SizedBox(width: 6.w),
+                            ],
+                            Expanded(
+                              child: Text(
+                                mobile,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.poppins(
+                                  fontSize: sizes['number_font_size']!,
+                                  color: const Color(0xFF718096),
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        SizedBox(height: 4.h),
+
+                        // Time and Duration Row (stacked vertically)
+                        if (callTime.isNotEmpty || duration.isNotEmpty) ...[
+                          Row(
+                            children: [
+                              if (callTime.isNotEmpty) ...[
+                                Icon(
+                                  Icons.access_time_rounded,
+                                  size: 12.w,
+                                  color: const Color(0xFF718096),
+                                ),
+                                SizedBox(width: 4.w),
+                                Text(
+                                  callTime,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: sizes['time_font_size']!,
+                                    color: const Color(0xFF718096),
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                              ],
+                              if (callTime.isNotEmpty && duration.isNotEmpty)
+                                Container(
+                                  margin: EdgeInsets.symmetric(horizontal: 8.w),
+                                  width: 1,
+                                  height: 12.h,
+                                  color: const Color(0xFFE2E8F0),
+                                ),
+                              if (duration.isNotEmpty) ...[
+                                Icon(
+                                  Icons.timer_outlined,
+                                  size: 12.w,
+                                  color: const Color(0xFF718096),
+                                ),
+                                SizedBox(width: 4.w),
+                                Text(
+                                  duration,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: sizes['time_font_size']!,
+                                    color: const Color(0xFF718096),
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
+
+                        // Excluded Status
+                        if (isExcluded) ...[
+                          SizedBox(height: 6.h),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: sizes['status_padding_horizontal']!,
+                              vertical: sizes['status_padding_vertical']!,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12.r),
+                              border: Border.all(
+                                color: Colors.red.withOpacity(0.3),
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.block_rounded,
+                                  size: 12.w,
+                                  color: Colors.red,
+                                ),
+                                SizedBox(width: 4.w),
+                                Text(
+                                  "Excluded",
+                                  style: GoogleFonts.poppins(
+                                    fontSize: sizes['status_font_size']!,
+                                    color: Colors.red,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
-                ],
-              ],
-            ),
-            trailing: isSelected
-                ? Icon(
-                    Icons.check_circle,
-                    color: AppColors.colorsBlue,
-                    size: 20,
-                  )
-                : Icon(
-                    Icons.person_outline,
-                    color: const Color(0xFFCBD5E0),
-                    size: 18,
+
+                  SizedBox(width: 8.w),
+
+                  // Trailing Icon
+                  Icon(
+                    isSelected ? Icons.check_circle : Icons.person_outline,
+                    color: isSelected
+                        ? AppColors.colorsBlue
+                        : const Color(0xFFCBD5E0),
+                    size: sizes['checkbox_size']!,
                   ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -476,7 +648,7 @@ class _CallLogsState extends State<CallLogs> {
         .where((selected) => selected)
         .length;
 
-    final sizes = _getResponsiveSizes(context);
+    final sizes = _getResponsiveSizes();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -488,13 +660,13 @@ class _CallLogsState extends State<CallLogs> {
           icon: Icon(
             FontAwesomeIcons.angleLeft,
             color: Colors.white,
-            size: _titleFontSize(context) - 2,
+            size: 18.sp,
           ),
         ),
         title: Text(
           isSelectionMode ? '$selectedCount selected' : 'Exclude Contacts',
           style: GoogleFonts.poppins(
-            fontSize: _titleFontSize(context),
+            fontSize: 16.sp,
             fontWeight: FontWeight.w500,
             color: Colors.white,
           ),
@@ -505,7 +677,7 @@ class _CallLogsState extends State<CallLogs> {
         actions: [
           if (isSelectionMode) ...[
             PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert, color: Colors.white),
+              icon: Icon(Icons.more_vert, color: Colors.white, size: 20.w),
               onSelected: (value) {
                 switch (value) {
                   case 'select_all':
@@ -517,23 +689,29 @@ class _CallLogsState extends State<CallLogs> {
                 }
               },
               itemBuilder: (BuildContext context) => [
-                const PopupMenuItem<String>(
+                PopupMenuItem<String>(
                   value: 'select_all',
                   child: Row(
                     children: [
-                      Icon(Icons.select_all),
-                      SizedBox(width: 8),
-                      Text('Select All'),
+                      Icon(Icons.select_all, size: 18.w),
+                      SizedBox(width: 8.w),
+                      Text(
+                        'Select All',
+                        style: GoogleFonts.poppins(fontSize: 14.sp),
+                      ),
                     ],
                   ),
                 ),
-                const PopupMenuItem<String>(
+                PopupMenuItem<String>(
                   value: 'deselect_all',
                   child: Row(
                     children: [
-                      Icon(Icons.deselect),
-                      SizedBox(width: 8),
-                      Text('Deselect All'),
+                      Icon(Icons.deselect, size: 18.w),
+                      SizedBox(width: 8.w),
+                      Text(
+                        'Deselect All',
+                        style: GoogleFonts.poppins(fontSize: 14.sp),
+                      ),
                     ],
                   ),
                 ),
@@ -542,22 +720,37 @@ class _CallLogsState extends State<CallLogs> {
           ] else ...[
             IconButton(
               onPressed: _fetchCallLog,
-              icon: const Icon(Icons.refresh_rounded, color: Colors.white),
+              icon: Icon(
+                Icons.refresh_rounded,
+                color: Colors.white,
+                size: 20.w,
+              ),
             ),
           ],
+          SizedBox(width: 8.w),
         ],
       ),
       body: RefreshIndicator(
         onRefresh: _fetchCallLog,
         color: AppColors.colorsBlue,
         child: isLoading
-            ? const Center(
+            ? Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 16),
-                    Text('Loading contacts...'),
+                    SizedBox(
+                      width: 32.w,
+                      height: 32.w,
+                      child: const CircularProgressIndicator(),
+                    ),
+                    SizedBox(height: 16.h),
+                    Text(
+                      'Loading contacts...',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14.sp,
+                        color: const Color(0xFF718096),
+                      ),
+                    ),
                   ],
                 ),
               )
@@ -567,31 +760,31 @@ class _CallLogsState extends State<CallLogs> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      padding: EdgeInsets.all(24),
+                      padding: EdgeInsets.all(24.w),
                       decoration: BoxDecoration(
                         color: const Color(0xFFF7FAFC),
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(20.r),
                       ),
                       child: Icon(
                         Icons.contacts_rounded,
-                        size: 64,
+                        size: 64.w,
                         color: const Color(0xFFCBD5E0),
                       ),
                     ),
-                    SizedBox(height: 24),
+                    SizedBox(height: 24.h),
                     Text(
                       'No contacts found',
                       style: GoogleFonts.poppins(
-                        fontSize: 18,
+                        fontSize: 18.sp,
                         fontWeight: FontWeight.w600,
                         color: const Color(0xFF4A5568),
                       ),
                     ),
-                    SizedBox(height: 8),
+                    SizedBox(height: 8.h),
                     Text(
                       'Your contacts will appear here',
                       style: GoogleFonts.poppins(
-                        fontSize: 14,
+                        fontSize: 14.sp,
                         color: const Color(0xFF718096),
                       ),
                     ),
@@ -604,15 +797,15 @@ class _CallLogsState extends State<CallLogs> {
                     Container(
                       margin: EdgeInsets.symmetric(
                         horizontal: sizes['card_margin_horizontal']!,
-                        vertical: 8,
+                        vertical: 8.h,
                       ),
                       padding: EdgeInsets.symmetric(
                         horizontal: sizes['padding_horizontal']!,
-                        vertical: 12,
+                        vertical: 12.h,
                       ),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(12.r),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withOpacity(0.05),
@@ -624,18 +817,18 @@ class _CallLogsState extends State<CallLogs> {
                       child: Row(
                         children: [
                           Container(
-                            padding: EdgeInsets.all(6),
+                            padding: EdgeInsets.all(6.w),
                             decoration: BoxDecoration(
                               color: AppColors.colorsBlue.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(8.r),
                             ),
                             child: Icon(
                               Icons.info_outline_rounded,
-                              size: 14,
+                              size: 14.w,
                               color: AppColors.colorsBlue,
                             ),
                           ),
-                          SizedBox(width: 8),
+                          SizedBox(width: 8.w),
                           Expanded(
                             child: Text(
                               '${callLogs.length} contact${callLogs.length != 1 ? 's' : ''} found',
@@ -649,17 +842,17 @@ class _CallLogsState extends State<CallLogs> {
                           if (isSelectionMode)
                             Container(
                               padding: EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
+                                horizontal: 8.w,
+                                vertical: 4.h,
                               ),
                               decoration: BoxDecoration(
                                 color: AppColors.colorsBlue.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(12.r),
                               ),
                               child: Text(
                                 'Tap to select',
                                 style: GoogleFonts.poppins(
-                                  fontSize: 10,
+                                  fontSize: sizes['status_font_size']!,
                                   color: AppColors.colorsBlue,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -670,7 +863,7 @@ class _CallLogsState extends State<CallLogs> {
                     ),
                   Expanded(
                     child: ListView.builder(
-                      padding: EdgeInsets.only(bottom: 100),
+                      padding: EdgeInsets.only(bottom: 100.h),
                       itemCount: callLogs.length,
                       itemBuilder: (context, index) =>
                           _buildContactCard(callLogs[index], index),
@@ -685,13 +878,12 @@ class _CallLogsState extends State<CallLogs> {
               backgroundColor: const Color(0xFFF44336),
               heroTag: "exclude",
               elevation: 6,
-              // icon: const Icon(Icons.block_rounded, color: Colors.white),
               label: Text(
                 'Change status',
                 style: GoogleFonts.poppins(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,
-                  fontSize: MediaQuery.of(context).size.width < 400 ? 14 : 16,
+                  fontSize: 14.sp,
                 ),
               ),
             )

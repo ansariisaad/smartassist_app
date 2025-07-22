@@ -17,8 +17,7 @@ import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/utils/token_manager.dart';
 import 'package:smartassist/widgets/reusable/whatsapp_fullscreen.dart'
-    as fullscreen;
-import 'package:smartassist/widgets/reusable/whatsapp_video.dart';
+    as fullscreen; 
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';

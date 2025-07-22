@@ -1195,7 +1195,7 @@ class LeadsSrv {
   //   }
   // }
 
-  static Future<Map<String, dynamic>> fetchDashboardData() async {
+  static Future<Map<String, dynamic>> fetchDashboardDataapi() async {
     try {
       final response = await makeAuthenticatedRequest(
         'GET',

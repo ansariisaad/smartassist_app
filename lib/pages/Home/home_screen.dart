@@ -53,7 +53,6 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isHidden = false;
   String greeting = '';
   String name = '';
-  String profilePicUrl = '';
   int notificationCount = 0;
   int overdueFollowupsCount = 0;
   int overdueAppointmentsCount = 0;
@@ -66,6 +65,8 @@ class _HomeScreenState extends State<HomeScreen> {
   List<dynamic> overdueTestDrives = [];
   bool isDashboardLoading = true;
   String? teamRole;
+
+  String? profilePicUrl; // Make nullable
   Map<String, dynamic> dashboardData = {};
   Map<String, dynamic> MtdData = {};
   Map<String, dynamic> QtdData = {};
@@ -208,8 +209,29 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // Handle form submission from popups
+  // Future<void> _handleFormSubmit() async {
+  //   print("🔄 Dashboard refresh called from ProfileScreen");
+  //   await fetchDashboardData(isRefresh: true);
+  //   print("✅ Dashboard refresh completed");
+  // }
+
   Future<void> _handleFormSubmit() async {
-    await fetchDashboardData();
+    print("🔄 Dashboard refresh called from ProfileScreen");
+
+    setState(() {
+      isRefreshing = true;
+    });
+
+    await fetchDashboardData(isRefresh: true);
+
+    // Force UI update
+    if (mounted) {
+      setState(() {
+        print("✅ Dashboard UI refreshed");
+      });
+    }
+
+    print("✅ Dashboard refresh completed");
   }
 
   void _onTabChanged() {
@@ -238,7 +260,7 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     }
     try {
-      final data = await LeadsSrv.fetchDashboardData();
+      final data = await LeadsSrv.fetchDashboardDataapi();
       if (mounted) {
         setState(() {
           hasInternet = true;
@@ -284,13 +306,18 @@ class _HomeScreenState extends State<HomeScreen> {
               ? data['userData']['initials'].trim()
               : '';
 
-          profilePicUrl =
-              (data.containsKey('userData') &&
-                  data['userData'] is Map &&
-                  data['userData'].containsKey('profile_pic') &&
-                  data['userData']['profile_pic'] is String)
-              ? data['userData']['profile_pic']
-              : null;
+          profilePicUrl = null;
+          if (data['userData'] != null && data['userData'] is Map) {
+            final userData = data['userData'] as Map<String, dynamic>;
+            if (userData['initials'] != null &&
+                userData['initials'] is String) {
+              name = userData['initials'].toString().trim();
+            }
+            if (userData['profile_pic'] != null &&
+                userData['profile_pic'] is String) {
+              profilePicUrl = userData['profile_pic'];
+            }
+          }
 
           // if (upcomingFollowups.isNotEmpty) {
           //   leadId = upcomingFollowups[0]['lead_id'];
@@ -625,7 +652,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                         builder: (context) =>
                                                             ProfileScreen(
                                                               refreshDashboard:
-                                                                  fetchDashboardData,
+                                                                  _handleFormSubmit,
                                                             ),
                                                       ),
                                                     );
@@ -641,11 +668,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     alignment: Alignment.center,
                                                     child:
                                                         profilePicUrl != null &&
-                                                            profilePicUrl
+                                                            profilePicUrl!
                                                                 .isNotEmpty
                                                         ? ClipOval(
                                                             child: Image.network(
-                                                              profilePicUrl,
+                                                              profilePicUrl!,
                                                               width: 28,
                                                               height: 28,
                                                               fit: BoxFit.cover,
@@ -668,8 +695,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                       ),
                                                                       child: Center(
                                                                         child: Text(
-                                                                          name.isNotEmpty
-                                                                              ? name
+                                                                          (name?.isNotEmpty ??
+                                                                                  false)
+                                                                              ? name!
                                                                                     .substring(
                                                                                       0,
                                                                                       1,
@@ -708,8 +736,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                   .circle,
                                                             ),
                                                             child: Text(
-                                                              name.isNotEmpty
-                                                                  ? name
+                                                              (name?.isNotEmpty ??
+                                                                      false)
+                                                                  ? name!
                                                                         .substring(
                                                                           0,
                                                                           1,

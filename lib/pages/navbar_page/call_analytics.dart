@@ -791,13 +791,10 @@ class _CallAnalyticsState extends State<CallAnalytics>
     return GestureDetector(
       onTap: () => _updateSelectedTab(index),
       child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: 0,
-          vertical: _isSmallScreen ? 3 : 5,
-        ),
+        padding: EdgeInsets.symmetric(vertical: _isSmallScreen ? 3 : 5),
         decoration: BoxDecoration(
           color: isActive ? AppColors.colorsBlue : Colors.transparent,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(10),
         ),
         child: Text(
           label,

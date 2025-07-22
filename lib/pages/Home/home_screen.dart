@@ -462,7 +462,6 @@ class _HomeScreenState extends State<HomeScreen> {
               onFormSubmit: fetchDashboardData,
 
               dashboardRefresh: reloadanalysis,
- 
             ),
           ),
         );
@@ -758,9 +757,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ?.handleExternalTabChange(index);
                                   },
                                 ),
-                                BottomBtnSecond(
-                                  key: _bottomBtnSecondKey, 
-                                ),
+                                BottomBtnSecond(key: _bottomBtnSecondKey),
 
                                 Padding(
                                   padding: const EdgeInsets.only(

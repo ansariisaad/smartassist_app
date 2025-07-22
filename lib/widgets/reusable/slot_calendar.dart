@@ -18,6 +18,8 @@ class SlotCalendar extends StatefulWidget {
   final VoidCallback onTextFieldTap;
   final String vehicleId;
   final TextEditingController? controller;
+  final String? startTimeError; // Add this
+  final String? endTimeError; // Add this
 
   const SlotCalendar({
     super.key,
@@ -28,6 +30,8 @@ class SlotCalendar extends StatefulWidget {
     required this.onTextFieldTap,
     required this.vehicleId,
     this.controller,
+    this.startTimeError,
+    this.endTimeError,
   });
 
   @override
@@ -313,6 +317,14 @@ class _SlotCalendarState extends State<SlotCalendar> {
       );
     }
 
+    if (isStartTime) {
+      // Clear start time error when user starts selecting start time
+      widget.onChanged('clear_start_time_error');
+    } else {
+      // Clear end time error when user starts selecting end time
+      widget.onChanged('clear_end_time_error');
+    }
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -558,6 +570,7 @@ class _SlotCalendarState extends State<SlotCalendar> {
 
           Row(
             children: [
+              // Start Time Container
               Expanded(
                 child: GestureDetector(
                   onTap: () => _showCustomTimePicker(true),
@@ -567,7 +580,12 @@ class _SlotCalendarState extends State<SlotCalendar> {
                       horizontal: 16,
                     ),
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade300),
+                      border: Border.all(
+                        color: widget.startTimeError != null
+                            ? Colors.red
+                            : Colors.grey.shade300,
+                        width: widget.startTimeError != null ? 1.5 : 1.0,
+                      ),
                       borderRadius: BorderRadius.circular(8),
                       color: Colors.white,
                     ),
@@ -592,6 +610,7 @@ class _SlotCalendarState extends State<SlotCalendar> {
                 ),
               ),
               const SizedBox(width: 10),
+              // End Time Container
               Expanded(
                 child: GestureDetector(
                   onTap: () => _showCustomTimePicker(false),
@@ -601,7 +620,12 @@ class _SlotCalendarState extends State<SlotCalendar> {
                       horizontal: 16,
                     ),
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade300),
+                      border: Border.all(
+                        color: widget.endTimeError != null
+                            ? Colors.red
+                            : Colors.grey.shade300,
+                        width: widget.endTimeError != null ? 1.5 : 1.0,
+                      ),
                       borderRadius: BorderRadius.circular(8),
                       color: Colors.white,
                     ),
@@ -625,6 +649,74 @@ class _SlotCalendarState extends State<SlotCalendar> {
                   ),
                 ),
               ),
+
+              // Expanded(
+              //   child: GestureDetector(
+              //     onTap: () => _showCustomTimePicker(true),
+              //     child: Container(
+              //       padding: const EdgeInsets.symmetric(
+              //         vertical: 12,
+              //         horizontal: 16,
+              //       ),
+              //       decoration: BoxDecoration(
+              //         border: Border.all(color: Colors.grey.shade300),
+              //         borderRadius: BorderRadius.circular(8),
+              //         color: Colors.white,
+              //       ),
+              //       child: Row(
+              //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //         children: [
+              //           Text(
+              //             _selectedStartTime != null
+              //                 ? _selectedStartTime!.format(context)
+              //                 : 'Start Time',
+              //             style: GoogleFonts.poppins(
+              //               fontSize: 14,
+              //               color: _selectedStartTime != null
+              //                   ? Colors.black
+              //                   : Colors.grey,
+              //             ),
+              //           ),
+              //           const Icon(Icons.access_time, color: Colors.grey),
+              //         ],
+              //       ),
+              //     ),
+              //   ),
+              // ),
+              // const SizedBox(width: 10),
+              // Expanded(
+              //   child: GestureDetector(
+              //     onTap: () => _showCustomTimePicker(false),
+              //     child: Container(
+              //       padding: const EdgeInsets.symmetric(
+              //         vertical: 12,
+              //         horizontal: 16,
+              //       ),
+              //       decoration: BoxDecoration(
+              //         border: Border.all(color: Colors.grey.shade300),
+              //         borderRadius: BorderRadius.circular(8),
+              //         color: Colors.white,
+              //       ),
+              //       child: Row(
+              //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //         children: [
+              //           Text(
+              //             _selectedEndTime != null
+              //                 ? _selectedEndTime!.format(context)
+              //                 : 'End Time',
+              //             style: GoogleFonts.poppins(
+              //               fontSize: 14,
+              //               color: _selectedEndTime != null
+              //                   ? Colors.black
+              //                   : Colors.grey,
+              //             ),
+              //           ),
+              //           const Icon(Icons.access_time, color: Colors.grey),
+              //         ],
+              //       ),
+              //     ),
+              //   ),
+              // ),
             ],
           ),
 
@@ -664,14 +756,14 @@ class _SlotCalendarState extends State<SlotCalendar> {
           ],
         ],
 
-        if (widget.errorText != null)
-          Padding(
-            padding: const EdgeInsets.only(top: 8.0),
-            child: Text(
-              widget.errorText!,
-              style: const TextStyle(color: Colors.red, fontSize: 12),
-            ),
-          ),
+        // if (widget.errorText != null)
+        //   Padding(
+        //     padding: const EdgeInsets.only(top: 8.0),
+        //     child: Text(
+        //       widget.errorText!,
+        //       style: const TextStyle(color: Colors.red, fontSize: 12),
+        //     ),
+        //   ),
       ],
     );
   }

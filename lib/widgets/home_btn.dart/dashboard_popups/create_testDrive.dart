@@ -154,13 +154,19 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
       if (slotData == null) {
         _errors['select_slot'] = 'Please select a date and time slot';
         isValid = false;
-      }
+      } else {
+        // Only check for start/end time if a date is selected
+        if (slotData?['start_time_slot'] == null ||
+            slotData?['start_time_slot'].isEmpty) {
+          _errors['select_start_time'] = 'Please select start time';
+          isValid = false;
+        }
 
-      if (slotData != null &&
-          (slotData!['end_time_slot'] == null ||
-              slotData!['end_time_slot'].toString().isEmpty)) {
-        _errors['select_end_time'] = 'Please select End Time';
-        isValid = false;
+        if (slotData?['end_time_slot'] == null ||
+            slotData?['end_time_slot'].isEmpty) {
+          _errors['select_end_time'] = 'Please select end time';
+          isValid = false;
+        }
       }
     });
 
@@ -168,24 +174,24 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
       setState(() => isSubmitting = false);
 
       // Custom error for end time
-      if (_errors.containsKey('select_end_time')) {
-        Get.snackbar(
-          'Validation Error',
-          _errors['select_end_time']!,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
-        return;
-      }
+      // if (_errors.containsKey('select_end_time')) {
+      //   Get.snackbar(
+      //     'Validation Error',
+      //     _errors['select_end_time']!,
+      //     backgroundColor: Colors.red,
+      //     colorText: Colors.white,
+      //   );
+      //   return;
+      // }
 
       // Otherwise, show all other error messages
-      String errorMessages = _errors.values.join('\n');
-      Get.snackbar(
-        'Validation Error',
-        errorMessages,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      // String errorMessages = _errors.values.join('\n');
+      // Get.snackbar(
+      //   'Validation Error',
+      //   errorMessages,
+      //   backgroundColor: Colors.red,
+      //   colorText: Colors.white,
+      // );
       return;
     }
 
@@ -228,7 +234,6 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               LeadsearchTestdrive(
-                errorText: '', // Empty error text as provided
                 onChanged: (String value) {
                   if (_errors.containsKey('select lead name')) {
                     setState(() {
@@ -239,6 +244,7 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
                   print('Lead search input changed: $value');
                 },
                 isRequired: true, // Set to true if lead selection is mandatory
+                errorText: _errors['select lead name'],
                 onLeadSelected: (leadId, leadName) {
                   setState(() {
                     _leadId = leadId;
@@ -337,45 +343,33 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
               ),
               const SizedBox(height: 15),
 
-              // SlotCalendar(
-              //   label: 'Select Date & Time Slot',
-              //   isRequired: true,
-              //   controller: startDateController,
-              //   vehicleId: vehicleId.toString(),
-              //   onChanged: (value) {
-              //     try {
-              //       final parsedSlotData = jsonDecode(value);
-              //       print('Slot data received: $parsedSlotData');
-
-              //       // 🔥 THE ACTUAL FIX: Store the slot data in the CLASS VARIABLE
-              //       setState(() {
-              //         slotData =
-              //             parsedSlotData; // This updates the class-level variable
-              //         // Clear the error if it exists
-              //         if (_errors.containsKey('select_slot')) {
-              //           _errors.remove('select_slot');
-              //         }
-              //       });
-
-              //       print('slotData variable set to: $slotData'); // Debug log
-              //     } catch (e) {
-              //       // If it's not JSON (like initial date selection), just print
-              //       print('Slot changed: $value');
-              //     }
-              //   },
-              //   onTextFieldTap: () {
-              //     print('Calendar container tapped');
-              //   },
-              // ),
               SlotCalendar(
                 label: 'Select Date & Time Slot',
                 isRequired: true,
                 controller: startDateController,
+
+                errorText: _errors['select_slot'], // Date error
+                startTimeError:
+                    _errors['select_start_time'], // Start time error
+                endTimeError: _errors['select_end_time'], // End time error
                 vehicleId:
                     vehicleId?.toString() ??
                     '', // This gets the vehicle ID from either source
                 onChanged: (value) {
                   try {
+                    if (value == 'clear_start_time_error') {
+                      setState(() {
+                        _errors.remove('select_start_time');
+                      });
+                      return;
+                    }
+
+                    if (value == 'clear_end_time_error') {
+                      setState(() {
+                        _errors.remove('select_end_time');
+                      });
+                      return;
+                    }
                     final parsedSlotData = jsonDecode(value);
                     print('Slot data received: $parsedSlotData');
 
@@ -385,6 +379,9 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
                       if (_errors.containsKey('select_slot')) {
                         _errors.remove('select_slot');
                       }
+                      _errors.remove('select_slot');
+                      _errors.remove('select_start_time');
+                      _errors.remove('select_end_time');
                     });
 
                     print('slotData variable set to: $slotData'); // Debug log

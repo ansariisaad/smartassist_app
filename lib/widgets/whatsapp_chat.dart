@@ -1,12 +1,16 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:external_app_launcher/external_app_launcher.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
@@ -115,12 +119,12 @@ class _MessageBubbleState extends State<MessageBubble> {
               ),
 
             // Video handling - ADD THIS NEW SECTION
-            if (widget.message.type == 'video' &&
-                widget.message.mediaUrl != null)
-              ClickableMessageVideo(
-                videoUrl: widget.message.mediaUrl!,
-                heroTag: widget.message.id ?? widget.message.mediaUrl,
-              ),
+            // if (widget.message.type == 'video' &&
+            //     widget.message.mediaUrl != null)
+            //   ClickableMessageVideo(
+            //     videoUrl: widget.message.mediaUrl!,
+            //     heroTag: widget.message.id ?? widget.message.mediaUrl,
+            //   ),
             // Document handling
             if (widget.message.type == 'document' &&
                 widget.message.media != null)
@@ -145,85 +149,86 @@ class _MessageBubbleState extends State<MessageBubble> {
     );
   }
 
-  Widget _buildVideoWidget() {
-    return Container(
-      width: 200,
-      height: 150,
-      decoration: BoxDecoration(
-        color: Colors.black,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Video thumbnail placeholder
-          Container(
-            width: double.infinity,
-            height: double.infinity,
-            decoration: BoxDecoration(
-              color: Colors.grey[800],
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(Icons.videocam, size: 40, color: Colors.white),
-          ),
-          // Play button overlay
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.black54,
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              icon: Icon(Icons.play_arrow, color: Colors.white, size: 30),
-              onPressed: () {
-                // Handle video playback
-                _playVideo();
-              },
-            ),
-          ),
-          // Duration badge (optional)
-          Positioned(
-            bottom: 8,
-            right: 8,
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.black54,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                'Video',
-                style: TextStyle(color: Colors.white, fontSize: 10),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget _buildVideoWidget() {
+  //   return Container(
+  //     width: 200,
+  //     height: 150,
+  //     decoration: BoxDecoration(
+  //       color: Colors.black,
+  //       borderRadius: BorderRadius.circular(8),
+  //     ),
+  //     child: Stack(
+  //       alignment: Alignment.center,
+  //       children: [
+  //         // Video thumbnail placeholder
+  //         Container(
+  //           width: double.infinity,
+  //           height: double.infinity,
+  //           decoration: BoxDecoration(
+  //             color: Colors.grey[800],
+  //             borderRadius: BorderRadius.circular(8),
+  //           ),
+  //           child: Icon(Icons.videocam, size: 40, color: Colors.white),
+  //         ),
+  //         // Play button overlay
+  //         Container(
+  //           decoration: BoxDecoration(
+  //             color: Colors.black54,
+  //             shape: BoxShape.circle,
+  //           ),
+  //           child: IconButton(
+  //             icon: Icon(Icons.play_arrow, color: Colors.white, size: 30),
+  //             onPressed: () {
+  //               // Handle video playback
+  //               _playVideo();
+  //             },
+  //           ),
+  //         ),
+  //         // Duration badge (optional)
+  //         Positioned(
+  //           bottom: 8,
+  //           right: 8,
+  //           child: Container(
+  //             padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+  //             decoration: BoxDecoration(
+  //               color: Colors.black54,
+  //               borderRadius: BorderRadius.circular(4),
+  //             ),
+  //             child: Text(
+  //               'Video',
+  //               style: TextStyle(color: Colors.white, fontSize: 10),
+  //             ),
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
-  void _playVideo() {
-    // You can implement video playback here
-    // For now, show a message or navigate to video player
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Video playback not implemented yet'),
-        duration: Duration(seconds: 2),
-      ),
-    );
+  // void _playVideo() {
+  //   // You can implement video playback here
+  //   // For now, show a message or navigate to video player
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     SnackBar(
+  //       content: Text('Video playback not implemented yet'),
+  //       duration: Duration(seconds: 2),
+  //     ),
+  //   );
 
-    // Or you can implement actual video playback using video_player package
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => WhatsappVideo(videoUrl: widget.message.mediaUrl!),
-      ),
-    );
-  }
+  //   // Or you can implement actual video playback using video_player package
+  //   Navigator.push(
+  //     context,
+  //     MaterialPageRoute(
+  //       builder: (context) => WhatsappVideo(videoUrl: widget.message.mediaUrl!),
+  //     ),
+  //   );
+  // }
 
   Widget _buildDocumentWidget() {
     final media = widget.message.media;
     final filename = media?['filename'] ?? 'Document';
     final mimetype = media?['mimetype'] ?? '';
+    final base64Data = media?['base64'];
 
     // Get appropriate icon based on file type
     IconData getDocumentIcon(String mimetype, String filename) {
@@ -259,47 +264,283 @@ class _MessageBubbleState extends State<MessageBubble> {
       }
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      padding: const EdgeInsets.all(12),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            getDocumentIcon(mimetype, filename),
-            size: 32,
-            color: AppColors.colorsBlue,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  filename,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                // Text(
-                //   // _getFileTypeLabel(mimetype, filename),
-                //   // style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                // ),
-              ],
+    // Function to get file size from base64
+    String getFileSize(String? base64Data) {
+      if (base64Data == null) return 'Unknown size';
+
+      // Calculate approximate size from base64
+      final bytes = (base64Data.length * 0.75).round();
+      if (bytes < 1024) {
+        return '$bytes B';
+      } else if (bytes < 1024 * 1024) {
+        return '${(bytes / 1024).toStringAsFixed(1)} KB';
+      } else {
+        return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+      }
+    }
+
+    return GestureDetector(
+      onTap: () => _openDocument(media),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.grey[100],
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey[300]!),
+        ),
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              getDocumentIcon(mimetype, filename),
+              size: 32,
+              color: AppColors.colorsBlue,
             ),
-          ),
-        ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    filename,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    getFileSize(base64Data),
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.download, size: 20, color: AppColors.colorsBlue),
+          ],
+        ),
       ),
     );
   }
+
+  Future<void> _openDocument(Map<String, dynamic>? media) async {
+    if (media == null || media['base64'] == null) {
+      _showSnackBar('Document data not available', Colors.red);
+      return;
+    }
+
+    try {
+      // Show loading indicator
+      _showLoadingDialog('Opening document...');
+
+      // Request storage permission
+      if (await _requestStoragePermission()) {
+        // Decode base64 data
+        final base64Data = media['base64'] as String;
+        final bytes = base64Decode(base64Data);
+
+        // Get filename and ensure it has an extension
+        String filename = media['filename'] ?? 'document';
+        if (!filename.contains('.')) {
+          final mimetype = media['mimetype'] ?? '';
+          final extension = _getExtensionFromMimeType(mimetype);
+          filename = '$filename.$extension';
+        }
+
+        // Get temporary directory
+        final directory = await getTemporaryDirectory();
+        final filePath = '${directory.path}/$filename';
+
+        // Write file to temporary directory
+        final file = File(filePath);
+        await file.writeAsBytes(bytes);
+
+        // Close loading dialog
+        Navigator.of(context).pop();
+
+        // Open the file
+        final result = await OpenFile.open(filePath);
+
+        if (result.type != ResultType.done) {
+          _showSnackBar(
+            'Could not open file: ${result.message}',
+            Colors.orange,
+          );
+        }
+      } else {
+        Navigator.of(context).pop(); // Close loading dialog
+        _showSnackBar(
+          'Storage permission required to open documents',
+          Colors.red,
+        );
+      }
+    } catch (e) {
+      Navigator.of(context).pop(); // Close loading dialog
+      print('Error opening document: $e');
+      _showSnackBar('Failed to open document', Colors.red);
+    }
+  }
+
+  // Helper method to requ  est storage permission
+  Future<bool> _requestStoragePermission() async {
+    if (Platform.isAndroid) {
+      final androidInfo = await DeviceInfoPlugin().androidInfo;
+      if (androidInfo.version.sdkInt >= 33) {
+        // Android 13+ doesn't need storage permission for temporary files
+        return true;
+      } else {
+        // Android 12 and below
+        var status = await Permission.storage.status;
+        if (status != PermissionStatus.granted) {
+          status = await Permission.storage.request();
+        }
+        return status == PermissionStatus.granted;
+      }
+    } else if (Platform.isIOS) {
+      // iOS doesn't require explicit permission for temporary files
+      return true;
+    }
+    return true;
+  }
+
+  // Helper method to get file extension from MIME type
+  String _getExtensionFromMimeType(String mimetype) {
+    switch (mimetype.toLowerCase()) {
+      case 'application/pdf':
+        return 'pdf';
+      case 'application/msword':
+        return 'doc';
+      case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+        return 'docx';
+      case 'application/vnd.ms-excel':
+        return 'xls';
+      case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+        return 'xlsx';
+      case 'application/vnd.ms-powerpoint':
+        return 'ppt';
+      case 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
+        return 'pptx';
+      case 'text/plain':
+        return 'txt';
+      case 'application/zip':
+        return 'zip';
+      case 'application/x-rar-compressed':
+        return 'rar';
+      case 'image/jpeg':
+        return 'jpg';
+      case 'image/png':
+        return 'png';
+      default:
+        return 'file';
+    }
+  }
+
+  // Helper method to show loading dialog
+  void _showLoadingDialog(String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        content: Row(
+          children: [
+            CircularProgressIndicator(color: AppColors.colorsBlue),
+            const SizedBox(width: 16),
+            Text(message),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Helper method to show snack bar
+  void _showSnackBar(String message, Color color) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: color,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  // Widget _buildDocumentWidget() {
+  //   final media = widget.message.media;
+  //   final filename = media?['filename'] ?? 'Document';
+  //   final mimetype = media?['mimetype'] ?? '';
+
+  //   // Get appropriate icon based on file type
+  //   IconData getDocumentIcon(String mimetype, String filename) {
+  //     final extension = filename.split('.').last.toLowerCase();
+
+  //     switch (extension) {
+  //       case 'pdf':
+  //         return Icons.picture_as_pdf;
+  //       case 'doc':
+  //       case 'docx':
+  //         return Icons.description;
+  //       case 'xls':
+  //       case 'xlsx':
+  //         return Icons.table_chart;
+  //       case 'ppt':
+  //       case 'pptx':
+  //         return Icons.slideshow;
+  //       case 'txt':
+  //         return Icons.text_snippet;
+  //       case 'zip':
+  //       case 'rar':
+  //       case '7z':
+  //         return Icons.archive;
+  //       case 'mp3':
+  //       case 'wav':
+  //         return Icons.audio_file;
+  //       case 'mp4':
+  //       case 'avi':
+  //       case 'mov':
+  //         return Icons.video_file;
+  //       default:
+  //         return Icons.insert_drive_file;
+  //     }
+  //   }
+
+  //   return Container(
+  //     decoration: BoxDecoration(
+  //       color: Colors.grey[100],
+  //       borderRadius: BorderRadius.circular(8),
+  //       border: Border.all(color: Colors.grey[300]!),
+  //     ),
+  //     padding: const EdgeInsets.all(12),
+  //     child: Row(
+  //       mainAxisSize: MainAxisSize.min,
+  //       children: [
+  //         Icon(
+  //           getDocumentIcon(mimetype, filename),
+  //           size: 32,
+  //           color: AppColors.colorsBlue,
+  //         ),
+  //         const SizedBox(width: 12),
+  //         Expanded(
+  //           child: Column(
+  //             crossAxisAlignment: CrossAxisAlignment.start,
+  //             children: [
+  //               Text(
+  //                 filename,
+  //                 style: const TextStyle(
+  //                   fontSize: 14,
+  //                   fontWeight: FontWeight.w500,
+  //                 ),
+  //                 maxLines: 2,
+  //                 overflow: TextOverflow.ellipsis,
+  //               ),
+  //               const SizedBox(height: 4),
+  //             ],
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 }
 
 class WhatsappChat extends StatefulWidget {
@@ -889,21 +1130,21 @@ class _WhatsappChatState extends State<WhatsappChat>
                   }
                 },
               ),
-              ListTile(
-                leading: Icon(Icons.videocam),
-                title: Text('Video', style: AppFont.dropDowmLabel(context)),
-                onTap: () async {
-                  Navigator.pop(
-                    context,
-                  ); // ✅ This is correct - we're in a modal
-                  final XFile? video = await _picker.pickVideo(
-                    source: ImageSource.gallery,
-                  );
-                  if (video != null) {
-                    await sendVideoMessage(video);
-                  }
-                },
-              ),
+              // ListTile(
+              //   leading: Icon(Icons.videocam),
+              //   title: Text('Video', style: AppFont.dropDowmLabel(context)),
+              //   onTap: () async {
+              //     Navigator.pop(
+              //       context,
+              //     ); // ✅ This is correct - we're in a modal
+              //     final XFile? video = await _picker.pickVideo(
+              //       source: ImageSource.gallery,
+              //     );
+              //     if (video != null) {
+              //       await sendVideoMessage(video);
+              //     }
+              //   },
+              // ),
             ],
           ),
         );

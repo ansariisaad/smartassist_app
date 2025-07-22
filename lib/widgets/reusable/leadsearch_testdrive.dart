@@ -728,21 +728,56 @@ class _LeadsearchTestdriveState extends State<LeadsearchTestdrive> {
                   controller: _searchController,
                   focusNode: _focusNode,
                   decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5),
+                      borderSide: BorderSide(
+                        color:
+                            widget.errorText != null &&
+                                widget.errorText!.isNotEmpty
+                            ? Colors.red
+                            : Colors.transparent,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5),
+                      borderSide: BorderSide(
+                        color:
+                            widget.errorText != null &&
+                                widget.errorText!.isNotEmpty
+                            ? Colors.red
+                            : Colors.transparent,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5),
+                      borderSide: BorderSide(
+                        color:
+                            widget.errorText != null &&
+                                widget.errorText!.isNotEmpty
+                            ? Colors.red
+                            : AppColors.fontColor,
+                      ),
+                    ),
                     filled: true,
                     fillColor: AppColors.containerBg,
-                    hintText: selectedLeadsName ?? 'Type name, email or phone',
+                    hintText: selectedVehicleName ?? 'Search vehicles...',
+                    // hintText:
+                    //     selectedVehicleName ??
+                    //     (selectedLeadPMI != null
+                    //         ? 'Search vehicles or use PMI: ${selectedLeadPMI}'
+                    //         : 'Search vehicles...'),
                     hintStyle: TextStyle(
-                      color: selectedLeadsName != null
-                          ? Colors.black87
-                          : Colors.grey.shade500,
-                      fontSize: 14,
+                      color: selectedVehicleName != null
+                          ? Colors.black
+                          : Colors.grey,
+                      fontSize: selectedVehicleName != null ? 14 : 13,
                     ),
                     prefixIcon: const Icon(
                       FontAwesomeIcons.magnifyingGlass,
                       size: 15,
-                      color: AppColors.fontColor,
+                      color: AppColors.iconGrey,
                     ),
-                    suffixIcon: selectedLeadsName != null
+                    suffixIcon: selectedVehicleName != null
                         ? IconButton(
                             icon: Icon(
                               Icons.clear,
@@ -750,21 +785,60 @@ class _LeadsearchTestdriveState extends State<LeadsearchTestdrive> {
                               size: 18,
                             ),
                             onPressed: () {
-                              _searchController.clear();
-                              _clearSelection();
+                              // _searchController1.clear();
+                              setState(() {
+                                _searchController.clear();
+                                _clearSelection();
+                              });
+                              widget.onVehicleSelected?.call({});
                             },
-                            tooltip: 'Clear selection',
+                            tooltip: 'Clear vehicle selection',
                           )
                         : null,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5),
-                      borderSide: BorderSide.none,
-                    ),
                     contentPadding: const EdgeInsets.symmetric(
                       vertical: 0,
                       horizontal: 10,
                     ),
                   ),
+
+                  // decoration: InputDecoration(
+                  //   filled: true,
+                  //   fillColor: AppColors.containerBg,
+                  //   hintText: selectedLeadsName ?? 'Type name, email or phone',
+                  //   hintStyle: TextStyle(
+                  //     color: selectedLeadsName != null
+                  //         ? Colors.black87
+                  //         : Colors.grey.shade500,
+                  //     fontSize: 14,
+                  //   ),
+                  //   prefixIcon: const Icon(
+                  //     FontAwesomeIcons.magnifyingGlass,
+                  //     size: 15,
+                  //     color: AppColors.fontColor,
+                  //   ),
+                  //   suffixIcon: selectedLeadsName != null
+                  //       ? IconButton(
+                  //           icon: Icon(
+                  //             Icons.clear,
+                  //             color: Colors.grey.shade600,
+                  //             size: 18,
+                  //           ),
+                  //           onPressed: () {
+                  //             _searchController.clear();
+                  //             _clearSelection();
+                  //           },
+                  //           tooltip: 'Clear selection',
+                  //         )
+                  //       : null,
+                  //   border: OutlineInputBorder(
+                  //     borderRadius: BorderRadius.circular(5),
+                  //     borderSide: BorderSide.none,
+                  //   ),
+                  //   contentPadding: const EdgeInsets.symmetric(
+                  //     vertical: 0,
+                  //     horizontal: 10,
+                  //   ),
+                  // ),
                   style: GoogleFonts.poppins(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,

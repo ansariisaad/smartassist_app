@@ -651,6 +651,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
               // ),
               EnhancedSpeechTextField(
                 isRequired: true,
+                   error: false,
                 // contentPadding: EdgeInsets.zero,
                 label: 'Remarks:',
                 controller: descriptionController,

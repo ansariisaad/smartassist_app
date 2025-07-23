@@ -582,6 +582,7 @@ class _FollowupsIdsState extends State<FollowupsIds> {
             // ),
             EnhancedSpeechTextField(
               isRequired: false,
+              error: false,
               // contentPadding: EdgeInsets.zero,
               label: 'Remarks:',
               controller: descriptionController,

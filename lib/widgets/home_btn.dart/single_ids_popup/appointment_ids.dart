@@ -601,6 +601,7 @@ class _AppointmentIdsState extends State<AppointmentIds> {
               // ),
               EnhancedSpeechTextField(
                 isRequired: false,
+                error: false,
                 // contentPadding: EdgeInsets.zero,
                 label: 'Remarks:',
                 controller: descriptionController,

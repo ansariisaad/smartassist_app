@@ -11,6 +11,7 @@ import 'package:permission_handler/permission_handler.dart';
 class EnhancedSpeechTextField extends StatefulWidget {
   final bool isRequired;
   final String label;
+  final bool error;
   final TextEditingController controller;
   final String hint;
   final Function(String)? onChanged;
@@ -44,6 +45,7 @@ class EnhancedSpeechTextField extends StatefulWidget {
     this.listenDuration = const Duration(seconds: 30),
     this.pauseDuration = const Duration(seconds: 5),
     required this.isRequired,
+    required this.error,
   }) : super(key: key);
 
   @override
@@ -657,7 +659,13 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
         contentPadding:
             widget.contentPadding ??
             const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        border: InputBorder.none,
+        // border: InputBorder.none,
+        border: widget.error
+            ? OutlineInputBorder(
+                borderSide: const BorderSide(color: Colors.red),
+                borderRadius: BorderRadius.circular(8),
+              )
+            : InputBorder.none,
       ),
       style: TextStyle(
         fontSize: widget.fontSize,

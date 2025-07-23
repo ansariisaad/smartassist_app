@@ -215,7 +215,8 @@ class _TestDriveState extends State<TestDrive> {
                   context,
 
                   // '29%',
-                  '${selectedData['testDriveRatio'] ?? 0} ',
+                  '${selectedData['testDriveRatio'] ?? 0} '
+                      '%',
                   'Enquiry to Test Drive ratio',
                   screenWidth,
                 ),

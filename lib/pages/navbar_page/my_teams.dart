@@ -26,6 +26,7 @@ class MyTeams extends StatefulWidget {
 
 class _MyTeamsState extends State<MyTeams> {
   static const int _decrementCount = 10;
+
   List<dynamic> _teamComparisonData = [];
 
   final ScrollController _scrollController = ScrollController();

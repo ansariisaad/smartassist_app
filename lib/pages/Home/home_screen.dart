@@ -24,8 +24,7 @@ import 'package:smartassist/widgets/home_btn.dart/dashboard_analytics_one.dart';
 import 'package:smartassist/widgets/home_btn.dart/threebtn.dart';
 import 'package:http/http.dart' as http;
 import 'package:smartassist/widgets/internet_exception.dart';
-import 'package:smartassist/widgets/profile_screen.dart';
-import 'package:smartassist/widgets/reusable/skeleton_homepage.dart';
+import 'package:smartassist/widgets/profile_screen.dart'; 
 
 class HomeScreen extends StatefulWidget {
   final String greeting;
@@ -182,7 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
     print(jsonEncode(formattedLogs));
 
     // Send to API
-    final token = await Storage.getToken(); // Replace with your token logic
+    final token = await Storage.getToken();
     const apiUrl = 'https://api.smartassistapp.in/api/leads/create-call-logs';
 
     try {

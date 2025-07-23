@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/pages/Home/home_screen.dart';
 import 'package:smartassist/pages/navbar_page/my_teams.dart';
 import 'package:smartassist/pages/Calendar/calender.dart';
+import 'package:smartassist/pages/navbar_page/teams.dart';
 import 'package:smartassist/utils/token_manager.dart';
 import 'package:smartassist/widgets/myteam.dart';
 import 'package:smartassist/widgets/timeline_view_calender.dart'; // Adjust your imports based on your actual page locations

@@ -400,7 +400,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
       children: [
         _buildToggleOption(0, 'Upcoming', AppColors.containerGreen),
         const SizedBox(width: 10),
-        _buildToggleOption(1, 'Completed', AppColors.colorsBlue),
+        _buildToggleOption(1, 'Completed', Color(0xFF1380FE)),
         const SizedBox(width: 10),
         _buildToggleOption(
           2,
@@ -594,7 +594,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
   Color _getIconColor(String category) {
     switch (category) {
       case 'outgoing':
-        return AppColors.colorsBlue;
+        return Color(0xFF1380FE);
       case 'incoming':
         return AppColors.sideGreen;
       case 'missed':
@@ -1075,7 +1075,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
     return Scaffold(
       // backgroundColor: AppColors.backgroundLightGrey,
       appBar: AppBar(
-        backgroundColor: AppColors.colorsBlueButton,
+        backgroundColor: Color(0xFF1380FE),
         // title: Text('Enquiry', style: AppFont.appbarfontWhite(context)),
         title: Align(
           alignment: Alignment.centerLeft,
@@ -1154,7 +1154,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                                     child: const Icon(
                                       Icons.receipt_long_rounded,
                                       size: 40,
-                                      color: AppColors.colorsBlue,
+                                      color: Color(0xFF1380FE),
                                     ),
                                   ),
                                   const SizedBox(width: 10),
@@ -1478,14 +1478,16 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                                             vertical: 5,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: AppColors.colorsBlue
-                                                .withOpacity(0.2),
+                                            color: Color(
+                                              0xFF1380FE,
+                                            ).withOpacity(0.2),
                                             borderRadius: BorderRadius.circular(
                                               15,
                                             ),
                                             border: Border.all(
-                                              color: AppColors
-                                                  .colorsBlue, // Border color
+                                              color: Color(
+                                                0xFF1380FE,
+                                              ), // Border color
                                               width: .5,
                                             ),
                                           ),
@@ -1494,7 +1496,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                                             style: GoogleFonts.poppins(
                                               fontSize: 12,
                                               fontWeight: FontWeight.w400,
-                                              color: AppColors.colorsBlue,
+                                              color: Color(0xFF1380FE),
                                             ),
                                           ),
                                         ),
@@ -1618,7 +1620,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               decoration: BoxDecoration(
-                                color: AppColors.colorsBlue,
+                                color: Color(0xFF1380FE),
                                 // Green color from image
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -1700,7 +1702,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                         .grey // Grey when disabled
                   : (fabController.isFabExpanded.value
                         ? Colors.red
-                        : AppColors.colorsBlue),
+                        : Color(0xFF1380FE)),
             ),
             // color: fabController.isFabExpanded.value
             //     ? Colors.red
@@ -1718,7 +1720,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                           .grey // Grey when disabled
                     : (fabController.isFabExpanded.value
                           ? Colors.red
-                          : AppColors.colorsBlue),
+                          : Color(0xFF1380FE)),
                 size: 30,
               ),
             ),
@@ -1937,7 +1939,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                       child: Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: AppColors.colorsBlue,
+                          color: Color(0xFF1380FE),
                           borderRadius: BorderRadius.circular(30),
                         ),
                         child: Icon(icon, color: Colors.white, size: 24),
@@ -2015,7 +2017,7 @@ class _ContactRowState extends State<ContactRow> {
               borderRadius: BorderRadius.circular(10),
               color: const Color.fromARGB(255, 241, 248, 255),
             ),
-            child: Icon(widget.icon, size: 25, color: AppColors.colorsBlue),
+            child: Icon(widget.icon, size: 25, color: Color(0xFF1380FE)),
           ),
           const SizedBox(width: 10),
           Expanded(

@@ -24,7 +24,7 @@ import 'package:smartassist/widgets/home_btn.dart/dashboard_analytics_one.dart';
 import 'package:smartassist/widgets/home_btn.dart/threebtn.dart';
 import 'package:http/http.dart' as http;
 import 'package:smartassist/widgets/internet_exception.dart';
-import 'package:smartassist/widgets/profile_screen.dart'; 
+import 'package:smartassist/widgets/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String greeting;

@@ -495,7 +495,10 @@ class _TestdriveState extends State<Testdrive> {
   }
 
   final List<String> items = ['Planned', 'No Show'];
-  final List<String> noShowReasons = ['Reason 1', 'Reason 2'];
+  final List<String> noShowReasons = [
+    'Did not appear for test drive',
+    'Not interested',
+  ];
   String? selectedValue;
 
   List<DropdownMenuItem<String>> _addDividersAfterItems(List<String> items) {

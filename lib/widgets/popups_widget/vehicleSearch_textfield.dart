@@ -195,7 +195,7 @@ class _VehiclesearchTextfieldState extends State<VehiclesearchTextfield> {
                     ),
                     filled: true,
                     fillColor: AppColors.containerBg,
-                    hintText: selectedVehicleName ?? 'Search vehicles...',
+                    hintText: selectedVehicleName ?? 'Select a vehicle',
                     hintStyle: TextStyle(
                       color: selectedVehicleName != null
                           ? Colors.black

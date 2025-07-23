@@ -347,8 +347,11 @@ class _FollowupsEditState extends State<FollowupsEdit> {
     );
   }
 
-  final List<String> items = ['Not Started', 'Completed', 'Deferred'];
-  final List<String> deferredReasons = ['Reason 1', 'Reason 2'];
+  final List<String> items = ['Completed', 'Deferred'];
+  final List<String> deferredReasons = [
+    'Client unreacheable',
+    'Not interested',
+  ];
   String? selectedValue;
 
   List<DropdownMenuItem<String>> _addDividersAfterItems(List<String> items) {
@@ -573,7 +576,7 @@ class _FollowupsEditState extends State<FollowupsEdit> {
                           style: const TextStyle(color: AppColors.fontColor),
                           isExpanded: true,
                           hint: Text(
-                            'Select Item',
+                            'Select status',
                             style: AppFont.dropDowmLabelLightcolors(context),
                           ),
                           items: _addDividersAfterItems(items),

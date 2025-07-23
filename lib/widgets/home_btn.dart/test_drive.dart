@@ -143,7 +143,7 @@ class _TestDriveState extends State<TestDrive> {
                       child: _buildInfoCard(
                         context,
                         'You have given',
-                        'unique Test Drives',
+                        'Unique Test Drives',
                         '${selectedData['uniqueTestDrives'] ?? 0}',
                         screenWidth,
                         Colors.green,
@@ -154,7 +154,7 @@ class _TestDriveState extends State<TestDrive> {
                       child: _buildInfoCard(
                         context,
                         'Give',
-                        'more Test Drives to achive your target',
+                        'more Test Drives to achieve your target',
                         '${selectedData['remainingTestDrives'] ?? 0}',
                         screenWidth,
                         AppColors.colorsBlue,
@@ -201,7 +201,7 @@ class _TestDriveState extends State<TestDrive> {
                   // '45%',
                   '${selectedData['enquiryToUniqueTestdriveRatio'] ?? '0'} '
                       '%',
-                  'Enquiry to unique Test Drive ratio',
+                  'Enquiry to Unique Test Drive ratio',
                   screenWidth,
                 ),
               ),

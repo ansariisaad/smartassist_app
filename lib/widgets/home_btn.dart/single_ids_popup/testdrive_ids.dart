@@ -476,6 +476,7 @@ class _TestdriveIdsState extends State<TestdriveIds> {
               const SizedBox(height: 10),
               EnhancedSpeechTextField(
                 isRequired: false,
+                error: false,
                 // contentPadding: EdgeInsets.zero,
                 label: 'Remarks:',
                 controller: descriptionController,

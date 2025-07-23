@@ -564,6 +564,7 @@ class _CreateFollowupsPopupsState extends State<CreateFollowupsPopups> {
             EnhancedSpeechTextField(
               isRequired: false,
               label: 'Remarks:',
+              error: false,
               controller: descriptionController,
               hint: 'Type or speak... ',
               onChanged: (text) {

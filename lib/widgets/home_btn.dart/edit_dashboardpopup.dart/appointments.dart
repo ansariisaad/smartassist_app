@@ -491,8 +491,8 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
     );
   }
 
-  final List<String> items = ['Not Started', 'Completed', 'Deferred'];
-  final List<String> deferredReasons = ['Reason 1', 'Reason 2'];
+  final List<String> items = ['Completed', 'Deferred'];
+  final List<String> deferredReasons = ['Not picking up', 'Lost interest'];
   String? selectedValue;
 
   List<DropdownMenuItem<String>> _addDividersAfterItems(List<String> items) {
@@ -718,7 +718,7 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
                           style: const TextStyle(color: AppColors.fontColor),
                           isExpanded: true,
                           hint: Text(
-                            'Select Item',
+                            'Select status',
                             style: AppFont.dropDowmLabelLightcolors(context),
                           ),
                           items: _addDividersAfterItems(items),

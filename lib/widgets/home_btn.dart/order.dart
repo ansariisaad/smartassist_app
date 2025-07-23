@@ -142,7 +142,7 @@ class _OrderState extends State<Order> {
                         child: _buildInfoCard2(
                           context,
                           '${selectedData['digitalEnquiryToOrderRatio'] ?? 0}%',
-                          'Digital enquiry to new order ratio',
+                          'Digital enquiry to New Order ratio',
                           screenWidth,
                           Colors.red,
                         ),

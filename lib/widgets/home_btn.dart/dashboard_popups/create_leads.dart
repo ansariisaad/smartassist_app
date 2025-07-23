@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
@@ -39,13 +38,11 @@ class _CreateLeadsState extends State<CreateLeads> {
   Map<String, dynamic>? selectedVehicleData;
   final PageController _pageController = PageController();
   List<Map<String, String>> dropdownItems = [];
-  // final _formKey = GlobalKey<FormState>();
   bool isLoading = true;
   bool _isLoading = true;
   int _currentStep = 0;
   List<dynamic> vehicleList = [];
   List<String> uniqueVehicleNames = [];
-  // String? selectedVehicleName;
   late stt.SpeechToText _speech;
   bool _isListening = false;
   bool isSubmitting = false;
@@ -56,22 +53,23 @@ class _CreateLeadsState extends State<CreateLeads> {
   String? selectedColorName;
   String? selectedVehicleColorId;
   String? selectedUrl;
-  // String? selectedColormail;
 
   List<dynamic> _searchResults = [];
-  // List<String> colorOptions = [];
-  // String? selectedColor;
-  // String? selectedExteriorColor;
-  // String? selectedInteriorColor;
-  // List<String> exteriorOptions = [];
-  // List<String> interiorOptions = [];
+
+  // Campaign related variables - exactly like vehicle search
+  List<dynamic> _searchResultsCampaign = [];
+  bool _isLoadingCampaignSearch = false;
+  String _campaignQuery = '';
+  String? selectedCampaignName;
+  String? selectedCampaignId;
+  Map<String, dynamic>? selectedCampaignData;
+  final TextEditingController _searchControllerCampaign =
+      TextEditingController();
 
   // Form error tracking
   Map<String, String> _errors = {};
   bool _isLoadingSearch = false;
-  String _selectedBrand = '';
   String _selectedType = '';
-  String _selectedFuel = '';
   String _selectedPurchaseType = '';
   String _selectedEnquiryType = '';
   Map<String, dynamic>? _existingLeadData;
@@ -102,14 +100,15 @@ class _CreateLeadsState extends State<CreateLeads> {
   final TextEditingController _searchController = TextEditingController();
   bool consentValue = false;
   String _query = '';
+
   @override
   void initState() {
     super.initState();
     print('this is the key :${Environment.googleMapsApiKey}');
     _rangeAmount = RangeValues(_minValue, _maxValue);
-    // fetchVehicleData();
     _searchController.addListener(_onSearchChanged);
     _searchControllerVehicleColor.addListener(_onVehicleColorSearchChanged);
+    _searchControllerCampaign.addListener(_onCampaignSearchChanged);
     // Initialize speech recognition
     _speech = stt.SpeechToText();
     _initSpeech();
@@ -119,10 +118,84 @@ class _CreateLeadsState extends State<CreateLeads> {
   void dispose() {
     _searchController.removeListener(_onSearchChanged);
     _searchControllerVehicleColor.removeListener(_onVehicleColorSearchChanged);
-
+    _searchControllerCampaign.removeListener(_onCampaignSearchChanged);
     _searchController.dispose();
     _locationController.dispose();
+    _searchControllerCampaign.dispose();
     super.dispose();
+  }
+
+  Future<void> fetchCampaignData(String query) async {
+    if (query.isEmpty) {
+      setState(() {
+        _searchResultsCampaign = [];
+        _isLoadingCampaignSearch = false;
+      });
+      return;
+    }
+
+    final token = await Storage.getToken();
+
+    setState(() {
+      _isLoadingCampaignSearch = true;
+    });
+
+    try {
+      final response = await http.get(
+        Uri.parse('https://api.smartassistapp.in/api/leads/campaigns/all'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        final List<dynamic> results = data['data'] ?? [];
+
+        // Debug: Print the structure of campaign data
+        if (results.isNotEmpty) {
+          print("Campaign data structure: ${results.first}");
+        }
+
+        // Filter campaigns based on query
+        final List<dynamic> filteredResults = results.where((campaign) {
+          final campaignName =
+              campaign['campaign_name']?.toString().toLowerCase() ?? '';
+          return campaignName.contains(query.toLowerCase());
+        }).toList();
+
+        setState(() {
+          _searchResultsCampaign = filteredResults;
+        });
+      } else {
+        print("Failed to load campaigns: ${response.statusCode}");
+        setState(() {
+          _searchResultsCampaign = [];
+        });
+      }
+    } catch (e) {
+      print("Error fetching campaigns: $e");
+      setState(() {
+        _searchResultsCampaign = [];
+      });
+    } finally {
+      setState(() {
+        _isLoadingCampaignSearch = false;
+      });
+    }
+  }
+
+  void _onCampaignSearchChanged() {
+    final newQuery = _searchControllerCampaign.text.trim();
+    if (newQuery == _campaignQuery) return;
+
+    _campaignQuery = newQuery;
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (_campaignQuery == _searchControllerCampaign.text.trim()) {
+        fetchCampaignData(_campaignQuery);
+      }
+    });
   }
 
   // Initialize speech recognition
@@ -228,9 +301,7 @@ class _CreateLeadsState extends State<CreateLeads> {
   }
 
   Future<void> _fetchVehicleColorSearchResults(String query) async {
-    print(
-      "Inside _fetchAssigneeSearchResults with query: '$query'",
-    ); // Debug print
+    print("Inside _fetchVehicleColorSearchResults with query: '$query'");
 
     if (query.isEmpty) {
       setState(() {
@@ -248,7 +319,7 @@ class _CreateLeadsState extends State<CreateLeads> {
 
       final apiUrl =
           'https://api.smartassistapp.in/api/search/vehicle-color?color=$query';
-      print("API URL: $apiUrl"); // Debug URL
+      print("API URL: $apiUrl");
 
       final response = await http.get(
         Uri.parse(apiUrl),
@@ -258,27 +329,21 @@ class _CreateLeadsState extends State<CreateLeads> {
         },
       );
 
-      print(
-        "API Response status: ${response.statusCode}",
-      ); // Debug response code
-      print("API Response body: ${response.body}"); // Debug response data
+      print("API Response status: ${response.statusCode}");
+      print("API Response body: ${response.body}");
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
         setState(() {
-          // _searchResultsAssignee = data['data']['suggestions'] ?? [];
           _searchResultsColor = data['data']['results'] ?? [];
-
-          print(
-            "Search results loaded: ${_searchResultsColor.length}",
-          ); // Debug results
+          print("Search results loaded: ${_searchResultsColor.length}");
         });
       } else {
         print("API error: ${response.statusCode} - ${response.body}");
         showErrorMessage(context, message: 'API Error: ${response.statusCode}');
       }
     } catch (e) {
-      print("Exception during API call: $e"); // Debug exception
+      print("Exception during API call: $e");
       showErrorMessage(context, message: 'Something went wrong..! $e');
     } finally {
       setState(() {
@@ -299,56 +364,8 @@ class _CreateLeadsState extends State<CreateLeads> {
     });
   }
 
-  // Future<void> fetchVehicleColors(String vehicleName) async {
-  //   final token = await Storage.getToken();
-  //   final encodedName = Uri.encodeComponent(vehicleName);
-
-  //   final url =
-  //       'https://api.smartassistapp.in/api/users/vehicles/all?vehicle_name=$encodedName';
-
-  //   try {
-  //     final response = await http.get(
-  //       Uri.parse(url),
-  //       headers: {
-  //         'Authorization': 'Bearer $token',
-  //         'Content-Type': 'application/json',
-  //       },
-  //     );
-
-  //     if (response.statusCode == 200) {
-  //       final data = json.decode(response.body);
-  //       final List<dynamic> vehicles = data['data']['rows'] ?? [];
-
-  //       if (vehicles.isNotEmpty) {
-  //         final vehicle = vehicles.first;
-  //         final String? exterior = vehicle['exterior_color'];
-  //         final String? interior = vehicle['interior_color'];
-
-  //         setState(() {
-  //           exteriorOptions =
-  //               (exterior != null && exterior.isNotEmpty) ? [exterior] : [];
-  //           interiorOptions =
-  //               (interior != null && interior.isNotEmpty) ? [interior] : [];
-  //           selectedExteriorColor = null;
-  //           selectedInteriorColor = null;
-  //         });
-  //       }
-  //     } else {
-  //       print('Failed to fetch color data: ${response.statusCode}');
-  //     }
-  //   } catch (e) {
-  //     print('Error fetching colors: $e');
-  //   }
-  // }
-
   // Method to check if lead exists
   Future<void> _checkExistingLead(String mobileNumber) async {
-    // if (_isLoading) return;
-
-    // setState(() {
-    //   _isLoading = true;
-    // });
-
     final token = await Storage.getToken();
 
     // Add the country code before making the API call
@@ -457,11 +474,9 @@ class _CreateLeadsState extends State<CreateLeads> {
         isValid = false;
       }
 
-      // Validate email
-      if (emailController.text.trim().isEmpty) {
-        _errors['email'] = 'Email is required';
-        isValid = false;
-      } else if (!_isValidEmail(emailController.text.trim())) {
+      // Email validation - removed required validation
+      if (emailController.text.trim().isNotEmpty &&
+          !_isValidEmail(emailController.text.trim())) {
         _errors['email'] = 'Please enter a valid email';
         isValid = false;
       }
@@ -491,32 +506,14 @@ class _CreateLeadsState extends State<CreateLeads> {
     setState(() {
       _errors = {}; // Clear previous errors
 
-      // Validate brand
-      // if (_selectedBrand.isEmpty) {
-      //   _errors['brand'] = 'Please select a brand';
-      //   isValid = false;
-      // }
-
-      // Validate fuel type
-      // if (_selectedFuel.isEmpty) {
-      //   _errors['fuel'] = 'Please select a fuel type';
-      //   isValid = false;
-      // }
-
       if (selectedVehicleData == null || selectedVehicleName!.isEmpty) {
         _errors['vehicleName'] = 'Please select a vehicle';
         isValid = false;
       }
 
-      // if (selectedColorName == null || selectedColorName!.isEmpty) {
-      //   _errors['vehicleColors'] = 'Please select a vehicle color';
-      //   isValid = false;
-      // }
-
       // Validate purchase type
       if (_selectedPurchaseType.isEmpty) {
         _errors['purchaseType'] = 'Please select a purchase type';
-
         isValid = false;
       }
 
@@ -525,18 +522,6 @@ class _CreateLeadsState extends State<CreateLeads> {
         _errors['enquiryType'] = 'Please select an enquiry type';
         isValid = false;
       }
-
-      // Validate primary model interest
-      // if (modelInterestController.text.trim().isEmpty) {
-      //   _errors['model'] = 'Primary model interest is required';
-      //   isValid = false;
-      // }
-
-      // Validate expected purchase date
-      // if (endDateController.text.trim().isEmpty) {
-      //   _errors['purchaseDate'] = 'Expected purchase date is required';
-      //   isValid = false;
-      // }
     });
 
     return isValid;
@@ -544,20 +529,6 @@ class _CreateLeadsState extends State<CreateLeads> {
 
   bool _validatePage3() {
     bool isValid = true;
-
-    // Example checks — replace with your actual fields
-    // if (selectedExteriorColor == null || selectedExteriorColor!.isEmpty) {
-    //   isValid = false;
-    //   _errors['exteriorColor'] = 'select ';
-    // }
-
-    // if (selectedInteriorColor == null || selectedInteriorColor!.isEmpty) {
-    //   isValid = false;
-    //   _errors['interiorColor'] = 'select';
-    // }
-
-    // You can add more field checks here if needed
-
     setState(() {}); // Update UI to show error messages if needed
     return isValid;
   }
@@ -565,20 +536,8 @@ class _CreateLeadsState extends State<CreateLeads> {
   // Email validation
   bool _isValidEmail(String email) {
     final emailRegExp = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-
-    // First character should not be uppercase
-    // if (email.isEmpty || email[0] == email[0].toUpperCase()) {
-    //   return false;
-    // }
-
     return emailRegExp.hasMatch(email);
   }
-
-  // bool _isValidName(String name) {
-  //   final nameRegExp = RegExp(r'^[a-zA-Z0-9]+( [a-zA-Z0-9]+)*$');
-
-  //   return nameRegExp.hasMatch(name);
-  // }
 
   bool _isValidFirst(String name) {
     final nameRegExp = RegExp(r'^[A-Z][a-zA-Z0-9]*( [a-zA-Z0-9]+)*$');
@@ -602,43 +561,23 @@ class _CreateLeadsState extends State<CreateLeads> {
     if (_currentStep == 0) {
       if (_validatePage1()) {
         setState(() => _currentStep++);
-        // No need for PageController navigation with IndexedStack
       } else {
         String errorMessage = _errors.values.join('\n');
         print(errorMessage.toString());
-        // Get.snackbar(
-        //   'Error',
-        //   errorMessage,
-        //   backgroundColor: Colors.red,
-        //   colorText: Colors.white,
-        // );
       }
     } else if (_currentStep == 1) {
       if (_validatePage2()) {
         setState(() => _currentStep++);
-        // No need for PageController navigation with IndexedStack
       } else {
         String errorMessage = _errors.values.join('\n');
         print(errorMessage.toString());
-        // Get.snackbar(
-        //   'Error',
-        //   errorMessage,
-        //   backgroundColor: Colors.red,
-        //   colorText: Colors.white,
-        // );
       }
     } else {
       if (_validatePage3()) {
-        _submitForm(); // ✅ API will hit now
+        _submitForm();
       } else {
         String errorMessage = _errors.values.join('\n');
         print(errorMessage.toString());
-        // Get.snackbar(
-        //   'Error',
-        //   errorMessage,
-        //   backgroundColor: Colors.red,
-        //   colorText: Colors.white,
-        // );
       }
     }
   }
@@ -649,7 +588,7 @@ class _CreateLeadsState extends State<CreateLeads> {
     setState(() => isSubmitting = true);
 
     try {
-      await submitForm(); // Your actual API call
+      await submitForm();
     } catch (e) {
       Get.snackbar(
         'Error',
@@ -748,9 +687,7 @@ class _CreateLeadsState extends State<CreateLeads> {
                       // Connector line
                       Expanded(
                         child: Container(
-                          margin: const EdgeInsets.only(
-                            bottom: 17,
-                          ), // Move line up to align with circles
+                          margin: const EdgeInsets.only(bottom: 17),
                           height: 2,
                           color: _currentStep == 1
                               ? Colors.grey.shade300
@@ -801,9 +738,7 @@ class _CreateLeadsState extends State<CreateLeads> {
 
                       Expanded(
                         child: Container(
-                          margin: const EdgeInsets.only(
-                            bottom: 17,
-                          ), // Move line up to align with circles
+                          margin: const EdgeInsets.only(bottom: 17),
                           height: 2,
                           color: _currentStep == 2
                               ? Colors.grey.shade300
@@ -859,7 +794,6 @@ class _CreateLeadsState extends State<CreateLeads> {
             const SizedBox(height: 10),
             IndexedStack(
               index: _currentStep,
-              // physics: const NeverScrollableScrollPhysics(),
               children: [
                 SingleChildScrollView(
                   child: Column(
@@ -921,7 +855,7 @@ class _CreateLeadsState extends State<CreateLeads> {
                         },
                       ),
                       _buildTextField(
-                        isRequired: true,
+                        isRequired: false, // Changed to false
                         label: 'Email',
                         controller: emailController,
                         hintText: 'Email',
@@ -937,7 +871,6 @@ class _CreateLeadsState extends State<CreateLeads> {
                       ),
 
                       const SizedBox(height: 10),
-                      // _buildButtons
                       _buildButtonsFloat1(
                         isRequired: true,
                         label: 'Lead Source',
@@ -966,7 +899,6 @@ class _CreateLeadsState extends State<CreateLeads> {
                           });
                         },
                       ),
-                      // _buildAmountRange(),
                     ],
                   ),
                 ),
@@ -998,7 +930,7 @@ class _CreateLeadsState extends State<CreateLeads> {
                       ),
                       const SizedBox(height: 10),
                       VehicleColors(
-                        errorText: _errors['vehicleColors'], // Add comma here
+                        errorText: _errors['vehicleColors'],
                         onVehicleColorSelected: (selectedColorData) {
                           setState(() {
                             selectedColorName = selectedColorData['color_name'];
@@ -1058,47 +990,49 @@ class _CreateLeadsState extends State<CreateLeads> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // if (_isGoogleApiKeyValid)
                       CustomGooglePlacesField(
                         controller: _locationController,
                         hintText: 'Enter location',
                         label: 'Location',
-                        onChanged: (value) {
-                          // if (_locationErrorText != null) {
-                          //   _validateLocation();
-                          // }
-                        },
+                        onChanged: (value) {},
                         googleApiKey: _googleApiKey,
                         isRequired: true,
                       ),
 
                       _buildDatePicker(
-                        // isRequired: true,
                         label: 'Expected purchase date',
                         controller: endDateController,
                         errorText: _errors['purchaseDate'],
                         onTap: () => _pickDate(isStartDate: false),
                       ),
-                      // const SizedBox(
-                      //   height: 10,
-                      // ),
-                      // _consentTick(
-                      //   isRequired: true,
-                      //   text: "Agreed with these terms",
-                      //   value: consentValue,
-                      //   onChanged: (newValue) {
-                      //     setState(() {
-                      //       consentValue = newValue;
-                      //     });
-                      //   },
-                      // ),
+
+                      const SizedBox(height: 10),
+                      CampaignSearchTextfield(
+                        errorText: _errors['campaign'],
+                        onCampaignSelected: (selectedCampaign) {
+                          setState(() {
+                            selectedCampaignData = selectedCampaign;
+                            selectedCampaignName =
+                                selectedCampaign['campaign_name'];
+                            selectedCampaignId = selectedCampaign['campaign_id']
+                                .toString();
+
+                            if (_errors.containsKey('campaign')) {
+                              _errors.remove('campaign');
+                            }
+                          });
+
+                          print("Selected Campaign: $selectedCampaignName");
+                          print("Selected Campaign ID: $selectedCampaignId");
+                        },
+                      ),
                     ],
                   ),
                 ),
               ],
             ),
 
-            // ✅ Updated Button Row
+            // Updated Button Row
             Row(
               children: [
                 Expanded(
@@ -1111,12 +1045,8 @@ class _CreateLeadsState extends State<CreateLeads> {
                     ),
                     onPressed: () {
                       if (_currentStep == 0) {
-                        Navigator.pop(context); // Close if on first page
+                        Navigator.pop(context);
                       } else {
-                        // _pageController.previousPage(
-                        //   duration: const Duration(milliseconds: 300),
-                        //   curve: Curves.easeInOut,
-                        // );
                         WidgetsBinding.instance.addPostFrameCallback((_) {
                           if (_pageController.hasClients) {
                             _pageController.previousPage(
@@ -1158,184 +1088,333 @@ class _CreateLeadsState extends State<CreateLeads> {
     );
   }
 
-  Widget _buildSearchField({
-    required ValueChanged<String> onChanged,
+  Widget CampaignSearchTextfield({
     String? errorText,
+    required Function(Map<String, dynamic>) onCampaignSelected,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // const SizedBox(height: 10),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 5),
-          child: RichText(
-            text: TextSpan(
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: AppColors.fontBlack,
-              ),
-              children: [
-                TextSpan(
-                  text: 'Primary Model Interest',
-                  style: AppFont.dropDowmLabel(context),
-                ),
-                // if (isRequired)
-                const TextSpan(
-                  text: " *",
-                  style: TextStyle(color: Colors.red),
-                ),
-              ],
+          child: Text(
+            'Campaign',
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.fontBlack,
             ),
           ),
         ),
-        // Text('Primary Model Interest', style: AppFont.dropDowmLabel(context)),
         const SizedBox(height: 5),
         Container(
-          height: MediaQuery.of(context).size.height * 0.055,
-          width: double.infinity,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(5),
-            color: AppColors.containerBg,
+            color: const Color.fromARGB(255, 248, 247, 247),
+            border: errorText != null
+                ? Border.all(color: Colors.red, width: 1.0)
+                : null,
           ),
-          child: Row(
+          child: Column(
             children: [
-              Expanded(
-                child: TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: AppColors.containerBg,
-                    hintText: selectedVehicleName ?? 'Vehicle Name',
-                    hintStyle: TextStyle(
-                      color: selectedVehicleName != null
-                          ? Colors.black
-                          : Colors.grey,
-                    ),
-                    prefixIcon: const Icon(
-                      FontAwesomeIcons.magnifyingGlass,
-                      size: 15,
-                      color: AppColors.iconGrey,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 0,
-                      horizontal: 10,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5),
-                      borderSide: BorderSide(
-                        color: errorText != null
-                            ? Colors.red
-                            : Colors.transparent,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5),
-                      borderSide: BorderSide(
-                        color: errorText != null
-                            ? Colors.red
-                            : Colors.transparent,
-                        width: 1.5,
-                      ),
-                    ),
-                    errorText:
-                        null, // omit this if you don't want error message text below
+              TextField(
+                controller: _searchControllerCampaign,
+                style: AppFont.dropDowmLabel(context),
+                decoration: InputDecoration(
+                  hintText: 'Search campaign',
+                  hintStyle: GoogleFonts.poppins(
+                    color: Colors.grey,
+                    fontSize: 12,
                   ),
-
-                  // decoration: InputDecoration(
-                  //   filled: true,
-                  //   fillColor: AppColors.containerBg,
-                  //   hintText: selectedVehicleName ?? 'Vehicle Name',
-                  //   hintStyle: TextStyle(
-                  //     color: selectedVehicleName != null
-                  //         ? Colors.black
-                  //         : Colors.grey,
-                  //   ),
-                  //   prefixIcon: const Icon(
-                  //     FontAwesomeIcons.magnifyingGlass,
-                  //     size: 15,
-                  //     color: AppColors.iconGrey,
-                  //   ),
-                  //   contentPadding:
-                  //       const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-                  //   border: OutlineInputBorder(
-                  //     borderRadius: BorderRadius.circular(5),
-                  //     borderSide: BorderSide.none,
-                  //   ),
-                  // ),
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 10,
                   ),
-                  // onChanged: onChanged,
+                  border: InputBorder.none,
+                  suffixIcon: _isLoadingCampaignSearch
+                      ? const Padding(
+                          padding: EdgeInsets.all(12.0),
+                          child: SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        )
+                      : _searchControllerCampaign.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, color: Colors.grey),
+                          onPressed: () {
+                            setState(() {
+                              _searchControllerCampaign.clear();
+                              _searchResultsCampaign.clear();
+                              selectedCampaignName = null;
+                              selectedCampaignId = null;
+                              selectedCampaignData = null;
+                              _campaignQuery = '';
+                            });
+                          },
+                        )
+                      : const Icon(Icons.search, color: Colors.grey),
                 ),
               ),
+
+              // Campaign Results
+              if (_searchResultsCampaign.isNotEmpty &&
+                  _searchControllerCampaign.text.isNotEmpty &&
+                  selectedCampaignName != _searchControllerCampaign.text)
+                Container(
+                  constraints: const BoxConstraints(maxHeight: 200),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: _searchResultsCampaign.length,
+                    itemBuilder: (context, index) {
+                      final campaign = _searchResultsCampaign[index];
+                      return ListTile(
+                        dense: true,
+                        title: Text(
+                          campaign['campaign_name'] ?? 'Unknown Campaign',
+                          style: AppFont.dropDowmLabel(context),
+                        ),
+                        subtitle: campaign['campaign_code'] != null
+                            ? Text(
+                                campaign['campaign_code'],
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              )
+                            : null,
+                        onTap: () {
+                          final campaignName = campaign['campaign_name'] ?? '';
+
+                          // Try different possible field names for campaign ID
+                          final campaignId =
+                              campaign['id']?.toString() ??
+                              campaign['campaign_id']?.toString() ??
+                              campaign['Campaign_id']?.toString() ??
+                              '';
+
+                          print(
+                            "Selected Campaign ID: $campaignId",
+                          ); // Debug print
+                          print("Full campaign data: $campaign"); // Debug print
+
+                          setState(() {
+                            _searchControllerCampaign.text = campaignName;
+                            _searchResultsCampaign.clear();
+                            selectedCampaignName = campaignName;
+                            selectedCampaignId = campaignId;
+                          });
+
+                          // Create the campaign data
+                          final campaignData = {
+                            'campaign_name': campaignName,
+                            'campaign_id': campaignId,
+                          };
+
+                          // Call the callback
+                          onCampaignSelected(campaignData);
+
+                          // Hide keyboard
+                          FocusScope.of(context).unfocus();
+                        },
+                      );
+                    },
+                  ),
+                )
+              else if (_searchResultsCampaign.isEmpty &&
+                  _searchControllerCampaign.text.isNotEmpty &&
+                  !_isLoadingCampaignSearch &&
+                  selectedCampaignName != _searchControllerCampaign.text)
+                Container(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    'No campaigns found',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      color: Colors.grey,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
 
-        // Show loading indicator
-        if (_isLoadingSearch)
-          const Padding(
-            padding: EdgeInsets.only(top: 8.0),
-            child: Center(child: CircularProgressIndicator()),
-          ),
-
-        // Show search results
-        if (_searchResults.isNotEmpty)
-          Container(
-            margin: const EdgeInsets.only(top: 8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(5),
-              boxShadow: const [
-                BoxShadow(color: Colors.black12, blurRadius: 4),
-              ],
-            ),
-            child: ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _searchResults.length,
-              itemBuilder: (context, index) {
-                final result = _searchResults[index];
-                return ListTile(
-                  onTap: () {
-                    setState(() {
-                      FocusScope.of(context).unfocus();
-                      // selectedLeads = result['lead_id'];
-                      selectedVehicleName = result['vehicle_name'];
-                      _searchController.text =
-                          result['vehicle_name']; //new added for validation
-                      modelInterestController.text =
-                          result['vehicle_name']; //new added for validation
-                      _searchController.clear();
-                      _searchResults.clear();
-
-                      if (_errors.containsKey('model')) {
-                        _errors.remove('model'); // 🔥 remove error key
-                      }
-                    });
-                    // ✅ Call the color-fetching function here!
-                    // fetchVehicleColors(result['vehicle_name']);
-                  },
-                  title: Text(
-                    result['vehicle_name'] ?? 'No Name',
-                    style: TextStyle(
-                      color: selectedVehicleName == result['vehicle_name']
-                          ? Colors.black
-                          : AppColors.fontBlack,
-                    ),
-                  ),
-                  leading: const Icon(Icons.directions_car),
-                );
-              },
+        if (errorText != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 5, left: 5),
+            child: Text(
+              errorText,
+              style: const TextStyle(color: Colors.red, fontSize: 12),
             ),
           ),
       ],
     );
   }
 
+  // Widget CampaignSearchTextfield({
+  //   String? errorText,
+  //   required Function(Map<String, dynamic>) onCampaignSelected,
+  // }) {
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     children: [
+  //       Padding(
+  //         padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 5),
+  //         child: Text(
+  //           'Campaign',
+  //           style: GoogleFonts.poppins(
+  //             fontSize: 14,
+  //             fontWeight: FontWeight.w500,
+  //             color: AppColors.fontBlack,
+  //           ),
+  //         ),
+  //       ),
+  //       const SizedBox(height: 5),
+  //       Container(
+  //         decoration: BoxDecoration(
+  //           borderRadius: BorderRadius.circular(5),
+  //           color: const Color.fromARGB(255, 248, 247, 247),
+  //           border: errorText != null
+  //               ? Border.all(color: Colors.red, width: 1.0)
+  //               : null,
+  //         ),
+  //         child: Column(
+  //           children: [
+  //             TextField(
+  //               controller: _searchControllerCampaign,
+  //               style: AppFont.dropDowmLabel(context),
+  //               decoration: InputDecoration(
+  //                 hintText: 'Search campaign',
+  //                 hintStyle: GoogleFonts.poppins(
+  //                   color: Colors.grey,
+  //                   fontSize: 14,
+  //                   fontWeight: FontWeight.w500,
+  //                 ),
+  //                 contentPadding: const EdgeInsets.symmetric(
+  //                   horizontal: 10,
+  //                   vertical: 14,
+  //                 ),
+  //                 border: InputBorder.none,
+  //                 suffixIcon: _isLoadingCampaignSearch
+  //                     ? const Padding(
+  //                         padding: EdgeInsets.all(12.0),
+  //                         child: SizedBox(
+  //                           width: 16,
+  //                           height: 16,
+  //                           child: CircularProgressIndicator(strokeWidth: 2),
+  //                         ),
+  //                       )
+  //                     : _searchControllerCampaign.text.isNotEmpty
+  //                     ? IconButton(
+  //                         icon: const Icon(Icons.clear, color: Colors.grey),
+  //                         onPressed: () {
+  //                           setState(() {
+  //                             _searchControllerCampaign.clear();
+  //                             _searchResultsCampaign.clear();
+  //                             selectedCampaignName = null;
+  //                             selectedCampaignId = null;
+  //                             selectedCampaignData = null;
+  //                             _campaignQuery = '';
+  //                           });
+  //                         },
+  //                       )
+  //                     : const Icon(Icons.search, color: Colors.grey),
+  //               ),
+  //             ),
+
+  //             // Campaign Results - show results when available AND search is active
+  //             if (_searchResultsCampaign.isNotEmpty &&
+  //                 _searchControllerCampaign.text.isNotEmpty &&
+  //                 selectedCampaignName != _searchControllerCampaign.text)
+  //               Container(
+  //                 constraints: const BoxConstraints(maxHeight: 200),
+  //                 child: ListView.builder(
+  //                   shrinkWrap: true,
+  //                   itemCount: _searchResultsCampaign.length,
+  //                   itemBuilder: (context, index) {
+  //                     final campaign = _searchResultsCampaign[index];
+  //                     return ListTile(
+  //                       dense: true,
+  //                       title: Text(
+  //                         campaign['campaign_name'] ?? 'Unknown Campaign',
+  //                         style: AppFont.dropDowmLabel(context),
+  //                       ),
+  //                       subtitle: campaign['campaign_code'] != null
+  //                           ? Text(
+  //                               campaign['campaign_code'],
+  //                               style: GoogleFonts.poppins(
+  //                                 fontSize: 12,
+  //                                 color: Colors.grey,
+  //                               ),
+  //                               maxLines: 1,
+  //                               overflow: TextOverflow.ellipsis,
+  //                             )
+  //                           : null,
+  //                       onTap: () {
+  //                         // Set the text field value
+  //                         final campaignName = campaign['campaign_name'] ?? '';
+
+  //                         setState(() {
+  //                           _searchControllerCampaign.text = campaignName;
+  //                           _searchResultsCampaign
+  //                               .clear(); // Clear results after selection
+  //                           selectedCampaignName =
+  //                               campaignName; // Store selected campaign name
+  //                         });
+
+  //                         // Create the campaign data with correct field names
+  //                         final campaignData = {
+  //                           'campaign_name': campaignName,
+  //                           'campaign_id': campaign['campaign_id'],
+  //                         };
+
+  //                         // Call the callback
+  //                         onCampaignSelected(campaignData);
+
+  //                         // Hide keyboard
+  //                         FocusScope.of(context).unfocus();
+  //                       },
+  //                     );
+  //                   },
+  //                 ),
+  //               )
+  //             // Show "No campaigns found" only when search is done and no results
+  //             else if (_searchResultsCampaign.isEmpty &&
+  //                 _searchControllerCampaign.text.isNotEmpty &&
+  //                 !_isLoadingCampaignSearch &&
+  //                 selectedCampaignName != _searchControllerCampaign.text)
+  //               Container(
+  //                 padding: const EdgeInsets.all(16.0),
+  //                 child: Text(
+  //                   'No campaigns found',
+  //                   style: GoogleFonts.poppins(
+  //                     fontSize: 14,
+  //                     color: Colors.grey,
+  //                     fontStyle: FontStyle.italic,
+  //                   ),
+  //                 ),
+  //               ),
+  //           ],
+  //         ),
+  //       ),
+
+  //       if (errorText != null)
+  //         Padding(
+  //           padding: const EdgeInsets.only(top: 5, left: 5),
+  //           child: Text(
+  //             errorText,
+  //             style: const TextStyle(color: Colors.red, fontSize: 12),
+  //           ),
+  //         ),
+  //     ],
+  //   );
+  // }
+
+  // All other existing widget methods remain the same...
   Widget _buildNumberWidget({
     required TextEditingController controller,
     required String hintText,
@@ -1400,29 +1479,12 @@ class _CreateLeadsState extends State<CreateLeads> {
                 ),
                 border: InputBorder.none,
               ),
-              // onChanged: (value) {
-              //   onChanged(value);
 
-              //   // Clear existing lead data if input length is not 10
-              //   if (value.length != 10) {
-              //     setState(() {
-              //       _existingLeadData = null;
-              //       _isLoading = false;
-              //     });
-              //   }
-
-              //   // Check for existing lead only when mobile number is exactly 10 digits
-              //   if (value.length == 10) {
-              //     _checkExistingLead(value);
-              //   }
-              // },
               onChanged: (value) {
                 onChanged(value);
 
-                // For debugging
                 print("Current mobile input: $value, length: ${value.length}");
 
-                // Clear existing lead data if input length is not 10
                 if (value.length != 10) {
                   setState(() {
                     _existingLeadData = null;
@@ -1430,7 +1492,6 @@ class _CreateLeadsState extends State<CreateLeads> {
                   });
                 }
 
-                // Check for existing lead only when mobile number is exactly 10 digits
                 if (value.length == 10) {
                   print("Checking for existing lead with number: $value");
                   _checkExistingLead(value);
@@ -1439,13 +1500,6 @@ class _CreateLeadsState extends State<CreateLeads> {
             ),
           ),
         ),
-
-        // Show loader only when API is being called
-        // if (_isLoading)
-        //   Padding(
-        //     padding: const EdgeInsets.only(top: 8.0),
-        //     child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-        //   ),
 
         // Show this only if an existing lead is found
         if (_existingLeadData != null)
@@ -1461,7 +1515,7 @@ class _CreateLeadsState extends State<CreateLeads> {
                   borderRadius: BorderRadius.circular(5),
                 ),
                 child: Text(
-                  'Lead already exists',
+                  'Enquiry already exists',
                   style: GoogleFonts.poppins(
                     color: Colors.red,
                     fontSize: 14,
@@ -1545,270 +1599,6 @@ class _CreateLeadsState extends State<CreateLeads> {
               ),
             ],
           ),
-      ],
-    );
-  }
-
-  Widget _buildVehicleColorSearch() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Color', style: AppFont.dropDowmLabel(context)),
-        const SizedBox(height: 10),
-        Container(
-          height: MediaQuery.of(context).size.height * 0.055,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(5),
-            color: AppColors.containerBg,
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _searchControllerVehicleColor,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: AppColors.containerBg,
-                    hintText: selectedColorName ?? 'Search Color',
-                    hintStyle: TextStyle(
-                      color: selectedColorName != null
-                          ? Colors.black
-                          : Colors.grey,
-                    ),
-                    prefixIcon: const Icon(
-                      FontAwesomeIcons.magnifyingGlass,
-                      size: 15,
-                      color: AppColors.fontColor,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 0,
-                      horizontal: 10,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black,
-                  ),
-                  onTap: () {},
-                  onChanged: (value) {
-                    if (value.isEmpty && selectedColorName != null) {
-                      setState(() {
-                        selectedColorName = null;
-                        selectedVehicleColorId = null;
-                        selectedUrl = null;
-                      });
-                    }
-                    // print("TextField onChanged: '$value'"); // Additional debug
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // Show loading indicator
-        if (_isLoadingColor)
-          const Padding(
-            padding: EdgeInsets.only(top: 8.0),
-            child: Center(child: CircularProgressIndicator()),
-          ),
-
-        // Show search results
-        if (_searchResultsColor.isNotEmpty)
-          Container(
-            margin: const EdgeInsets.only(top: 8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(5),
-              boxShadow: const [
-                BoxShadow(color: Colors.black12, blurRadius: 4),
-              ],
-            ),
-            child: ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _searchResultsColor.length,
-              itemBuilder: (context, index) {
-                final result = _searchResultsColor[index];
-                final imageUrl = result['image_url'];
-
-                return ListTile(
-                  onTap: () {
-                    setState(() {
-                      FocusScope.of(context).unfocus();
-                      selectedVehicleColorId = result['color_id'];
-                      selectedColorName = result['color_name'];
-                      selectedUrl =
-                          result['image_url']; // Save the selected URL
-
-                      // _searchControllerVehicleColor.clear();
-                      _searchControllerVehicleColor.text =
-                          result['color_name'] ?? '';
-
-                      _searchResultsColor.clear();
-                    });
-                  },
-                  title: Text(
-                    result['color_name'] ?? 'No Name',
-                    style: GoogleFonts.poppins(
-                      color: selectedVehicleColorId == result['color_id']
-                          ? Colors.black
-                          : AppColors.fontBlack,
-                    ),
-                  ),
-                  leading: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.grey.shade200, // Fallback color
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: imageUrl != null && imageUrl.isNotEmpty
-                          ? Image.network(
-                              imageUrl,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return const Center(
-                                  child: Icon(
-                                    Icons.error_outline,
-                                    color: Colors.grey,
-                                    size: 20,
-                                  ),
-                                );
-                              },
-                              loadingBuilder:
-                                  (context, child, loadingProgress) {
-                                    if (loadingProgress == null) return child;
-                                    return Center(
-                                      child: CircularProgressIndicator(
-                                        value:
-                                            loadingProgress
-                                                    .expectedTotalBytes !=
-                                                null
-                                            ? loadingProgress
-                                                      .cumulativeBytesLoaded /
-                                                  loadingProgress
-                                                      .expectedTotalBytes!
-                                            : null,
-                                        strokeWidth: 2,
-                                      ),
-                                    );
-                                  },
-                            )
-                          : const Center(
-                              child: Icon(
-                                Icons.invert_colors_rounded,
-                                color: Colors.grey,
-                              ),
-                            ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _consentTick({
-    bool isRequired = false,
-    required String text,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-    Color? checkboxFillColor,
-    Color? borderColor,
-  }) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 5),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: RichText(
-              text: TextSpan(
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.fontBlack,
-                ),
-                children: [
-                  TextSpan(
-                    text: 'Consent',
-                    style: AppFont.dropDowmLabel(context),
-                  ),
-                  if (isRequired)
-                    const TextSpan(
-                      text: " *",
-                      style: TextStyle(color: Colors.red),
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        // Align(
-        //   alignment: Alignment.centerLeft,
-        //   child: Text(
-        //     'Consent',
-        //     style: AppFont.dropDowmLabel(context),
-        //   ),
-        // ),
-        // const SizedBox(
-        //   height: 10,
-        // ),
-        Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(5),
-            color: const Color.fromARGB(255, 248, 247, 247),
-            border: borderColor != null
-                ? Border.all(color: borderColor, width: 1.0)
-                : null,
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 24,
-                height: 24,
-                child: Checkbox(
-                  value: value,
-                  onChanged: (newValue) {
-                    if (newValue != null) {
-                      onChanged(newValue);
-                    }
-                  },
-                  fillColor: MaterialStateProperty.resolveWith<Color>((states) {
-                    if (states.contains(MaterialState.selected)) {
-                      return checkboxFillColor ?? AppColors.colorsBlue;
-                    }
-                    return Colors.transparent;
-                  }),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  text,
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    color: Colors.grey[700],
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
       ],
     );
   }
@@ -1920,7 +1710,6 @@ class _CreateLeadsState extends State<CreateLeads> {
             width: double.infinity,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              // color: AppColors.containerPopBg,
               border: errorText != null
                   ? Border.all(color: Colors.red)
                   : Border.all(color: Colors.black, width: 0.5),
@@ -1967,7 +1756,6 @@ class _CreateLeadsState extends State<CreateLeads> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          // margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(
             color: const Color.fromARGB(255, 248, 247, 247),
@@ -2007,17 +1795,6 @@ class _CreateLeadsState extends State<CreateLeads> {
                         ),
                       ),
                     ),
-                    // SizedBox(
-                    //   child: RichText(
-                    //     text: TextSpan(
-                    //       style: AppFont.dropDowmLabel(context),
-                    //       children: [
-                    //         TextSpan(text: label),
-                    //       ],
-                    //     ),
-                    //     textAlign: TextAlign.left,
-                    //   ),
-                    // ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Column(
@@ -2050,14 +1827,6 @@ class _CreateLeadsState extends State<CreateLeads> {
             ),
           ),
         ),
-        // if (errorText != null)
-        //   Padding(
-        //     padding: const EdgeInsets.only(left: 5, top: 0),
-        //     child: Text(
-        //       errorText,
-        //       style: GoogleFonts.poppins(color: Colors.redAccent, fontSize: 12),
-        //     ),
-        //   ),
       ],
     );
   }
@@ -2077,8 +1846,6 @@ class _CreateLeadsState extends State<CreateLeads> {
       children: [
         Container(
           width: double.infinity,
-          // margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          // padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(
             color: const Color.fromARGB(255, 248, 247, 247),
             borderRadius: const BorderRadius.all(Radius.circular(5)),
@@ -2111,22 +1878,9 @@ class _CreateLeadsState extends State<CreateLeads> {
                     ),
                   ),
                 ),
-                // SizedBox(
-                //   child: RichText(
-                //     text: TextSpan(
-                //       style: AppFont.dropDowmLabel(context),
-                //       children: [
-                //         TextSpan(text: label),
-                //       ],
-                //     ),
-                //     textAlign: TextAlign.left,
-                //   ),
-                // ),
-                // const SizedBox(width: 10),
                 Wrap(
                   spacing: 2,
                   runSpacing: 10,
-                  // mainAxisAlignment: MainAxisAlignment.start,
                   children: options.keys.map((shortText) {
                     bool isSelected = groupValue == options[shortText];
 
@@ -2139,7 +1893,6 @@ class _CreateLeadsState extends State<CreateLeads> {
                           horizontal: 10,
                           vertical: 0,
                         ),
-                        // margin: const EdgeInsets.only(right: 5),
                         decoration: BoxDecoration(
                           border: Border.all(
                             color: isSelected
@@ -2153,7 +1906,7 @@ class _CreateLeadsState extends State<CreateLeads> {
                               : AppColors.innerContainerBg,
                         ),
                         child: Text(
-                          shortText, // ✅ Only show short text
+                          shortText,
                           style: TextStyle(
                             color: isSelected
                                 ? AppColors.colorsBlue
@@ -2170,88 +1923,11 @@ class _CreateLeadsState extends State<CreateLeads> {
             ),
           ),
         ),
-        // if (errorText != null)
-        //   Padding(
-        //     padding: const EdgeInsets.only(left: 5, top: 0),
-        //     child: Text(
-        //       errorText,
-        //       style: GoogleFonts.poppins(color: Colors.redAccent, fontSize: 12),
-        //     ),
-        //   ),
       ],
     );
   }
 
-  // Widget _buildButtonsFloat({
-  //   required Map<String, String> options,
-  //   required String groupValue,
-  //   required String label,
-  //   required ValueChanged<String> onChanged,
-  //   String? errorText,
-  // }) {
-  //   List<String> optionKeys = options.keys.toList();
-
-  //   return Container(
-  //     decoration: BoxDecoration(
-  //         color: const Color.fromARGB(255, 248, 247, 247),
-  //         borderRadius: const BorderRadius.all(Radius.circular(5)),
-  //         border: errorText != null
-  //             ? Border.all(color: Colors.red, width: 1.0)
-  //             : null),
-  //     child: Padding(
-  //       padding: const EdgeInsets.all(8.0),
-  //       child: Column(
-  //         crossAxisAlignment: CrossAxisAlignment.start,
-  //         children: [
-  //           Row(
-  //             crossAxisAlignment: CrossAxisAlignment
-  //                 .center, // ✅ Aligns label and buttons properly
-  //             children: [
-  //               // 🔹 Brand Label (Left Side, Vertically Centered)
-  //               SizedBox(
-  //                 child: Align(
-  //                   alignment:
-  //                       Alignment.centerRight, // ✅ Ensures proper alignment
-  //                   child: Text(
-  //                     label,
-  //                     style: AppFont.dropDowmLabel(context),
-  //                     textAlign: TextAlign.left,
-  //                   ),
-  //                 ),
-  //               ),
-
-  //               const SizedBox(width: 10),
-
-  //               // 🔹 Right Side: Brand Options in Two Rows
-  //               Expanded(
-  //                 child: Column(
-  //                   crossAxisAlignment:
-  //                       CrossAxisAlignment.start, // Align buttons left
-  //                   children: [
-  //                     Row(
-  //                       mainAxisAlignment:
-  //                           MainAxisAlignment.end, // ✅ Align left
-  //                       children: [
-  //                         _buildOptionButton(
-  //                             optionKeys[0], options, groupValue, onChanged),
-  //                         const SizedBox(width: 5),
-  //                         _buildOptionButton(
-  //                             optionKeys[1], options, groupValue, onChanged),
-  //                       ],
-  //                     ),
-  //                   ],
-  //                 ),
-  //               ),
-  //             ],
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
-
   Widget _buildAmountRange({bool isRequired = false}) {
-    // Convert to lakhs for display (no decimal)
     final int startLakh = (_rangeAmount.start / 100000).round();
     final int endLakh = (_rangeAmount.end / 100000).round();
 
@@ -2265,7 +1941,6 @@ class _CreateLeadsState extends State<CreateLeads> {
         Text("Budget", style: AppFont.dropDowmLabel(context)),
         const SizedBox(height: 5),
 
-        // 🔹 Show Selected Range as Text
         Padding(
           padding: const EdgeInsets.only(left: 5),
           child: Text(
@@ -2286,14 +1961,12 @@ class _CreateLeadsState extends State<CreateLeads> {
             values: _rangeAmount,
             min: _minValue,
             max: _maxValue,
-            divisions: 160, // 160 steps from 40L to 200L in 1L steps
+            divisions: 160,
             labels: RangeLabels("INR:${startText}L", "INR:${endText}L"),
             onChanged: (RangeValues values) {
-              // Round to nearest lakh
               final double newStart = (values.start / 100000).round() * 100000;
               final double newEnd = (values.end / 100000).round() * 100000;
 
-              // Clamp values
               final clampedStart = newStart.clamp(_minValue, _maxValue);
               final clampedEnd = newEnd.clamp(_minValue, _maxValue);
 
@@ -2307,94 +1980,6 @@ class _CreateLeadsState extends State<CreateLeads> {
     );
   }
 
-  // Widget _buildAmountRange({
-  //   bool isRequired = false,
-  // }) {
-  //   // Convert to lakhs for display
-  //   final double startLakh = _rangeAmount.start / 100000;
-  //   final double endLakh = _rangeAmount.end / 100000;
-
-  //   // Format with one decimal place
-  //   final startText = startLakh.toStringAsFixed(1);
-  //   final endText = endLakh.toStringAsFixed(1);
-
-  //   return Column(
-  //     crossAxisAlignment: CrossAxisAlignment.start,
-  //     children: [
-  //       const SizedBox(height: 5),
-
-  //       Padding(
-  //         padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 5),
-  //         child: RichText(
-  //           text: TextSpan(
-  //             style: GoogleFonts.poppins(
-  //               fontSize: 14,
-  //               fontWeight: FontWeight.w500,
-  //               color: AppColors.fontBlack,
-  //             ),
-  //             children: [
-  //               TextSpan(text: 'Budget'),
-  //               // if (isRequired)
-  //               //   const TextSpan(
-  //               //     text: " *",
-  //               //     style: TextStyle(color: Colors.red),
-  //               //   ),
-  //             ],
-  //           ),
-  //         ),
-  //       ),
-
-  //       const SizedBox(height: 5),
-
-  //       // 🔹 Show Selected Range as Text
-  //       Padding(
-  //         padding: const EdgeInsets.only(left: 5),
-  //         child: Text(
-  //           "INR:$startText lakh - INR:$endText lakh",
-  //           style: AppFont.smallText(context),
-  //         ),
-  //       ),
-
-  //       // const SizedBox(height: 5),
-
-  //       // 🔹 Range Slider
-  //       SliderTheme(
-  //         data: SliderTheme.of(context).copyWith(
-  //           activeTrackColor: AppColors.colorsBlue,
-  //           inactiveTrackColor: Colors.grey.withOpacity(0.3),
-  //           thumbColor: AppColors.colorsBlue,
-  //           overlayColor: AppColors.colorsBlue.withOpacity(0.2),
-  //           showValueIndicator: ShowValueIndicator.always,
-  //         ),
-  //         child: RangeSlider(
-  //           values: _rangeAmount,
-  //           min: _minValue,
-  //           max: _maxValue,
-  //           divisions: 180, // (200-40) increments of 1 lakh each
-  //           labels: RangeLabels(
-  //             "INR:${startText}L",
-  //             "INR:${endText}L",
-  //           ),
-  //           onChanged: (RangeValues values) {
-  //             // Round to nearest lakh
-  //             final double newStart = (values.start / 100000).round() * 100000;
-  //             final double newEnd = (values.end / 100000).round() * 100000;
-
-  //             // Ensure values are within bounds
-  //             final clampedStart = newStart.clamp(_minValue, _maxValue);
-  //             final clampedEnd = newEnd.clamp(_minValue, _maxValue);
-
-  //             setState(() {
-  //               _rangeAmount = RangeValues(clampedStart, clampedEnd);
-  //             });
-  //           },
-  //         ),
-  //       ),
-  //     ],
-  //   );
-  // }
-
-  // ✅ Button Builder Function
   Widget _buildOptionButton(
     String shortText,
     Map<String, String> options,
@@ -2446,17 +2031,13 @@ class _CreateLeadsState extends State<CreateLeads> {
             ),
           );
         }
-        print("Error: User ID not found."); // ✅ Print error in console
+        print("Error: User ID not found.");
         return;
       }
 
-      // When preparing the leadData:
       String mobileNumber = mobileController.text;
 
-      // Ensure the mobile number always includes the country code
       if (!mobileNumber.startsWith('+91')) {
-        // print(mobileNumber);
-
         mobileNumber = '+91' + mobileNumber;
       }
 
@@ -2465,18 +2046,18 @@ class _CreateLeadsState extends State<CreateLeads> {
       final leadData = {
         'fname': firstNameController.text,
         'lname': lastNameController.text,
-        'email': emailController.text,
+        'email': emailController.text.trim().isEmpty
+            ? null
+            : emailController.text,
         'mobile': mobileNumber,
         'purchase_type': _selectedPurchaseType,
         'brand': selectedBrand ?? '',
         'vehicle_id': vehicleId ?? '',
         'type': 'Product',
         'sub_type': selectedSubType,
-        // 'sp_id': spId,
         'chat_id': "91${mobileController.text}@c.us",
         'PMI': selectedVehicleName,
         'expected_date_purchase': endDateController.text,
-        'fuel_type': _selectedFuel,
         'enquiry_type': _selectedEnquiryType,
         'lead_source': _selectedType,
         'consent': consentValue,
@@ -2485,11 +2066,10 @@ class _CreateLeadsState extends State<CreateLeads> {
             ? null
             : _locationController.text.trim(),
         'exterior_color': selectedColorName,
+        'Campaign': selectedCampaignId, // Add campaign ID to form data
       };
 
-      print(
-        "Submitting lead data: $leadData",
-      ); // ✅ Print lead data before submission
+      print("Submitting lead data: $leadData");
 
       Map<String, dynamic>? response = await LeadsSrv.submitLead(leadData);
 
@@ -2497,11 +2077,9 @@ class _CreateLeadsState extends State<CreateLeads> {
         print("Response received: $response");
 
         if (response.containsKey('data')) {
-          // ✅ Form submitted successfully
           String leadId = response['data']['lead_id'];
 
           if (context.mounted) {
-            // Disable the FAB
             Get.find<FabController>().temporarilyDisableFab();
 
             Navigator.pop(context);
@@ -2552,7 +2130,6 @@ class _CreateLeadsState extends State<CreateLeads> {
                 );
               });
 
-              // Show first error message
               String firstFieldError = errorDetails.entries.first.value
                   .toString();
               Get.snackbar(
@@ -2563,7 +2140,6 @@ class _CreateLeadsState extends State<CreateLeads> {
               );
             }
           } else {
-            // If it's a generic error (like "Not a valid email")
             Get.snackbar(
               'Error',
               errorMessage,
@@ -2583,8 +2159,8 @@ class _CreateLeadsState extends State<CreateLeads> {
         );
       }
     } catch (e, stackTrace) {
-      print("Exception Occurred: $e"); // ✅ Log any unexpected exceptions
-      print("Stack Trace: $stackTrace"); // ✅ Print stack trace for debugging
+      print("Exception Occurred: $e");
+      print("Stack Trace: $stackTrace");
 
       Get.snackbar(
         'Error',

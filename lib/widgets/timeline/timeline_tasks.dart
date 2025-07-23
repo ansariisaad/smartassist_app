@@ -289,7 +289,7 @@ class TimelineUpcoming extends StatelessWidget {
               drawGap: true,
               indicator: Container(
                 decoration: const BoxDecoration(
-                  color: AppColors.colorsBlue,
+                  color: Color(0xFF1380FE),
                   shape: BoxShape.circle,
                 ),
                 child: IconButton(

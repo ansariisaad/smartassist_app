@@ -341,7 +341,7 @@ class _MessageBubbleState extends State<MessageBubble> {
             Icon(
               getDocumentIcon(mimetype, filename),
               size: 32,
-              color: AppColors.colorsBlue,
+              color: Color(0xFF1380FE),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -377,7 +377,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                 ],
               ),
             ),
-            Icon(Icons.open_in_new, size: 20, color: AppColors.colorsBlue),
+            Icon(Icons.open_in_new, size: 20, color: Color(0xFF1380FE)),
           ],
         ),
       ),
@@ -624,7 +624,7 @@ class _MessageBubbleState extends State<MessageBubble> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CircularProgressIndicator(color: AppColors.colorsBlue),
+            CircularProgressIndicator(color: Color(0xFF1380FE)),
             const SizedBox(height: 16),
             Text(message),
             const SizedBox(height: 8),
@@ -1782,378 +1782,383 @@ class _WhatsappChatState extends State<WhatsappChat>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: AppColors.colorsBlueButton,
-        leadingWidth: 40,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: Colors.white,
-          ),
-          onPressed: () {
-            Navigator.pop(context);
-            disconnectSocket();
-          },
-        ),
-        title: Row(
-          children: [
-            const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.userName,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                Text(
-                  isWhatsAppLoading
-                      // ? 'Initializing...'
-                      ? 'Connected'
-                      : isLoggedOut
-                      ? 'Logged Out'
-                      : isWhatsAppReady
-                      ? (isConnected ? 'Online' : 'Connecting...')
-                      : 'Not Connected',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.white.withOpacity(0.8),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              isConnected && isWhatsAppReady ? Icons.wifi : Icons.wifi_off,
+    return GestureDetector(
+      excludeFromSemantics: true,
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Color(0xFF1380FE),
+          leadingWidth: 40,
+          leading: IconButton(
+            icon: const Icon(
+              Icons.arrow_back_ios_new_rounded,
               color: Colors.white,
             ),
             onPressed: () {
-              if (!isConnected || !isWhatsAppReady) {
-                socket.connect();
-                checkWhatsAppStatus();
-                // Get.snackbar(
-                //   'Info',
-                //   'Reconnecting...',
-                //   backgroundColor: AppColors.colorsBlue,
-                //   colorText: Colors.white,
-                // );
-              }
+              Navigator.pop(context);
+              disconnectSocket();
             },
           ),
-        ],
-      ),
-      body: isCheckingStatus
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                Expanded(
-                  child: isWhatsAppReady && !isLoggedOut
-                      ? messages.isEmpty
-                            ? const Center(child: Text('No messages yet'))
-                            : ListView.builder(
-                                controller: _scrollController,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 10,
-                                  horizontal: 10,
-                                ),
-                                itemCount: messages.length,
-                                itemBuilder: (context, index) {
-                                  final message = messages[index];
-                                  final showDate =
-                                      index == 0 ||
-                                      DateTime.fromMillisecondsSinceEpoch(
-                                            messages[index].timestamp * 1000,
-                                          ).day !=
-                                          DateTime.fromMillisecondsSinceEpoch(
-                                            messages[index - 1].timestamp *
-                                                1000,
-                                          ).day;
+          title: Row(
+            children: [
+              const SizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.userName,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Text(
+                    isWhatsAppLoading
+                        // ? 'Initializing...'
+                        ? 'Connected'
+                        : isLoggedOut
+                        ? 'Logged Out'
+                        : isWhatsAppReady
+                        ? (isConnected ? 'Online' : 'Connecting...')
+                        : 'Not Connected',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.white.withOpacity(0.8),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          actions: [
+            IconButton(
+              icon: Icon(
+                isConnected && isWhatsAppReady ? Icons.wifi : Icons.wifi_off,
+                color: Colors.white,
+              ),
+              onPressed: () {
+                if (!isConnected || !isWhatsAppReady) {
+                  socket.connect();
+                  checkWhatsAppStatus();
+                  // Get.snackbar(
+                  //   'Info',
+                  //   'Reconnecting...',
+                  //   backgroundColor: AppColors.colorsBlue,
+                  //   colorText: Colors.white,
+                  // );
+                }
+              },
+            ),
+          ],
+        ),
+        body: isCheckingStatus
+            ? const Center(child: CircularProgressIndicator())
+            : Column(
+                children: [
+                  Expanded(
+                    child: isWhatsAppReady && !isLoggedOut
+                        ? messages.isEmpty
+                              ? const Center(child: Text('No messages yet'))
+                              : ListView.builder(
+                                  controller: _scrollController,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 10,
+                                    horizontal: 10,
+                                  ),
+                                  itemCount: messages.length,
+                                  itemBuilder: (context, index) {
+                                    final message = messages[index];
+                                    final showDate =
+                                        index == 0 ||
+                                        DateTime.fromMillisecondsSinceEpoch(
+                                              messages[index].timestamp * 1000,
+                                            ).day !=
+                                            DateTime.fromMillisecondsSinceEpoch(
+                                              messages[index - 1].timestamp *
+                                                  1000,
+                                            ).day;
 
-                                  return Column(
-                                    children: [
-                                      if (showDate)
-                                        Container(
-                                          margin: const EdgeInsets.symmetric(
-                                            vertical: 10,
+                                    return Column(
+                                      children: [
+                                        if (showDate)
+                                          Container(
+                                            margin: const EdgeInsets.symmetric(
+                                              vertical: 10,
+                                            ),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 15,
+                                              vertical: 5,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey[300],
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                            child: Text(
+                                              DateFormat('EEEE, MMM d').format(
+                                                DateTime.fromMillisecondsSinceEpoch(
+                                                  message.timestamp * 1000,
+                                                ),
+                                              ),
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.black54,
+                                              ),
+                                            ),
                                           ),
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 15,
-                                            vertical: 5,
+                                        MessageBubble(
+                                          message: message,
+                                          timeString: formatTimestamp(
+                                            message.timestamp,
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                )
+                        : Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                // Show different UI based on loading states
+                                if (isWhatsAppLoading)
+                                  Column(
+                                    children: [
+                                      const CircularProgressIndicator(
+                                        color: Color(0xFF1380FE),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        loadingMessage.isNotEmpty
+                                            ? loadingMessage
+                                            : 'Starting WhatsApp client...',
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Please wait while we initialize your WhatsApp connection',
+                                        style: TextStyle(
+                                          color: Colors.grey[600],
+                                          fontSize: 14,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ],
+                                  )
+                                else
+                                  Column(
+                                    children: [
+                                      // Show different icon and text based on logout state
+                                      if (isLoggedOut)
+                                        Column(
+                                          children: [
+                                            Icon(
+                                              Icons.account_circle_outlined,
+                                              size: 80,
+                                              color: Colors.grey[400],
+                                            ),
+                                            const SizedBox(height: 16),
+                                            Text(
+                                              'WhatsApp Logged Out',
+                                              style: TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.grey[700],
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              'Your WhatsApp session has ended.\nPlease reconnect to continue chatting.',
+                                              style: TextStyle(
+                                                color: Colors.grey[600],
+                                                fontSize: 14,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                            const SizedBox(height: 24),
+                                          ],
+                                        )
+                                      else
+                                        Column(
+                                          children: [
+                                            SvgPicture.asset(
+                                              'assets/whatsapp.svg', // Replace with your SVG path
+                                              width: 80,
+                                              height: 80,
+                                              color: Colors
+                                                  .green[400], // Optional: applies color to the SVG
+                                              fit: BoxFit.fill,
+                                            ),
+                                            const SizedBox(height: 16),
+                                          ],
+                                        ),
+                                      InkWell(
+                                        onTap: () {
+                                          if (isLoggedOut) {
+                                            resendQR(); // Call resendQR if user was logged out
+                                            print('Resend QR clicked');
+                                          } else {
+                                            initWhatsAppChat(
+                                              context,
+                                            ); // Call normal init for first connection
+                                            print('Connect WhatsApp clicked');
+                                          }
+                                        },
+                                        child: Container(
+                                          width: double
+                                              .infinity, // Makes it full width
+                                          constraints: BoxConstraints(
+                                            minHeight:
+                                                44, // Minimum touch target size
+                                            maxWidth:
+                                                MediaQuery.of(
+                                                  context,
+                                                ).size.width *
+                                                0.9, // Max 90% of screen width
+                                          ),
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal:
+                                                MediaQuery.of(
+                                                  context,
+                                                ).size.width *
+                                                0.04, // 4% of screen width
+                                            vertical:
+                                                MediaQuery.of(
+                                                  context,
+                                                ).size.height *
+                                                0.01, // 1% of screen height
                                           ),
                                           decoration: BoxDecoration(
-                                            color: Colors.grey[300],
+                                            color: Color(0xFF1380FE),
                                             borderRadius: BorderRadius.circular(
                                               10,
                                             ),
                                           ),
-                                          child: Text(
-                                            DateFormat('EEEE, MMM d').format(
-                                              DateTime.fromMillisecondsSinceEpoch(
-                                                message.timestamp * 1000,
+                                          child: Center(
+                                            child: Text(
+                                              isLoading
+                                                  ? 'Connecting...'
+                                                  : isLoggedOut
+                                                  ? 'Reconnect WhatsApp'
+                                                  : 'WhatsApp not connected, connect now?',
+                                              style: AppFont.appbarfontWhite(
+                                                context,
                                               ),
-                                            ),
-                                            style: const TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.black54,
+                                              textAlign: TextAlign.center,
+                                              maxLines:
+                                                  2, // Allows text to wrap to 2 lines if needed
+                                              overflow: TextOverflow.ellipsis,
                                             ),
                                           ),
                                         ),
-                                      MessageBubble(
-                                        message: message,
-                                        timeString: formatTimestamp(
-                                          message.timestamp,
-                                        ),
                                       ),
-                                    ],
-                                  );
-                                },
-                              )
-                      : Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              // Show different UI based on loading states
-                              if (isWhatsAppLoading)
-                                Column(
-                                  children: [
-                                    const CircularProgressIndicator(
-                                      color: AppColors.colorsBlueButton,
-                                    ),
-                                    const SizedBox(height: 16),
-                                    Text(
-                                      loadingMessage.isNotEmpty
-                                          ? loadingMessage
-                                          : 'Starting WhatsApp client...',
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      'Please wait while we initialize your WhatsApp connection',
-                                      style: TextStyle(
-                                        color: Colors.grey[600],
-                                        fontSize: 14,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ],
-                                )
-                              else
-                                Column(
-                                  children: [
-                                    // Show different icon and text based on logout state
-                                    if (isLoggedOut)
-                                      Column(
-                                        children: [
-                                          Icon(
-                                            Icons.account_circle_outlined,
-                                            size: 80,
-                                            color: Colors.grey[400],
+                                      if (!isConnected && !isLoading)
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 8.0,
                                           ),
-                                          const SizedBox(height: 16),
-                                          Text(
-                                            'WhatsApp Logged Out',
-                                            style: TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.grey[700],
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            'Your WhatsApp session has ended.\nPlease reconnect to continue chatting.',
+                                          child: Text(
+                                            'Click to connect',
                                             style: TextStyle(
                                               color: Colors.grey[600],
-                                              fontSize: 14,
+                                              fontSize: 12,
                                             ),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                          const SizedBox(height: 24),
-                                        ],
-                                      )
-                                    else
-                                      Column(
-                                        children: [
-                                          SvgPicture.asset(
-                                            'assets/whatsapp.svg', // Replace with your SVG path
-                                            width: 80,
-                                            height: 80,
-                                            color: Colors
-                                                .green[400], // Optional: applies color to the SVG
-                                            fit: BoxFit.fill,
-                                          ),
-                                          const SizedBox(height: 16),
-                                        ],
-                                      ),
-                                    InkWell(
-                                      onTap: () {
-                                        if (isLoggedOut) {
-                                          resendQR(); // Call resendQR if user was logged out
-                                          print('Resend QR clicked');
-                                        } else {
-                                          initWhatsAppChat(
-                                            context,
-                                          ); // Call normal init for first connection
-                                          print('Connect WhatsApp clicked');
-                                        }
-                                      },
-                                      child: Container(
-                                        width: double
-                                            .infinity, // Makes it full width
-                                        constraints: BoxConstraints(
-                                          minHeight:
-                                              44, // Minimum touch target size
-                                          maxWidth:
-                                              MediaQuery.of(
-                                                context,
-                                              ).size.width *
-                                              0.9, // Max 90% of screen width
-                                        ),
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal:
-                                              MediaQuery.of(
-                                                context,
-                                              ).size.width *
-                                              0.04, // 4% of screen width
-                                          vertical:
-                                              MediaQuery.of(
-                                                context,
-                                              ).size.height *
-                                              0.01, // 1% of screen height
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: AppColors.colorsBlue,
-                                          borderRadius: BorderRadius.circular(
-                                            10,
                                           ),
                                         ),
-                                        child: Center(
-                                          child: Text(
-                                            isLoading
-                                                ? 'Connecting...'
-                                                : isLoggedOut
-                                                ? 'Reconnect WhatsApp'
-                                                : 'WhatsApp not connected, connect now?',
-                                            style: AppFont.appbarfontWhite(
-                                              context,
-                                            ),
-                                            textAlign: TextAlign.center,
-                                            maxLines:
-                                                2, // Allows text to wrap to 2 lines if needed
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    if (!isConnected && !isLoading)
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                          top: 8.0,
-                                        ),
-                                        child: Text(
-                                          'Click to connect',
-                                          style: TextStyle(
-                                            color: Colors.grey[600],
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                            ],
-                          ),
-                        ),
-                ),
-                if (isWhatsAppReady && !isLoggedOut)
-                  Container(
-                    margin: EdgeInsets.only(bottom: 10),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8.0,
-                      vertical: 5.0,
-                    ),
-                    color: Colors.white,
-                    child: Row(
-                      children: [
-                        IconButton(
-                          onPressed: isSendingImage ? null : attachment,
-                          icon: isSendingImage
-                              ? SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      AppColors.colorsBlueButton,
-                                    ),
+                                    ],
                                   ),
-                                )
-                              : Icon(Icons.attachment_sharp),
-                        ),
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 15),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[200],
-                              borderRadius: BorderRadius.circular(25),
-                            ),
-                            child: TextField(
-                              controller: _messageController,
-                              decoration: const InputDecoration(
-                                hintText: 'Type a message',
-                                border: InputBorder.none,
-                              ),
-                              maxLines: null,
+                              ],
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          decoration: const BoxDecoration(
-                            color: AppColors.iconGrey,
-                            shape: BoxShape.circle,
-                          ),
-                          child: IconButton(
-                            icon: const Icon(Icons.camera_alt_rounded),
-                            color: Colors.white,
-                            onPressed: () async {
-                              // Navigator.pop(context);
-                              final XFile? image = await _picker.pickImage(
-                                source: ImageSource.camera,
-                                imageQuality: 70,
-                              );
-                              if (image != null) {
-                                await sendImageMessage(image);
-                              }
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          decoration: const BoxDecoration(
-                            color: AppColors.colorsBlue,
-                            shape: BoxShape.circle,
-                          ),
-                          child: IconButton(
-                            icon: const Icon(Icons.send),
-                            color: Colors.white,
-                            onPressed: sendMessage,
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
-              ],
-            ),
+                  if (isWhatsAppReady && !isLoggedOut)
+                    Container(
+                      margin: EdgeInsets.only(bottom: 10),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8.0,
+                        vertical: 5.0,
+                      ),
+                      color: Colors.white,
+                      child: Row(
+                        children: [
+                          IconButton(
+                            onPressed: isSendingImage ? null : attachment,
+                            icon: isSendingImage
+                                ? SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Color(0xFF1380FE),
+                                      ),
+                                    ),
+                                  )
+                                : Icon(Icons.attachment_sharp),
+                          ),
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 15,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[200],
+                                borderRadius: BorderRadius.circular(25),
+                              ),
+                              child: TextField(
+                                controller: _messageController,
+                                decoration: const InputDecoration(
+                                  hintText: 'Type a message',
+                                  border: InputBorder.none,
+                                ),
+                                maxLines: null,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            decoration: const BoxDecoration(
+                              color: AppColors.iconGrey,
+                              shape: BoxShape.circle,
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.camera_alt_rounded),
+                              color: Colors.white,
+                              onPressed: () async {
+                                // Navigator.pop(context);
+                                final XFile? image = await _picker.pickImage(
+                                  source: ImageSource.camera,
+                                  imageQuality: 70,
+                                );
+                                if (image != null) {
+                                  await sendImageMessage(image);
+                                }
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF1380FE),
+                              shape: BoxShape.circle,
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.send),
+                              color: Colors.white,
+                              onPressed: sendMessage,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+      ),
     );
   }
 }

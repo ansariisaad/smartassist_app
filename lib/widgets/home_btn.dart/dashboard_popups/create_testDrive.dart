@@ -30,6 +30,7 @@ class CreateTestdrive extends StatefulWidget {
 }
 
 class _CreateTestdriveState extends State<CreateTestdrive> {
+  PlaceDetails? selectedPlaceDetails;
   String? _leadId;
   String? _leadName;
   bool isSubmitting = false;
@@ -333,11 +334,33 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
               //   },
               // ),
               const SizedBox(height: 5),
+              // CustomGooglePlacesField(
+              //   controller: _locationController,
+              //   hintText: 'Enter location',
+              //   label: 'Location',
+              //   onChanged: (value) {},
+              //   googleApiKey: _googleApiKey,
+              //   isRequired: true,
+              // ),
               CustomGooglePlacesField(
                 controller: _locationController,
                 hintText: 'Enter location',
                 label: 'Location',
                 onChanged: (value) {},
+                onPlaceSelected: (placeDetails) {
+                  // This callback is triggered when user selects a place
+                  selectedPlaceDetails = placeDetails;
+                  if (placeDetails != null) {
+                    print('Selected place details:');
+                    print('Lat: ${placeDetails.lat}');
+                    print('Lng: ${placeDetails.lng}');
+                    print('City: ${placeDetails.city}');
+                    print('Pincode: ${placeDetails.pincode}');
+                    print('State: ${placeDetails.state}');
+                    print('Country: ${placeDetails.country}');
+                    print('Address: ${placeDetails.address}');
+                  }
+                },
                 googleApiKey: _googleApiKey,
                 isRequired: true,
               ),
@@ -575,6 +598,7 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
         'location': _locationController.text.trim(),
         'sp_id': spId,
         'remarks': descriptionController.text.trim(),
+        "places": selectedPlaceDetails!.toJson(),
       };
 
       final success = await LeadsSrv.submitTestDrive(testdriveData, _leadId!);

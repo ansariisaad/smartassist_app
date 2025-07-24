@@ -150,7 +150,7 @@ class _LoginPageState extends State<LoginPage>
                               const SizedBox(height: 16),
                               buildRichText(
                                 "First time logging in ? ",
-                                "Set your password",
+                                "Verify OTP",
                                 () {
                                   Navigator.push(
                                     context,
@@ -551,8 +551,8 @@ class _LoginPageState extends State<LoginPage>
 
       Get.snackbar(
         'Error',
-        error.toString(),
-        backgroundColor: Colors.red,
+        'Oops server is done...!',
+        backgroundColor: Colors.red[500],
         colorText: Colors.white,
       );
     } finally {

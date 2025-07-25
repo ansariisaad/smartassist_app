@@ -341,7 +341,7 @@ class _MessageBubbleState extends State<MessageBubble> {
             Icon(
               getDocumentIcon(mimetype, filename),
               size: 32,
-              color: Color(0xFF1380FE),
+              color: AppColors.colorsBlue,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -377,7 +377,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                 ],
               ),
             ),
-            Icon(Icons.open_in_new, size: 20, color: Color(0xFF1380FE)),
+            Icon(Icons.open_in_new, size: 20, color: AppColors.colorsBlue),
           ],
         ),
       ),
@@ -624,7 +624,7 @@ class _MessageBubbleState extends State<MessageBubble> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CircularProgressIndicator(color: Color(0xFF1380FE)),
+            CircularProgressIndicator(color: AppColors.colorsBlue),
             const SizedBox(height: 16),
             Text(message),
             const SizedBox(height: 8),
@@ -1787,7 +1787,7 @@ class _WhatsappChatState extends State<WhatsappChat>
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: Color(0xFF1380FE),
+          backgroundColor: AppColors.colorsBlue,
           leadingWidth: 40,
           leading: IconButton(
             icon: const Icon(
@@ -1926,7 +1926,7 @@ class _WhatsappChatState extends State<WhatsappChat>
                                   Column(
                                     children: [
                                       const CircularProgressIndicator(
-                                        color: Color(0xFF1380FE),
+                                        color: AppColors.colorsBlue,
                                       ),
                                       const SizedBox(height: 16),
                                       Text(
@@ -2034,7 +2034,7 @@ class _WhatsappChatState extends State<WhatsappChat>
                                                 0.01, // 1% of screen height
                                           ),
                                           decoration: BoxDecoration(
-                                            color: Color(0xFF1380FE),
+                                            color: AppColors.colorsBlue,
                                             borderRadius: BorderRadius.circular(
                                               10,
                                             ),
@@ -2095,7 +2095,7 @@ class _WhatsappChatState extends State<WhatsappChat>
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
                                       valueColor: AlwaysStoppedAnimation<Color>(
-                                        Color(0xFF1380FE),
+                                        AppColors.colorsBlue,
                                       ),
                                     ),
                                   )
@@ -2144,7 +2144,7 @@ class _WhatsappChatState extends State<WhatsappChat>
                           const SizedBox(width: 8),
                           Container(
                             decoration: const BoxDecoration(
-                              color: Color(0xFF1380FE),
+                              color: AppColors.colorsBlue,
                               shape: BoxShape.circle,
                             ),
                             child: IconButton(

@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/config/environment/environment.dart';
-import 'package:smartassist/utils/storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
@@ -37,33 +35,24 @@ class _TestdriveIdsState extends State<TestdriveIds> {
   String? selectedVehicleName;
   String? selectedBrand;
   Map<String, dynamic>? selectedVehicleData;
-  // final PageController _pageController = PageController();
   List<Map<String, String>> dropdownItems = [];
   bool isLoading = false;
   List<dynamic> vehicleList = [];
   List<String> uniqueVehicleNames = [];
-  // String? selectedVehicleName;
-  bool _isLoadingSearch = false;
-  String _query = '';
   String? selectedLeads;
   String? selectedLeadsName;
   String? selectedPriority;
-  bool _isLoadingSearch1 = false;
+  String? vehicleId;
+  bool isSelected = false;
   late stt.SpeechToText _speech;
-  bool _isListening = false;
   bool isSubmitting = false;
-  // String widget.ve;
   Map<String, dynamic>? slotData;
+  bool isPMIPreSelected = false;
 
   Map<String, String> _errors = {};
-
-  String _query1 = '';
-  List<dynamic> _searchResults = [];
-  List<dynamic> _searchResults1 = [];
-
   String get _googleApiKey => Environment.googleMapsApiKey;
 
-  final TextEditingController _searchController1 = TextEditingController();
+  // final TextEditingController _searchController1 = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
 
   final TextEditingController _searchController = TextEditingController();
@@ -77,264 +66,22 @@ class _TestdriveIdsState extends State<TestdriveIds> {
   void initState() {
     super.initState();
     _speech = stt.SpeechToText();
-    _initSpeech();
-    _searchController.addListener(_onSearchChanged);
-    // fetchDropdownData();
-    _searchController1.addListener(_onSearchChanged1);
+
+    if (widget.PMI.isNotEmpty && widget.vehicle_id.isNotEmpty) {
+      setState(() {
+        isPMIPreSelected = true;
+        selectedVehicleName = widget.PMI;
+        vehicleId = widget.vehicle_id;
+        // You might also want to set selectedVehicleData if you have the full vehicle object
+      });
+    }
   }
 
   @override
   void dispose() {
-    _searchController1.removeListener(_onSearchChanged1);
+    // _searchController1.removeListener(_onSearchChanged1);
     _searchController.dispose();
     super.dispose();
-  }
-
-  /// Fetch search results from API
-  Future<void> _fetchSearchResults(String query) async {
-    if (query.isEmpty) {
-      setState(() {
-        _searchResults.clear();
-      });
-      return;
-    }
-
-    setState(() {
-      _isLoadingSearch = true;
-    });
-
-    final token = await Storage.getToken();
-
-    try {
-      final response = await http.get(
-        Uri.parse(
-          'https://api.smartassistapp.in/api/search/global?query=$query',
-        ),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
-        setState(() {
-          _searchResults = data['data']['suggestions'] ?? [];
-        });
-      }
-      widget.onFormSubmit(widget.leadId);
-    } catch (e) {
-      showErrorMessage(context, message: 'Something went wrong..!');
-    } finally {
-      setState(() {
-        _isLoadingSearch = false;
-      });
-    }
-  }
-
-  void _onSearchChanged() {
-    final newQuery = _searchController.text.trim();
-    if (newQuery == _query) return;
-
-    _query = newQuery;
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (_query == _searchController.text.trim()) {
-        _fetchSearchResults(_query);
-      }
-    });
-  }
-
-  Future<void> fetchVehicleData(String query) async {
-    if (query.isEmpty) {
-      setState(() {
-        _searchResults1 = [];
-        _isLoadingSearch1 = false;
-      });
-      return;
-    }
-
-    final token = await Storage.getToken();
-
-    setState(() {
-      _isLoadingSearch1 = true;
-    });
-
-    try {
-      final response = await http.get(
-        Uri.parse(
-          'https://api.smartassistapp.in/api/search/vehicles?vehicle=${Uri.encodeComponent(query)}',
-        ),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
-        final List<dynamic> results = data['data']['suggestions'] ?? [];
-
-        final Set<String> seenNames = {};
-        final List<dynamic> uniqueResults = [];
-
-        for (var vehicle in results) {
-          final name = vehicle['vehicle_name'];
-          if (name != null && seenNames.add(name)) {
-            uniqueResults.add(vehicle);
-          }
-        }
-
-        if (_searchResults1 != uniqueResults) {
-          // Avoid unnecessary updates
-          setState(() {
-            _searchResults1 = uniqueResults;
-          });
-        }
-      } else {
-        print("Failed to load data: ${response.statusCode}");
-      }
-    } catch (e) {
-      print("Error fetching data: $e");
-    } finally {
-      setState(() {
-        _isLoadingSearch1 = false;
-      });
-    }
-  }
-
-  void _onSearchChanged1() {
-    final newQuery = _searchController1.text.trim();
-    if (newQuery == _query1) return;
-
-    _query1 = newQuery; // This should be updated to use _query1
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (_query1 == _searchController1.text.trim()) {
-        fetchVehicleData(_query1); // Pass the correct query1 here
-      }
-    });
-  }
-
-  Future<void> _pickStartDate() async {
-    FocusScope.of(context).unfocus();
-
-    // Get current start date or use today
-    DateTime initialDate;
-    try {
-      if (startDateController.text.isNotEmpty) {
-        initialDate = DateFormat('dd MMM yyyy').parse(startDateController.text);
-      } else {
-        initialDate = DateTime.now();
-      }
-    } catch (e) {
-      initialDate = DateTime.now();
-    }
-
-    DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: initialDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-    );
-
-    if (pickedDate != null) {
-      String formattedDate = DateFormat('dd MMM yyyy').format(pickedDate);
-
-      setState(() {
-        // Set start date
-        startDateController.text = formattedDate;
-
-        // Set end date to the same as start date but not visible in the UI
-        // (Only passed to API)
-        endDateController.text = formattedDate;
-      });
-    }
-  }
-
-  Future<void> _pickStartTime() async {
-    FocusScope.of(context).unfocus();
-
-    // Get current time from startTimeController or use current time
-    TimeOfDay initialTime;
-    try {
-      if (startTimeController.text.isNotEmpty) {
-        final parsedTime = DateFormat(
-          'hh:mm a',
-        ).parse(startTimeController.text);
-        initialTime = TimeOfDay(
-          hour: parsedTime.hour,
-          minute: parsedTime.minute,
-        );
-      } else {
-        initialTime = TimeOfDay.now();
-      }
-    } catch (e) {
-      initialTime = TimeOfDay.now();
-    }
-
-    TimeOfDay? pickedTime = await showTimePicker(
-      context: context,
-      initialTime: initialTime,
-    );
-
-    if (pickedTime != null) {
-      // Create a temporary DateTime to format the time
-      final now = DateTime.now();
-      final time = DateTime(
-        now.year,
-        now.month,
-        now.day,
-        pickedTime.hour,
-        pickedTime.minute,
-      );
-      String formattedTime = DateFormat('hh:mm a').format(time);
-
-      // Calculate end time (1 hour later)
-      final endHour = (pickedTime.hour + 1) % 24;
-      final endTime = DateTime(
-        now.year,
-        now.month,
-        now.day,
-        endHour,
-        pickedTime.minute,
-      );
-      String formattedEndTime = DateFormat('hh:mm a').format(endTime);
-
-      setState(() {
-        // Set start time
-        startTimeController.text = formattedTime;
-
-        // Set end time to 1 hour later but not visible in the UI
-        // (Only passed to API)
-        endTimeController.text = formattedEndTime;
-      });
-    }
-  }
-
-  // Initialize speech recognition
-  void _initSpeech() async {
-    bool available = await _speech.initialize(
-      onStatus: (status) {
-        if (status == 'done') {
-          setState(() {
-            _isListening = false;
-          });
-        }
-      },
-      onError: (errorNotification) {
-        setState(() {
-          _isListening = false;
-        });
-        showErrorMessage(
-          context,
-          message: 'Speech recognition error: ${errorNotification.errorMsg}',
-        );
-      },
-    );
-    if (!available) {
-      showErrorMessage(
-        context,
-        message: 'Speech recognition not available on this device',
-      );
-    }
   }
 
   void _submit() async {
@@ -399,21 +146,67 @@ class _TestdriveIdsState extends State<TestdriveIds> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // _buildSearchField(),
-              // _buildSearchField1(),
               VehiclesearchTextfield(
+                initialVehicleName: widget.PMI.isNotEmpty
+                    ? widget.PMI
+                    : null, // Pass PMI here
+                initialVehicleId: widget.vehicle_id.isNotEmpty
+                    ? widget.vehicle_id
+                    : null, // Pass vehicle_id here
                 onVehicleSelected: (selectedVehicle) {
                   setState(() {
+                    // Handle clearing
+                    if (selectedVehicle.isEmpty) {
+                      selectedVehicleData = null;
+                      selectedVehicleName = widget.PMI.isNotEmpty
+                          ? widget.PMI
+                          : null; // Revert to original PMI
+                      vehicleId = widget.vehicle_id.isNotEmpty
+                          ? widget.vehicle_id
+                          : null; // Revert to original vehicle_id
+                      selectedBrand = null;
+                      return;
+                    }
+
+                    // Handle new selection
                     selectedVehicleData = selectedVehicle;
                     selectedVehicleName = selectedVehicle['vehicle_name'];
-                    selectedBrand =
-                        selectedVehicle['brand'] ?? ''; // Handle null brand
+                    vehicleId = selectedVehicle['vehicle_id'];
+                    selectedBrand = selectedVehicle['brand'] ?? '';
                   });
 
                   print("Selected Vehicle: $selectedVehicleName");
                   print("Selected Brand: ${selectedBrand ?? 'No Brand'}");
                 },
               ),
+
+              // VehiclesearchTextfield(
+              //   onVehicleSelected: (selectedVehicle) {
+              //     setState(() {
+              //       // Handle clearing
+              //       if (selectedVehicle.isEmpty) {
+              //         selectedVehicleData = null;
+              //         selectedVehicleName = isPMIPreSelected
+              //             ? widget.PMI
+              //             : null;
+              //         vehicleId = isPMIPreSelected ? widget.vehicle_id : null;
+              //         selectedBrand = null;
+              //         return;
+              //       }
+
+              //       // Handle selection
+              //       selectedVehicleData = selectedVehicle;
+              //       selectedVehicleName = selectedVehicle['vehicle_name'];
+              //       vehicleId = selectedVehicle['vehicle_id'];
+              //       selectedBrand = selectedVehicle['brand'] ?? '';
+              //       isPMIPreSelected =
+              //           false; // Clear the pre-selected flag when user makes new selection
+              //     });
+
+              //     print("Selected Vehicle: $selectedVehicleName");
+              //     print("Selected Brand: ${selectedBrand ?? 'No Brand'}");
+              //   },
+              // ),
               const SizedBox(height: 5),
               CustomGooglePlacesField(
                 controller: _locationController,
@@ -424,31 +217,11 @@ class _TestdriveIdsState extends State<TestdriveIds> {
                 isRequired: true,
               ),
               const SizedBox(height: 15),
-              // Row(
-              //   children: [
-              //     Text('Start', style: AppFont.dropDowmLabel(context)),
-              //     const SizedBox(width: 10),
-              //     Expanded(
-              //       child: _buildDatePicker(
-              //         controller: startDateController,
-              //         onTap: _pickStartDate,
-              //       ),
-              //     ),
-              //     const SizedBox(width: 10),
-              //     Expanded(
-              //       child: _buildDatePicker1(
-              //         controller: startTimeController,
-              //         onTap: _pickStartTime,
-              //       ),
-              //     ),
-              //   ],
-              // ),
               SlotCalendar(
                 label: 'Select Date & Time Slot',
                 isRequired: true,
                 controller: startDateController,
-                vehicleId: widget
-                    .vehicle_id, // This gets the vehicle ID from either source
+                vehicleId: vehicleId?.toString() ?? '',
                 onChanged: (value) {
                   try {
                     final parsedSlotData = jsonDecode(value);
@@ -570,7 +343,7 @@ class _TestdriveIdsState extends State<TestdriveIds> {
       'start_time_slot': slotData!['start_time_slot'],
       'end_time_slot': slotData!['end_time_slot'],
       'remarks': descriptionController.text,
-
+      'PMI': selectedVehicleName,
       'location': _locationController.text.trim(),
       'sp_id': spId,
     };
@@ -580,6 +353,8 @@ class _TestdriveIdsState extends State<TestdriveIds> {
       testdriveData,
       widget.leadId,
     );
+
+    print('this is the latest obj: $testdriveData');
 
     if (success) {
       if (context.mounted) {

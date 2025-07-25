@@ -12,12 +12,15 @@ typedef VehicleSelectedCallback =
 class VehiclesearchTextfield extends StatefulWidget {
   final String? errorText;
   final VehicleSelectedCallback? onVehicleSelected;
-
+  final String? initialVehicleName;
+  final String? initialVehicleId;
   const VehiclesearchTextfield({
-    Key? key,
+    super.key,
     this.onVehicleSelected,
     this.errorText,
-  }) : super(key: key);
+    this.initialVehicleName,
+    this.initialVehicleId,
+  });
 
   @override
   _VehiclesearchTextfieldState createState() => _VehiclesearchTextfieldState();
@@ -26,6 +29,7 @@ class VehiclesearchTextfield extends StatefulWidget {
 class _VehiclesearchTextfieldState extends State<VehiclesearchTextfield> {
   bool _isLoadingVehicles = false;
   bool _hasLoadedVehicles = false;
+  bool showClearIcon = false;
   List<Map<String, dynamic>> _filteredVehicles = [];
   List<Map<String, dynamic>> _allVehicles = []; // Store all vehicles
   final TextEditingController _searchController1 = TextEditingController();
@@ -38,11 +42,25 @@ class _VehiclesearchTextfieldState extends State<VehiclesearchTextfield> {
   @override
   void initState() {
     super.initState();
-    // Load all vehicles when widget initializes
-    loadAllVehicles();
 
     // Add listener to search controller for real-time filtering
+    // _searchController1.addListener(() {
+    //   filterVehicles(_searchController1.text);
+    // });
+
+    if (widget.initialVehicleName != null &&
+        widget.initialVehicleName!.isNotEmpty) {
+      selectedVehicleName = widget.initialVehicleName;
+      vehicleId = widget.initialVehicleId;
+      showClearIcon = true; // Show clear icon for pre-selected vehicle
+    }
+
+    loadAllVehicles();
+
     _searchController1.addListener(() {
+      setState(() {
+        showClearIcon = _searchController1.text.isNotEmpty;
+      });
       filterVehicles(_searchController1.text);
     });
   }
@@ -167,9 +185,6 @@ class _VehiclesearchTextfieldState extends State<VehiclesearchTextfield> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(5),
                       borderSide: BorderSide(
-                        // color: widget.errorText != null
-                        //     ? Colors.red
-                        //     : Colors.transparent,
                         color:
                             widget.errorText != null &&
                                 widget.errorText!.isNotEmpty
@@ -206,6 +221,32 @@ class _VehiclesearchTextfieldState extends State<VehiclesearchTextfield> {
                       size: 15,
                       color: AppColors.iconGrey,
                     ),
+                    // Add the clear icon (X) here
+                    suffixIcon: showClearIcon || selectedVehicleName != null
+                        ? IconButton(
+                            icon: const Icon(
+                              Icons.clear,
+                              size: 18,
+                              color: AppColors.iconGrey,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _searchController1.clear();
+                                selectedVehicle = null;
+                                selectedVehicleName = null;
+                                vehicleBrand = null;
+                                vehicleId = null;
+                                _filteredVehicles.clear();
+                                showClearIcon = false;
+                              });
+
+                              // Notify parent that vehicle was cleared
+                              if (widget.onVehicleSelected != null) {
+                                widget.onVehicleSelected!({});
+                              }
+                            },
+                          )
+                        : null,
                     contentPadding: const EdgeInsets.symmetric(
                       vertical: 0,
                       horizontal: 10,

@@ -11,7 +11,7 @@ class AppColors {
   static const Color searchBar = Color(0xffE8F3FF);
   static const Color fontBlack = Color(0xff000000);
   static const Color homeContainerLeads = Color(0xffE1EFFF);
-  // static const Color colorsBlue = Color(0xFF1380FE);
+  // static const Color colorsBlue = AppColors.colorsBlue;
   static const Color colorsBlue = Color(0xFF222fb9);
   // static const Color colorsBlueButton = Color.fromRGBO(19, 128, 254, 1);
 

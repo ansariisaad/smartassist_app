@@ -1260,7 +1260,7 @@ class _CallAnalyticsState extends State<CallAnalytics>
             LineChartBarData(
               spots: allCallSpots,
               isCurved: true,
-              color: const Color(0xFF1380FE),
+              color: AppColors.colorsBlue,
               barWidth: 3,
               isStrokeCapRound: true,
               dotData: FlDotData(

@@ -18,7 +18,7 @@ import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/team_calllog_userid.dart';
 
 class MyTeams extends StatefulWidget {
-  const MyTeams({Key? key}) : super(key: key);
+  const MyTeams({super.key});
 
   @override
   State<MyTeams> createState() => _MyTeamsState();
@@ -33,13 +33,15 @@ class _MyTeamsState extends State<MyTeams> {
   bool _isFabVisible = true;
   String _selectedLetter = '';
   List<Map<String, dynamic>> _filteredByLetter = [];
-
   int _tabIndex = 0;
   int _periodIndex = 0; // ALL, MTD, QTD, YTD
   int _metricIndex = 0; // Selected metric for comparison
   int _selectedProfileIndex = 0; // Default to 'All' profile
   String _selectedUserId = '';
   bool _isComparing = false;
+  bool _avatarAll = false;
+  bool _isAlphabetLogsMode = false;
+
   int overdueCount = 0;
   String selectedTimeRange = '1D';
   int selectedTabIndex = 0;
@@ -52,6 +54,9 @@ class _MyTeamsState extends State<MyTeams> {
   Set<String> _selectedCheckboxIds = {};
   List<Map<String, dynamic>> selectedItems = [];
   Set<String> selectedUserIds = {};
+  Set<String> totalPerformanceIds = {};
+  // Set<String> logStatusAlphabet = {};
+  List<String> logStatusAlphabet = [];
   late TabControllerNew _tabController;
   Set<String> _selectedLetters = {};
   bool _isMultiSelectMode = false;
@@ -59,7 +64,7 @@ class _MyTeamsState extends State<MyTeams> {
   String? _sortColumn;
   List<dynamic> _originalMembersData = [];
   int _sortState = 0;
-
+  bool isHideLogsStatus = true;
   bool isHideAllcall = false;
   bool isHideActivities = false;
   bool isHide = false;
@@ -73,8 +78,11 @@ class _MyTeamsState extends State<MyTeams> {
   // Data state
   // bool isLoading = false;
   Map<String, dynamic> _teamData = {};
+  Map<String, dynamic> _totalPerformanceLetter = {};
   Map<String, dynamic>? _selectedUserData = {};
+  Map<String, dynamic>? _initialAlphabetData = {};
   List<Map<String, dynamic>> _teamMembers = [];
+  // List<Map<String, dynamic>> _initialCAll = [];
 
   // call log all
   Map<String, dynamic> _analyticsData = {};
@@ -408,6 +416,7 @@ class _MyTeamsState extends State<MyTeams> {
     for (String userId in usersToRemove) {
       selectedUserIds.remove(userId);
     }
+    _removeUsersFromLetter(letter);
   }
 
   // Create a helper method to properly clear all selections
@@ -443,6 +452,9 @@ class _MyTeamsState extends State<MyTeams> {
         });
         return; // Exit early
       }
+
+      // if(_isFabVisible)
+
       final token = await Storage.getToken();
       // Build period parameter
       String? periodParam;
@@ -502,6 +514,18 @@ class _MyTeamsState extends State<MyTeams> {
         queryParams['user_id'] = _selectedUserId;
       }
 
+      if (_avatarAll && totalPerformanceIds.isNotEmpty) {
+        queryParams['total_performance'] = totalPerformanceIds.join(',');
+      }
+
+      // if (_avatarAll && logStatusAlphabet.isNotEmpty) {
+      //   queryParams['logs_userIds'] = logStatusAlphabet.join(',');
+      // }
+      if (_isAlphabetLogsMode && logStatusAlphabet.isNotEmpty) {
+        queryParams['logs_userIds'] = logStatusAlphabet.join(',');
+        print('📤 Sending logs_userIds: ${logStatusAlphabet.join(',')}');
+      }
+
       if (_isComparing && selectedUserIds.isEmpty) {
         setState(() {
           _isComparing = false;
@@ -510,14 +534,6 @@ class _MyTeamsState extends State<MyTeams> {
         });
         return; // Exit early as there's nothing to compare
       }
-
-      // if (_isComparing && selectedUserIds.isEmpty) {
-      //   setState(() {
-      //     _isComparing = false;
-      //     _teamComparisonData = [];
-      //   });
-      // }
-      // ✅ If "All" is selected (_selectedProfileIndex == 0), no user parameters are added
 
       final baseUri = Uri.parse(
         'https://api.smartassistapp.in/api/users/sm/analytics/team-dashboard',
@@ -562,6 +578,14 @@ class _MyTeamsState extends State<MyTeams> {
             _teamComparisonData = [];
           }
 
+          // _teamData = List<Map<String, dynamic>>.from(
+          //   data['data']['members'],
+          // );
+
+          if (_teamData.containsKey('logs_status')) {
+            _initialAlphabetData?['logs_status'] = _teamData['logs_status'];
+          }
+
           // Save total performance
           if (_teamData.containsKey('totalPerformance')) {
             _selectedUserData?['totalPerformance'] =
@@ -582,6 +606,21 @@ class _MyTeamsState extends State<MyTeams> {
               });
             }
           }
+
+          // if (_teamData.containsKey('totalPerformance') &&
+          //     _teamData['totalPerformance'].isNotEmpty) {
+          //   _teamMembers = [];
+
+          //   for (var member in _teamData['totalPerformance']) {
+          //     _teamMembers.add({
+          //       'fname': member['fname'] ?? '',
+          //       'lname': member['lname'] ?? '',
+          //       'user_id': member['user_id'] ?? '',
+          //       'profile': member['profile'],
+          //       'initials': member['initials'] ?? '',
+          //     });
+          //   }
+          // }
 
           if (_selectedProfileIndex == 0) {
             // Summary data
@@ -865,7 +904,6 @@ class _MyTeamsState extends State<MyTeams> {
               _membersData = [];
             });
 
-            // 🔥 FIXED: Ensure state is updated before API call
             await Future.delayed(Duration(milliseconds: 100));
             await _fetchTeamDetails();
           },
@@ -874,6 +912,40 @@ class _MyTeamsState extends State<MyTeams> {
       );
     }
     return SizedBox.shrink();
+  }
+
+  void _addUsersFromLetter(String letter) {
+    // Find all users whose names start with this letter
+    List<Map<String, dynamic>> letterMembers = _teamMembers.where((member) {
+      String firstName = (member['fname'] ?? '').toString().toUpperCase();
+      return firstName.startsWith(letter);
+    }).toList();
+
+    // Add their user_ids to logStatusAlphabet if not already present
+    for (var member in letterMembers) {
+      String userId = member['user_id'] ?? '';
+      if (userId.isNotEmpty && !logStatusAlphabet.contains(userId)) {
+        logStatusAlphabet.add(userId);
+      }
+    }
+
+    print('📋 Added users for letter $letter: $logStatusAlphabet');
+  }
+
+  void _removeUsersFromLetter(String letter) {
+    // Find all users whose names start with this letter
+    List<Map<String, dynamic>> letterMembers = _teamMembers.where((member) {
+      String firstName = (member['fname'] ?? '').toString().toUpperCase();
+      return firstName.startsWith(letter);
+    }).toList();
+
+    // Remove their user_ids from logStatusAlphabet
+    for (var member in letterMembers) {
+      String userId = member['user_id'] ?? '';
+      logStatusAlphabet.remove(userId);
+    }
+
+    print('📋 Removed users for letter $letter: $logStatusAlphabet');
   }
 
   Widget _buildProfileAvatars() {
@@ -980,31 +1052,43 @@ class _MyTeamsState extends State<MyTeams> {
                     _isMultiSelectMode = false;
                     _selectedType = 'All';
                     _selectedProfileIndex = 0;
+                    _isAlphabetLogsMode = false;
+                    logStatusAlphabet.clear(); // Clear alphabet user IDs
                   }
                 } else {
                   _selectedLetters.add(letter);
                   _selectedType = 'Letter';
-                  // _selectedProfileIndex = -1; // Letter selection
+                  _isAlphabetLogsMode = true;
+                  _addUsersFromLetter(letter); // Add user IDs for this letter
                 }
               } else {
                 // Single select mode - but keep existing selections and add new one
                 if (isSelected) {
                   // If clicking same letter, deselect it
                   _selectedLetters.remove(letter);
+
+                  // _selectedLetters.remove(letter);
+                  _removeUsersFromLetter(
+                    letter,
+                  ); // Remove user IDs for this letter
                   if (_selectedLetters.isEmpty) {
                     _selectedType = 'All';
                     _selectedProfileIndex = 0; // Back to "All"
+
+                    _isAlphabetLogsMode = false;
+                    logStatusAlphabet.clear(); // Clear all alphabet user IDs
                   }
                 } else {
                   // Add this letter to selection (don't clear existing)
                   _selectedLetters.add(letter);
                   _selectedType = 'Letter';
-                  // _selectedProfileIndex = -1; // Letter selection
+                  _isAlphabetLogsMode = true;
+                  _addUsersFromLetter(letter); // Add user IDs for this letter
                 }
               }
               _selectedProfileIndex = -1;
             });
-            // _fetchTeamDetails();  new
+            _fetchTeamDetails();
           },
 
           child: Stack(
@@ -1043,14 +1127,6 @@ class _MyTeamsState extends State<MyTeams> {
           ),
         ),
         const SizedBox(height: 24),
-        // AnimatedDefaultTextStyle(
-        //   duration: const Duration(milliseconds: 200),
-        //   style: AppFont.mediumText14(context).copyWith(
-        //     color: isSelected ? AppColors.colorsBlue : null,
-        //     fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-        //   ),
-        //   child: Text(letter),
-        // ),
       ],
     );
   }
@@ -1074,6 +1150,8 @@ class _MyTeamsState extends State<MyTeams> {
               _isComparing = false;
               selectedUserIds.clear(); // Clear selected users
               _teamComparisonData = []; // Clear comparison data
+
+              logStatusAlphabet.clear();
             });
 
             await _fetchTeamDetails();
@@ -2468,10 +2546,7 @@ class _MyTeamsState extends State<MyTeams> {
                 decoration: BoxDecoration(
                   color: AppColors.white,
                   borderRadius: BorderRadius.circular(8),
-                  // border: Border.all(
-                  //   color: Colors.grey.withOpacity(0.5),
-                  //   width: 0,
-                  // ),
+
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.1),
@@ -2766,8 +2841,22 @@ class _MyTeamsState extends State<MyTeams> {
   // Enhanced version with better edge case handling:
   List<TableRow> _buildMemberRows() {
     // Safety check for empty data
-    if (_membersData.isEmpty) {
-      return [];
+    // if (_membersData.isEmpty) {
+    //   return [];
+    // }
+
+    List<dynamic> dataSource;
+
+    if (_isAlphabetLogsMode &&
+        _selectedLetters.isNotEmpty &&
+        _teamData.containsKey('logs_status')) {
+      // Use logs_status data when alphabet is selected and data is available
+      dataSource = _teamData['logs_status'] ?? [];
+      print('📊 Using logs_status data: ${dataSource.length} items');
+    } else {
+      // Use regular members data
+      dataSource = _membersData;
+      print('📊 Using _membersData: ${dataSource.length} items');
     }
 
     // Get only the records to display based on current count

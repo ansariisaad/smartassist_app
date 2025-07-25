@@ -1,3 +1,629 @@
+// import 'package:flutter/material.dart';
+// import 'package:flutter/services.dart';
+// import 'package:flutter_slidable/flutter_slidable.dart';
+// import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+// import 'package:google_fonts/google_fonts.dart';
+// import 'package:intl/intl.dart';
+// import 'package:smartassist/config/component/color/colors.dart';
+// import 'package:smartassist/config/component/font/font.dart';
+// import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
+// import 'dart:convert';
+// import 'package:http/http.dart' as http;
+// import 'package:smartassist/utils/snackbar_helper.dart';
+// import 'package:smartassist/utils/storage.dart';
+// import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/lead_update.dart';
+// import 'package:smartassist/pages/Home/reassign_enq.dart';
+// import 'package:smartassist/widgets/reusable/skeleton_globle_search_card.dart';
+
+// class AllLeads extends StatefulWidget {
+//   const AllLeads({super.key});
+
+//   @override
+//   State<AllLeads> createState() => _AllLeadsState();
+// }
+
+// class _AllLeadsState extends State<AllLeads> {
+//   // ------------------------  CORE STATE  ------------------------
+//   bool isLoading = true;
+//   final Map<String, double> _swipeOffsets = {};
+//   final ScrollController _scrollController = ScrollController();
+//   Set<String> selectedLeads = {};
+//   bool isSelectionMode = false;
+//   List<dynamic> upcomingTasks = [];
+//   List<dynamic> _filteredTasks = [];     // local, after filters/search
+//   String _query = '';
+//   final TextEditingController _searchController = TextEditingController();
+
+//   // ------------------------  DROPDOWN FILTERS (copied)  ------------------------
+//   String _selectedBrand = 'All';
+//   String _selectedAssignee = 'All';
+//   String _selectedTimeFrame = 'All';
+//   List<String> _availableBrands = ['All'];
+//   List<String> _availableAssignees = ['All'];
+//   final List<String> _timeFrameOptions = [
+//     'All',
+//     'Today',
+//     'This Week',
+//     'This Month',
+//   ];
+
+//   // ------------------------  RESPONSIVE HELPERS  ------------------------
+//   bool _isTablet(BuildContext context) => MediaQuery.of(context).size.width > 768;
+//   bool _isSmallScreen(BuildContext context) => MediaQuery.of(context).size.width < 400;
+
+//   // ------------------------  INIT / DISPOSE  ------------------------
+//   @override
+//   void initState() {
+//     super.initState();
+//     fetchTasksData();
+//     _searchController.addListener(_onSearchChanged);
+//   }
+
+//   @override
+//   void dispose() {
+//     _searchController.dispose();
+//     _scrollController.dispose();
+//     super.dispose();
+//   }
+
+//   // ------------------------  DATA FETCH  ------------------------
+//   Future<void> fetchTasksData() async {
+//     final token = await Storage.getToken();
+//     try {
+//       final response = await http.get(
+//         Uri.parse('https://api.smartassistapp.in/api/leads/fetch/all'),
+//         headers: {
+//           'Authorization': 'Bearer $token',
+//           'Content-Type': 'application/json',
+//         },
+//       );
+
+//       if (response.statusCode == 200) {
+//         final data = json.decode(response.body);
+//         setState(() {
+//           upcomingTasks  = data['data']['rows'] ?? [];
+//           _filteredTasks = List.from(upcomingTasks);
+//           isLoading      = false;
+//         });
+
+//         // --- build filter dropdown values
+//         _extractFilterOptions();
+//         _applyAllFilters();
+//       } else {
+//         print("Failed to load data: ${response.statusCode}");
+//         setState(() => isLoading = false);
+//       }
+//     } catch (e) {
+//       print("Error fetching data: $e");
+//       setState(() => isLoading = false);
+//     }
+//   }
+
+//   // ------------------------  SEARCH  ------------------------
+//   void _onSearchChanged() {
+//     final newQuery = _searchController.text.trim();
+//     if (newQuery == _query) return;
+
+//     _query = newQuery;
+//     _applyAllFilters();
+//   }
+
+//   // ------------------------  FILTER HELPERS (COPIED) ------------------------
+//   void _extractFilterOptions() {
+//     Set<String> brands    = {};
+//     Set<String> assignees = {};
+
+//     for (var task in upcomingTasks) {
+//       // brand
+//       final brand = task['brand']?.toString().trim();
+//       if (brand != null && brand.isNotEmpty && brand.toLowerCase() != 'null') {
+//         brands.add(brand);
+//       }
+//       // owner
+//       final owner = task['lead_owner']?.toString().trim();
+//       if (owner != null && owner.isNotEmpty && owner.toLowerCase() != 'null') {
+//         assignees.add(owner);
+//       }
+//     }
+
+//     setState(() {
+//       _availableBrands     = ['All', ...brands.toList()..sort()];
+//       _availableAssignees  = ['All', ...assignees.toList()..sort()];
+//     });
+//   }
+
+//   bool _isDateInTimeFrame(String dateString, String timeFrame) {
+//     if (timeFrame == 'All') return true;
+//     try {
+//       DateTime date = DateTime.parse(dateString);
+//       DateTime now  = DateTime.now();
+//       DateTime today = DateTime(now.year, now.month, now.day);
+
+//       switch (timeFrame) {
+//         case 'Today':
+//           return DateTime(date.year, date.month, date.day).isAtSameMomentAs(today);
+//         case 'This Week':
+//           DateTime startWeek = today.subtract(Duration(days: today.weekday - 1));
+//           DateTime endWeek   = startWeek.add(Duration(days: 6));
+//           return date.isAfter(startWeek.subtract(Duration(days: 1))) &&
+//                  date.isBefore(endWeek.add(Duration(days: 1)));
+//         case 'This Month':
+//           return date.year == now.year && date.month == now.month;
+//         default:
+//           return true;
+//       }
+//     } catch (e) {
+//       return true;
+//     }
+//   }
+
+//   void _applyAllFilters() {
+//     List<dynamic> temp = List.from(upcomingTasks);
+
+//     // --- search ---
+//     if (_query.isNotEmpty) {
+//       final q = _query.toLowerCase();
+//       temp = temp.where((item) {
+//         final name  = (item['lead_name'] ?? '').toString().toLowerCase();
+//         final mail  = (item['email']     ?? '').toString().toLowerCase();
+//         final phone = (item['mobile']    ?? '').toString().toLowerCase();
+//         return name.contains(q) || mail.contains(q) || phone.contains(q);
+//       }).toList();
+//     }
+
+//     // --- brand ---
+//     if (_selectedBrand != 'All') {
+//       temp = temp.where((e) => (e['brand'] ?? '').toString().trim() == _selectedBrand).toList();
+//     }
+
+//     // --- owner ---
+//     if (_selectedAssignee != 'All') {
+//       temp = temp.where((e) => (e['lead_owner'] ?? '').toString().trim() == _selectedAssignee).toList();
+//     }
+
+//     // --- time ---
+//     if (_selectedTimeFrame != 'All') {
+//       temp = temp.where((e) => _isDateInTimeFrame(e['created_at'] ?? '', _selectedTimeFrame)).toList();
+//     }
+
+//     setState(() => _filteredTasks = temp);
+//   }
+
+//   int _getActiveFilterCount() {
+//     int c = 0;
+//     if (_selectedBrand     != 'All') c++;
+//     if (_selectedAssignee  != 'All') c++;
+//     if (_selectedTimeFrame != 'All') c++;
+//     if (_query.isNotEmpty)          c++;
+//     return c;
+//   }
+
+//   void _resetFilters() {
+//     setState(() {
+//       _selectedBrand     = 'All';
+//       _selectedAssignee  = 'All';
+//       _selectedTimeFrame = 'All';
+//       _searchController.clear();
+//       _query = '';
+//     });
+//     _applyAllFilters();
+//   }
+
+//   // ------------------------  UI HELPERS (copied) ------------------------
+//   EdgeInsets _responsivePadding(BuildContext ctx) => EdgeInsets.symmetric(
+//     horizontal: _isTablet(ctx) ? 20 : (_isSmallScreen(ctx) ? 8 : 10),
+//     vertical: _isTablet(ctx) ? 12 : 8,
+//   );
+
+//   double _titleFontSize(BuildContext ctx) =>
+//       _isTablet(ctx) ? 20 : (_isSmallScreen(ctx) ? 16 : 18);
+
+//   // build dropdown widget (same as original)
+//   Widget _buildFilterDropdown(
+//       String label,
+//       String selectedValue,
+//       List<String> options,
+//       ValueChanged<String?> onChanged,
+//       bool isTablet,
+//     ) {
+//     return Container(
+//       height: isTablet ? 40 : 36,
+//       decoration: BoxDecoration(
+//         color: selectedValue != 'All'
+//             ? AppColors.colorsBlue.withOpacity(0.08)
+//             : Colors.white,
+//         borderRadius: BorderRadius.circular(25),
+//         border: Border.all(
+//           color: selectedValue != 'All'
+//               ? AppColors.colorsBlue.withOpacity(0.4)
+//               : Colors.grey.withOpacity(0.2),
+//           width: 1.5,
+//         ),
+//         boxShadow: [
+//           BoxShadow(
+//             color: selectedValue != 'All'
+//                 ? AppColors.colorsBlue.withOpacity(0.1)
+//                 : Colors.grey.withOpacity(0.05),
+//             spreadRadius: 1,
+//             blurRadius: 3,
+//             offset: Offset(0, 1),
+//           ),
+//         ],
+//       ),
+//       child: DropdownButtonHideUnderline(
+//         child: DropdownButton<String>(
+//           value: selectedValue,
+//           isExpanded: true,
+//           icon: Container(
+//             margin: EdgeInsets.only(right: isTablet ? 8 : 6),
+//             child: Icon(
+//               Icons.keyboard_arrow_down_rounded,
+//               size: isTablet ? 22 : 20,
+//               color: selectedValue != 'All'
+//                   ? AppColors.colorsBlue
+//                   : Colors.grey[500],
+//             ),
+//           ),
+//           style: GoogleFonts.poppins(
+//             fontSize: isTablet ? 13 : 11,
+//             color: selectedValue != 'All'
+//                 ? AppColors.colorsBlue
+//                 : Colors.grey[700],
+//             fontWeight: selectedValue != 'All'
+//                 ? FontWeight.w600
+//                 : FontWeight.w400,
+//           ),
+//           dropdownColor: Colors.white,
+//           borderRadius: BorderRadius.circular(15),
+//           elevation: 8,
+//           menuMaxHeight: 250,
+//           items: options.map<DropdownMenuItem<String>>((String value) {
+//             bool isSelected   = value == selectedValue;
+//             bool isAllOption  = value == 'All';
+//             return DropdownMenuItem<String>(
+//               value: value,
+//               child: Container(
+//                 width: double.infinity,
+//                 padding: EdgeInsets.symmetric(
+//                   horizontal: isTablet ? 12 : 10,
+//                   vertical: isTablet ? 8  : 6,
+//                 ),
+//                 decoration: BoxDecoration(
+//                   color: isSelected
+//                       ? AppColors.colorsBlue.withOpacity(0.1)
+//                       : Colors.transparent,
+//                   borderRadius: BorderRadius.circular(8),
+//                 ),
+//                 child: Row(
+//                   children: [
+//                     if (isSelected && !isAllOption)
+//                       Container(
+//                         margin: EdgeInsets.only(right: 8),
+//                         child: Icon(
+//                           Icons.check_circle,
+//                           size: isTablet ? 16 : 14,
+//                           color: AppColors.colorsBlue,
+//                         ),
+//                       ),
+//                     Expanded(
+//                       child: Text(
+//                         isAllOption ? label : value,
+//                         overflow: TextOverflow.ellipsis,
+//                       ),
+//                     ),
+//                   ],
+//                 ),
+//               ),
+//             );
+//           }).toList(),
+//           selectedItemBuilder: (context) {
+//             return options.map<Widget>((String value) {
+//               return Container(
+//                 padding: EdgeInsets.symmetric(
+//                   horizontal: isTablet ? 12 : 10,
+//                 ),
+//                 alignment: Alignment.centerLeft,
+//                 child: Row(
+//                   children: [
+//                     if (selectedValue != 'All')
+//                       Container(
+//                         margin: EdgeInsets.only(right: 6),
+//                         width: isTablet ? 6 : 5,
+//                         height: isTablet ? 6 : 5,
+//                         decoration: BoxDecoration(
+//                           color: AppColors.colorsBlue,
+//                           shape: BoxShape.circle,
+//                         ),
+//                       ),
+//                     Expanded(
+//                       child: Text(
+//                         value == 'All' ? label : value,
+//                         overflow: TextOverflow.ellipsis,
+//                       ),
+//                     ),
+//                   ],
+//                 ),
+//               );
+//             }).toList();
+//           },
+//           onChanged: onChanged,
+//         ),
+//       ),
+//     );
+//   }
+
+//   // ------------------------  BUILD  ------------------------
+//   @override
+//   Widget build(BuildContext context) {
+//     final isTablet = _isTablet(context);
+
+//     return Scaffold(
+//       appBar: AppBar(
+//         leading: IconButton(
+//           onPressed: () => Navigator.pop(context),
+//           icon: Icon(
+//             FontAwesomeIcons.angleLeft,
+//             color: Colors.white,
+//             size: _isSmallScreen(context) ? 18 : 20,
+//           ),
+//         ),
+//         title: Align(
+//           alignment: Alignment.centerLeft,
+//           child: Text(
+//             'My Enquiries',
+//             style: GoogleFonts.poppins(
+//               fontSize: _titleFontSize(context),
+//               fontWeight: FontWeight.w400,
+//               color: Colors.white,
+//             ),
+//           ),
+//         ),
+//         backgroundColor: AppColors.colorsBlue,
+//         automaticallyImplyLeading: false,
+//       ),
+
+//       body: isLoading
+//           ? SkeletonGlobleSearchCard()
+//           : Column(
+//               children: [
+//                 // --------------------  SEARCH  --------------------
+//                 Container(
+//                   margin: EdgeInsets.all(isTablet ? 15 : 10),
+//                   child: ConstrainedBox(
+//                     constraints: const BoxConstraints(minHeight: 38, maxHeight: 38),
+//                     child: TextField(
+//                       controller: _searchController,
+//                       textAlignVertical: TextAlignVertical.center,
+//                       style: GoogleFonts.poppins(fontSize: isTablet ? 14 : 13),
+//                       decoration: InputDecoration(
+//                         filled: true,
+//                         fillColor: AppColors.searchBar,
+//                         hintText: 'Search by name, email or phone',
+//                         hintStyle: GoogleFonts.poppins(
+//                           fontSize: isTablet ? 12 : 11,
+//                           fontWeight: FontWeight.w300,
+//                         ),
+//                         prefixIcon: Container(
+//                           width: isTablet ? 50 : 45,
+//                           alignment: Alignment.center,
+//                           child: Icon(
+//                             FontAwesomeIcons.magnifyingGlass,
+//                             color: AppColors.fontColor,
+//                             size: isTablet ? 18 : 16,
+//                           ),
+//                         ),
+//                         enabledBorder: OutlineInputBorder(
+//                           borderRadius: BorderRadius.circular(30),
+//                           borderSide: BorderSide.none,
+//                         ),
+//                         focusedBorder: OutlineInputBorder(
+//                           borderRadius: BorderRadius.circular(30),
+//                           borderSide: BorderSide.none,
+//                         ),
+//                         contentPadding: EdgeInsets.symmetric(
+//                           horizontal: isTablet ? 16 : 14,
+//                           vertical: isTablet ? 16 : 12,
+//                         ),
+//                         isDense: true,
+//                       ),
+//                     ),
+//                   ),
+//                 ),
+
+//                 // --------------------  FILTER ROW  --------------------
+//                 Container(
+//                   margin: EdgeInsets.symmetric(
+//                     horizontal: isTablet ? 15 : 10,
+//                     vertical: isTablet ? 8 : 5,
+//                   ),
+//                   child: Row(
+//                     children: [
+//                       Expanded(
+//                         child: _buildFilterDropdown(
+//                           'Brand',
+//                           _selectedBrand,
+//                           _availableBrands,
+//                           (v) { setState(() => _selectedBrand = v!); _applyAllFilters(); },
+//                           isTablet,
+//                         ),
+//                       ),
+//                       SizedBox(width: isTablet ? 10 : 8),
+//                       Expanded(
+//                         child: _buildFilterDropdown(
+//                           'Owner',
+//                           _selectedAssignee,
+//                           _availableAssignees,
+//                           (v) { setState(() => _selectedAssignee = v!); _applyAllFilters(); },
+//                           isTablet,
+//                         ),
+//                       ),
+//                       SizedBox(width: isTablet ? 10 : 8),
+//                       Expanded(
+//                         child: _buildFilterDropdown(
+//                           'Time',
+//                           _selectedTimeFrame,
+//                           _timeFrameOptions,
+//                           (v) { setState(() => _selectedTimeFrame = v!); _applyAllFilters(); },
+//                           isTablet,
+//                         ),
+//                       ),
+//                     ],
+//                   ),
+//                 ),
+
+//                 // --------------------  CLEAR-FILTERS INDICATOR  --------------------
+//                 if (_getActiveFilterCount() > 0)
+//                   Padding(
+//                     padding: EdgeInsets.only(
+//                       left: isTablet ? 15 : 10,
+//                       right: isTablet ? 15 : 10,
+//                       top: isTablet ? 6  : 4,
+//                       bottom: isTablet ? 4 : 2,
+//                     ),
+//                     child: Row(
+//                       children: [
+//                         Text(
+//                           '${_getActiveFilterCount()} filter(s) active',
+//                           style: GoogleFonts.poppins(
+//                             fontSize: isTablet ? 12 : 10,
+//                             color: Colors.grey[700],
+//                             fontStyle: FontStyle.italic,
+//                           ),
+//                         ),
+//                         const Spacer(),
+//                         TextButton(
+//                           onPressed: _resetFilters,
+//                           style: TextButton.styleFrom(
+//                             padding: EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+//                             minimumSize: Size.zero,
+//                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+//                           ),
+//                           child: Text(
+//                             'Clear All',
+//                             style: GoogleFonts.poppins(
+//                               fontSize: isTablet ? 13 : 11,
+//                               color: AppColors.sideRed,
+//                               fontWeight: FontWeight.w500,
+//                             ),
+//                           ),
+//                         ),
+//                       ],
+//                     ),
+//                   ),
+
+//                 // --------------------  LIST  --------------------
+//                 Expanded(
+//                   child: Scrollbar(
+//                     controller: _scrollController,
+//                     thickness: 6,
+//                     radius: const Radius.circular(4),
+//                     child: _buildTasksList(_filteredTasks),
+//                   ),
+//                 ),
+//               ],
+//             ),
+//     );
+//   }
+
+//   // ------------------------  TASK LIST  ------------------------
+//   Widget _buildTasksList(List<dynamic> tasks) {
+//     if (tasks.isEmpty) {
+//       final isTablet = _isTablet(context);
+//       return Center(
+//         child: Column(
+//           mainAxisAlignment: MainAxisAlignment.center,
+//           children: [
+//             Icon(
+//               _getActiveFilterCount() > 0
+//                   ? FontAwesomeIcons.filter
+//                   : FontAwesomeIcons.magnifyingGlass,
+//               size: isTablet ? 60 : 40,
+//               color: Colors.grey[400],
+//             ),
+//             SizedBox(height: isTablet ? 18 : 14),
+//             Text(
+//               _getActiveFilterCount() > 0
+//                   ? 'No results found with current filters'
+//                   : (_query.isEmpty
+//                         ? 'No Leads available'
+//                         : 'No results found for "$_query"'),
+//               style: GoogleFonts.poppins(
+//                 fontSize: isTablet ? 18 : 16,
+//                 color: Colors.grey[600],
+//               ),
+//               textAlign: TextAlign.center,
+//             ),
+//             if (_getActiveFilterCount() > 0) ...[
+//               SizedBox(height: isTablet ? 10 : 8),
+//               Text(
+//                 'Try adjusting your filters or search terms',
+//                 style: GoogleFonts.poppins(
+//                   fontSize: isTablet ? 14 : 12,
+//                   color: Colors.grey[500],
+//                 ),
+//               ),
+//               TextButton(
+//                 onPressed: _resetFilters,
+//                 child: Text(
+//                   'Clear All Filters',
+//                   style: GoogleFonts.poppins(
+//                     fontSize: isTablet ? 14 : 12,
+//                     color: AppColors.sideRed,
+//                     fontWeight: FontWeight.w500,
+//                   ),
+//                 ),
+//               ),
+//             ],
+//           ],
+//         ),
+//       );
+//     }
+
+//     // ...  (existing ListView.builder with TaskItem unchanged)
+//     // keep your previous TaskItem implementation here
+//     return ListView.builder(
+//       controller: _scrollController,
+//       physics: const AlwaysScrollableScrollPhysics(),
+//       itemCount: tasks.length,
+//       itemBuilder: (context, index) {
+//         final item = tasks[index];
+//         if (!(item.containsKey('lead_id') && item.containsKey('lead_name'))) {
+//           return ListTile(title: Text('Invalid data at index $index'));
+//         }
+
+//         final leadId      = item['lead_id'] ?? '';
+//         final swipeOffset = _swipeOffsets[leadId] ?? 0;
+
+//         // TODO: keep the rest of your TaskItem implementation unchanged
+//         return TaskItem(
+//           name: item['lead_name'] ?? '',
+//           date: item['created_at'] ?? '',
+//           subject: item['email'] ?? '',
+//           vehicle: item['PMI'] ?? '',
+//           leadId: leadId,
+//           taskId: leadId,
+//           brand: item['brand'] ?? '',
+//           number: item['mobile'] ?? '',
+//           isFavorite: item['favourite'] ?? false,
+//           swipeOffset: swipeOffset,
+//           fetchDashboardData: () {},
+//           onFavoriteToggled: () {},
+//           onFavoriteChanged: (_) {},
+//           onToggleFavorite: () {},
+//           onTap: null,
+//         );
+//       },
+//     );
+//   }
+// }
+
+// /* -----------------------
+//    TaskItem class remains
+//    exactly the same as in
+//    your previous file.
+// ------------------------ */
+
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -23,28 +649,18 @@ class AllLeads extends StatefulWidget {
 }
 
 class _AllLeadsState extends State<AllLeads> {
+  // ------------------------  CORE STATE  ------------------------
   bool isLoading = true;
   final Map<String, double> _swipeOffsets = {};
   final ScrollController _scrollController = ScrollController();
   Set<String> selectedLeads = {};
   bool isSelectionMode = false;
   List<dynamic> upcomingTasks = [];
-  List<dynamic> _searchResults = [];
-  List<dynamic> _filteredTasks = []; // Local filtered results
-  bool _isLoadingSearch = false;
+  List<dynamic> _filteredTasks = [];     // local, after filters/search
   String _query = '';
   final TextEditingController _searchController = TextEditingController();
 
-  // Filter variables
-  String _selectedSortBy = 'Date Created';
-  String _selectedStatus = 'All';
-  String _selectedTimeFilter = 'All Time';
-
-  // PATCH 1: Add these filter count variables
-  Map<String, int> _filterCounts = {};
-  bool _hasActiveFilters = false;
-
-  // Filter options
+  // ------------------------  NEW DROPDOWN FILTERS  ------------------------
   final List<String> _sortOptions = [
     'Date Created',
     'Name (A-Z)',
@@ -71,6 +687,15 @@ class _AllLeadsState extends State<AllLeads> {
     'Last 90 Days',
   ];
 
+  String _selectedSortBy = 'Date Created';
+  String _selectedStatus = 'All';
+  String _selectedTimeFilter = 'All Time';
+
+  // ------------------------  RESPONSIVE HELPERS  ------------------------
+  bool _isTablet(BuildContext context) => MediaQuery.of(context).size.width > 768;
+  bool _isSmallScreen(BuildContext context) => MediaQuery.of(context).size.width < 400;
+
+  // ------------------------  SWIPE HANDLERS  ------------------------
   void _onHorizontalDragUpdate(DragUpdateDetails details, String leadId) {
     setState(() {
       _swipeOffsets[leadId] =
@@ -89,7 +714,7 @@ class _AllLeadsState extends State<AllLeads> {
 
       setState(() {
         upcomingTasks[index]['favourite'] = newStatus;
-        _updateFilteredResults();
+        _applyAllFilters();
       });
     } else if (swipeOffset < -100) {
       _handleCall(item);
@@ -118,25 +743,6 @@ class _AllLeadsState extends State<AllLeads> {
       }
     });
   }
-
-  bool _isTablet(BuildContext context) =>
-      MediaQuery.of(context).size.width > 768;
-  bool _isSmallScreen(BuildContext context) =>
-      MediaQuery.of(context).size.width < 400;
-  double _screenWidth(BuildContext context) =>
-      MediaQuery.of(context).size.width;
-
-  EdgeInsets _responsivePadding(BuildContext context) => EdgeInsets.symmetric(
-    horizontal: _isTablet(context) ? 20 : (_isSmallScreen(context) ? 8 : 10),
-    vertical: _isTablet(context) ? 12 : 8,
-  );
-
-  double _titleFontSize(BuildContext context) =>
-      _isTablet(context) ? 20 : (_isSmallScreen(context) ? 16 : 18);
-  double _bodyFontSize(BuildContext context) =>
-      _isTablet(context) ? 16 : (_isSmallScreen(context) ? 12 : 14);
-  double _smallFontSize(BuildContext context) =>
-      _isTablet(context) ? 14 : (_isSmallScreen(context) ? 10 : 12);
 
   Future<void> _toggleFavorite(String leadId, int index) async {
     final token = await Storage.getToken();
@@ -177,6 +783,7 @@ class _AllLeadsState extends State<AllLeads> {
     // Implement actual call functionality here
   }
 
+  // ------------------------  INIT / DISPOSE  ------------------------
   @override
   void initState() {
     super.initState();
@@ -187,10 +794,11 @@ class _AllLeadsState extends State<AllLeads> {
   @override
   void dispose() {
     _searchController.dispose();
-    _scrollController.dispose(); // <-- add this!
+    _scrollController.dispose();
     super.dispose();
   }
 
+  // ------------------------  DATA FETCH  ------------------------
   Future<void> fetchTasksData() async {
     final token = await Storage.getToken();
     try {
@@ -205,11 +813,12 @@ class _AllLeadsState extends State<AllLeads> {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
-          upcomingTasks = data['data']['rows'] ?? [];
+          upcomingTasks  = data['data']['rows'] ?? [];
           _filteredTasks = List.from(upcomingTasks);
-          _applyFilters();
-          isLoading = false;
+          isLoading      = false;
         });
+
+        _applyAllFilters();
       } else {
         print("Failed to load data: ${response.statusCode}");
         setState(() => isLoading = false);
@@ -220,185 +829,103 @@ class _AllLeadsState extends State<AllLeads> {
     }
   }
 
-  void _performLocalSearch(String query) {
-    if (query.isEmpty) {
-      setState(() {
-        _filteredTasks = List.from(upcomingTasks);
-        _applyFilters();
-      });
-      return;
-    }
-
-    setState(() {
-      _filteredTasks = upcomingTasks.where((item) {
-        String name = (item['lead_name'] ?? '').toString().toLowerCase();
-        String email = (item['email'] ?? '').toString().toLowerCase();
-        String phone = (item['mobile'] ?? '').toString().toLowerCase();
-        String searchQuery = query.toLowerCase();
-
-        return name.contains(searchQuery) ||
-            email.contains(searchQuery) ||
-            phone.contains(searchQuery);
-      }).toList();
-      _applyFilters();
-    });
-  }
-
-  void _updateFilteredResults() {
-    if (_query.isEmpty) {
-      setState(() {
-        _filteredTasks = List.from(upcomingTasks);
-        _applyFilters();
-      });
-    } else {
-      _performLocalSearch(_query);
-    }
-  }
-
+  // ------------------------  SEARCH  ------------------------
   void _onSearchChanged() {
     final newQuery = _searchController.text.trim();
     if (newQuery == _query) return;
 
     _query = newQuery;
-    _performLocalSearch(_query);
+    _applyAllFilters();
   }
 
-  // PATCH 2: Enhanced _applyFilters with filter counts and active status
-  void _applyFilters() {
-    List<dynamic> filteredList = List.from(_filteredTasks);
+  // ------------------------  FILTER HELPERS  ------------------------
+  bool _isDateInTimeFrame(String dateString, String timeFrame) {
+    if (timeFrame == 'All Time') return true;
+    try {
+      DateTime date = DateTime.parse(dateString);
+      DateTime now = DateTime.now();
 
-    // Calculate counts for each filter option
-    _filterCounts.clear();
-
-    // Count status options
-    for (String status in _statusOptions) {
-      if (status == 'All') {
-        _filterCounts[status] = filteredList.length;
-      } else {
-        _filterCounts[status] = filteredList.where((item) {
-          String itemStatus = (item['status'] ?? 'New').toString();
-          return itemStatus.toLowerCase() == status.toLowerCase();
-        }).length;
+      switch (timeFrame) {
+        case 'Today':
+          return date.year == now.year &&
+              date.month == now.month &&
+              date.day == now.day;
+        case 'This Week':
+          DateTime startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+          return date.isAfter(startOfWeek.subtract(Duration(days: 1)));
+        case 'This Month':
+          return date.year == now.year && date.month == now.month;
+        case 'Last 7 Days':
+          DateTime sevenDaysAgo = now.subtract(Duration(days: 7));
+          return date.isAfter(sevenDaysAgo);
+        case 'Last 30 Days':
+          DateTime thirtyDaysAgo = now.subtract(Duration(days: 30));
+          return date.isAfter(thirtyDaysAgo);
+        case 'Last 90 Days':
+          DateTime ninetyDaysAgo = now.subtract(Duration(days: 90));
+          return date.isAfter(ninetyDaysAgo);
+        default:
+          return true;
       }
+    } catch (e) {
+      return true;
+    }
+  }
+
+  void _applyAllFilters() {
+    List<dynamic> temp = List.from(upcomingTasks);
+
+    // --- search ---
+    if (_query.isNotEmpty) {
+      final q = _query.toLowerCase();
+      temp = temp.where((item) {
+        final name  = (item['lead_name'] ?? '').toString().toLowerCase();
+        final mail  = (item['email']     ?? '').toString().toLowerCase();
+        final phone = (item['mobile']    ?? '').toString().toLowerCase();
+        return name.contains(q) || mail.contains(q) || phone.contains(q);
+      }).toList();
     }
 
-    // Count time filter options
-    DateTime now = DateTime.now();
-    for (String timeFilter in _timeFilterOptions) {
-      if (timeFilter == 'All Time') {
-        _filterCounts[timeFilter] = filteredList.length;
-      } else {
-        _filterCounts[timeFilter] = filteredList.where((item) {
-          String dateStr = item['created_at'] ?? '';
-          if (dateStr.isEmpty) return false;
-
-          try {
-            DateTime itemDate = DateTime.parse(dateStr);
-
-            switch (timeFilter) {
-              case 'Today':
-                return itemDate.year == now.year &&
-                    itemDate.month == now.month &&
-                    itemDate.day == now.day;
-              case 'This Week':
-                DateTime startOfWeek = now.subtract(
-                  Duration(days: now.weekday - 1),
-                );
-                return itemDate.isAfter(
-                  startOfWeek.subtract(Duration(days: 1)),
-                );
-              case 'This Month':
-                return itemDate.year == now.year && itemDate.month == now.month;
-              case 'Last 7 Days':
-                DateTime sevenDaysAgo = now.subtract(Duration(days: 7));
-                return itemDate.isAfter(sevenDaysAgo);
-              case 'Last 30 Days':
-                DateTime thirtyDaysAgo = now.subtract(Duration(days: 30));
-                return itemDate.isAfter(thirtyDaysAgo);
-              case 'Last 90 Days':
-                DateTime ninetyDaysAgo = now.subtract(Duration(days: 90));
-                return itemDate.isAfter(ninetyDaysAgo);
-              default:
-                return true;
-            }
-          } catch (e) {
-            return false;
-          }
-        }).length;
-      }
-    }
-
-    // Apply actual filters
+    // --- status filter ---
     if (_selectedStatus != 'All') {
-      filteredList = filteredList.where((item) {
+      temp = temp.where((item) {
         String status = (item['status'] ?? 'New').toString();
         return status.toLowerCase() == _selectedStatus.toLowerCase();
       }).toList();
     }
 
+    // --- time filter ---
     if (_selectedTimeFilter != 'All Time') {
-      filteredList = filteredList.where((item) {
-        String dateStr = item['created_at'] ?? '';
-        if (dateStr.isEmpty) return false;
-
-        try {
-          DateTime itemDate = DateTime.parse(dateStr);
-
-          switch (_selectedTimeFilter) {
-            case 'Today':
-              return itemDate.year == now.year &&
-                  itemDate.month == now.month &&
-                  itemDate.day == now.day;
-            case 'This Week':
-              DateTime startOfWeek = now.subtract(
-                Duration(days: now.weekday - 1),
-              );
-              return itemDate.isAfter(startOfWeek.subtract(Duration(days: 1)));
-            case 'This Month':
-              return itemDate.year == now.year && itemDate.month == now.month;
-            case 'Last 7 Days':
-              DateTime sevenDaysAgo = now.subtract(Duration(days: 7));
-              return itemDate.isAfter(sevenDaysAgo);
-            case 'Last 30 Days':
-              DateTime thirtyDaysAgo = now.subtract(Duration(days: 30));
-              return itemDate.isAfter(thirtyDaysAgo);
-            case 'Last 90 Days':
-              DateTime ninetyDaysAgo = now.subtract(Duration(days: 90));
-              return itemDate.isAfter(ninetyDaysAgo);
-            default:
-              return true;
-          }
-        } catch (e) {
-          return false;
-        }
+      temp = temp.where((item) {
+        return _isDateInTimeFrame(item['created_at'] ?? '', _selectedTimeFilter);
       }).toList();
     }
 
-    // Apply sorting
+    // --- sorting ---
     switch (_selectedSortBy) {
       case 'Name (A-Z)':
-        filteredList.sort((a, b) {
+        temp.sort((a, b) {
           String nameA = (a['lead_name'] ?? '').toString().toLowerCase();
           String nameB = (b['lead_name'] ?? '').toString().toLowerCase();
           return nameA.compareTo(nameB);
         });
         break;
       case 'Name (Z-A)':
-        filteredList.sort((a, b) {
+        temp.sort((a, b) {
           String nameA = (a['lead_name'] ?? '').toString().toLowerCase();
           String nameB = (b['lead_name'] ?? '').toString().toLowerCase();
           return nameB.compareTo(nameA);
         });
         break;
       case 'Recently Updated':
-        filteredList.sort((a, b) {
+        temp.sort((a, b) {
           String dateA = a['updated_at'] ?? a['created_at'] ?? '';
           String dateB = b['updated_at'] ?? b['created_at'] ?? '';
           return dateB.compareTo(dateA);
         });
         break;
       case 'Oldest First':
-        filteredList.sort((a, b) {
+        temp.sort((a, b) {
           String dateA = a['created_at'] ?? '';
           String dateB = b['created_at'] ?? '';
           return dateA.compareTo(dateB);
@@ -406,7 +933,7 @@ class _AllLeadsState extends State<AllLeads> {
         break;
       case 'Date Created':
       default:
-        filteredList.sort((a, b) {
+        temp.sort((a, b) {
           String dateA = a['created_at'] ?? '';
           String dateB = b['created_at'] ?? '';
           return dateB.compareTo(dateA);
@@ -414,281 +941,207 @@ class _AllLeadsState extends State<AllLeads> {
         break;
     }
 
-    // PATCH 2: Update _hasActiveFilters
-    _hasActiveFilters =
-        _selectedSortBy != 'Date Created' ||
-        _selectedStatus != 'All' ||
-        _selectedTimeFilter != 'All Time';
-
-    setState(() {
-      _filteredTasks = filteredList;
-    });
+    setState(() => _filteredTasks = temp);
   }
 
-  void _onFilterChanged() {
-    _updateFilteredResults();
+  void _updateFilteredResults() {
+    _applyAllFilters();
   }
 
-  // PATCH 3: Clear all filters
-  void _clearAllFilters() {
+  int _getActiveFilterCount() {
+    int c = 0;
+    if (_selectedSortBy != 'Date Created') c++;
+    if (_selectedStatus != 'All') c++;
+    if (_selectedTimeFilter != 'All Time') c++;
+    if (_query.isNotEmpty) c++;
+    return c;
+  }
+
+  void _resetFilters() {
     setState(() {
       _selectedSortBy = 'Date Created';
       _selectedStatus = 'All';
       _selectedTimeFilter = 'All Time';
+      _searchController.clear();
+      _query = '';
     });
-    _onFilterChanged();
+    _applyAllFilters();
   }
 
-  // PATCH 4/5: Build Filter Chips row
-  Widget _buildFilterChips(bool isTablet) {
-    if (!_hasActiveFilters) return SizedBox.shrink();
+  // ------------------------  UI HELPERS  ------------------------
+  EdgeInsets _responsivePadding(BuildContext ctx) => EdgeInsets.symmetric(
+    horizontal: _isTablet(ctx) ? 20 : (_isSmallScreen(ctx) ? 8 : 10),
+    vertical: _isTablet(ctx) ? 12 : 8,
+  );
 
-    return Container(
-      margin: EdgeInsets.only(
-        left: isTablet ? 15 : 10,
-        right: isTablet ? 15 : 10,
-        top: 5,
-        bottom: 5,
+  double _titleFontSize(BuildContext ctx) =>
+      _isTablet(ctx) ? 20 : (_isSmallScreen(ctx) ? 16 : 18);
+
+// build dropdown widget
+Widget _buildFilterDropdown(
+    String label,
+    String selectedValue,
+    List<String> options,
+    ValueChanged<String?> onChanged,
+    bool isTablet,
+  ) {
+  // Determine default values for each dropdown
+  String defaultValue = label == 'Sort By'
+      ? 'Date Created'
+      : label == 'Status'
+      ? 'All'
+      : label == 'Time'
+      ? 'All Time'
+      : options.first;
+
+  // FIXED: Only this specific dropdown should be highlighted if it's not at default
+  bool isSelected = selectedValue != defaultValue;
+
+  return Container(
+    height: isTablet ? 40 : 36,
+    decoration: BoxDecoration(
+      color: isSelected
+          ? AppColors.colorsBlue.withOpacity(0.08)
+          : Colors.white,
+      borderRadius: BorderRadius.circular(25),
+      border: Border.all(
+        color: isSelected
+            ? AppColors.colorsBlue.withOpacity(0.4)
+            : Colors.grey.withOpacity(0.2),
+        width: 1.5,
       ),
-      child: Row(
-        children: [
-          Text(
-            '${(_selectedStatus != 'All' ? 1 : 0) + (_selectedTimeFilter != 'All Time' ? 1 : 0) + (_selectedSortBy != 'Date Created' ? 1 : 0)} filter(s) active',
-            style: GoogleFonts.poppins(
-              fontSize: isTablet ? 13 : 11,
-              color: Colors.grey[700],
-              fontStyle: FontStyle.italic,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          Spacer(),
-          GestureDetector(
-            onTap: _clearAllFilters,
-            child: Text(
-              'Clear filter(s)',
-              style: GoogleFonts.poppins(
-                fontSize: isTablet ? 13 : 11,
-                color: AppColors.sideRed,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // PATCH 5: FilterChip UI
-  Widget _buildFilterChip({
-    required String label,
-    required int? count,
-    required bool isTablet,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: EdgeInsets.only(right: isTablet ? 10 : 8),
-        padding: EdgeInsets.symmetric(
-          horizontal: isTablet ? 12 : 10,
-          vertical: isTablet ? 8 : 6,
-        ),
-        decoration: BoxDecoration(
-          color: AppColors.colorsBlue.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.colorsBlue, width: 1),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: isTablet ? 8 : 6,
-              height: isTablet ? 8 : 6,
-              decoration: BoxDecoration(
-                color: AppColors.colorsBlue,
-                shape: BoxShape.circle,
-              ),
-            ),
-            SizedBox(width: isTablet ? 8 : 6),
-            Text(
-              count != null ? '$label${count > 0 ? ' ($count)' : ''}' : label,
-              style: GoogleFonts.poppins(
-                fontSize: isTablet ? 12 : 10,
-                color: AppColors.colorsBlue,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            SizedBox(width: isTablet ? 6 : 4),
-            Icon(
-              Icons.close,
-              size: isTablet ? 14 : 12,
-              color: AppColors.colorsBlue,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // PATCH 6: Filtered by... indicator
-  Widget _buildFilterIndicatorText(bool isTablet) {
-    if (!_hasActiveFilters) {
-      return SizedBox.shrink();
-    }
-
-    List<String> activeFilters = [];
-    if (_selectedSortBy != 'Date Created')
-      activeFilters.add('Sort: $_selectedSortBy');
-    if (_selectedStatus != 'All') activeFilters.add('Status: $_selectedStatus');
-    if (_selectedTimeFilter != 'All Time')
-      activeFilters.add('Time: $_selectedTimeFilter');
-
-    return Container(
-      width: double.infinity,
-      alignment: Alignment.centerLeft,
-      margin: EdgeInsets.only(left: isTablet ? 15 : 10, top: 6, bottom: 4),
-      child: Text(
-        'Filtered by: ${activeFilters.join(' | ')} (${_filteredTasks.length} results)',
-        style: GoogleFonts.poppins(
-          fontSize: isTablet ? 13 : 11,
-          color: Colors.grey[600],
-          fontWeight: FontWeight.w400,
-        ),
-      ),
-    );
-  }
-
-  // ---------------------- DROPDOWN WIDGET STYLE (unchanged) ----------------------
-  Widget _buildDropdownFilter({
-    required String label,
-    required String value,
-    required List<String> options,
-    required Function(String?) onChanged,
-    required bool isTablet,
-  }) {
-    // Decide which value is considered "not selected" (change logic as needed)
-    String defaultValue = label == 'Sort By'
-        ? 'Date Created'
-        : label == 'Status'
-        ? 'All'
-        : label == 'Time'
-        ? 'All Time'
-        : options.first;
-
-    bool isSelected = value != defaultValue;
-
-    return Expanded(
-      child: Container(
-        margin: EdgeInsets.only(right: isTablet ? 12 : 8),
-        decoration: BoxDecoration(
+      boxShadow: [
+        BoxShadow(
           color: isSelected
-              ? AppColors.colorsBlue.withOpacity(0.08)
-              : Colors.white,
-          borderRadius: BorderRadius.circular(25),
-          border: Border.all(
+              ? AppColors.colorsBlue.withOpacity(0.1)
+              : Colors.grey.withOpacity(0.05),
+          spreadRadius: 1,
+          blurRadius: 3,
+          offset: Offset(0, 1),
+        ),
+      ],
+    ),
+    child: DropdownButtonHideUnderline(
+      child: DropdownButton<String>(
+        value: selectedValue,
+        isExpanded: true,
+        icon: Container(
+          margin: EdgeInsets.only(right: isTablet ? 8 : 6),
+          child: Icon(
+            Icons.keyboard_arrow_down_rounded,
+            size: isTablet ? 22 : 20,
             color: isSelected
                 ? AppColors.colorsBlue
-                : Colors.grey.withOpacity(0.2),
-            width: 2.0,
+                : Colors.grey[500],
           ),
         ),
-        height: isTablet ? 35 : 31,
-        padding: EdgeInsets.symmetric(
-          horizontal: isTablet ? 12 : 8,
-          vertical: isTablet ? 3 : 2,
+        style: GoogleFonts.poppins(
+          fontSize: isTablet ? 13 : 11,
+          color: isSelected
+              ? AppColors.colorsBlue
+              : Colors.grey[700],
+          fontWeight: FontWeight.w400, // FIXED: Remove bold text
         ),
-        child: DropdownButtonHideUnderline(
-          child: DropdownButton<String>(
+        dropdownColor: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        elevation: 8,
+        menuMaxHeight: 250,
+        items: options.map<DropdownMenuItem<String>>((String value) {
+          bool isItemSelected = value == selectedValue;
+          return DropdownMenuItem<String>(
             value: value,
-            isExpanded: true,
-            icon: Icon(
-              Icons.keyboard_arrow_down_rounded,
-              size: isTablet ? 22 : 20,
-              color: isSelected ? AppColors.colorsBlue : Colors.grey[500],
-            ),
-            style: GoogleFonts.poppins(
-              fontSize: isTablet ? 13 : 11,
-              color: isSelected ? AppColors.colorsBlue : Colors.grey[700],
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-            ),
-            dropdownColor: Colors.white,
-            borderRadius: BorderRadius.circular(15),
-            elevation: 8,
-            menuMaxHeight: 250,
-            selectedItemBuilder: (BuildContext context) {
-              return options.map<Widget>((String item) {
-                bool itemIsSelected = item == value && isSelected;
-                return Row(
-                  children: [
-                    if (itemIsSelected)
-                      Container(
-                        width: isTablet ? 8 : 7,
-                        height: isTablet ? 8 : 7,
-                        margin: EdgeInsets.only(
-                          right: isTablet ? 6 : 5,
-                          left: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.colorsBlue,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    Flexible(
-                      child: Text(
-                        item,
-                        style: GoogleFonts.poppins(
-                          fontSize: isTablet ? 15 : 13,
-                          color: isSelected
-                              ? AppColors.colorsBlue
-                              : Colors.grey.shade700,
-                          fontWeight: isSelected
-                              ? FontWeight.w600
-                              : FontWeight.w400,
-                        ),
-                        overflow: TextOverflow.ellipsis,
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(
+                horizontal: isTablet ? 12 : 10,
+                vertical: isTablet ? 8  : 6,
+              ),
+              decoration: BoxDecoration(
+                color: isItemSelected
+                    ? AppColors.colorsBlue.withOpacity(0.1)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  if (isItemSelected)
+                    Container(
+                      margin: EdgeInsets.only(right: 8),
+                      child: Icon(
+                        Icons.check_circle,
+                        size: isTablet ? 16 : 14,
+                        color: AppColors.colorsBlue,
                       ),
                     ),
-                  ],
-                );
-              }).toList();
-            },
-            items: options.map((String option) {
-              return DropdownMenuItem<String>(
-                value: option,
-                child: Text(
-                  option,
-                  style: GoogleFonts.poppins(
-                    fontSize: isTablet ? 15 : 13,
-                    color: option == value && isSelected
-                        ? AppColors.colorsBlue
-                        : Colors.grey.shade700,
-                    fontWeight: option == value && isSelected
-                        ? FontWeight.w500
-                        : FontWeight.w400,
+                  Expanded(
+                    child: Text(
+                      value,
+                      style: GoogleFonts.poppins(
+                        fontSize: isTablet ? 13 : 11,
+                        fontWeight: FontWeight.w400, // FIXED: Remove bold text
+                        color: isItemSelected 
+                            ? AppColors.colorsBlue 
+                            : Colors.grey[700],
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              );
-            }).toList(),
-            onChanged: onChanged,
-          ),
-        ),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
+        selectedItemBuilder: (context) {
+          return options.map<Widget>((String value) {
+            return Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: isTablet ? 12 : 10,
+              ),
+              alignment: Alignment.centerLeft,
+              child: Row(
+                children: [
+                  if (isSelected)
+                    Container(
+                      margin: EdgeInsets.only(right: 6),
+                      width: isTablet ? 6 : 5,
+                      height: isTablet ? 6 : 5,
+                      decoration: BoxDecoration(
+                        color: AppColors.colorsBlue,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  Expanded(
+                    child: Text(
+                      value == defaultValue && !isSelected ? label : value,
+                      style: GoogleFonts.poppins(
+                        fontSize: isTablet ? 13 : 11,
+                        fontWeight: FontWeight.w400, // FIXED: Remove bold text
+                        color: isSelected
+                            ? AppColors.colorsBlue
+                            : Colors.grey[700],
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList();
+        },
+        onChanged:  onChanged,
       ),
-    );
-  }
+    ),
+  );
+}
 
-  // ---------------------- MAIN BUILD ----------------------
+  // ------------------------  BUILD  ------------------------
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-    final isTablet = screenSize.width > 600;
-
+    final isTablet = _isTablet(context);
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
           icon: Icon(
             FontAwesomeIcons.angleLeft,
             color: Colors.white,
@@ -709,24 +1162,37 @@ class _AllLeadsState extends State<AllLeads> {
         backgroundColor: AppColors.colorsBlue,
         automaticallyImplyLeading: false,
       ),
+
       body: isLoading
           ? SkeletonGlobleSearchCard()
           : Column(
               children: [
-                // Search field container
+                // --------------------  SEARCH  --------------------
                 Container(
                   margin: EdgeInsets.all(isTablet ? 15 : 10),
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: 38, maxHeight: 38),
+                    constraints: const BoxConstraints(minHeight: 38, maxHeight: 38),
                     child: TextField(
-                      autofocus: false,
                       controller: _searchController,
-                      onChanged: (value) => _onSearchChanged(),
                       textAlignVertical: TextAlignVertical.center,
-                      style: GoogleFonts.poppins(
-                        fontSize: _isTablet(context) ? 14 : 13,
-                      ),
+                      style: GoogleFonts.poppins(fontSize: isTablet ? 14 : 13),
                       decoration: InputDecoration(
+                        filled: true,
+                        fillColor: AppColors.searchBar,
+                        hintText: 'Search by name, email or phone',
+                        hintStyle: GoogleFonts.poppins(
+                          fontSize: isTablet ? 12 : 11,
+                          fontWeight: FontWeight.w300,
+                        ),
+                        prefixIcon: Container(
+                          width: isTablet ? 50 : 45,
+                          alignment: Alignment.center,
+                          child: Icon(
+                            FontAwesomeIcons.magnifyingGlass,
+                            color: AppColors.fontColor,
+                            size: isTablet ? 18 : 16,
+                          ),
+                        ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(30),
                           borderSide: BorderSide.none,
@@ -736,104 +1202,111 @@ class _AllLeadsState extends State<AllLeads> {
                           borderSide: BorderSide.none,
                         ),
                         contentPadding: EdgeInsets.symmetric(
-                          horizontal: _isTablet(context) ? 16 : 14,
-                          vertical: _isTablet(context) ? 16 : 12,
-                        ),
-                        filled: true,
-                        fillColor: AppColors.searchBar,
-                        hintText: 'Search by name, email or phone',
-                        hintStyle: GoogleFonts.poppins(
-                          fontSize: _isTablet(context) ? 12 : 11,
-                          fontWeight: FontWeight.w300,
-                        ),
-                        prefixIcon: Container(
-                          width: _isTablet(context) ? 50 : 45,
-                          child: Center(
-                            child: Icon(
-                              FontAwesomeIcons.magnifyingGlass,
-                              color: AppColors.fontColor,
-                              size: _isTablet(context) ? 18 : 16,
-                            ),
-                          ),
-                        ),
-                        prefixIconConstraints: BoxConstraints(
-                          minWidth: _isTablet(context) ? 50 : 45,
-                          maxWidth: _isTablet(context) ? 50 : 45,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide.none,
+                          horizontal: isTablet ? 16 : 14,
+                          vertical: isTablet ? 16 : 12,
                         ),
                         isDense: true,
                       ),
                     ),
                   ),
                 ),
-                // Filters Row
+
+                // --------------------  FILTER ROW  --------------------
                 Container(
                   margin: EdgeInsets.symmetric(
                     horizontal: isTablet ? 15 : 10,
-                    vertical: isTablet ? 10 : 5,
+                    vertical: isTablet ? 8 : 5,
                   ),
                   child: Row(
                     children: [
-                      _buildDropdownFilter(
-                        label: 'Sort By',
-                        value: _selectedSortBy,
-                        options: _sortOptions,
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedSortBy = value!;
-                          });
-                          _onFilterChanged();
-                        },
-                        isTablet: isTablet,
+                      Expanded(
+                        child: _buildFilterDropdown(
+                          'Sort By',
+                          _selectedSortBy,
+                          _sortOptions,
+                          (v) {
+                            setState(() => _selectedSortBy = v!);
+                            _applyAllFilters();
+                          },
+                          isTablet,
+                        ),
                       ),
-                      SizedBox(width: isTablet ? 12 : 8),
-                      _buildDropdownFilter(
-                        label: 'Status',
-                        value: _selectedStatus,
-                        options: _statusOptions,
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedStatus = value!;
-                          });
-                          _onFilterChanged();
-                        },
-                        isTablet: isTablet,
+                      SizedBox(width: isTablet ? 10 : 8),
+                      Expanded(
+                        child: _buildFilterDropdown(
+                          'Status',
+                          _selectedStatus,
+                          _statusOptions,
+                          (v) {
+                            setState(() => _selectedStatus = v!);
+                            _applyAllFilters();
+                          },
+                          isTablet,
+                        ),
                       ),
-                      SizedBox(width: isTablet ? 12 : 8),
-                      _buildDropdownFilter(
-                        label: 'Time',
-                        value: _selectedTimeFilter,
-                        options: _timeFilterOptions,
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedTimeFilter = value!;
-                          });
-                          _onFilterChanged();
-                        },
-                        isTablet: isTablet,
+                      SizedBox(width: isTablet ? 10 : 8),
+                      Expanded(
+                        child: _buildFilterDropdown(
+                          'Time',
+                          _selectedTimeFilter,
+                          _timeFilterOptions,
+                          (v) {
+                            setState(() => _selectedTimeFilter = v!);
+                            _applyAllFilters();
+                          },
+                          isTablet,
+                        ),
                       ),
                     ],
                   ),
                 ),
 
-                // PATCH 7: Filter Chips Row
-                _buildFilterChips(isTablet),
-                // PATCH 6: Filtered By indicator text
-                // _buildFilterIndicatorText(isTablet),
-                // Results count or query indicator (unchanged)
-                // _buildResultsCount(isTablet),
-                // Results list - using filtered local results
+                // --------------------  CLEAR-FILTERS INDICATOR  --------------------
+                if (_getActiveFilterCount() > 0)
+                  Padding(
+                    padding: EdgeInsets.only(
+                      left: isTablet ? 15 : 10,
+                      right: isTablet ? 15 : 10,
+                      top: isTablet ? 6  : 4,
+                      bottom: isTablet ? 4 : 2,
+                    ),
+                    child: Row(
+                      children: [
+                        Text(
+                          '${_getActiveFilterCount()} filter(s) active',
+                          style: GoogleFonts.poppins(
+                            fontSize: isTablet ? 12 : 10,
+                            color: Colors.grey[700],
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                        const Spacer(),
+                        TextButton(
+                          onPressed: _resetFilters,
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: Text(
+                            'Clear All',
+                            style: GoogleFonts.poppins(
+                              fontSize: isTablet ? 13 : 11,
+                              color: AppColors.sideRed,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                // --------------------  LIST  --------------------
                 Expanded(
                   child: Scrollbar(
                     controller: _scrollController,
-                    thumbVisibility: false,
-                    trackVisibility: false,
-                    thickness: 7.0,
-                    radius: const Radius.circular(4.0),
-                    interactive: true,
+                    thickness: 6,
+                    radius: const Radius.circular(4),
                     child: _buildTasksList(_filteredTasks),
                   ),
                 ),
@@ -842,39 +1315,52 @@ class _AllLeadsState extends State<AllLeads> {
     );
   }
 
-  // --- Results List Widget ---
+  // ------------------------  TASK LIST  ------------------------
   Widget _buildTasksList(List<dynamic> tasks) {
     if (tasks.isEmpty) {
-      final screenSize = MediaQuery.of(context).size;
-      final isTablet = screenSize.width > 600;
-
+      final isTablet = _isTablet(context);
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              FontAwesomeIcons.magnifyingGlass,
+              _getActiveFilterCount() > 0
+                  ? FontAwesomeIcons.filter
+                  : FontAwesomeIcons.magnifyingGlass,
               size: isTablet ? 60 : 40,
               color: Colors.grey[400],
             ),
-            SizedBox(height: isTablet ? 20 : 15),
+            SizedBox(height: isTablet ? 18 : 14),
             Text(
-              _query.isEmpty
-                  ? 'No Leads available'
-                  : 'No results found for "$_query"',
+              _getActiveFilterCount() > 0
+                  ? 'No results found with current filters'
+                  : (_query.isEmpty
+                        ? 'No Leads available'
+                        : 'No results found for "$_query"'),
               style: GoogleFonts.poppins(
                 fontSize: isTablet ? 18 : 16,
                 color: Colors.grey[600],
               ),
+              textAlign: TextAlign.center,
             ),
-            if (_query.isNotEmpty) ...[
+            if (_getActiveFilterCount() > 0) ...[
               SizedBox(height: isTablet ? 10 : 8),
               Text(
-                'Try searching with different keywords',
+                'Try adjusting your filters or search terms',
                 style: GoogleFonts.poppins(
                   fontSize: isTablet ? 14 : 12,
-                  fontStyle: FontStyle.italic,
-                  color: Colors.grey[400],
+                  color: Colors.grey[500],
+                ),
+              ),
+              TextButton(
+                onPressed: _resetFilters,
+                child: Text(
+                  'Clear All Filters',
+                  style: GoogleFonts.poppins(
+                    fontSize: isTablet ? 14 : 12,
+                    color: AppColors.sideRed,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ],
@@ -888,14 +1374,13 @@ class _AllLeadsState extends State<AllLeads> {
       physics: const AlwaysScrollableScrollPhysics(),
       itemCount: tasks.length,
       itemBuilder: (context, index) {
-        var item = tasks[index];
-
+        final item = tasks[index];
         if (!(item.containsKey('lead_id') && item.containsKey('lead_name'))) {
           return ListTile(title: Text('Invalid data at index $index'));
         }
 
-        String leadId = item['lead_id'] ?? '';
-        double swipeOffset = _swipeOffsets[leadId] ?? 0;
+        final leadId      = item['lead_id'] ?? '';
+        final swipeOffset = _swipeOffsets[leadId] ?? 0;
 
         return GestureDetector(
           onHorizontalDragUpdate: (details) =>
@@ -945,6 +1430,7 @@ class _AllLeadsState extends State<AllLeads> {
     );
   }
 }
+
 
 class TaskItem extends StatefulWidget {
   final String name, subject, number;

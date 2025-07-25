@@ -53,20 +53,20 @@ android {
         manifestPlaceholders["googleMapsApiKey"] = googleMapsApiKey 
     } 
 
-      signingConfigs {
-        create("release") {
-            keyAlias = keystoreProperties["keyAlias"] as String
-            keyPassword = keystoreProperties["keyPassword"] as String
-            storeFile = keystoreProperties["storeFile"]?.let { file(it) }
-            storePassword = keystoreProperties["storePassword"] as String
-        }
-    }
+    //   signingConfigs {
+    //     create("release") {
+    //         keyAlias = keystoreProperties["keyAlias"] as String
+    //         keyPassword = keystoreProperties["keyPassword"] as String
+    //         storeFile = keystoreProperties["storeFile"]?.let { file(it) }
+    //         storePassword = keystoreProperties["storePassword"] as String
+    //     }
+    // }
 
-    buildTypes {
-        release {
-            signingConfig = signingConfigs.getByName("release")
-        }
-    }
+    // buildTypes {
+    //     release {
+    //         signingConfig = signingConfigs.getByName("release")
+    //     }
+    // }
 }
 
 flutter {

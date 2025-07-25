@@ -103,17 +103,17 @@
 //               mainAxisSize: MainAxisSize.min,
 //               children: [
 //                 ListTile(
-//                   leading: Icon(Icons.photo, color: Color(0xFF1380FE)),
+//                   leading: Icon(Icons.photo, color: AppColors.colorsBlue),
 //                   title: Text('Photo', style: GoogleFonts.poppins()),
 //                   onTap: () => Navigator.of(context).pop('image'),
 //                 ),
 //                 ListTile(
-//                   leading: Icon(Icons.videocam, color: Color(0xFF1380FE)),
+//                   leading: Icon(Icons.videocam, color: AppColors.colorsBlue),
 //                   title: Text('Video', style: GoogleFonts.poppins()),
 //                   onTap: () => Navigator.of(context).pop('video'),
 //                 ),
 //                 ListTile(
-//                   leading: Icon(Icons.photo_library, color: Color(0xFF1380FE)),
+//                   leading: Icon(Icons.photo_library, color: AppColors.colorsBlue),
 //                   title: Text('Multiple Photos', style: GoogleFonts.poppins()),
 //                   onTap: () => Navigator.of(context).pop('multiple'),
 //                 ),
@@ -519,17 +519,20 @@ class _FeedbackFormState extends State<FeedbackForm> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 ListTile(
-                  leading: Icon(Icons.photo, color: Color(0xFF1380FE)),
+                  leading: Icon(Icons.photo, color: AppColors.colorsBlue),
                   title: Text('Photo', style: GoogleFonts.poppins()),
                   onTap: () => Navigator.of(context).pop('image'),
                 ),
                 ListTile(
-                  leading: Icon(Icons.videocam, color: Color(0xFF1380FE)),
+                  leading: Icon(Icons.videocam, color: AppColors.colorsBlue),
                   title: Text('Video', style: GoogleFonts.poppins()),
                   onTap: () => Navigator.of(context).pop('video'),
                 ),
                 ListTile(
-                  leading: Icon(Icons.photo_library, color: Color(0xFF1380FE)),
+                  leading: Icon(
+                    Icons.photo_library,
+                    color: AppColors.colorsBlue,
+                  ),
                   title: Text('Multiple Photos', style: GoogleFonts.poppins()),
                   onTap: () => Navigator.of(context).pop('multiple'),
                 ),
@@ -1184,7 +1187,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFF1380FE)),
+                borderSide: const BorderSide(color: AppColors.colorsBlue),
               ),
               contentPadding: EdgeInsets.symmetric(
                 horizontal: 12,
@@ -1317,7 +1320,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFF1380FE)),
+                borderSide: const BorderSide(color: AppColors.colorsBlue),
               ),
               contentPadding: EdgeInsets.all(_isTablet(context) ? 16 : 12),
             ),

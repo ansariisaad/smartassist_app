@@ -70,8 +70,8 @@
 //             ),
 //             TextButton(
 //               style: TextButton.styleFrom(
-//                 overlayColor: Colors.blue.withOpacity(0.1),
-//                 foregroundColor: Colors.blue,
+//                 overlayColor: AppColors.colorsBlue.withOpacity(0.1),
+//                 foregroundColor: AppColors.colorsBlue,
 //               ),
 //               onPressed: () {
 //                 _getOtp(eventId);
@@ -89,7 +89,7 @@
 //               },
 //               child: Text(
 //                 'Yes',
-//                 style: GoogleFonts.poppins(color: Colors.blue),
+//                 style: GoogleFonts.poppins(color: AppColors.colorsBlue),
 //               ),
 //             ),
 //           ],
@@ -407,6 +407,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/widgets/testdrive_verifyotp.dart';
@@ -520,8 +521,8 @@ class _TimelineUpcomingState extends State<TimelineUpcoming> {
             ),
             TextButton(
               style: TextButton.styleFrom(
-                overlayColor: Colors.blue.withOpacity(0.1),
-                foregroundColor: Colors.blue,
+                overlayColor: AppColors.colorsBlue.withOpacity(0.1),
+                foregroundColor: AppColors.colorsBlue,
               ),
               onPressed: () {
                 _getOtp(eventId);
@@ -539,7 +540,7 @@ class _TimelineUpcomingState extends State<TimelineUpcoming> {
               },
               child: Text(
                 'Yes',
-                style: GoogleFonts.poppins(color: Colors.blue),
+                style: GoogleFonts.poppins(color: AppColors.colorsBlue),
               ),
             ),
           ],

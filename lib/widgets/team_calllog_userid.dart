@@ -1214,7 +1214,7 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
             LineChartBarData(
               spots: allCallSpots,
               isCurved: true,
-              color: const Color(0xFF1380FE),
+              color: AppColors.colorsBlue,
               barWidth: 3,
               isStrokeCapRound: true,
               dotData: FlDotData(
@@ -1620,7 +1620,7 @@ class _TeamCalllogUseridState extends State<TeamCalllogUserid>
             LineChartBarData(
               spots: allCallSpots,
               isCurved: true,
-              color: const Color(0xFF1380FE),
+              color: AppColors.colorsBlue,
               barWidth: 3,
               isStrokeCapRound: true,
               dotData: const FlDotData(show: true),

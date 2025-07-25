@@ -45,6 +45,7 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
   Map<String, dynamic>? slotData;
   late stt.SpeechToText _speech;
   bool _isListening = false;
+  bool _isLocationValid = true;
 
   String? selectedLeads;
   String? selectedLeadsName;
@@ -152,6 +153,11 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
         isValid = false;
       }
 
+      if (_locationController.text.isNotEmpty && !_isLocationValid) {
+        _errors['location'] = 'Please select a valid location from suggestions';
+        isValid = false;
+      }
+
       if (slotData == null) {
         _errors['select_slot'] = 'Please select a date and time slot';
         isValid = false;
@@ -170,7 +176,6 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
         }
       }
     });
-
     if (!isValid) {
       setState(() => isSubmitting = false);
 
@@ -204,7 +209,9 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
       print('Submission error: $e'); // Debug log
       Get.snackbar(
         'Error',
-        'Submission failed: ${e.toString()}',
+
+        // 'Submission failed: ${e.toString()}',
+        'Submission failed: Not a valid location',
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
@@ -297,51 +304,7 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
                 },
               ),
 
-              // LeadsearchTestdrive(
-              //   errorText: '', // Empty error text as provided
-              //   onChanged: (String value) {
-              //     if (_errors.containsKey('select lead name')) {
-              //       setState(() {
-              //         _errors.remove('select lead name');
-              //       });
-              //     }
-              //     // Handle lead search input changes
-              //     print('Lead search input changed: $value');
-              //   },
-              //   isRequired: true, // Set to true if lead selection is mandatory
-              //   // onLeadSelected: (String leadId, String leadName) {
-              //   onLeadSelected: (leadId, leadName) {
-              //     setState(() {
-              //       _leadId = leadId;
-              //       _leadName = leadName;
-              //     });
-
-              //     // Handle lead selection
-              //     print('Lead selected: ID = $leadId, Name = $leadName');
-              //   },
-              //   onClearSelection: () {
-              //     // Handle clearing of lead selection
-              //     print('Lead selection cleared');
-              //   },
-              //   onVehicleSelected: (Map<String, dynamic> selectedVehicle) {
-              //     setState(() {
-              //       selectedVehicleData = selectedVehicle;
-              //       selectedVehicleName = selectedVehicle['vehicle_name'];
-              //       vehicleId = selectedVehicle['vehicle_id'];
-              //       selectedBrand =
-              //           selectedVehicle['brand'] ?? ''; // Handle null brand
-              //     });
-              //   },
-              // ),
               const SizedBox(height: 5),
-              // CustomGooglePlacesField(
-              //   controller: _locationController,
-              //   hintText: 'Enter location',
-              //   label: 'Location',
-              //   onChanged: (value) {},
-              //   googleApiKey: _googleApiKey,
-              //   isRequired: true,
-              // ),
               CustomGooglePlacesField(
                 controller: _locationController,
                 hintText: 'Enter location',
@@ -351,18 +314,28 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
                   // This callback is triggered when user selects a place
                   selectedPlaceDetails = placeDetails;
                   if (placeDetails != null) {
-                    print('Selected place details:');
-                    print('Lat: ${placeDetails.lat}');
-                    print('Lng: ${placeDetails.lng}');
-                    print('City: ${placeDetails.city}');
-                    print('Pincode: ${placeDetails.pincode}');
-                    print('State: ${placeDetails.state}');
-                    print('Country: ${placeDetails.country}');
-                    print('Address: ${placeDetails.address}');
+                    // print('Selected place details:');
+                    // print('Lat: ${placeDetails.lat}');
+                    // print('Lng: ${placeDetails.lng}');
+                    // print('City: ${placeDetails.city}');
+                    // print('Pincode: ${placeDetails.pincode}');
+                    // print('State: ${placeDetails.state}');
+                    // print('Country: ${placeDetails.country}');
+                    // print('Address: ${placeDetails.address}');
                   }
+                },
+                onValidationChanged: (isValid) {
+                  setState(() {
+                    _isLocationValid = isValid;
+                    // Clear location error if input becomes valid
+                    if (isValid && _errors.containsKey('location')) {
+                      _errors.remove('location');
+                    }
+                  });
                 },
                 googleApiKey: _googleApiKey,
                 isRequired: true,
+                errorText: _errors['location'],
               ),
               const SizedBox(height: 15),
 
@@ -421,11 +394,6 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
               // const SizedBox(height: 10),
               const SizedBox(height: 10),
 
-              // _buildTextField(
-              //   label: 'Remarks:',
-              //   controller: descriptionController,
-              //   hint: 'Type or speak...',
-              // ),
               EnhancedSpeechTextField(
                 isRequired: false,
                 error: false,
@@ -438,16 +406,6 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
                 },
               ),
 
-              // EnhancedSpeechTextField(
-              //   isRequired: false,
-              //   // contentPadding: EdgeInsets.zero,
-              //   label: 'Remarks:',
-              //   controller: descriptionController,
-              //   hint: 'Type or speak... ',
-              //   onChanged: (text) {
-              //     print('Text changed: $text');
-              //   },
-              // ),
               const SizedBox(height: 10),
             ],
           ),
@@ -585,6 +543,23 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
       ).format(rawEndTime); // Automatically set
 
       // Prepare the appointment data.
+      // final testdriveData = {
+      //   'vehicleId': vehicleId,
+      //   'start_date': formattedStartDate,
+      //   'end_date': formattedEndDate,
+      //   'start_time': formattedStartTime,
+      //   'end_time': formattedEndTime,
+      //   'date_of_booking': slotData!['date'],
+      //   'start_time_slot': slotData!['start_time_slot'],
+      //   'end_time_slot': slotData!['end_time_slot'],
+      //   'PMI': selectedVehicleName,
+      //   'location': _locationController.text.trim(),
+      //   'sp_id': spId,
+      //   'remarks': descriptionController.text.trim(),
+      //   // "places": selectedPlaceDetails!.toJson(),
+      //   if (selectedPlaceDetails != null && _isLocationValid)
+      //     "places": selectedPlaceDetails!.toJson(),
+      // };
       final testdriveData = {
         'vehicleId': vehicleId,
         'start_date': formattedStartDate,
@@ -595,12 +570,15 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
         'start_time_slot': slotData!['start_time_slot'],
         'end_time_slot': slotData!['end_time_slot'],
         'PMI': selectedVehicleName,
-        'location': _locationController.text.trim(),
         'sp_id': spId,
         'remarks': descriptionController.text.trim(),
-        "places": selectedPlaceDetails!.toJson(),
+        'location':
+            (_locationController.text.trim().isNotEmpty && _isLocationValid)
+            ? _locationController.text.trim()
+            : '',
+        if (_locationController.text.trim().isNotEmpty && _isLocationValid)
+          "places": selectedPlaceDetails!.toJson(),
       };
-
       final success = await LeadsSrv.submitTestDrive(testdriveData, _leadId!);
       print('Submitting testdrive data: $testdriveData');
 
@@ -624,126 +602,4 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
       rethrow; // Re-throw to be caught by _submit()
     }
   }
-
-  // Future<void> submitForm() async {
-  //   // Retrieve sp_id from SharedPreferences.
-  //   final prefs = await SharedPreferences.getInstance();
-  //   final spId = prefs.getString('user_id');
-
-  //   // Parse and format the selected dates/times.
-  //   final rawStartDate = DateFormat(
-  //     'dd MMM yyyy',
-  //   ).parse(startDateController.text);
-  //   final rawEndDate = DateFormat(
-  //     'dd MMM yyyy',
-  //   ).parse(endDateController.text); // Automatically set
-  //   // Format for API
-  //   final formattedStartDate = DateFormat('dd/MM/yyyy').format(rawStartDate);
-  //   final formattedEndDate = DateFormat(
-  //     'dd/MM/yyyy',
-  //   ).format(rawEndDate); // Automatically set
-
-  //   // Automatically set
-
-  //   // Prepare the appointment data.
-  //   final testdriveData = {
-
-  // 'start_date': slotData!['date'],
-  // 'end_date': slotData!['date'],
-  //   'start_time': slotData!['start_time_slot'],
-  // 'end_time': slotData!['end_time_slot'],
-  //     'vehicleId': vehicleId,
-  //     'start_date': slotData!['date'],
-  //     'end_date': slotData!['date'],
-  //     'start_time': slotData!['start_time_slot'],
-  //     'end_time': slotData!['end_time_slot'],
-  //     'date_of_booking': slotData!['date'],
-  //     'start_time_slot': slotData!['start_time_slot'],
-  //     'end_time_slot': slotData!['end_time_slot'],
-  //     'PMI': selectedVehicleName,
-  //     'location': _locationController.text,
-  //     'sp_id': spId,
-  //     'remarks': descriptionController.text,
-  //   };
-
-  //   // Call the service to submit the appointment.
-  //   final success = await LeadsSrv.submitTestDrive(testdriveData, _leadId!);
-
-  //   if (success) {
-  //     if (context.mounted) {
-  //       Navigator.pop(context, true); // Close the modal on success.
-  //     }
-  //     ScaffoldMessenger.of(
-  //       context,
-  //     ).showSnackBar(const SnackBar(content: Text('Form Submit Successful.')));
-  //     widget.onFormSubmit?.call(); // Refresh dashboard data
-  //     widget.onTabChange?.call(2);
-  //   } else {
-  //     showErrorMessage(context, message: 'Failed to submit appointment.');
-  //   }
-  // }
 }
-
-
-
-  // Future<void> _bookSlot(Map<String, dynamic> slotData) async {
-  //   try {
-  //     final token = await Storage.getToken();
-  //     final rawStartTime = DateFormat(
-  //       'hh:mm a',
-  //     ).parse(slotData['start_time_slot']);
-
-  //     final rawEndTime = DateFormat('hh:mm a').parse(slotData['end_time_slot']);
-
-  //     final response = await http.post(
-  //       Uri.parse(
-  //         'https://api.smartassistapp.in/api/slots/$vehicleId/slots/book',
-  //       ),
-  //       headers: {
-  //         'Authorization': 'Bearer $token',
-  //         'Content-Type': 'application/json',
-  //       },
-
-  //       // body: jsonEncode({
-  //       //   'start_time_slot': rawStartTime.toString(),
-  //       //   'end_time_slot': rawEndTime.toString(),
-  //       //   'date': slotData['date'],
-  //       // }),
-  //       body: jsonEncode({
-  //         'start_time_slot': slotData['start_time_slot'], // Already "10:00:00"
-  //         'end_time_slot': slotData['end_time_slot'], // Already "12:00:00"
-  //         'date_of_booking': slotData['date'],
-  //       }),
-  //     );
-
-  //     if (response.statusCode == 201) {
-  //       final responseData = jsonDecode(response.body);
-  //       print('Booking successful: ${responseData['message']}');
-
-  //       // Show success message
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(
-  //           content: Text('Slot booked successfully!'),
-  //           backgroundColor: Colors.green,
-  //         ),
-  //       );
-
-  //       // Optionally refresh the slots to update disabled status
-  //       setState(() {});
-  //     } else {
-  //       throw Exception('Failed to book slot');
-  //     }
-  //   } catch (e) {
-  //     print('Error booking slot: $e');
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: Text('Failed to book slot. Please try again.'),
-  //         backgroundColor: Colors.red,
-  //       ),
-  //     );
-  //   }
-  // }
-
-
-
-

@@ -22,16 +22,12 @@ class Leads extends StatefulWidget {
 }
 
 class _LeadsState extends State<Leads> {
-  // final selectedData = getSelectedData();
-
   int _childButtonIndex = 0;
   final PageController _pageController = PageController();
 
   Map<String, dynamic> getSelectedData() {
-    // print('this is data selected');
     Map<String, dynamic> periodData;
 
-    // Select the appropriate period data
     switch (_childButtonIndex) {
       case 1:
         periodData = widget.MtdData;
@@ -46,13 +42,11 @@ class _LeadsState extends State<Leads> {
         periodData = {};
     }
 
-    // Make sure allData exists, otherwise return empty map
     return periodData['data'] ?? {};
   }
 
   @override
   Widget build(BuildContext context) {
-    // Get screen width and height for responsiveness
     double screenWidth = MediaQuery.of(context).size.width;
     final selectedData = getSelectedData();
 
@@ -195,7 +189,6 @@ class _LeadsState extends State<Leads> {
     );
   }
 
-  // Second Slide
   Widget _buildSecondSlide(BuildContext context, double screenWidth) {
     final selectedData = getSelectedData();
 
@@ -204,46 +197,64 @@ class _LeadsState extends State<Leads> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // LEFT COLUMN
           Expanded(
             child: Column(
               children: [
                 Expanded(
                   child: _buildInfoCard(
                     context,
-                    'Follow ups recommended per lost enquiry',
                     'Follow ups done by you per lost enquiry',
                     '${selectedData['followupsPerLostEnquiry'] ?? '0'}',
-                    '5',
-                    // '${selectedData['enquiryBank'] ?? 0}',
                     screenWidth,
                     Colors.red,
-                    Colors.green,
+                    secondTitle: 'Follow ups recommended per lost enquiry',
+                    secondValue: '5',
+                    secondValueColor: Colors.green,
                   ),
                 ),
                 const SizedBox(height: 10),
                 Expanded(
                   child: _buildInfoCard(
                     context,
-                    'Follow ups recommended per lost digital enquiry',
                     'Follow ups done by you per lost digital enquiry',
                     '${selectedData['followupsPerLostDigitalEnquiry'] ?? '0'}',
-                    '5',
                     screenWidth,
                     Colors.red,
-                    Colors.green,
+                    secondTitle:
+                        'Follow ups recommended per lost digital enquiry',
+                    secondValue: '5',
+                    secondValueColor: Colors.green,
                   ),
                 ),
               ],
             ),
           ),
           const SizedBox(width: 10),
+
+          // RIGHT COLUMN
           Expanded(
-            child: _buildRightInfoCard2(
-              context,
-              'On an average, you take',
-              'to convert an enquiry to order',
-              '${selectedData['avgEnquiry'] ?? 0} days',
-              screenWidth,
+            child: Column(
+              children: [
+                Expanded(
+                  child: _buildRightInfoCard2(
+                    context,
+                    'Average days that you take to convert an enquiry to order',
+                    '${selectedData['avgEnquiry'] ?? 0} days',
+                    screenWidth,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Expanded(
+                  child: _buildInfoCard(
+                    context,
+                    'Average Follow Ups done for order conversion',
+                    '${selectedData['conversionRate'] ?? '0'}',
+                    screenWidth,
+                    Colors.purple,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -293,85 +304,90 @@ class _LeadsState extends State<Leads> {
     );
   }
 
+  // Flexible info card that can handle both single and double value displays
   Widget _buildInfoCard(
     BuildContext context,
-    String title1,
     String title,
     String value,
-    String value1,
     double screenWidth,
-    Color valueColor,
-    Color valueColor1,
-  ) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(screenWidth * 0.02),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
-            children: [
-              Text(
-                softWrap: true,
-                overflow: TextOverflow.ellipsis,
-                // textAlign: TextAlign.center,
-                maxLines: 4,
-                value,
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: valueColor,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  title,
+    Color valueColor, {
+    String? secondTitle,
+    String? secondValue,
+    Color? secondValueColor,
+  }) {
+    return Card(
+      elevation: 2,
+      color: Colors.white,
+      shadowColor: const Color.fromRGBO(0, 0, 0, 5).withOpacity(0.5),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.all(screenWidth * 0.02),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              children: [
+                Text(
+                  value,
                   softWrap: true,
-                  // textAlign: TextAlign.center,
                   overflow: TextOverflow.ellipsis,
                   maxLines: 4,
-                  style: AppFont.smallText10(context),
+                  style: GoogleFonts.poppins(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: valueColor,
+                  ),
                 ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    title,
+                    softWrap: true,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 4,
+                    style: AppFont.smallText10(context),
+                  ),
+                ),
+              ],
+            ),
+            if (secondTitle != null && secondValue != null) ...[
+              const SizedBox(height: 5),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    secondValue,
+                    softWrap: true,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 4,
+                    style: GoogleFonts.poppins(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: secondValueColor ?? valueColor,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      secondTitle,
+                      softWrap: true,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 4,
+                      style: AppFont.smallText10(context),
+                    ),
+                  ),
+                ],
               ),
             ],
-          ),
-          const SizedBox(height: 5),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                softWrap: true,
-                overflow: TextOverflow.ellipsis,
-                // textAlign: TextAlign.center,
-                maxLines: 4,
-                value1,
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: valueColor1,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  title1,
-                  softWrap: true,
-                  // textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 4,
-                  style: AppFont.smallText10(context),
-                ),
-              ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -384,46 +400,45 @@ class _LeadsState extends State<Leads> {
     double screenWidth,
     Color valueColor,
   ) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(screenWidth * 0.04),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        // mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(
-            softWrap: true,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            maxLines: 4,
-            value,
-            style: GoogleFonts.poppins(
-              fontSize: 24,
-              fontWeight: FontWeight.w700,
-              color: valueColor,
-            ),
-          ),
-          const SizedBox(width: 10),
-          // Using Container instead of Expanded for Title Text
-          Expanded(
-            child: Text(
-              title,
+    return Card(
+      elevation: 2,
+      color: Colors.white,
+      shadowColor: const Color.fromRGBO(0, 0, 0, 5).withOpacity(0.5),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.all(screenWidth * 0.04),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              value,
               softWrap: true,
               overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
               maxLines: 4,
               style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w400,
-                color: Colors.grey[700],
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+                color: valueColor,
               ),
             ),
-          ),
-          // The value text
-        ],
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                title,
+                softWrap: true,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 4,
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.grey[700],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -436,44 +451,45 @@ class _LeadsState extends State<Leads> {
     String value,
     double screenWidth,
   ) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(screenWidth * 0.04),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 5),
-          Text(
-            title,
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              color: Colors.grey[700],
+    return Card(
+      elevation: 2,
+      color: Colors.white,
+      shadowColor: const Color.fromRGBO(0, 0, 0, 5).withOpacity(0.5),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: Padding(
+        padding: EdgeInsets.all(screenWidth * 0.04),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 5),
+            Text(
+              title,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+                color: Colors.grey[700],
+              ),
             ),
-          ),
-          Text(
-            value,
-            style: GoogleFonts.inter(
-              fontSize: 28,
-              fontWeight: FontWeight.w700,
-              color: AppColors.colorsBlue,
+            Text(
+              value,
+              style: GoogleFonts.inter(
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
+                color: AppColors.colorsBlue,
+              ),
             ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            head,
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              color: Colors.grey[700],
+            const SizedBox(height: 5),
+            Text(
+              head,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+                color: Colors.grey[700],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -481,48 +497,38 @@ class _LeadsState extends State<Leads> {
   Widget _buildRightInfoCard2(
     BuildContext context,
     String title,
-    String head,
     String value,
     double screenWidth,
   ) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(screenWidth * 0.04),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              color: Colors.grey[700],
+    return Card(
+      elevation: 2,
+      color: Colors.white,
+      shadowColor: const Color.fromRGBO(0, 0, 0, 5).withOpacity(0.5),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: GoogleFonts.poppins(
+                fontSize: 10,
+                fontWeight: FontWeight.w400,
+                color: Colors.grey[700],
+              ),
             ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            value,
-            style: GoogleFonts.inter(
-              fontSize: 28,
-              fontWeight: FontWeight.w700,
-              color: AppColors.colorsBlue,
+            const Spacer(),
+            Text(
+              value,
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.bold,
+                fontSize: 22,
+                color: Colors.purple,
+              ),
             ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            head,
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              color: Colors.grey[700],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

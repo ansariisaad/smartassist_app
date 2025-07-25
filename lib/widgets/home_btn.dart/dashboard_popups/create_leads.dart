@@ -72,11 +72,12 @@ class _CreateLeadsState extends State<CreateLeads> {
   String _selectedType = '';
   String _selectedPurchaseType = '';
   String _selectedEnquiryType = '';
+  String _selectedHaloOption = ''; // State for the new "Halo?" radio group
   Map<String, dynamic>? _existingLeadData;
 
   // Define constants
   final double _minValue = 4000000; // 40 lakhs
-  final double _maxValue = 20000000; // 200 lakhs (2 crore)
+  final double _maxValue = 40000000; // 400 lakhs (2 crore)
 
   // Initialize range values within min-max bounds
   late RangeValues _rangeAmount;
@@ -838,7 +839,6 @@ class _CreateLeadsState extends State<CreateLeads> {
                           ),
                         ],
                       ),
-
                       _buildNumberWidget(
                         isRequired: true,
                         label: 'Mobile No',
@@ -921,7 +921,6 @@ class _CreateLeadsState extends State<CreateLeads> {
                               _errors.remove('vehicleName');
                             }
                           });
-
                           print("Selected Vehicle: $selectedVehicleName");
                           print(
                             "Selected Brand: ${selectedBrand ?? 'No Brand'}",
@@ -1026,6 +1025,20 @@ class _CreateLeadsState extends State<CreateLeads> {
                           print("Selected Campaign ID: $selectedCampaignId");
                         },
                       ),
+                      const SizedBox(height: 10),
+
+                      // New "Halo?" radio button group
+                      _buildButtonsFloat(
+                        isRequired: false, // Assuming it's not required
+                        label: 'Halo?',
+                        options: const {"Yes": "Yes", "No": "No"},
+                        groupValue: _selectedHaloOption,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedHaloOption = value;
+                          });
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -1124,11 +1137,11 @@ class _CreateLeadsState extends State<CreateLeads> {
                   hintText: 'Search campaign',
                   hintStyle: GoogleFonts.poppins(
                     color: Colors.grey,
-                    fontSize: 12,
+                    fontSize: 14,
                   ),
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 10,
-                    vertical: 10,
+                    vertical: 14,
                   ),
                   border: InputBorder.none,
                   suffixIcon: _isLoadingCampaignSearch
@@ -1157,7 +1170,6 @@ class _CreateLeadsState extends State<CreateLeads> {
                       : const Icon(Icons.search, color: Colors.grey),
                 ),
               ),
-
               // Campaign Results
               if (_searchResultsCampaign.isNotEmpty &&
                   _searchControllerCampaign.text.isNotEmpty &&
@@ -1211,7 +1223,7 @@ class _CreateLeadsState extends State<CreateLeads> {
                           // Create the campaign data
                           final campaignData = {
                             'campaign_name': campaignName,
-                            'campaign_id': campaignId,
+                            // 'campaign_id': campaignId,
                           };
 
                           // Call the callback
@@ -1235,7 +1247,7 @@ class _CreateLeadsState extends State<CreateLeads> {
                     style: GoogleFonts.poppins(
                       fontSize: 14,
                       color: Colors.grey,
-                      fontStyle: FontStyle.italic,
+                      // fontStyle: FontStyle.italic,
                     ),
                   ),
                 ),
@@ -1254,165 +1266,6 @@ class _CreateLeadsState extends State<CreateLeads> {
       ],
     );
   }
-
-  // Widget CampaignSearchTextfield({
-  //   String? errorText,
-  //   required Function(Map<String, dynamic>) onCampaignSelected,
-  // }) {
-  //   return Column(
-  //     crossAxisAlignment: CrossAxisAlignment.start,
-  //     children: [
-  //       Padding(
-  //         padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 5),
-  //         child: Text(
-  //           'Campaign',
-  //           style: GoogleFonts.poppins(
-  //             fontSize: 14,
-  //             fontWeight: FontWeight.w500,
-  //             color: AppColors.fontBlack,
-  //           ),
-  //         ),
-  //       ),
-  //       const SizedBox(height: 5),
-  //       Container(
-  //         decoration: BoxDecoration(
-  //           borderRadius: BorderRadius.circular(5),
-  //           color: const Color.fromARGB(255, 248, 247, 247),
-  //           border: errorText != null
-  //               ? Border.all(color: Colors.red, width: 1.0)
-  //               : null,
-  //         ),
-  //         child: Column(
-  //           children: [
-  //             TextField(
-  //               controller: _searchControllerCampaign,
-  //               style: AppFont.dropDowmLabel(context),
-  //               decoration: InputDecoration(
-  //                 hintText: 'Search campaign',
-  //                 hintStyle: GoogleFonts.poppins(
-  //                   color: Colors.grey,
-  //                   fontSize: 14,
-  //                   fontWeight: FontWeight.w500,
-  //                 ),
-  //                 contentPadding: const EdgeInsets.symmetric(
-  //                   horizontal: 10,
-  //                   vertical: 14,
-  //                 ),
-  //                 border: InputBorder.none,
-  //                 suffixIcon: _isLoadingCampaignSearch
-  //                     ? const Padding(
-  //                         padding: EdgeInsets.all(12.0),
-  //                         child: SizedBox(
-  //                           width: 16,
-  //                           height: 16,
-  //                           child: CircularProgressIndicator(strokeWidth: 2),
-  //                         ),
-  //                       )
-  //                     : _searchControllerCampaign.text.isNotEmpty
-  //                     ? IconButton(
-  //                         icon: const Icon(Icons.clear, color: Colors.grey),
-  //                         onPressed: () {
-  //                           setState(() {
-  //                             _searchControllerCampaign.clear();
-  //                             _searchResultsCampaign.clear();
-  //                             selectedCampaignName = null;
-  //                             selectedCampaignId = null;
-  //                             selectedCampaignData = null;
-  //                             _campaignQuery = '';
-  //                           });
-  //                         },
-  //                       )
-  //                     : const Icon(Icons.search, color: Colors.grey),
-  //               ),
-  //             ),
-
-  //             // Campaign Results - show results when available AND search is active
-  //             if (_searchResultsCampaign.isNotEmpty &&
-  //                 _searchControllerCampaign.text.isNotEmpty &&
-  //                 selectedCampaignName != _searchControllerCampaign.text)
-  //               Container(
-  //                 constraints: const BoxConstraints(maxHeight: 200),
-  //                 child: ListView.builder(
-  //                   shrinkWrap: true,
-  //                   itemCount: _searchResultsCampaign.length,
-  //                   itemBuilder: (context, index) {
-  //                     final campaign = _searchResultsCampaign[index];
-  //                     return ListTile(
-  //                       dense: true,
-  //                       title: Text(
-  //                         campaign['campaign_name'] ?? 'Unknown Campaign',
-  //                         style: AppFont.dropDowmLabel(context),
-  //                       ),
-  //                       subtitle: campaign['campaign_code'] != null
-  //                           ? Text(
-  //                               campaign['campaign_code'],
-  //                               style: GoogleFonts.poppins(
-  //                                 fontSize: 12,
-  //                                 color: Colors.grey,
-  //                               ),
-  //                               maxLines: 1,
-  //                               overflow: TextOverflow.ellipsis,
-  //                             )
-  //                           : null,
-  //                       onTap: () {
-  //                         // Set the text field value
-  //                         final campaignName = campaign['campaign_name'] ?? '';
-
-  //                         setState(() {
-  //                           _searchControllerCampaign.text = campaignName;
-  //                           _searchResultsCampaign
-  //                               .clear(); // Clear results after selection
-  //                           selectedCampaignName =
-  //                               campaignName; // Store selected campaign name
-  //                         });
-
-  //                         // Create the campaign data with correct field names
-  //                         final campaignData = {
-  //                           'campaign_name': campaignName,
-  //                           'campaign_id': campaign['campaign_id'],
-  //                         };
-
-  //                         // Call the callback
-  //                         onCampaignSelected(campaignData);
-
-  //                         // Hide keyboard
-  //                         FocusScope.of(context).unfocus();
-  //                       },
-  //                     );
-  //                   },
-  //                 ),
-  //               )
-  //             // Show "No campaigns found" only when search is done and no results
-  //             else if (_searchResultsCampaign.isEmpty &&
-  //                 _searchControllerCampaign.text.isNotEmpty &&
-  //                 !_isLoadingCampaignSearch &&
-  //                 selectedCampaignName != _searchControllerCampaign.text)
-  //               Container(
-  //                 padding: const EdgeInsets.all(16.0),
-  //                 child: Text(
-  //                   'No campaigns found',
-  //                   style: GoogleFonts.poppins(
-  //                     fontSize: 14,
-  //                     color: Colors.grey,
-  //                     fontStyle: FontStyle.italic,
-  //                   ),
-  //                 ),
-  //               ),
-  //           ],
-  //         ),
-  //       ),
-
-  //       if (errorText != null)
-  //         Padding(
-  //           padding: const EdgeInsets.only(top: 5, left: 5),
-  //           child: Text(
-  //             errorText,
-  //             style: const TextStyle(color: Colors.red, fontSize: 12),
-  //           ),
-  //         ),
-  //     ],
-  //   );
-  // }
 
   // All other existing widget methods remain the same...
   Widget _buildNumberWidget({
@@ -1742,6 +1595,7 @@ class _CreateLeadsState extends State<CreateLeads> {
     );
   }
 
+  // REVERTED to the original widget to maintain styling
   Widget _buildButtonsFloat({
     bool isRequired = false,
     required Map<String, String> options,
@@ -1751,7 +1605,6 @@ class _CreateLeadsState extends State<CreateLeads> {
     String? errorText,
   }) {
     List<String> optionKeys = options.keys.toList();
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -2066,7 +1919,8 @@ class _CreateLeadsState extends State<CreateLeads> {
             ? null
             : _locationController.text.trim(),
         'exterior_color': selectedColorName,
-        'Campaign': selectedCampaignId, // Add campaign ID to form data
+        'Campaign': selectedCampaignId,
+        'halo': _selectedHaloOption.isNotEmpty ? _selectedHaloOption : null,
       };
 
       print("Submitting lead data: $leadData");
@@ -2075,7 +1929,6 @@ class _CreateLeadsState extends State<CreateLeads> {
 
       if (response != null) {
         print("Response received: $response");
-
         if (response.containsKey('data')) {
           String leadId = response['data']['lead_id'];
 

@@ -127,8 +127,8 @@ class _OrderState extends State<Order> {
                         margin: const EdgeInsets.only(right: 10),
                         child: _buildInfoCard2(
                           context,
-                          '${selectedData['TestDriveToRetail'] ?? 0}',
-                          'Test Drive to retail ratio',
+                          '${selectedData['TestDriveToRetail'] ?? 0}%',
+                          'Unique Test Drive to retail ratio',
                           screenWidth,
                           Colors.red,
                         ),
@@ -293,7 +293,7 @@ class _OrderState extends State<Order> {
   ) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(screenWidth * 0.04),
+      padding: EdgeInsets.all(screenWidth * 0.02),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
@@ -302,19 +302,7 @@ class _OrderState extends State<Order> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Text(
-              'Your contribution to dealership cancellations',
-              softWrap: true,
-              overflow: TextOverflow.ellipsis,
-              maxLines: 4,
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
+          // const SizedBox(height: 10),
           Expanded(
             child: Text(
               '${selectedData['contributionToDealershipmsg'] ?? 0}%',
@@ -327,6 +315,18 @@ class _OrderState extends State<Order> {
                 color: Colors.red,
                 fontSize: 24,
                 fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              'Your contribution to dealership order cancellations',
+              softWrap: true,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 4,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
               ),
             ),
           ),

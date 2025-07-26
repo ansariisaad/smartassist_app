@@ -632,7 +632,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Align(
-                alignment: Alignment.bottomLeft,
+                alignment: Alignment.centerLeft,
                 child: Text(
                   textAlign: TextAlign.left,
                   'If you wish to mark this enquiry as lost, please provide a reason',
@@ -640,16 +640,143 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                 ),
               ),
               const SizedBox(height: 30),
-              EnhancedSpeechTextField(
-                isRequired: true,
-                error: false,
-                // contentPadding: EdgeInsets.zero,
-                label: 'Remarks:',
-                controller: descriptionController,
-                hint: 'Type or speak... ',
-                onChanged: (text) {
-                  print('Text changed: $text');
-                },
+              Align(
+                alignment: Alignment.centerLeft,
+                child: EnhancedSpeechTextField(
+                  isRequired: true,
+                  error: false,
+                  // contentPadding: EdgeInsets.zero,
+                  label: 'Remarks:',
+                  controller: descriptionController,
+                  hint: 'Type or speak... ',
+                  onChanged: (text) {
+                    print('Text changed: $text');
+                  },
+                ),
+              ),
+              const SizedBox(height: 20),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: DropdownButtonFormField<String>(
+                  decoration: InputDecoration(
+                    labelText: 'Select Reason',
+                    labelStyle: TextStyle(
+                      fontFamily: GoogleFonts.poppins().fontFamily,
+                      color: Colors.grey[600],
+                      fontSize: MediaQuery.of(context).size.width * 0.035,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color: Colors.grey[300]!,
+                        width: 1,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color: Colors.grey[300]!,
+                        width: 1,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color: Colors.grey[300]!,
+                        width: 1,
+                      ),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal:
+                          MediaQuery.of(context).size.width *
+                          0.04, // Responsive padding
+                      vertical:
+                          MediaQuery.of(context).size.height *
+                          0.017, // Responsive padding
+                    ),
+                  ),
+                  dropdownColor: Colors.white,
+                  style: TextStyle(
+                    fontFamily: GoogleFonts.poppins().fontFamily,
+                    color: Colors.black, // Selected text will be black
+                    fontSize:
+                        MediaQuery.of(context).size.width *
+                        0.04, // Responsive: ~16px on standard screen
+                    fontWeight: FontWeight.w400,
+                  ),
+                  icon: Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: Colors.grey[600],
+                    size:
+                        MediaQuery.of(context).size.width *
+                        0.06, // Responsive icon size
+                  ),
+                  items: [
+                    DropdownMenuItem(
+                      value: 'budget',
+                      child: Text(
+                        'Budget Constraints',
+                        style: TextStyle(
+                          fontFamily: GoogleFonts.poppins().fontFamily,
+                          color: Colors.grey.shade800,
+                          fontSize:
+                              MediaQuery.of(context).size.width *
+                              0.038, // Responsive dropdown item text
+                        ),
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'timeline',
+                      child: Text(
+                        'Timeline Issues',
+                        style: TextStyle(
+                          fontFamily: GoogleFonts.poppins().fontFamily,
+                          color: Colors.grey.shade800,
+                          fontSize: MediaQuery.of(context).size.width * 0.038,
+                        ),
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'requirements',
+                      child: Text(
+                        'Changed Requirements',
+                        style: TextStyle(
+                          fontFamily: GoogleFonts.poppins().fontFamily,
+                          color: Colors.grey.shade800,
+                          fontSize: MediaQuery.of(context).size.width * 0.038,
+                        ),
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'competitor',
+                      child: Text(
+                        'Chose Competitor',
+                        style: TextStyle(
+                          fontFamily: GoogleFonts.poppins().fontFamily,
+                          color: Colors.grey.shade800,
+                          fontSize: MediaQuery.of(context).size.width * 0.038,
+                        ),
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'other',
+                      child: Text(
+                        'Other',
+                        style: TextStyle(
+                          fontFamily: GoogleFonts.poppins().fontFamily,
+                          color: Colors.grey.shade800,
+                          fontSize: MediaQuery.of(context).size.width * 0.038,
+                        ),
+                      ),
+                    ),
+                  ],
+                  onChanged: (String? value) {
+                    print('Dropdown changed: $value');
+                  },
+                ),
               ),
             ],
           ),

@@ -42,6 +42,8 @@ class _AllTestdriveState extends State<AllTestdrive>
   String _query = '';
   int _upcomingButtonIndex = 0; // Fixed typo
   int count = 0;
+  int upComingCount = 0;
+  int allCount = 0;
   late stt.SpeechToText _speech;
 
   final TextEditingController _searchController = TextEditingController();
@@ -226,6 +228,8 @@ class _AllTestdriveState extends State<AllTestdrive>
         final Map<String, dynamic> data = json.decode(response.body);
         setState(() {
           count = data['data']['overdueEvents']?['count'] ?? 0;
+          upComingCount = data['data']['upcomingEvents']?['count'] ?? 0;
+          allCount = data['data']['allEvents']?['count'] ?? 0;
           _originalAllTasks = data['data']['allEvents']?['rows'] ?? [];
           _originalUpcomingTasks =
               data['data']['upcomingEvents']?['rows'] ?? [];
@@ -379,7 +383,7 @@ class _AllTestdriveState extends State<AllTestdrive>
                 children: [
                   SpeechSearchWidget(
                     controller: _searchController,
-                    hintText: "Search test drives...",
+                    hintText: "Search by name, email or phone",
                     onChanged: (value) => _onSearchChanged(),
                     primaryColor: AppColors.fontColor,
                     backgroundColor: Colors.grey.shade100,
@@ -558,13 +562,13 @@ class _AllTestdriveState extends State<AllTestdrive>
                               _buildFilterButton(
                                 color: AppColors.colorsBlue,
                                 index: 0,
-                                text: 'All',
-                                activeColor: AppColors.borderblue,
+                                text: 'All ($allCount)',
+                                activeColor: AppColors.colorsBlue,
                               ),
                               _buildFilterButton(
                                 color: AppColors.containerGreen,
                                 index: 1,
-                                text: 'Upcoming',
+                                text: 'Upcoming ($upComingCount)',
                                 activeColor: AppColors.borderGreen,
                               ),
                               _buildFilterButton(

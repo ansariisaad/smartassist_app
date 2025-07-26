@@ -824,7 +824,7 @@ class _AllLeadsState extends State<AllLeads> {
                 // PATCH 6: Filtered By indicator text
                 // _buildFilterIndicatorText(isTablet),
                 // Results count or query indicator (unchanged)
-                // _buildResultsCount(isTablet),
+                _buildResultsCount(isTablet),
                 // Results list - using filtered local results
                 Expanded(
                   child: Scrollbar(
@@ -839,6 +839,29 @@ class _AllLeadsState extends State<AllLeads> {
                 ),
               ],
             ),
+    );
+  }
+
+  // --- Results Count Widget ---
+  Widget _buildResultsCount(bool isTablet) {
+    String text;
+    if (_query.isEmpty) {
+      text = 'Showing ${_filteredTasks.length} lead(s)';
+    } else {
+      text = 'Found ${_filteredTasks.length} result(s) for "$_query"';
+    }
+    return Container(
+      width: double.infinity,
+      alignment: Alignment.centerLeft,
+      margin: EdgeInsets.only(left: isTablet ? 15 : 10, top: 4, bottom: 4),
+      child: Text(
+        text,
+        style: GoogleFonts.poppins(
+          fontSize: isTablet ? 13 : 11,
+          color: Colors.grey[700],
+          fontWeight: FontWeight.w400,
+        ),
+      ),
     );
   }
 

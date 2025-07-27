@@ -32,10 +32,12 @@ class FollowupsDetails extends StatefulWidget {
   final bool isFromFreshlead;
   final bool isFromManager;
   final bool isFromTestdriveOverview;
+  String? selectedLostReason;
 
   final String leadId;
-  const FollowupsDetails({
+  FollowupsDetails({
     super.key,
+    this.selectedLostReason,
     required this.leadId,
     required this.isFromFreshlead,
     required this.isFromManager,
@@ -103,9 +105,6 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
   bool _isHidden = false;
   bool _isHiddenTop = true;
   bool _isHiddenMiddle = true;
-  // dropdown
-  final Widget _createFollowups = const LeadsCreateFollowup();
-  final Widget _createAppoinment = const CreateAppointment();
   // Initialize the controller
   final FabController fabController = Get.put(FabController());
   String leadId = '';
@@ -617,70 +616,212 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
   }
 
   Future<void> _showLostDiolog() async {
+    // Reset the selected reason when dialog opens
+    widget.selectedLostReason = null;
+
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // User must tap button to close dialog
+      barrierDismissible: false,
       builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          backgroundColor: Colors.white,
-          insetPadding: const EdgeInsets.all(10),
-          contentPadding: EdgeInsets.zero,
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Align(
-                alignment: Alignment.bottomLeft,
-                child: Text(
-                  textAlign: TextAlign.left,
-                  'If you wish to mark this enquiry as lost, please provide a reason',
-                  style: AppFont.mediumText14(context),
+        return StatefulBuilder(
+          // Add StatefulBuilder to update dialog state
+          builder: (context, setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              backgroundColor: Colors.white,
+              insetPadding: const EdgeInsets.all(10),
+              contentPadding: EdgeInsets.zero,
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      textAlign: TextAlign.left,
+                      'If you wish to mark this enquiry as lost, please provide a reason',
+                      style: AppFont.mediumText14(context),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: EnhancedSpeechTextField(
+                      isRequired: true,
+                      error: false,
+                      label: 'Remarks:',
+                      controller: descriptionController,
+                      hint: 'Type or speak... ',
+                      onChanged: (text) {
+                        print('Text changed: $text');
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: DropdownButtonFormField<String>(
+                      value: widget.selectedLostReason, // Bind to the variable
+                      decoration: InputDecoration(
+                        labelText: 'Select Reason',
+                        labelStyle: TextStyle(
+                          fontFamily: GoogleFonts.poppins().fontFamily,
+                          color: Colors.grey[600],
+                          fontSize: MediaQuery.of(context).size.width * 0.035,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(
+                            color: Colors.grey[300]!,
+                            width: 1,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(
+                            color: Colors.grey[300]!,
+                            width: 1,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(
+                            color: Colors.grey[300]!,
+                            width: 1,
+                          ),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: MediaQuery.of(context).size.width * 0.04,
+                          vertical: MediaQuery.of(context).size.height * 0.017,
+                        ),
+                      ),
+                      dropdownColor: Colors.white,
+                      style: TextStyle(
+                        fontFamily: GoogleFonts.poppins().fontFamily,
+                        color: Colors.black,
+                        fontSize: MediaQuery.of(context).size.width * 0.04,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      icon: Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: Colors.grey[600],
+                        size: MediaQuery.of(context).size.width * 0.06,
+                      ),
+                      items: [
+                        DropdownMenuItem(
+                          value: 'budget_constraints',
+                          child: Text(
+                            'Budget Constraints',
+                            style: TextStyle(
+                              fontFamily: GoogleFonts.poppins().fontFamily,
+                              color: Colors.grey.shade800,
+                              fontSize:
+                                  MediaQuery.of(context).size.width * 0.038,
+                            ),
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'timeline_issues',
+                          child: Text(
+                            'Timeline Issues',
+                            style: TextStyle(
+                              fontFamily: GoogleFonts.poppins().fontFamily,
+                              color: Colors.grey.shade800,
+                              fontSize:
+                                  MediaQuery.of(context).size.width * 0.038,
+                            ),
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'changed_requirements',
+                          child: Text(
+                            'Changed Requirements',
+                            style: TextStyle(
+                              fontFamily: GoogleFonts.poppins().fontFamily,
+                              color: Colors.grey.shade800,
+                              fontSize:
+                                  MediaQuery.of(context).size.width * 0.038,
+                            ),
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'chose_competitor',
+                          child: Text(
+                            'Chose Competitor',
+                            style: TextStyle(
+                              fontFamily: GoogleFonts.poppins().fontFamily,
+                              color: Colors.grey.shade800,
+                              fontSize:
+                                  MediaQuery.of(context).size.width * 0.038,
+                            ),
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'other',
+                          child: Text(
+                            'Other',
+                            style: TextStyle(
+                              fontFamily: GoogleFonts.poppins().fontFamily,
+                              color: Colors.grey.shade800,
+                              fontSize:
+                                  MediaQuery.of(context).size.width * 0.038,
+                            ),
+                          ),
+                        ),
+                      ],
+                      onChanged: (String? value) {
+                        setState(() {
+                          widget.selectedLostReason = value;
+                        });
+                        print('Dropdown changed: $value');
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text(
+                    'Cancel',
+                    style: AppFont.mediumText14blue(context),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 30),
-              EnhancedSpeechTextField(
-                isRequired: true,
-                error: false,
-                // contentPadding: EdgeInsets.zero,
-                label: 'Remarks:',
-                controller: descriptionController,
-                hint: 'Type or speak... ',
-                onChanged: (text) {
-                  print('Text changed: $text');
-                },
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Pass context to submit
-              },
-              child: Text(
-                'Cancel',
-                style: AppFont.mediumText14blue(context),
-                // style: TextStyle(color: AppColors.colorsBlue),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                if (descriptionController.text.trim().isEmpty) {
-                  // Show a simple error message
-                  Get.snackbar(
-                    'Error',
-                    'Please provide a reason before submitting',
-                    backgroundColor: Colors.red,
-                    colorText: Colors.white,
-                  );
-                } else {
-                  submitLost(context); // Proceed if not empty
-                }
-              },
-              child: Text('Submit', style: AppFont.mediumText14blue(context)),
-            ),
-          ],
+                TextButton(
+                  onPressed: () {
+                    // Validate both fields
+                    if (descriptionController.text.trim().isEmpty) {
+                      Get.snackbar(
+                        'Error',
+                        'Please provide remarks before marking as lost',
+                        backgroundColor: Colors.red,
+                        colorText: Colors.white,
+                      );
+                    } else if (widget.selectedLostReason == null) {
+                      Get.snackbar(
+                        'Error',
+                        'Please select a reason before marking as lost',
+                        backgroundColor: Colors.red,
+                        colorText: Colors.white,
+                      );
+                    } else {
+                      submitLost(context);
+                    }
+                  },
+                  child: Text(
+                    'Submit',
+                    style: AppFont.mediumText14blue(context),
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -688,7 +829,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
 
   Future<void> submitLost(BuildContext context) async {
     setState(() {
-      // _isUploading = true; // If you are showing any loading indicator
+      // _isUploading = true;
     });
 
     try {
@@ -699,14 +840,16 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
       );
       final token = await Storage.getToken();
 
-      // Create the request body
+      // Create the request body with the selected reason
       final requestBody = {
         'sp_id': spId,
-        'lost_reason': descriptionController.text,
+        'lost_remarks': descriptionController.text,
+        'lost_reason':
+            widget.selectedLostReason, // Use the selected dropdown value
       };
 
       // Print the data to console for debugging
-      print('Submitting feedback data:');
+      print('Submitting lost lead data:');
       print(requestBody);
 
       final response = await http.put(
@@ -723,32 +866,34 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
       print('API Response body: ${response.body}');
 
       if (response.statusCode == 200) {
-        final errorMessage =
-            json.decode(response.body)['message'] ?? 'Unknown error';
-        // Success handling
-        print('Feedback submitted successfully');
+        final successMessage =
+            json.decode(response.body)['message'] ??
+            'Lead marked as lost successfully';
+
+        print('Lead marked as lost successfully');
         Get.snackbar(
           'Success',
-          errorMessage,
+          successMessage,
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );
-        Navigator.pop(context); // Dismiss the dialog after success
+        Navigator.pop(context);
+
+        // Refresh the data after successful submission
+        await fetchSingleIdData(widget.leadId);
       } else {
-        // Error handling
         final errorMessage =
             json.decode(response.body)['message'] ?? 'Unknown error';
-        print('Failed to submit feedback');
+        print('Failed to mark lead as lost');
         Get.snackbar(
           'Error',
-          errorMessage, // Show the backend error message
+          errorMessage,
           backgroundColor: Colors.red,
           colorText: Colors.white,
         );
-        Navigator.pop(context); // Dismiss the dialog on error
+        Navigator.pop(context);
       }
     } catch (e) {
-      // Exception handling
       print('Exception occurred: ${e.toString()}');
       Get.snackbar(
         'Error',
@@ -756,10 +901,10 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
-      Navigator.pop(context); // Dismiss the dialog on exception
+      Navigator.pop(context);
     } finally {
       setState(() {
-        // _isUploading = false; // Reset loading state
+        // _isUploading = false;
       });
     }
   }

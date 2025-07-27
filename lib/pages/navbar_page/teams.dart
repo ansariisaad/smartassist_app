@@ -17,7 +17,7 @@ import '../../config/getX/fab.controller.dart';
 import '../../widgets/team_calllog_userid.dart';
 
 class Teams extends StatefulWidget {
-  const Teams({Key? key}) : super(key: key);
+  const Teams({super.key});
 
   @override
   State<Teams> createState() => _TeamsState();

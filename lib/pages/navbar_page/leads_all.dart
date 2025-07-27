@@ -623,7 +623,6 @@
 //    your previous file.
 // ------------------------ */
 
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -656,7 +655,7 @@ class _AllLeadsState extends State<AllLeads> {
   Set<String> selectedLeads = {};
   bool isSelectionMode = false;
   List<dynamic> upcomingTasks = [];
-  List<dynamic> _filteredTasks = [];     // local, after filters/search
+  List<dynamic> _filteredTasks = []; // local, after filters/search
   String _query = '';
   final TextEditingController _searchController = TextEditingController();
 
@@ -692,8 +691,10 @@ class _AllLeadsState extends State<AllLeads> {
   String _selectedTimeFilter = 'All Time';
 
   // ------------------------  RESPONSIVE HELPERS  ------------------------
-  bool _isTablet(BuildContext context) => MediaQuery.of(context).size.width > 768;
-  bool _isSmallScreen(BuildContext context) => MediaQuery.of(context).size.width < 400;
+  bool _isTablet(BuildContext context) =>
+      MediaQuery.of(context).size.width > 768;
+  bool _isSmallScreen(BuildContext context) =>
+      MediaQuery.of(context).size.width < 400;
 
   // ------------------------  SWIPE HANDLERS  ------------------------
   void _onHorizontalDragUpdate(DragUpdateDetails details, String leadId) {
@@ -813,9 +814,9 @@ class _AllLeadsState extends State<AllLeads> {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
-          upcomingTasks  = data['data']['rows'] ?? [];
+          upcomingTasks = data['data']['rows'] ?? [];
           _filteredTasks = List.from(upcomingTasks);
-          isLoading      = false;
+          isLoading = false;
         });
 
         _applyAllFilters();
@@ -879,9 +880,9 @@ class _AllLeadsState extends State<AllLeads> {
     if (_query.isNotEmpty) {
       final q = _query.toLowerCase();
       temp = temp.where((item) {
-        final name  = (item['lead_name'] ?? '').toString().toLowerCase();
-        final mail  = (item['email']     ?? '').toString().toLowerCase();
-        final phone = (item['mobile']    ?? '').toString().toLowerCase();
+        final name = (item['lead_name'] ?? '').toString().toLowerCase();
+        final mail = (item['email'] ?? '').toString().toLowerCase();
+        final phone = (item['mobile'] ?? '').toString().toLowerCase();
         return name.contains(q) || mail.contains(q) || phone.contains(q);
       }).toList();
     }
@@ -897,7 +898,10 @@ class _AllLeadsState extends State<AllLeads> {
     // --- time filter ---
     if (_selectedTimeFilter != 'All Time') {
       temp = temp.where((item) {
-        return _isDateInTimeFrame(item['created_at'] ?? '', _selectedTimeFilter);
+        return _isDateInTimeFrame(
+          item['created_at'] ?? '',
+          _selectedTimeFilter,
+        );
       }).toList();
     }
 
@@ -977,162 +981,158 @@ class _AllLeadsState extends State<AllLeads> {
   double _titleFontSize(BuildContext ctx) =>
       _isTablet(ctx) ? 20 : (_isSmallScreen(ctx) ? 16 : 18);
 
-// build dropdown widget
-Widget _buildFilterDropdown(
+  // build dropdown widget
+  Widget _buildFilterDropdown(
     String label,
     String selectedValue,
     List<String> options,
     ValueChanged<String?> onChanged,
     bool isTablet,
   ) {
-  // Determine default values for each dropdown
-  String defaultValue = label == 'Sort By'
-      ? 'Date Created'
-      : label == 'Status'
-      ? 'All'
-      : label == 'Time'
-      ? 'All Time'
-      : options.first;
+    // Determine default values for each dropdown
+    String defaultValue = label == 'Sort By'
+        ? 'Date Created'
+        : label == 'Status'
+        ? 'All'
+        : label == 'Time'
+        ? 'All Time'
+        : options.first;
 
-  // FIXED: Only this specific dropdown should be highlighted if it's not at default
-  bool isSelected = selectedValue != defaultValue;
+    // FIXED: Only this specific dropdown should be highlighted if it's not at default
+    bool isSelected = selectedValue != defaultValue;
 
-  return Container(
-    height: isTablet ? 40 : 36,
-    decoration: BoxDecoration(
-      color: isSelected
-          ? AppColors.colorsBlue.withOpacity(0.08)
-          : Colors.white,
-      borderRadius: BorderRadius.circular(25),
-      border: Border.all(
+    return Container(
+      height: isTablet ? 40 : 36,
+      decoration: BoxDecoration(
         color: isSelected
-            ? AppColors.colorsBlue.withOpacity(0.4)
-            : Colors.grey.withOpacity(0.2),
-        width: 1.5,
-      ),
-      boxShadow: [
-        BoxShadow(
+            ? AppColors.colorsBlue.withOpacity(0.08)
+            : Colors.white,
+        borderRadius: BorderRadius.circular(25),
+        border: Border.all(
           color: isSelected
-              ? AppColors.colorsBlue.withOpacity(0.1)
-              : Colors.grey.withOpacity(0.05),
-          spreadRadius: 1,
-          blurRadius: 3,
-          offset: Offset(0, 1),
+              ? AppColors.colorsBlue.withOpacity(0.4)
+              : Colors.grey.withOpacity(0.2),
+          width: 1.5,
         ),
-      ],
-    ),
-    child: DropdownButtonHideUnderline(
-      child: DropdownButton<String>(
-        value: selectedValue,
-        isExpanded: true,
-        icon: Container(
-          margin: EdgeInsets.only(right: isTablet ? 8 : 6),
-          child: Icon(
-            Icons.keyboard_arrow_down_rounded,
-            size: isTablet ? 22 : 20,
+        boxShadow: [
+          BoxShadow(
             color: isSelected
-                ? AppColors.colorsBlue
-                : Colors.grey[500],
+                ? AppColors.colorsBlue.withOpacity(0.1)
+                : Colors.grey.withOpacity(0.05),
+            spreadRadius: 1,
+            blurRadius: 3,
+            offset: Offset(0, 1),
           ),
-        ),
-        style: GoogleFonts.poppins(
-          fontSize: isTablet ? 13 : 11,
-          color: isSelected
-              ? AppColors.colorsBlue
-              : Colors.grey[700],
-          fontWeight: FontWeight.w400, // FIXED: Remove bold text
-        ),
-        dropdownColor: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        elevation: 8,
-        menuMaxHeight: 250,
-        items: options.map<DropdownMenuItem<String>>((String value) {
-          bool isItemSelected = value == selectedValue;
-          return DropdownMenuItem<String>(
-            value: value,
-            child: Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(
-                horizontal: isTablet ? 12 : 10,
-                vertical: isTablet ? 8  : 6,
-              ),
-              decoration: BoxDecoration(
-                color: isItemSelected
-                    ? AppColors.colorsBlue.withOpacity(0.1)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  if (isItemSelected)
-                    Container(
-                      margin: EdgeInsets.only(right: 8),
-                      child: Icon(
-                        Icons.check_circle,
-                        size: isTablet ? 16 : 14,
-                        color: AppColors.colorsBlue,
-                      ),
-                    ),
-                  Expanded(
-                    child: Text(
-                      value,
-                      style: GoogleFonts.poppins(
-                        fontSize: isTablet ? 13 : 11,
-                        fontWeight: FontWeight.w400, // FIXED: Remove bold text
-                        color: isItemSelected 
-                            ? AppColors.colorsBlue 
-                            : Colors.grey[700],
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
+        ],
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: selectedValue,
+          isExpanded: true,
+          icon: Container(
+            margin: EdgeInsets.only(right: isTablet ? 8 : 6),
+            child: Icon(
+              Icons.keyboard_arrow_down_rounded,
+              size: isTablet ? 22 : 20,
+              color: isSelected ? AppColors.colorsBlue : Colors.grey[500],
             ),
-          );
-        }).toList(),
-        selectedItemBuilder: (context) {
-          return options.map<Widget>((String value) {
-            return Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: isTablet ? 12 : 10,
-              ),
-              alignment: Alignment.centerLeft,
-              child: Row(
-                children: [
-                  if (isSelected)
-                    Container(
-                      margin: EdgeInsets.only(right: 6),
-                      width: isTablet ? 6 : 5,
-                      height: isTablet ? 6 : 5,
-                      decoration: BoxDecoration(
-                        color: AppColors.colorsBlue,
-                        shape: BoxShape.circle,
+          ),
+          style: GoogleFonts.poppins(
+            fontSize: isTablet ? 13 : 11,
+            color: isSelected ? AppColors.colorsBlue : Colors.grey[700],
+            fontWeight: FontWeight.w400, // FIXED: Remove bold text
+          ),
+          dropdownColor: Colors.white,
+          borderRadius: BorderRadius.circular(15),
+          elevation: 8,
+          menuMaxHeight: 250,
+          items: options.map<DropdownMenuItem<String>>((String value) {
+            bool isItemSelected = value == selectedValue;
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Container(
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(
+                  horizontal: isTablet ? 12 : 10,
+                  vertical: isTablet ? 8 : 6,
+                ),
+                decoration: BoxDecoration(
+                  color: isItemSelected
+                      ? AppColors.colorsBlue.withOpacity(0.1)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    if (isItemSelected)
+                      Container(
+                        margin: EdgeInsets.only(right: 8),
+                        child: Icon(
+                          Icons.check_circle,
+                          size: isTablet ? 16 : 14,
+                          color: AppColors.colorsBlue,
+                        ),
+                      ),
+                    Expanded(
+                      child: Text(
+                        value,
+                        style: GoogleFonts.poppins(
+                          fontSize: isTablet ? 13 : 11,
+                          fontWeight:
+                              FontWeight.w400, // FIXED: Remove bold text
+                          color: isItemSelected
+                              ? AppColors.colorsBlue
+                              : Colors.grey[700],
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                  Expanded(
-                    child: Text(
-                      value == defaultValue && !isSelected ? label : value,
-                      style: GoogleFonts.poppins(
-                        fontSize: isTablet ? 13 : 11,
-                        fontWeight: FontWeight.w400, // FIXED: Remove bold text
-                        color: isSelected
-                            ? AppColors.colorsBlue
-                            : Colors.grey[700],
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             );
-          }).toList();
-        },
-        onChanged:  onChanged,
+          }).toList(),
+          selectedItemBuilder: (context) {
+            return options.map<Widget>((String value) {
+              return Container(
+                padding: EdgeInsets.symmetric(horizontal: isTablet ? 12 : 10),
+                alignment: Alignment.centerLeft,
+                child: Row(
+                  children: [
+                    if (isSelected)
+                      Container(
+                        margin: EdgeInsets.only(right: 6),
+                        width: isTablet ? 6 : 5,
+                        height: isTablet ? 6 : 5,
+                        decoration: BoxDecoration(
+                          color: AppColors.colorsBlue,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    Expanded(
+                      child: Text(
+                        value == defaultValue && !isSelected ? label : value,
+                        style: GoogleFonts.poppins(
+                          fontSize: isTablet ? 13 : 11,
+                          fontWeight:
+                              FontWeight.w400, // FIXED: Remove bold text
+                          color: isSelected
+                              ? AppColors.colorsBlue
+                              : Colors.grey[700],
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList();
+          },
+          onChanged: onChanged,
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   // ------------------------  BUILD  ------------------------
   @override
@@ -1171,7 +1171,10 @@ Widget _buildFilterDropdown(
                 Container(
                   margin: EdgeInsets.all(isTablet ? 15 : 10),
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(minHeight: 38, maxHeight: 38),
+                    constraints: const BoxConstraints(
+                      minHeight: 38,
+                      maxHeight: 38,
+                    ),
                     child: TextField(
                       controller: _searchController,
                       textAlignVertical: TextAlignVertical.center,
@@ -1267,7 +1270,7 @@ Widget _buildFilterDropdown(
                     padding: EdgeInsets.only(
                       left: isTablet ? 15 : 10,
                       right: isTablet ? 15 : 10,
-                      top: isTablet ? 6  : 4,
+                      top: isTablet ? 6 : 4,
                       bottom: isTablet ? 4 : 2,
                     ),
                     child: Row(
@@ -1284,7 +1287,10 @@ Widget _buildFilterDropdown(
                         TextButton(
                           onPressed: _resetFilters,
                           style: TextButton.styleFrom(
-                            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 0,
+                            ),
                             minimumSize: Size.zero,
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
@@ -1379,7 +1385,7 @@ Widget _buildFilterDropdown(
           return ListTile(title: Text('Invalid data at index $index'));
         }
 
-        final leadId      = item['lead_id'] ?? '';
+        final leadId = item['lead_id'] ?? '';
         final swipeOffset = _swipeOffsets[leadId] ?? 0;
 
         return GestureDetector(
@@ -1430,7 +1436,6 @@ Widget _buildFilterDropdown(
     );
   }
 }
-
 
 class TaskItem extends StatefulWidget {
   final String name, subject, number;

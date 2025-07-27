@@ -1674,6 +1674,16 @@ class _TaskItemState extends State<TaskItem>
       onLongPress: () {
         HapticFeedback.heavyImpact();
         widget.onLongPress();
+        _slidableController = SlidableController(this);
+
+        _slidableController.animation.addListener(() {
+          final isOpen = _slidableController.ratio != 0;
+          if (_isActionPaneOpen != isOpen) {
+            setState(() {
+              _isActionPaneOpen = isOpen;
+            });
+          }
+        });
       },
       onTap:
           widget.onTap ??
@@ -1814,21 +1824,7 @@ class _TaskItemState extends State<TaskItem>
                       ),
                     ),
 
-                    // Animated navigation button (hides when selected)
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                      width: widget.isSelected ? 0 : 36,
-                      child: AnimatedOpacity(
-                        duration: const Duration(milliseconds: 200),
-                        opacity: widget.isSelected ? 0.0 : 1.0,
-                        child: AnimatedScale(
-                          duration: const Duration(milliseconds: 300),
-                          scale: widget.isSelected ? 0.8 : 1.0,
-                          child: _buildNavigationButton(context),
-                        ),
-                      ),
-                    ),
+                    _buildNavigationButton(context),
                   ],
                 ),
               ),
@@ -1888,7 +1884,7 @@ class _TaskItemState extends State<TaskItem>
 
   //navigation button to show action slider
 
-  bool _isActionPaneOpen = false; // Declare this in your StatefulWidget
+  bool _isActionPaneOpen = false;
 
   Widget _buildNavigationButton(BuildContext context) {
     return GestureDetector(
@@ -1908,19 +1904,17 @@ class _TaskItemState extends State<TaskItem>
           });
         }
       },
-
       child: Container(
         padding: const EdgeInsets.all(3),
         decoration: BoxDecoration(
           color: AppColors.arrowContainerColor,
           borderRadius: BorderRadius.circular(30),
         ),
-
         child: Icon(
           _isActionPaneOpen
               ? Icons.arrow_forward_ios_rounded
-              : Icons.arrow_back_ios_rounded,
-
+              : Icons
+                    .arrow_back_ios_rounded, // When closed, show back arrow (to open)
           size: 25,
           color: Colors.white,
         ),

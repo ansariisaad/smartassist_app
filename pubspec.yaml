@@ -49,8 +49,7 @@ dependencies:
   shared_preferences: ^2.4.0
   hive: ^2.0.4
   hive_flutter: ^1.1.0
-  flutter_riverpod: ^2.6.1
-  flutter_local_notifications: ^17.2.3
+  flutter_riverpod: ^2.6.1 
   get: ^4.6.6
   jwt_decoder: ^2.0.1
   smooth_page_indicator: ^1.2.1
@@ -89,13 +88,15 @@ dependencies:
   flutter_dotenv: ^5.2.1
   record: ^6.0.0
   speech_to_text: ^7.1.0
-  flutter_tts: ^3.8.5
+  flutter_tts: ^3.8.5 
   flutter_background_service: ^5.1.0
   flutter_sound: ^9.28.0
   video_player: ^2.10.0
   sms_autofill: ^2.4.1
   open_file: ^3.5.10
   device_info_plus: ^11.5.0
+  flutter_local_notifications: ^19.4.0
+  
 
 dev_dependencies:
   flutter_test:

@@ -7,19 +7,26 @@ import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
-import 'package:smartassist/utils/bottom_navigation.dart';
-// import 'package:smartassist/pages/home/single_details_pages/singleLead_followup.dart';
+import 'package:smartassist/utils/bottom_navigation.dart'; 
 import 'dart:convert';
 
 import 'package:smartassist/utils/storage.dart';
 
 class TestdriveOverview extends StatefulWidget {
+  final bool isFromCompletdTimeline;
+  final bool isFromTestdrive;
   final String eventId;
+  final String isFromCompletedEventId;
   final String leadId;
+  final String isFromCompletedLeadId;
   const TestdriveOverview({
     super.key,
     required this.eventId,
     required this.leadId,
+    required this.isFromTestdrive,
+    required this.isFromCompletdTimeline,
+    required this.isFromCompletedEventId,
+    required this.isFromCompletedLeadId,
   });
 
   @override
@@ -87,8 +94,12 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
     try {
       await Future.delayed(Duration(seconds: 1));
       final token = await Storage.getToken();
+      final url = widget.isFromTestdrive
+          ? 'https://api.smartassistapp.in/api/events/${widget.eventId}'
+          : 'https://api.smartassistapp.in/api/events/${widget.isFromCompletedEventId}';
+
       final response = await http.get(
-        Uri.parse('https://api.smartassistapp.in/api/events/${widget.eventId}'),
+        Uri.parse(url),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -212,11 +223,16 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
               size: _isSmallScreen(context) ? 18 : 20,
             ),
             onPressed: () {
+              print(
+                'this is the lead id from testdrive ${widget.isFromCompletedLeadId}',
+              );
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => FollowupsDetails(
-                    leadId: widget.leadId,
+                    leadId: widget.isFromTestdrive
+                        ? widget.isFromCompletedLeadId
+                        : widget.leadId,
                     isFromFreshlead: false,
                     isFromManager: false,
                     refreshDashboard: () async {},

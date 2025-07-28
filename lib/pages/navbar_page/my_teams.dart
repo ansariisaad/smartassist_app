@@ -436,8 +436,13 @@ class _MyTeamsState extends State<MyTeams> {
       // Clear tracking lists
       selectedUserIds.clear();
       _selectedCheckboxIds.clear();
-      _selectedProfileIndex = -1;
+      _selectedProfileIndex = 0;
       _selectedUserId = '';
+      _selectedType = 'All';
+
+      _isAlphabetLogsMode = false;
+      logStatusAlphabet.clear();
+      _selectedLetters.clear();
 
       // 🔥 IMPORTANT: Clear isSelected from all member objects
       for (var member in _membersData) {
@@ -1705,7 +1710,7 @@ class _MyTeamsState extends State<MyTeams> {
           Center(child: CircularProgressIndicator())
         else if (_isComparing)
           _buildTeamComparisonChart(context, screenWidth)
-        else
+        else if (_selectedType != 'dynamic')
           _callAnalyticAll(context),
       ],
     );
@@ -2426,17 +2431,6 @@ class _MyTeamsState extends State<MyTeams> {
   }
 
   Widget _callAnalyticAll(BuildContext context) {
-    // if (_isOnlyLetterSelected) {
-    //   return Container(
-    //     padding: const EdgeInsets.all(30),
-    //     child: Center(
-    //       child: Text(
-    //         "Select a user to view call analysis.",
-    //         style: AppFont.dropDowmLabelLightcolors(context),
-    //       ),
-    //     ),
-    //   );
-    // }
     return InkWell(
       onTap: () {
         setState(() {
@@ -2447,7 +2441,9 @@ class _MyTeamsState extends State<MyTeams> {
         margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
         child: Column(
           children: [
-            if (_selectedType != 'dynamic') ...[
+            // if (_selectedType != 'dynamic') ...[
+            if (_selectedType == 'All' ||
+                (_isAlphabetLogsMode && _selectedLetters.isNotEmpty)) ...[
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 0),
                 decoration: BoxDecoration(

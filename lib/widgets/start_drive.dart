@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -15,9 +17,81 @@ import 'package:smartassist/services/socket_backgroundsrv.dart';
 import 'package:smartassist/utils/bottom_navigation.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/feedback.dart';
-import 'package:smartassist/widgets/testdrive_overview.dart';
+import 'package:smartassist/widgets/testdrive_summary.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:geolocator/geolocator.dart';
+
+// Improved distance calculation with better accuracy
+class DistanceCalculator {
+  // Minimum distance threshold to avoid GPS noise (increased for accuracy)
+  static const double MIN_DISTANCE_THRESHOLD = 0.010; // 10 meters minimum
+  static const double MAX_SPEED_THRESHOLD =
+      150.0; // 150 km/h max realistic speed
+  static const double MIN_ACCURACY_THRESHOLD = 20.0; // 20 meters max accuracy
+
+  // Calculate distance using Haversine formula for better accuracy
+  static double calculateDistanceHaversine(LatLng point1, LatLng point2) {
+    const double earthRadius = 6371.0; // Earth's radius in kilometers
+
+    double lat1Rad = point1.latitude * (pi / 180.0);
+    double lat2Rad = point2.latitude * (pi / 180.0);
+    double deltaLatRad = (point2.latitude - point1.latitude) * (pi / 180.0);
+    double deltaLngRad = (point2.longitude - point1.longitude) * (pi / 180.0);
+
+    double a =
+        sin(deltaLatRad / 2) * sin(deltaLatRad / 2) +
+        cos(lat1Rad) *
+            cos(lat2Rad) *
+            sin(deltaLngRad / 2) *
+            sin(deltaLngRad / 2);
+    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+
+    return earthRadius * c; // Distance in kilometers
+  }
+
+  // Validate if location update should be counted
+  static bool isValidLocationUpdate(
+    Position position,
+    LatLng? lastLocation,
+    DateTime? lastTime,
+  ) {
+    // Check GPS accuracy
+    if (position.accuracy > MIN_ACCURACY_THRESHOLD) {
+      print('❌ Location accuracy too low: ${position.accuracy}m');
+      return false;
+    }
+
+    if (lastLocation == null || lastTime == null) {
+      return true; // First location is always valid
+    }
+
+    LatLng currentLocation = LatLng(position.latitude, position.longitude);
+
+    // Calculate distance moved
+    double distance = calculateDistanceHaversine(lastLocation, currentLocation);
+
+    // Check minimum distance threshold
+    if (distance < MIN_DISTANCE_THRESHOLD) {
+      print('❌ Distance too small: ${(distance * 1000).toStringAsFixed(1)}m');
+      return false;
+    }
+
+    // Check for unrealistic speed (GPS jumps)
+    double timeElapsed = DateTime.now()
+        .difference(lastTime)
+        .inSeconds
+        .toDouble();
+    if (timeElapsed > 0) {
+      double speed = (distance / timeElapsed) * 3600; // km/h
+      if (speed > MAX_SPEED_THRESHOLD) {
+        print('❌ Unrealistic speed detected: ${speed.toStringAsFixed(1)} km/h');
+        return false;
+      }
+    }
+
+    return true;
+  }
+}
 
 class StartDriveMap extends StatefulWidget {
   final String eventId;
@@ -74,6 +148,8 @@ class _StartDriveMapState extends State<StartDriveMap>
   DateTime? _lastBackPressTime;
   final int _exitTimeInMillis = 2000;
 
+  String? isFromTestdrive;
+
   @override
   void initState() {
     super.initState();
@@ -83,11 +159,6 @@ class _StartDriveMapState extends State<StartDriveMap>
     _initializeBackgroundService();
     _determinePosition();
     _startServiceHealthCheck();
-    // driveStartTime = DateTime.now();
-    // totalDistance = 0.0;
-    // WidgetsBinding.instance.addObserver(this);
-    // _initializeBackgroundService();
-    // _determinePosition();
     _startConnectionHealthCheck();
 
     routePolyline = Polyline(
@@ -150,7 +221,6 @@ class _StartDriveMapState extends State<StartDriveMap>
       });
     } else {
       print('Max reconnection attempts reached. Switching to offline mode.');
-      // Implement offline data storage here if needed
     }
   }
 
@@ -425,52 +495,6 @@ class _StartDriveMapState extends State<StartDriveMap>
       }
     });
   }
-
-  // void _startBackgroundService() {
-  //   if (!_isBackgroundServiceActive && !isDriveEnded) {
-  //     try {
-  //       final service = FlutterBackgroundService();
-
-  //       service.startService();
-  //       service.invoke('start_tracking', {
-  //         'eventId': widget.eventId,
-  //         'totalDistance': totalDistance,
-  //         'driveStartTime': driveStartTime?.millisecondsSinceEpoch,
-  //         'totalPausedDuration': totalPausedDuration,
-  //       });
-
-  //       _isBackgroundServiceActive = true;
-
-  //       if (positionStreamSubscription != null) {
-  //         positionStreamSubscription!.cancel();
-  //         positionStreamSubscription = null;
-  //       }
-
-  //       if (socket != null && socket!.connected) {
-  //         socket!.disconnect();
-  //       }
-  //     } catch (e) {
-  //       print('Failed to start background service: $e');
-  //     }
-  //   }
-  // }
-
-  // void _stopBackgroundService() {
-  //   if (_isBackgroundServiceActive) {
-  //     try {
-  //       final service = FlutterBackgroundService();
-  //       service.invoke('stop_tracking');
-  //       _isBackgroundServiceActive = false;
-
-  //       if (!isDriveEnded) {
-  //         _initializeSocket();
-  //         _startLocationTracking();
-  //       }
-  //     } catch (e) {
-  //       print('Failed to stop background service: $e');
-  //     }
-  //   }
-  // }
 
   Future<void> _determinePosition() async {
     bool serviceEnabled;
@@ -832,8 +856,9 @@ class _StartDriveMapState extends State<StartDriveMap>
     final LatLng newLocation = LatLng(position.latitude, position.longitude);
     final DateTime now = DateTime.now();
 
-    // Enhanced location validation
+    // Use improved validation
     if (!_isValidLocationUpdate(newLocation, position, now)) {
+      print('❌ Location update rejected: accuracy=${position.accuracy}m');
       return;
     }
 
@@ -849,20 +874,26 @@ class _StartDriveMapState extends State<StartDriveMap>
       );
 
       if (_lastValidLocation != null) {
-        double segmentDistance = _calculateDistanceImproved(
+        double segmentDistance = _calculateAccurateDistance(
           _lastValidLocation!,
           newLocation,
         );
 
-        if (segmentDistance >= MIN_DISTANCE_THRESHOLD) {
+        // Only add distance if movement is significant (5+ meters)
+        if (segmentDistance >= 0.005) {
           _totalDistanceAccumulator += segmentDistance;
           totalDistance = _totalDistanceAccumulator;
           routePoints.add(newLocation);
           _updatePolyline();
 
           print(
-            'Valid segment: ${segmentDistance.toStringAsFixed(4)} km, Total: ${totalDistance.toStringAsFixed(3)} km',
+            '✅ Valid movement: ${(segmentDistance * 1000).toStringAsFixed(0)}m, Total: ${totalDistance.toStringAsFixed(2)} km',
           );
+        } else {
+          print(
+            '⏸️ Movement too small: ${(segmentDistance * 1000).toStringAsFixed(1)}m',
+          );
+          return; // Don't update markers for tiny movements
         }
       } else {
         routePoints.add(newLocation);
@@ -885,17 +916,15 @@ class _StartDriveMapState extends State<StartDriveMap>
     Position position,
     DateTime now,
   ) {
-    // Check accuracy
-    if (position.accuracy > MIN_ACCURACY_THRESHOLD) {
-      print('Location accuracy too low: ${position.accuracy}m');
+    // Check accuracy - reject if GPS accuracy is poor
+    if (position.accuracy > 15.0) {
       return false;
     }
 
     // Check location age
     if (position.timestamp != null) {
       int locationAge = now.difference(position.timestamp!).inSeconds;
-      if (locationAge > MAX_LOCATION_AGE) {
-        print('Location too old: ${locationAge}s');
+      if (locationAge > 10) {
         return false;
       }
     }
@@ -903,7 +932,7 @@ class _StartDriveMapState extends State<StartDriveMap>
     if (_lastValidLocation == null || _lastLocationTime == null) return true;
 
     // Check for unrealistic speed
-    double distance = _calculateDistanceImproved(
+    double distance = _calculateAccurateDistance(
       _lastValidLocation!,
       newLocation,
     );
@@ -914,13 +943,25 @@ class _StartDriveMapState extends State<StartDriveMap>
 
     if (timeElapsed > 0) {
       double speed = (distance / timeElapsed) * 3600; // km/h
-      if (speed > MAX_SPEED_THRESHOLD) {
-        print('Unrealistic speed: ${speed.toStringAsFixed(1)} km/h');
+      if (speed > 120.0) {
+        // 120 km/h max realistic speed
+        print('❌ Unrealistic speed: ${speed.toStringAsFixed(1)} km/h');
         return false;
       }
     }
 
-    return distance >= MIN_DISTANCE_THRESHOLD;
+    return distance >= 0.005; // 5 meters minimum movement
+  }
+
+  double _calculateAccurateDistance(LatLng point1, LatLng point2) {
+    double distanceInMeters = Geolocator.distanceBetween(
+      point1.latitude,
+      point1.longitude,
+      point2.latitude,
+      point2.longitude,
+    );
+
+    return distanceInMeters / 1000.0; // Convert to kilometers
   }
 
   double _calculateDistanceImproved(LatLng point1, LatLng point2) {
@@ -970,8 +1011,20 @@ class _StartDriveMapState extends State<StartDriveMap>
     }
   }
 
-  // Rest of your methods remain the same...
-  // (Including _submitEndDrive, _handleEndDrive, _endTestDrive, etc.)
+  // Format distance for display with appropriate precision
+  String _formatDistance(double distance) {
+    if (distance < 0.01) {
+      return '0.0 km';
+    } else if (distance < 0.1) {
+      return '${(distance * 1000).round()} m'; // Show meters for small distances
+    } else if (distance < 1.0) {
+      return '${distance.toStringAsFixed(2)} km'; // 2 decimals under 1km
+    } else if (distance < 10.0) {
+      return '${distance.toStringAsFixed(1)} km'; // 1 decimal under 10km
+    } else {
+      return '${distance.round()} km'; // Whole numbers for long distances
+    }
+  }
 
   @override
   void dispose() {
@@ -1038,6 +1091,7 @@ class _StartDriveMapState extends State<StartDriveMap>
               )
             : Stack(
                 children: [
+                  // Add this button to test notifications work
                   Container(
                     width: double.infinity,
                     height: double.infinity,
@@ -1109,7 +1163,7 @@ class _StartDriveMapState extends State<StartDriveMap>
                                             MainAxisAlignment.spaceBetween,
                                         children: [
                                           Text(
-                                            'Distance: ${totalDistance.toStringAsFixed(2)} km',
+                                            'Distance: ${_formatDistance(totalDistance)}',
                                             style: GoogleFonts.poppins(
                                               fontSize: 14,
                                               fontWeight: FontWeight.w500,
@@ -1142,40 +1196,40 @@ class _StartDriveMapState extends State<StartDriveMap>
                                   ),
                                 ),
 
-                              // const SizedBox(height: 10),
+                              const SizedBox(height: 10),
 
-                              // // Pause/Resume Button
-                              // if (!isDriveEnded)
-                              //   SizedBox(
-                              //     width: double.infinity,
-                              //     height: 50,
-                              //     child: ElevatedButton(
-                              //       onPressed: isDrivePaused
-                              //           ? _resumeDrive
-                              //           : _pauseDrive,
-                              //       style: ElevatedButton.styleFrom(
-                              //         padding: const EdgeInsets.symmetric(
-                              //           vertical: 10,
-                              //         ),
-                              //         shape: RoundedRectangleBorder(
-                              //           borderRadius: BorderRadius.circular(10),
-                              //         ),
-                              //         backgroundColor: isDrivePaused
-                              //             ? Colors.green
-                              //             : Colors.orange,
-                              //       ),
-                              //       child: Text(
-                              //         isDrivePaused
-                              //             ? 'Resume Drive'
-                              //             : 'Pause Drive',
-                              //         style: GoogleFonts.poppins(
-                              //           fontSize: 14,
-                              //           fontWeight: FontWeight.w500,
-                              //           color: Colors.white,
-                              //         ),
-                              //       ),
-                              //     ),
-                              //   ),
+                              // Pause/Resume Button
+                              if (!isDriveEnded)
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 50,
+                                  child: ElevatedButton(
+                                    onPressed: isDrivePaused
+                                        ? _resumeDrive
+                                        : _pauseDrive,
+                                    style: ElevatedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 10,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      backgroundColor: isDrivePaused
+                                          ? Colors.green
+                                          : Colors.orange,
+                                    ),
+                                    child: Text(
+                                      isDrivePaused
+                                          ? 'Resume Drive'
+                                          : 'Pause Drive',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               const SizedBox(height: 10),
 
                               // End Drive Buttons
@@ -1469,8 +1523,12 @@ class _StartDriveMapState extends State<StartDriveMap>
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => TestdriveOverview(
+              isFromCompletdTimeline: false,
               eventId: widget.eventId,
               leadId: widget.leadId,
+              isFromTestdrive: true,
+              isFromCompletedEventId: '',
+              isFromCompletedLeadId: '',
             ),
           ),
         );

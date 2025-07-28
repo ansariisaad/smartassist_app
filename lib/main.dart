@@ -7,13 +7,12 @@ import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/services.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:smartassist/config/environment/environment.dart';
 import 'package:smartassist/config/route/route.dart';
 import 'package:smartassist/config/route/route_name.dart';
-import 'package:smartassist/services/notifacation_srv.dart';
-import 'package:smartassist/services/socket_backgroundsrv.dart';
-import 'package:smartassist/utils/connection_service.dart';
-import 'package:smartassist/utils/testdrive_notification_helper.dart';
+import 'package:smartassist/services/notifacation_srv.dart'; 
+import 'package:smartassist/utils/connection_service.dart'; 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,13 +22,10 @@ void main() async {
     await Environment.init();
     Environment.validateConfig();
 
-    // Initialize background service early
-    await NotificationHelper.setupNotificationChannels();
-    await NotificationHelper.requestNotificationPermissions();
-    await BackgroundService.initializeService();
-
+    // Request location permissions
+    await _requestLocationPermissions();
     // Request necessary permissions
-    await _requestPermissions();
+    // await _requestPermissions();
 
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitDown,
@@ -64,23 +60,43 @@ void main() async {
   runApp(const ProviderScope(child: MyApp()));
 }
 
-Future<void> _requestPermissions() async {
-  // Request location permissions including background location
-  LocationPermission permission = await Geolocator.checkPermission();
+Future<void> _requestLocationPermissions() async {
+  try {
+    // Request location permissions using permission_handler
+    PermissionStatus locationStatus = await Permission.location.request();
+    print('📍 Location permission status: $locationStatus');
 
-  if (permission == LocationPermission.denied) {
-    permission = await Geolocator.requestPermission();
-  }
+    if (locationStatus.isGranted) {
+      // Request background location for Android 10+
+      if (await Permission.locationAlways.isDenied) {
+        PermissionStatus backgroundLocationStatus = await Permission
+            .locationAlways
+            .request();
+        print(
+          '📍 Background location permission status: $backgroundLocationStatus',
+        );
 
-  if (permission == LocationPermission.deniedForever) {
-    print('Location permissions are permanently denied');
-    return;
-  }
+        if (backgroundLocationStatus.isPermanentlyDenied) {
+          print('❌ Background location permission permanently denied');
+          // You might want to show a dialog here explaining why this is needed
+        }
+      }
+    } else if (locationStatus.isPermanentlyDenied) {
+      print('❌ Location permission permanently denied');
+      // Open app settings
+      await openAppSettings();
+    }
 
-  // For Android 10+ (API 29+), request background location permission
-  if (permission == LocationPermission.whileInUse) {
-    // Show dialog explaining why background location is needed
-    permission = await Geolocator.requestPermission();
+    // Also check with Geolocator for compatibility
+    LocationPermission geolocatorPermission =
+        await Geolocator.checkPermission();
+    print('📍 Geolocator permission status: $geolocatorPermission');
+
+    if (geolocatorPermission == LocationPermission.denied) {
+      geolocatorPermission = await Geolocator.requestPermission();
+    }
+  } catch (e) {
+    print('❌ Error requesting location permissions: $e');
   }
 }
 

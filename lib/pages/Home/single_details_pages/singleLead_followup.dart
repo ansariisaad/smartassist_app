@@ -18,8 +18,6 @@ import 'package:smartassist/widgets/call_history.dart';
 import 'package:smartassist/widgets/home_btn.dart/single_ids_popup/appointment_ids.dart';
 import 'package:smartassist/widgets/home_btn.dart/single_ids_popup/followups_ids.dart';
 import 'package:smartassist/widgets/home_btn.dart/single_ids_popup/testdrive_ids.dart';
-import 'package:smartassist/widgets/leads_details_popup/create_appointment.dart';
-import 'package:smartassist/widgets/leads_details_popup/create_followups.dart';
 import 'package:smartassist/widgets/remarks_field.dart';
 import 'package:smartassist/widgets/timeline/timeline_overdue.dart';
 import 'package:smartassist/widgets/timeline/timeline_tasks.dart';
@@ -302,6 +300,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
   Future<void> eventandtask(String leadId) async {
     setState(() => isLoading = true);
     try {
+      print('this is fetch leadid ${widget.leadId}');
       final data = await LeadsSrv.eventTaskByLead(leadId);
 
       setState(() {

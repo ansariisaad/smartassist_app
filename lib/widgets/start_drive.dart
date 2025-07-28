@@ -41,6 +41,8 @@ class _StartDriveMapState extends State<StartDriveMap>
   bool isLoading = true;
   String error = '';
   double totalDistance = 0.0;
+  bool _backgroundServiceStarted = false;
+  Timer? _serviceHealthCheck;
 
   // Enhanced duration tracking
   DateTime? driveStartTime;
@@ -80,6 +82,12 @@ class _StartDriveMapState extends State<StartDriveMap>
     WidgetsBinding.instance.addObserver(this);
     _initializeBackgroundService();
     _determinePosition();
+    _startServiceHealthCheck();
+    // driveStartTime = DateTime.now();
+    // totalDistance = 0.0;
+    // WidgetsBinding.instance.addObserver(this);
+    // _initializeBackgroundService();
+    // _determinePosition();
     _startConnectionHealthCheck();
 
     routePolyline = Polyline(
@@ -88,6 +96,35 @@ class _StartDriveMapState extends State<StartDriveMap>
       color: AppColors.colorsBlue,
       width: 5,
     );
+  }
+
+  void _startServiceHealthCheck() {
+    _serviceHealthCheck = Timer.periodic(Duration(seconds: 60), (timer) {
+      if (_backgroundServiceStarted) {
+        _checkBackgroundServiceHealth();
+      }
+    });
+  }
+
+  void _checkBackgroundServiceHealth() {
+    final service = FlutterBackgroundService();
+
+    service.invoke('get_data');
+
+    // Listen for response
+    service.on('data_response').listen((event) {
+      bool isRunning = event?['isRunning'] ?? false;
+      if (!isRunning && !isDriveEnded) {
+        print('⚠️ Background service not running, attempting restart');
+        _restartBackgroundService();
+      }
+    });
+  }
+
+  void _restartBackgroundService() {
+    if (!isDriveEnded) {
+      _startBackgroundService();
+    }
   }
 
   void _startConnectionHealthCheck() {
@@ -185,14 +222,97 @@ class _StartDriveMapState extends State<StartDriveMap>
     }
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    print('🔄 App lifecycle state: $state');
+
+    switch (state) {
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+        if (!isDriveEnded && !_backgroundServiceStarted) {
+          _startBackgroundService();
+        }
+        break;
+      case AppLifecycleState.resumed:
+        if (_backgroundServiceStarted) {
+          _stopBackgroundService();
+        }
+        // Sync data from background service
+        _syncFromBackgroundService();
+        break;
+      default:
+        break;
+    }
+  }
+
+  // In your StartDriveMap widget, fix the background service handling:
+
+  void _startBackgroundService() {
+    if (_backgroundServiceStarted || isDriveEnded) return;
+
+    try {
+      print('🚀 Starting background service');
+      final service = FlutterBackgroundService();
+
+      // Check if service is already running
+      service.isRunning().then((isRunning) {
+        if (!isRunning) {
+          // Start the service
+          service.startService();
+
+          // Wait a moment for service to initialize
+          Future.delayed(Duration(seconds: 2), () {
+            // Send the start tracking command
+            service.invoke('start_tracking', {
+              'eventId': widget.eventId,
+              'totalDistance': totalDistance,
+              'driveStartTime': driveStartTime?.millisecondsSinceEpoch,
+              'totalPausedDuration': totalPausedDuration,
+            });
+          });
+        } else {
+          // Service already running, just send start tracking
+          service.invoke('start_tracking', {
+            'eventId': widget.eventId,
+            'totalDistance': totalDistance,
+            'driveStartTime': driveStartTime?.millisecondsSinceEpoch,
+            'totalPausedDuration': totalPausedDuration,
+          });
+        }
+      });
+
+      _backgroundServiceStarted = true;
+
+      // Stop foreground location tracking
+      if (positionStreamSubscription != null) {
+        positionStreamSubscription!.cancel();
+        positionStreamSubscription = null;
+      }
+
+      // Disconnect foreground socket
+      if (socket != null && socket!.connected) {
+        socket!.disconnect();
+      }
+
+      print('✅ Background service started successfully');
+    } catch (e) {
+      print('❌ Failed to start background service: $e');
+      _backgroundServiceStarted = false;
+    }
+  }
+
+  // Fix the service setup
   void _setupBackgroundServiceListeners() {
     final service = FlutterBackgroundService();
 
+    // Listen for location updates from background service
     service.on('location_update').listen((event) {
-      if (mounted && !isDrivePaused) {
+      if (mounted && !isDrivePaused && event != null) {
         try {
           setState(() {
-            final position = event!['position'];
+            final position = event['position'];
             final newLocation = LatLng(
               position['latitude'],
               position['longitude'],
@@ -201,14 +321,20 @@ class _StartDriveMapState extends State<StartDriveMap>
             userMarker = Marker(
               markerId: const MarkerId('user'),
               position: newLocation,
-              infoWindow: const InfoWindow(title: 'User'),
+              infoWindow: const InfoWindow(title: 'Current Location'),
               icon: BitmapDescriptor.defaultMarkerWithHue(
                 BitmapDescriptor.hueAzure,
               ),
             );
 
-            totalDistance = event['totalDistance']?.toDouble() ?? totalDistance;
+            // Update total distance from background service
+            double bgTotalDistance =
+                event['totalDistance']?.toDouble() ?? totalDistance;
+            if (bgTotalDistance > totalDistance) {
+              totalDistance = bgTotalDistance;
+            }
 
+            // Update route points from background service
             final bgRoutePoints = event['routePoints'] as List<dynamic>?;
             if (bgRoutePoints != null) {
               routePoints = bgRoutePoints
@@ -217,6 +343,7 @@ class _StartDriveMapState extends State<StartDriveMap>
               _updatePolyline();
             }
 
+            // Move camera to current location
             if (mapController != null) {
               mapController.animateCamera(CameraUpdate.newLatLng(newLocation));
             }
@@ -227,80 +354,123 @@ class _StartDriveMapState extends State<StartDriveMap>
       }
     });
 
+    // Listen for socket status from background service
     service.on('socket_status').listen((event) {
-      print('Background socket status: ${event!['connected']}');
-      if (event['error'] != null) {
-        print('Background socket error: ${event['error']}');
+      if (event != null) {
+        print('Background socket status: ${event['connected']}');
+        if (event['error'] != null) {
+          print('Background socket error: ${event['error']}');
+        }
+      }
+    });
+
+    // Listen for location errors from background service
+    service.on('location_error').listen((event) {
+      if (event != null) {
+        print('Background location error: ${event['error']}');
+        // Handle location errors (maybe restart foreground tracking)
       }
     });
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
+  void _stopBackgroundService() {
+    if (!_backgroundServiceStarted) return;
 
-    switch (state) {
-      case AppLifecycleState.paused:
-      case AppLifecycleState.detached:
-        if (!isDriveEnded) {
-          _startBackgroundService();
-        }
-        break;
-      case AppLifecycleState.resumed:
-        if (_isBackgroundServiceActive) {
-          _stopBackgroundService();
-        }
-        break;
-      default:
-        break;
+    try {
+      print('🛑 Stopping background service');
+      final service = FlutterBackgroundService();
+      service.invoke('stop_tracking');
+      _backgroundServiceStarted = false;
+
+      if (!isDriveEnded) {
+        // Restart foreground tracking
+        _initializeSocket();
+        _startLocationTracking();
+      }
+
+      print('✅ Background service stopped');
+    } catch (e) {
+      print('❌ Failed to stop background service: $e');
     }
   }
 
-  void _startBackgroundService() {
-    if (!_isBackgroundServiceActive && !isDriveEnded) {
-      try {
-        final service = FlutterBackgroundService();
+  void _syncFromBackgroundService() {
+    if (!_backgroundServiceStarted) return;
 
-        service.startService();
-        service.invoke('start_tracking', {
-          'eventId': widget.eventId,
-          'totalDistance': totalDistance,
-          'driveStartTime': driveStartTime?.millisecondsSinceEpoch,
-          'totalPausedDuration': totalPausedDuration,
+    final service = FlutterBackgroundService();
+    service.invoke('get_data');
+
+    service.on('data_response').listen((event) {
+      if (mounted && event != null) {
+        setState(() {
+          double bgTotalDistance =
+              event['totalDistance']?.toDouble() ?? totalDistance;
+          if (bgTotalDistance > totalDistance) {
+            totalDistance = bgTotalDistance;
+          }
+
+          final bgRoutePoints = event['routePoints'] as List<dynamic>?;
+          if (bgRoutePoints != null &&
+              bgRoutePoints.length > routePoints.length) {
+            routePoints = bgRoutePoints
+                .map((point) => LatLng(point['latitude'], point['longitude']))
+                .toList();
+            _updatePolyline();
+          }
         });
 
-        _isBackgroundServiceActive = true;
-
-        if (positionStreamSubscription != null) {
-          positionStreamSubscription!.cancel();
-          positionStreamSubscription = null;
-        }
-
-        if (socket != null && socket!.connected) {
-          socket!.disconnect();
-        }
-      } catch (e) {
-        print('Failed to start background service: $e');
+        print(
+          '📊 Synced from background: ${totalDistance.toStringAsFixed(2)} km',
+        );
       }
-    }
+    });
   }
 
-  void _stopBackgroundService() {
-    if (_isBackgroundServiceActive) {
-      try {
-        final service = FlutterBackgroundService();
-        service.invoke('stop_tracking');
-        _isBackgroundServiceActive = false;
+  // void _startBackgroundService() {
+  //   if (!_isBackgroundServiceActive && !isDriveEnded) {
+  //     try {
+  //       final service = FlutterBackgroundService();
 
-        if (!isDriveEnded) {
-          _initializeSocket();
-          _startLocationTracking();
-        }
-      } catch (e) {
-        print('Failed to stop background service: $e');
-      }
-    }
-  }
+  //       service.startService();
+  //       service.invoke('start_tracking', {
+  //         'eventId': widget.eventId,
+  //         'totalDistance': totalDistance,
+  //         'driveStartTime': driveStartTime?.millisecondsSinceEpoch,
+  //         'totalPausedDuration': totalPausedDuration,
+  //       });
+
+  //       _isBackgroundServiceActive = true;
+
+  //       if (positionStreamSubscription != null) {
+  //         positionStreamSubscription!.cancel();
+  //         positionStreamSubscription = null;
+  //       }
+
+  //       if (socket != null && socket!.connected) {
+  //         socket!.disconnect();
+  //       }
+  //     } catch (e) {
+  //       print('Failed to start background service: $e');
+  //     }
+  //   }
+  // }
+
+  // void _stopBackgroundService() {
+  //   if (_isBackgroundServiceActive) {
+  //     try {
+  //       final service = FlutterBackgroundService();
+  //       service.invoke('stop_tracking');
+  //       _isBackgroundServiceActive = false;
+
+  //       if (!isDriveEnded) {
+  //         _initializeSocket();
+  //         _startLocationTracking();
+  //       }
+  //     } catch (e) {
+  //       print('Failed to stop background service: $e');
+  //     }
+  //   }
+  // }
 
   Future<void> _determinePosition() async {
     bool serviceEnabled;
@@ -805,9 +975,17 @@ class _StartDriveMapState extends State<StartDriveMap>
 
   @override
   void dispose() {
+    _serviceHealthCheck?.cancel();
     _locationUpdateTimer?.cancel();
     _connectionHealthTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
+
+    // Stop background service when disposing
+    if (_backgroundServiceStarted) {
+      final service = FlutterBackgroundService();
+      service.invoke('stop_tracking');
+    }
+
     _cleanupResources();
     super.dispose();
   }
@@ -964,41 +1142,40 @@ class _StartDriveMapState extends State<StartDriveMap>
                                   ),
                                 ),
 
-                              const SizedBox(height: 10),
+                              // const SizedBox(height: 10),
 
-                              // Pause/Resume Button
-                              if (!isDriveEnded)
-                                SizedBox(
-                                  width: double.infinity,
-                                  height: 50,
-                                  child: ElevatedButton(
-                                    onPressed: isDrivePaused
-                                        ? _resumeDrive
-                                        : _pauseDrive,
-                                    style: ElevatedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 10,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      backgroundColor: isDrivePaused
-                                          ? Colors.green
-                                          : Colors.orange,
-                                    ),
-                                    child: Text(
-                                      isDrivePaused
-                                          ? 'Resume Drive'
-                                          : 'Pause Drive',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-
+                              // // Pause/Resume Button
+                              // if (!isDriveEnded)
+                              //   SizedBox(
+                              //     width: double.infinity,
+                              //     height: 50,
+                              //     child: ElevatedButton(
+                              //       onPressed: isDrivePaused
+                              //           ? _resumeDrive
+                              //           : _pauseDrive,
+                              //       style: ElevatedButton.styleFrom(
+                              //         padding: const EdgeInsets.symmetric(
+                              //           vertical: 10,
+                              //         ),
+                              //         shape: RoundedRectangleBorder(
+                              //           borderRadius: BorderRadius.circular(10),
+                              //         ),
+                              //         backgroundColor: isDrivePaused
+                              //             ? Colors.green
+                              //             : Colors.orange,
+                              //       ),
+                              //       child: Text(
+                              //         isDrivePaused
+                              //             ? 'Resume Drive'
+                              //             : 'Pause Drive',
+                              //         style: GoogleFonts.poppins(
+                              //           fontSize: 14,
+                              //           fontWeight: FontWeight.w500,
+                              //           color: Colors.white,
+                              //         ),
+                              //       ),
+                              //     ),
+                              //   ),
                               const SizedBox(height: 10),
 
                               // End Drive Buttons

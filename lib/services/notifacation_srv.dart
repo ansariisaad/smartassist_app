@@ -240,9 +240,6 @@ class NotificationService {
         requestAlertPermission: true,
         requestBadgePermission: true,
         requestSoundPermission: true,
-        onDidReceiveLocalNotification: (id, title, body, payload) async {
-          print("Received local notification: $title, $body");
-        },
       );
 
       final initializationSettings = InitializationSettings(

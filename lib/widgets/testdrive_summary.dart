@@ -7,7 +7,7 @@ import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
-import 'package:smartassist/utils/bottom_navigation.dart'; 
+import 'package:smartassist/utils/bottom_navigation.dart';
 import 'dart:convert';
 
 import 'package:smartassist/utils/storage.dart';

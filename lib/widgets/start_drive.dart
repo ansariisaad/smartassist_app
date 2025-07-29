@@ -12,10 +12,12 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/services/socket_backgroundsrv.dart';
 import 'package:smartassist/utils/bottom_navigation.dart';
 import 'package:smartassist/utils/storage.dart';
+import 'package:smartassist/utils/testdrive_notification_helper.dart';
 import 'package:smartassist/widgets/feedback.dart';
 import 'package:smartassist/widgets/testdrive_summary.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
@@ -496,50 +498,147 @@ class _StartDriveMapState extends State<StartDriveMap>
     });
   }
 
+  // Future<void> _determinePosition() async {
+  //   bool serviceEnabled;
+  //   LocationPermission permission;
+
+  //   serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  //   if (!serviceEnabled) {
+  //     setState(() {
+  //       error =
+  //           'Location services are disabled. Please enable location services in your device settings.';
+  //       isLoading = false;
+  //     });
+  //     return;
+  //   }
+
+  //   permission = await Geolocator.checkPermission();
+  //   if (permission == LocationPermission.denied) {
+  //     permission = await Geolocator.requestPermission();
+  //     if (permission == LocationPermission.denied) {
+  //       setState(() {
+  //         error =
+  //             'Location permissions are denied. Please allow access to your location.';
+  //         isLoading = false;
+  //       });
+  //       return;
+  //     }
+  //   }
+
+  //   if (permission == LocationPermission.deniedForever) {
+  //     setState(() {
+  //       error =
+  //           'Location permissions are permanently denied. Please enable them in app settings.';
+  //       isLoading = false;
+  //     });
+  //     return;
+  //   }
+
+  //   try {
+  //     Position position = await Geolocator.getCurrentPosition(
+  //       desiredAccuracy: LocationAccuracy.high,
+  //       timeLimit: Duration(seconds: 10),
+  //     );
+
+  //     _handleLocationObtained(position);
+  //   } catch (e) {
+  //     setState(() {
+  //       error = 'Error getting location: $e';
+  //       isLoading = false;
+  //     });
+  //   }
+  // }
+
+  // Replace your existing _determinePosition method with this:
   Future<void> _determinePosition() async {
-    bool serviceEnabled;
-    LocationPermission permission;
+    setState(() {
+      isLoading = true;
+      error = '';
+    });
 
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      setState(() {
-        error =
-            'Location services are disabled. Please enable location services in your device settings.';
-        isLoading = false;
-      });
-      return;
-    }
+    try {
+      // First check if location services are enabled
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        setState(() {
+          error =
+              'Location services are disabled. Please enable location services in your device settings.';
+          isLoading = false;
+        });
 
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
+        // Show dialog to open location settings
+        _showLocationServiceDialog();
+        return;
+      }
+
+      // Check location permissions using permission_handler
+      PermissionStatus permission = await Permission.location.status;
+      print('📍 Current location permission status: $permission');
+
+      // Request permission if not granted
+      if (permission.isDenied) {
+        permission = await Permission.location.request();
+        print('📍 Location permission after request: $permission');
+      }
+
+      // Handle different permission states
+      if (permission.isDenied) {
         setState(() {
           error =
               'Location permissions are denied. Please allow access to your location.';
           isLoading = false;
         });
+        _showPermissionDialog();
         return;
       }
-    }
 
-    if (permission == LocationPermission.deniedForever) {
-      setState(() {
-        error =
-            'Location permissions are permanently denied. Please enable them in app settings.';
-        isLoading = false;
-      });
-      return;
-    }
+      if (permission.isPermanentlyDenied) {
+        setState(() {
+          error =
+              'Location permissions are permanently denied. Please enable them in app settings.';
+          isLoading = false;
+        });
+        _showPermanentlyDeniedDialog();
+        return;
+      }
 
-    try {
+      // Check for background location permission (Android 10+)
+      if (permission.isGranted) {
+        PermissionStatus backgroundPermission =
+            await Permission.locationAlways.status;
+        if (backgroundPermission.isDenied) {
+          print('📍 Requesting background location permission...');
+          backgroundPermission = await Permission.locationAlways.request();
+          print('📍 Background location permission: $backgroundPermission');
+
+          if (backgroundPermission.isDenied) {
+            print(
+              '⚠️ Background location denied, but continuing with foreground only',
+            );
+          }
+        }
+      }
+
+      print('✅ All permissions granted, getting location...');
+
+      // Get current position
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
-        timeLimit: Duration(seconds: 10),
+        timeLimit: Duration(seconds: 15),
       );
 
+      print(
+        '📍 Location obtained: ${position.latitude}, ${position.longitude}',
+      );
+
+      // Handle successful location
       _handleLocationObtained(position);
+
+      // Initialize socket after successful location
+      print('🔌 Initializing socket connection...');
+      _initializeSocket();
     } catch (e) {
+      print('❌ Error in _determinePosition: $e');
       setState(() {
         error = 'Error getting location: $e';
         isLoading = false;
@@ -547,6 +646,204 @@ class _StartDriveMapState extends State<StartDriveMap>
     }
   }
 
+  // Show dialog when location services are disabled
+  void _showLocationServiceDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.location_off, color: Colors.red),
+              SizedBox(width: 8),
+              Text('Location Services Disabled'),
+            ],
+          ),
+          content: Text(
+            'Location services are turned off. Please enable location services to use test drive tracking.',
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                // Open location settings
+                await Geolocator.openLocationSettings();
+                // Wait a bit then retry
+                Future.delayed(Duration(seconds: 2), () {
+                  _determinePosition();
+                });
+              },
+              child: Text('Open Settings'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Show dialog for location permission
+  void _showPermissionDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.location_on, color: Colors.orange),
+              SizedBox(width: 8),
+              Text('Location Permission Required'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'This app needs location access to track your test drive.',
+                style: TextStyle(fontSize: 16),
+              ),
+              SizedBox(height: 12),
+              Text(
+                '• Allow location access in the next dialog\n'
+                '• For best results, choose "Allow all the time"',
+                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                _determinePosition(); // Retry permission request
+              },
+              child: Text('Grant Permission'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Show dialog for permanently denied permissions
+  void _showPermanentlyDeniedDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.settings, color: Colors.red),
+              SizedBox(width: 8),
+              Text('Permission Required'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Location permission has been permanently denied. Please enable it manually in settings.',
+                style: TextStyle(fontSize: 16),
+              ),
+              SizedBox(height: 12),
+              Text(
+                'Steps:\n'
+                '1. Open App Settings\n'
+                '2. Go to Permissions\n'
+                '3. Enable Location access\n'
+                '4. Choose "Allow all the time"',
+                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                // Open app settings
+                await openAppSettings();
+                // Show instruction to retry
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'After enabling permissions, tap "Try Again"',
+                    ),
+                    duration: Duration(seconds: 4),
+                  ),
+                );
+              },
+              child: Text('Open Settings'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Add this method to check notification permissions as well
+  // Future<void> _checkAndRequestNotificationPermissions() async {
+  //   bool hasNotificationPermission = await NotificationHelper.checkNotificationPermissions();
+
+  //   if (!hasNotificationPermission) {
+  //     showDialog(
+  //       context: context,
+  //       builder: (BuildContext context) {
+  //         return AlertDialog(
+  //           title: Row(
+  //             children: [
+  //               Icon(Icons.notifications, color: Colors.blue),
+  //               SizedBox(width: 8),
+  //               Text('Notification Permission'),
+  //             ],
+  //           ),
+  //           content: Text(
+  //             'Enable notifications to see test drive progress when the app is in background.',
+  //             style: TextStyle(fontSize: 16),
+  //           ),
+  //           actions: [
+  //             TextButton(
+  //               onPressed: () {
+  //                 Navigator.of(context).pop();
+  //               },
+  //               child: Text('Skip'),
+  //             ),
+  //             ElevatedButton(
+  //               onPressed: () async {
+  //                 Navigator.of(context).pop();
+  //                 await NotificationHelper.requestNotificationPermissions();
+  //               },
+  //               child: Text('Enable'),
+  //             ),
+  //           ],
+  //         );
+  //       },
+  //     );
+  //   }
+  // }
+
+  // Update your _handleLocationObtained method to include notification check:
   void _handleLocationObtained(Position position) {
     final LatLng currentLocation = LatLng(
       position.latitude,
@@ -577,10 +874,51 @@ class _StartDriveMapState extends State<StartDriveMap>
         isLoading = false;
       });
 
-      _initializeSocket();
+      // Check notification permissions after location is obtained
+      // _checkAndRequestNotificationPermissions();
+
+      // Initialize socket (moved here from _determinePosition)
+      print('🔌 Socket connection initialized');
+
+      // Start the test drive
       _startTestDrive(currentLocation);
     }
   }
+
+  // void _handleLocationObtained(Position position) {
+  //   final LatLng currentLocation = LatLng(
+  //     position.latitude,
+  //     position.longitude,
+  //   );
+
+  //   if (mounted) {
+  //     setState(() {
+  //       startMarker = Marker(
+  //         markerId: const MarkerId('start'),
+  //         position: currentLocation,
+  //         infoWindow: const InfoWindow(title: 'Start'),
+  //       );
+
+  //       userMarker = Marker(
+  //         markerId: const MarkerId('user'),
+  //         position: currentLocation,
+  //         infoWindow: const InfoWindow(title: 'User'),
+  //         icon: BitmapDescriptor.defaultMarkerWithHue(
+  //           BitmapDescriptor.hueAzure,
+  //         ),
+  //       );
+
+  //       routePoints.add(currentLocation);
+  //       _updatePolyline();
+  //       _lastValidLocation = currentLocation;
+  //       _lastLocationTime = DateTime.now();
+  //       isLoading = false;
+  //     });
+
+  //     _initializeSocket();
+  //     _startTestDrive(currentLocation);
+  //   }
+  // }
 
   void _updatePolyline() {
     routePolyline = Polyline(
@@ -1199,38 +1537,38 @@ class _StartDriveMapState extends State<StartDriveMap>
                               const SizedBox(height: 10),
 
                               // Pause/Resume Button
-                              if (!isDriveEnded)
-                                SizedBox(
-                                  width: double.infinity,
-                                  height: 50,
-                                  child: ElevatedButton(
-                                    onPressed: isDrivePaused
-                                        ? _resumeDrive
-                                        : _pauseDrive,
-                                    style: ElevatedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 10,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      backgroundColor: isDrivePaused
-                                          ? Colors.green
-                                          : Colors.orange,
-                                    ),
-                                    child: Text(
-                                      isDrivePaused
-                                          ? 'Resume Drive'
-                                          : 'Pause Drive',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              const SizedBox(height: 10),
+                              // if (!isDriveEnded)
+                              //   SizedBox(
+                              //     width: double.infinity,
+                              //     height: 50,
+                              //     child: ElevatedButton(
+                              //       onPressed: isDrivePaused
+                              //           ? _resumeDrive
+                              //           : _pauseDrive,
+                              //       style: ElevatedButton.styleFrom(
+                              //         padding: const EdgeInsets.symmetric(
+                              //           vertical: 10,
+                              //         ),
+                              //         shape: RoundedRectangleBorder(
+                              //           borderRadius: BorderRadius.circular(10),
+                              //         ),
+                              //         backgroundColor: isDrivePaused
+                              //             ? Colors.green
+                              //             : Colors.orange,
+                              //       ),
+                              //       child: Text(
+                              //         isDrivePaused
+                              //             ? 'Resume Drive'
+                              //             : 'Pause Drive',
+                              //         style: GoogleFonts.poppins(
+                              //           fontSize: 14,
+                              //           fontWeight: FontWeight.w500,
+                              //           color: Colors.white,
+                              //         ),
+                              //       ),
+                              //     ),
+                              //   ),
+                              // const SizedBox(height: 10),
 
                               // End Drive Buttons
                               if (!isDriveEnded)

@@ -259,7 +259,7 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     }
     try {
-      final data = await LeadsSrv.fetchDashboardDataapi();
+      final data = await LeadsSrv.fetchDashboardData();
       if (mounted) {
         setState(() {
           hasInternet = true;

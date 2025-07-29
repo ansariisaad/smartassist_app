@@ -1,4 +1,3 @@
- 
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -123,50 +122,51 @@ class _TimelineUpcomingState extends State<TimelineUpcoming> {
   //   );
   // }
 
-void _handleFollowupsEdit(String taskId) {
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (context) => Dialog(
-      insetPadding: const EdgeInsets.all(16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      backgroundColor: Colors.white,
-      child: FollowupsEdit(
-        taskId: taskId,
-        onFormSubmit: () {
-          Navigator.pop(context);
-          setState(() {});
-        },
-      ),
-    ),
-  );
-}
-
-void handleAppointmentsEdit(String taskId) {
-  showDialog(
-    barrierDismissible: false,
-    context: context,
-    builder: (context) {
-      return Dialog(
-        insetPadding: const EdgeInsets.symmetric(horizontal: 10),
+  void _handleFollowupsEdit(String taskId) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        insetPadding: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: AppointmentsEdit(
+        child: FollowupsEdit(
+          taskId: taskId,
           onFormSubmit: () {
             Navigator.pop(context);
-            setState(() {
-              print('this is the taskid $taskId');
-            });
+            setState(() {});
           },
-          taskId: taskId,
         ),
-      );
-    },
-  );
-}
- void _handleTestDriveEdit(String eventId) {
+      ),
+    );
+  }
+
+  void handleAppointmentsEdit(String taskId) {
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) {
+        return Dialog(
+          insetPadding: const EdgeInsets.symmetric(horizontal: 10),
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: AppointmentsEdit(
+            onFormSubmit: () {
+              Navigator.pop(context);
+              setState(() {
+                print('this is the taskid $taskId');
+              });
+            },
+            taskId: taskId,
+          ),
+        );
+      },
+    );
+  }
+
+  void _handleTestDriveEdit(String eventId) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -197,7 +197,9 @@ void handleAppointmentsEdit(String taskId) {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
           backgroundColor: Colors.white,
           title: Text(
             'Ready to start test drive?',
@@ -227,7 +229,10 @@ void handleAppointmentsEdit(String taskId) {
                   ),
                 );
               },
-              child: Text('Yes', style: GoogleFonts.poppins(color: AppColors.colorsBlue)),
+              child: Text(
+                'Yes',
+                style: GoogleFonts.poppins(color: AppColors.colorsBlue),
+              ),
             ),
           ],
         );
@@ -237,7 +242,11 @@ void handleAppointmentsEdit(String taskId) {
 
   Future<void> _getOtp(String eventId) async {
     final success = await LeadsSrv.getOtp(eventId: eventId);
-    print(success ? '✅ Test drive started successfully' : '❌ Failed to start test drive');
+    print(
+      success
+          ? '✅ Test drive started successfully'
+          : '❌ Failed to start test drive',
+    );
   }
 
   bool _shouldShowSeeMore(String text) => text.length > 100;
@@ -281,13 +290,14 @@ void handleAppointmentsEdit(String taskId) {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   GestureDetector(
-                    onTap: () => _handleIconPress(subject, mobile, '', '', '', context),
+                    onTap: () =>
+                        _handleIconPress(subject, mobile, '', '', '', context),
                     child: Container(
                       width: 32,
                       height: 32,
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF3497F9),
+                        color: AppColors.colorsBlue,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(iconData, size: 18, color: Colors.white),
@@ -299,7 +309,7 @@ void handleAppointmentsEdit(String taskId) {
                     style: AppFont.dropDowmLabel(context)?.copyWith(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF3497F9),
+                      color: AppColors.colorsBlue,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -312,42 +322,41 @@ void handleAppointmentsEdit(String taskId) {
                             style: AppFont.dropDowmLabel(context)?.copyWith(
                               fontWeight: FontWeight.w600,
                               fontSize: 12.5,
-                              color: const Color(0xFF3497F9),
+                              color: AppColors.colorsBlue,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                      IconButton(
-  icon: Icon(Icons.edit, size: 18, color: Colors.black),
-  onPressed: () {
-    final lower = subject.trim().toLowerCase();
+                        IconButton(
+                          icon: Icon(Icons.edit, size: 18, color: Colors.black),
+                          onPressed: () {
+                            final lower = subject.trim().toLowerCase();
 
-    // These subjects open FollowupsEdit
-    if (lower == 'provide quotation' ||
-        lower == 'send sms' ||
-        lower == 'call' ||
-        lower == 'send email' ||
-        lower == 'showroom appointment' ||
-        lower == 'trade in evaluation') {
-      _handleFollowupsEdit(taskId);
-    } 
-    // These subjects open AppointmentsEdit
-    else if (lower == 'quotation' ||
-        lower == 'meeting' ||
-        lower == 'vehicle selection') {
-      handleAppointmentsEdit(taskId);
-    }
-    // Otherwise, fallback to followup (optional)
-    else {
-      _handleFollowupsEdit(taskId);
-    }
-  },
-  tooltip: 'Edit Remarks',
-  splashRadius: 18,
-  padding: EdgeInsets.zero,
-  constraints: BoxConstraints(),
-),
-
+                            // These subjects open FollowupsEdit
+                            if (lower == 'provide quotation' ||
+                                lower == 'send sms' ||
+                                lower == 'call' ||
+                                lower == 'send email' ||
+                                lower == 'showroom appointment' ||
+                                lower == 'trade in evaluation') {
+                              _handleFollowupsEdit(taskId);
+                            }
+                            // These subjects open AppointmentsEdit
+                            else if (lower == 'quotation' ||
+                                lower == 'meeting' ||
+                                lower == 'vehicle selection') {
+                              handleAppointmentsEdit(taskId);
+                            }
+                            // Otherwise, fallback to followup (optional)
+                            else {
+                              _handleFollowupsEdit(taskId);
+                            }
+                          },
+                          tooltip: 'Edit Remarks',
+                          splashRadius: 18,
+                          padding: EdgeInsets.zero,
+                          constraints: BoxConstraints(),
+                        ),
                       ],
                     ),
                   ),
@@ -357,7 +366,7 @@ void handleAppointmentsEdit(String taskId) {
               Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: const Color(0xffE7F2FF),
+                  color: AppColors.colorsBlueBar.withOpacity(.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 padding: const EdgeInsets.all(14),
@@ -365,13 +374,19 @@ void handleAppointmentsEdit(String taskId) {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Remarks:',
-                        style: AppFont.dropDowmLabel(context)?.copyWith(color: Colors.black)),
+                    Text(
+                      'Remarks:',
+                      style: AppFont.dropDowmLabel(
+                        context,
+                      )?.copyWith(color: Colors.black),
+                    ),
                     const SizedBox(height: 4),
                     Text(
                       remarks.isNotEmpty ? remarks : 'No remarks',
                       style: AppFont.smallText12(context)?.copyWith(
-                        color: remarks.isNotEmpty ? Colors.black : Colors.grey[600],
+                        color: remarks.isNotEmpty
+                            ? Colors.black
+                            : Colors.grey[600],
                         height: 1.4,
                       ),
                       maxLines: (!showSeeMore || isExpanded) ? null : 2,
@@ -432,14 +447,21 @@ void handleAppointmentsEdit(String taskId) {
                   children: [
                     GestureDetector(
                       onTap: () {
-                        _handleIconPress(eventSubject, mobile, eventId, gmail, leadId, context);
+                        _handleIconPress(
+                          eventSubject,
+                          mobile,
+                          eventId,
+                          gmail,
+                          leadId,
+                          context,
+                        );
                       },
                       child: Container(
                         width: 32,
                         height: 32,
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF3497F9),
+                          color: AppColors.colorsBlue,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(iconData, size: 18, color: Colors.white),
@@ -451,7 +473,7 @@ void handleAppointmentsEdit(String taskId) {
                       style: AppFont.dropDowmLabel(context)?.copyWith(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF3497F9),
+                        color: AppColors.colorsBlue,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -464,14 +486,18 @@ void handleAppointmentsEdit(String taskId) {
                               style: AppFont.dropDowmLabel(context)?.copyWith(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 14,
-                                color: const Color(0xFF3497F9),
+                                color: AppColors.colorsBlue,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           if (eventSubject.trim().toLowerCase() == 'test drive')
                             IconButton(
-                              icon: Icon(Icons.edit, size: 18, color: Colors.black),
+                              icon: Icon(
+                                Icons.edit,
+                                size: 18,
+                                color: Colors.black,
+                              ),
                               onPressed: () => _handleTestDriveEdit(eventId),
                               tooltip: 'Edit Test Drive',
                               splashRadius: 18,
@@ -487,7 +513,7 @@ void handleAppointmentsEdit(String taskId) {
                 Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: const Color(0xffE7F2FF),
+                    color: AppColors.colorsBlueBar.withOpacity(.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   padding: const EdgeInsets.all(14),
@@ -495,14 +521,19 @@ void handleAppointmentsEdit(String taskId) {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Remarks:',
-                          style: AppFont.dropDowmLabel(context)
-                              ?.copyWith(color: Colors.black)),
+                      Text(
+                        'Remarks:',
+                        style: AppFont.dropDowmLabel(
+                          context,
+                        )?.copyWith(color: Colors.black),
+                      ),
                       const SizedBox(height: 4),
                       Text(
                         remarks.isNotEmpty ? remarks : 'No remarks',
                         style: AppFont.smallText12(context)?.copyWith(
-                          color: remarks.isNotEmpty ? Colors.black : Colors.grey[600],
+                          color: remarks.isNotEmpty
+                              ? Colors.black
+                              : Colors.grey[600],
                           height: 1.4,
                         ),
                         maxLines: (!showSeeMore || isExpanded) ? null : 2,

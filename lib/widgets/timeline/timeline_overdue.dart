@@ -716,16 +716,433 @@
 //   }
 // }
 
+// import 'package:flutter/material.dart';
+// import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+// import 'package:intl/intl.dart';
+// import 'package:smartassist/config/component/color/colors.dart';
+// import 'package:smartassist/config/component/font/font.dart';
+// import 'package:smartassist/services/api_srv.dart';
+// import 'package:smartassist/widgets/testdrive_verifyotp.dart';
+// import 'package:url_launcher/url_launcher.dart';
+// import 'package:timeline_tile/timeline_tile.dart';
+// import 'package:google_fonts/google_fonts.dart';
+
+// class timelineOverdue extends StatefulWidget {
+//   final carIcon = '/assets/caricon.png';
+//   final List<Map<String, dynamic>> tasks;
+//   final List<Map<String, dynamic>> overdueEvents;
+//   const timelineOverdue({
+//     super.key,
+//     required this.tasks,
+//     required this.overdueEvents,
+//   });
+
+//   @override
+//   State<timelineOverdue> createState() => _timelineOverdueState();
+// }
+
+// class _timelineOverdueState extends State<timelineOverdue> {
+//   final Set<int> expandedTaskIndexes = {};
+//   final Set<int> expandedEventIndexes = {};
+
+//   String _formatDate(String date) {
+//     try {
+//       final DateTime parsedDate = DateFormat("yyyy-MM-dd").parse(date);
+//       return DateFormat("d MMM").format(parsedDate); // Outputs "22 May"
+//     } catch (e) {
+//       print('Error formatting date: $e');
+//       return 'N/A';
+//     }
+//   }
+
+//   Future<void> _showAleart(
+//     String eventId,
+//     String gmail,
+//     String leadId,
+//     String mobile,
+//     BuildContext context,
+//   ) async {
+//     return showDialog<void>(
+//       context: context,
+//       barrierDismissible: false, // User must tap button to close dialog
+//       builder: (BuildContext context) {
+//         return AlertDialog(
+//           shape: RoundedRectangleBorder(
+//             borderRadius: BorderRadius.circular(10),
+//           ),
+//           title: Text(
+//             'Ready to start test drive?',
+//             style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+//           ),
+//           content: Text(
+//             'Please make sure you have all the necessary documents(license) and permissions(OTP) ready before starting test drive.',
+//             style: GoogleFonts.poppins(),
+//           ),
+//           actions: [
+//             TextButton(
+//               style: TextButton.styleFrom(
+//                 overlayColor: Colors.grey.withOpacity(0.1),
+//                 foregroundColor: Colors.grey,
+//               ),
+//               onPressed: () => Navigator.of(context).pop(false),
+//               child: Text('No', style: GoogleFonts.poppins(color: Colors.grey)),
+//             ),
+//             TextButton(
+//               style: TextButton.styleFrom(
+//                 overlayColor: AppColors.colorsBlue.withOpacity(0.1),
+//                 foregroundColor: AppColors.colorsBlue,
+//               ),
+//               onPressed: () {
+//                 _getOtp(eventId);
+//                 Navigator.push(
+//                   context,
+//                   MaterialPageRoute(
+//                     builder: (context) => TestdriveVerifyotp(
+//                       email: gmail,
+//                       eventId: eventId,
+//                       leadId: leadId,
+//                       mobile: mobile,
+//                     ),
+//                   ),
+//                 );
+//               },
+//               child: Text(
+//                 'Yes',
+//                 style: GoogleFonts.poppins(color: AppColors.colorsBlue),
+//               ),
+//             ),
+//           ],
+//         );
+//       },
+//     );
+//   }
+
+//   Future<void> _getOtp(String eventId) async {
+//     final success = await LeadsSrv.getOtp(eventId: eventId);
+
+//     if (success) {
+//       print('✅ Test drive started successfully');
+//     } else {
+//       print('❌ Failed to start test drive');
+//     }
+
+//     // if (mounted) setState(() {});
+//   }
+
+//   bool _shouldShowSeeMore(String remarks) {
+//     return remarks.length > 60;
+//   }
+
+//   bool _isTestDrive(String subject) {
+//     return subject.toLowerCase().contains('test drive');
+//   }
+
+//   // Icon logic from first code
+//   IconData _getIconForSubject(String subject) {
+//     if (subject == 'Provide Quotation') {
+//       return Icons.receipt_long;
+//     } else if (subject == 'Send SMS') {
+//       return Icons.message_rounded;
+//     } else if (subject == 'Call') {
+//       return Icons.phone;
+//     } else if (subject == 'Send Email') {
+//       return Icons.mail;
+//     } else if (subject == 'Showroom appointment') {
+//       return Icons.person_2_outlined;
+//     } else if (subject == 'Trade in evaluation') {
+//       return Icons.handshake;
+//     } else if (subject == 'Test Drive') {
+//       return Icons.directions_car;
+//     } else {
+//       return Icons.phone; // default fallback icon
+//     }
+//   }
+
+//   // Icon logic for events from first code
+//   IconData _getIconForEventSubject(String eventSubject) {
+//     if (eventSubject == 'Test Drive') {
+//       return Icons.directions_car;
+//     } else if (eventSubject == 'Showroom appointment') {
+//       return FontAwesomeIcons.solidCalendar;
+//     } else if (eventSubject == 'Quotation') {
+//       return FontAwesomeIcons.solidCalendar;
+//     } else {
+//       return Icons.phone;
+//     }
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     // Reverse the tasks list to show from bottom to top
+//     final reversedTasks = widget.tasks.reversed.toList();
+
+//     // Reverse the upcomingEvents list to show from bottom to top
+//     final reversedUpcomingEvents = widget.overdueEvents.reversed.toList();
+
+//     if (reversedTasks.isEmpty && reversedUpcomingEvents.isEmpty) {
+//       return Center(
+//         child: Padding(
+//           padding: const EdgeInsets.symmetric(vertical: 20),
+//           child: Text(
+//             "No overdue task available",
+//             style: AppFont.smallText12(context),
+//           ),
+//         ),
+//       );
+//     }
+
+//     const double minBoxHeight = 90.0;
+
+//     return Column(
+//       children: [
+//         // TASKS - Updated styling with icon
+//         ...List.generate(reversedTasks.length, (index) {
+//           final task = reversedTasks[index];
+//           String remarks = task['remarks'] ?? '';
+//           String dueDate = _formatDate(task['due_date'] ?? 'N/A');
+//           String subject = task['subject'] ?? 'No Subject';
+
+//           bool isExpanded = expandedTaskIndexes.contains(index);
+//           bool showSeeMore = _shouldShowSeeMore(remarks);
+
+//           // Get icon for this subject
+//           IconData icon = _getIconForSubject(subject);
+
+//           return Column(
+//             crossAxisAlignment: CrossAxisAlignment.start,
+//             children: [
+//               // Date & Action Row with icon
+//               Row(
+//                 crossAxisAlignment: CrossAxisAlignment.center,
+//                 children: [
+//                   // Icon
+//                   Container(
+//                     width: 30,
+//                     height: 30,
+//                     decoration: BoxDecoration(
+//                       color: AppColors.sideRed,
+//                       shape: BoxShape.circle,
+//                     ),
+//                     child: Icon(icon, color: Colors.white, size: 16),
+//                   ),
+//                   const SizedBox(width: 12),
+//                   // Date Badge
+//                   Text(
+//                     dueDate,
+//                     style: AppFont.dropDowmLabel(context)?.copyWith(
+//                       fontSize: 14,
+//                       fontWeight: FontWeight.w600,
+//                       color: AppColors.sideRed,
+//                     ),
+//                   ),
+//                   const SizedBox(width: 12),
+//                   // Action Text
+//                   Text(
+//                     subject,
+//                     style: AppFont.dropDowmLabel(context)?.copyWith(
+//                       fontWeight: FontWeight.w600,
+//                       fontSize: 12.5,
+//                       color: AppColors.sideRed,
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//               const SizedBox(height: 10),
+
+//               // Card with only Remarks
+//               Container(
+//                 width: double.infinity,
+//                 constraints: BoxConstraints(minHeight: minBoxHeight),
+//                 decoration: BoxDecoration(
+//                   color: const Color(0xffE7F2FF),
+//                   borderRadius: BorderRadius.circular(12),
+//                 ),
+//                 padding: const EdgeInsets.all(14),
+//                 margin: const EdgeInsets.only(top: 4, bottom: 20),
+//                 child: Column(
+//                   crossAxisAlignment: CrossAxisAlignment.start,
+//                   children: [
+//                     Text('Remarks:', style: AppFont.dropDowmLabel(context)),
+//                     const SizedBox(height: 2),
+//                     if (remarks.isNotEmpty) ...[
+//                       Text(
+//                         remarks,
+//                         maxLines: (!showSeeMore || isExpanded) ? null : 2,
+//                         overflow: (!showSeeMore || isExpanded)
+//                             ? TextOverflow.visible
+//                             : TextOverflow.ellipsis,
+//                         style: AppFont.smallText12(context),
+//                       ),
+//                       if (showSeeMore) ...[
+//                         const SizedBox(height: 8),
+//                         GestureDetector(
+//                           onTap: () {
+//                             setState(() {
+//                               if (isExpanded) {
+//                                 expandedTaskIndexes.remove(index);
+//                               } else {
+//                                 expandedTaskIndexes.add(index);
+//                               }
+//                             });
+//                           },
+//                           child: Text(
+//                             isExpanded ? 'See less' : 'See more',
+//                             style: GoogleFonts.poppins(
+//                               fontWeight: FontWeight.w500,
+//                               fontSize: 12,
+//                             ),
+//                           ),
+//                         ),
+//                       ],
+//                     ],
+//                     if (remarks.isEmpty)
+//                       const SizedBox(
+//                         height: 24,
+//                       ), // For empty remarks, to match box size
+//                   ],
+//                 ),
+//               ),
+//             ],
+//           );
+//         }),
+
+//         // EVENTS - Updated styling with icon
+//         ...List.generate(reversedUpcomingEvents.length, (index) {
+//           final event = reversedUpcomingEvents[index];
+//           String eventId = event['event_id'] ?? 'No ID';
+//           String leadId = event['lead_id'] ?? 'No ID';
+//           String gmail = event['lead_email'] ?? '';
+//           String remarks = event['remarks'] ?? '';
+//           String mobile = event['mobile'] ?? '';
+//           String eventDate = _formatDate(event['start_date'] ?? 'N/A');
+//           String eventSubject = event['subject'] ?? 'No Subject';
+
+//           bool isExpanded = expandedEventIndexes.contains(index);
+//           bool showSeeMore = _shouldShowSeeMore(remarks);
+//           bool isTestDriveEvent = _isTestDrive(eventSubject);
+
+//           // Get icon for this event subject
+//           IconData icon = _getIconForEventSubject(eventSubject);
+
+//           // Choose colors based on whether it's a test drive
+//           Color badgeColor = AppColors.sideRed;
+//           Color badgeBackgroundColor = AppColors.sideRed.withOpacity(0.1);
+//           Color badgeBorderColor = AppColors.sideRed.withOpacity(0.3);
+
+//           return Container(
+//             margin: const EdgeInsets.only(bottom: 20),
+//             child: Column(
+//               crossAxisAlignment: CrossAxisAlignment.start,
+//               children: [
+//                 // Date & Action Row with icon
+//                 Row(
+//                   crossAxisAlignment: CrossAxisAlignment.center,
+//                   children: [
+//                     // Icon
+//                     Container(
+//                       width: 30,
+//                       height: 30,
+//                       decoration: BoxDecoration(
+//                         color: AppColors.sideRed,
+//                         shape: BoxShape.circle,
+//                       ),
+//                       child: Icon(icon, color: Colors.white, size: 16),
+//                     ),
+//                     const SizedBox(width: 12),
+//                     // Date Badge
+//                     Text(
+//                       eventDate,
+//                       style: AppFont.dropDowmLabel(context)?.copyWith(
+//                         fontSize: 14,
+//                         fontWeight: FontWeight.w600,
+//                         color: badgeColor,
+//                       ),
+//                     ),
+//                     const SizedBox(width: 12),
+//                     // Action Text
+//                     Text(
+//                       eventSubject,
+//                       style: AppFont.dropDowmLabel(context)?.copyWith(
+//                         fontWeight: FontWeight.w600,
+//                         fontSize: 14,
+//                         color: AppColors.sideRed,
+//                       ),
+//                     ),
+//                   ],
+//                 ),
+//                 const SizedBox(height: 10),
+
+//                 // Card with only Remarks
+//                 Container(
+//                   width: double.infinity,
+//                   constraints: BoxConstraints(minHeight: minBoxHeight),
+//                   decoration: BoxDecoration(
+//                     color: const Color(0xffE7F2FF),
+//                     borderRadius: BorderRadius.circular(12),
+//                   ),
+//                   padding: const EdgeInsets.all(14),
+//                   margin: const EdgeInsets.only(top: 4),
+//                   child: Column(
+//                     crossAxisAlignment: CrossAxisAlignment.start,
+//                     children: [
+//                       Text('Remarks:', style: AppFont.dropDowmLabel(context)),
+//                       const SizedBox(height: 2),
+//                       if (remarks.isNotEmpty) ...[
+//                         Text(
+//                           remarks,
+//                           maxLines: (!showSeeMore || isExpanded) ? null : 2,
+//                           overflow: (!showSeeMore || isExpanded)
+//                               ? TextOverflow.visible
+//                               : TextOverflow.ellipsis,
+//                           style: AppFont.smallText12(context),
+//                         ),
+//                         if (showSeeMore) ...[
+//                           const SizedBox(height: 8),
+//                           GestureDetector(
+//                             onTap: () {
+//                               setState(() {
+//                                 if (isExpanded) {
+//                                   expandedEventIndexes.remove(index);
+//                                 } else {
+//                                   expandedEventIndexes.add(index);
+//                                 }
+//                               });
+//                             },
+//                             child: Text(
+//                               isExpanded ? 'See less' : 'See more',
+//                               style: GoogleFonts.poppins(
+//                                 color: badgeColor,
+//                                 fontWeight: FontWeight.w500,
+//                                 fontSize: 12,
+//                               ),
+//                             ),
+//                           ),
+//                         ],
+//                       ],
+//                       if (remarks.isEmpty) const SizedBox(height: 24),
+//                     ],
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           );
+//         }),
+
+//         const SizedBox(height: 10),
+//       ],
+//     );
+//   }
+// }
+
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
-import 'package:smartassist/services/api_srv.dart';
-import 'package:smartassist/widgets/testdrive_verifyotp.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:timeline_tile/timeline_tile.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/followups.dart';
+import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/testdrive.dart';
+import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/appointments.dart';
 
 class timelineOverdue extends StatefulWidget {
   final carIcon = '/assets/caricon.png';
@@ -748,135 +1165,121 @@ class _timelineOverdueState extends State<timelineOverdue> {
   String _formatDate(String date) {
     try {
       final DateTime parsedDate = DateFormat("yyyy-MM-dd").parse(date);
-      return DateFormat("d MMM").format(parsedDate); // Outputs "22 May"
+      return DateFormat("d MMM").format(parsedDate);
     } catch (e) {
-      print('Error formatting date: $e');
       return 'N/A';
     }
   }
 
-  Future<void> _showAleart(
-    String eventId,
-    String gmail,
-    String leadId,
-    String mobile,
-    BuildContext context,
-  ) async {
-    return showDialog<void>(
+  IconData _getIconFromSubject(String subject) {
+    switch (subject.trim().toLowerCase()) {
+      case 'provide quotation':
+        return Icons.receipt_long;
+      case 'send sms':
+        return Icons.message_rounded;
+      case 'call':
+        return Icons.phone;
+      case 'send email':
+        return Icons.mail;
+      case 'showroom appointment':
+        return Icons.person_2_outlined;
+      case 'trade in evaluation':
+        return Icons.handshake;
+      case 'test drive':
+        return Icons.directions_car;
+      case 'quotation':
+        return FontAwesomeIcons.solidCalendar;
+      case 'meeting':
+        return Icons.groups;
+      case 'vehicle selection':
+        return Icons.directions_car_filled;
+      default:
+        return Icons.info_outline;
+    }
+  }
+
+  void _handleEdit(String subject, String id) {
+    final lower = subject.trim().toLowerCase();
+    if (lower == 'provide quotation' ||
+        lower == 'send sms' ||
+        lower == 'call' ||
+        lower == 'send email' ||
+        lower == 'showroom appointment' ||
+        lower == 'trade in evaluation') {
+      _showFollowupsEdit(id);
+    } else if (lower == 'quotation' ||
+        lower == 'meeting' ||
+        lower == 'vehicle selection') {
+      _showAppointmentsEdit(id);
+    } else if (lower == 'test drive') {
+      _showTestDriveEdit(id);
+    } else {
+      _showFollowupsEdit(id);
+    }
+  }
+
+  void _showFollowupsEdit(String taskId) {
+    showDialog(
       context: context,
-      barrierDismissible: false, // User must tap button to close dialog
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          title: Text(
-            'Ready to start test drive?',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-          ),
-          content: Text(
-            'Please make sure you have all the necessary documents(license) and permissions(OTP) ready before starting test drive.',
-            style: GoogleFonts.poppins(),
-          ),
-          actions: [
-            TextButton(
-              style: TextButton.styleFrom(
-                overlayColor: Colors.grey.withOpacity(0.1),
-                foregroundColor: Colors.grey,
-              ),
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text('No', style: GoogleFonts.poppins(color: Colors.grey)),
-            ),
-            TextButton(
-              style: TextButton.styleFrom(
-                overlayColor: AppColors.colorsBlue.withOpacity(0.1),
-                foregroundColor: AppColors.colorsBlue,
-              ),
-              onPressed: () {
-                _getOtp(eventId);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => TestdriveVerifyotp(
-                      email: gmail,
-                      eventId: eventId,
-                      leadId: leadId,
-                      mobile: mobile,
-                    ),
-                  ),
-                );
-              },
-              child: Text(
-                'Yes',
-                style: GoogleFonts.poppins(color: AppColors.colorsBlue),
-              ),
-            ),
-          ],
-        );
-      },
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        insetPadding: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        backgroundColor: Colors.white,
+        child: FollowupsEdit(
+          taskId: taskId,
+          onFormSubmit: () {
+            Navigator.pop(context);
+            setState(() {});
+          },
+        ),
+      ),
     );
   }
 
-  Future<void> _getOtp(String eventId) async {
-    final success = await LeadsSrv.getOtp(eventId: eventId);
-
-    if (success) {
-      print('✅ Test drive started successfully');
-    } else {
-      print('❌ Failed to start test drive');
-    }
-
-    // if (mounted) setState(() {});
+  void _showAppointmentsEdit(String taskId) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 10),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        child: AppointmentsEdit(
+          onFormSubmit: () {
+            Navigator.pop(context);
+            setState(() {});
+          },
+          taskId: taskId,
+        ),
+      ),
+    );
   }
 
-  bool _shouldShowSeeMore(String remarks) {
-    return remarks.length > 60;
+  void _showTestDriveEdit(String eventId) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        insetPadding: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        backgroundColor: Colors.white,
+        child: Testdrive(
+          eventId: eventId,
+          onFormSubmit: () {
+            Navigator.pop(context);
+            setState(() {});
+          },
+        ),
+      ),
+    );
   }
 
-  bool _isTestDrive(String subject) {
-    return subject.toLowerCase().contains('test drive');
-  }
-
-  // Icon logic from first code
-  IconData _getIconForSubject(String subject) {
-    if (subject == 'Provide Quotation') {
-      return Icons.receipt_long;
-    } else if (subject == 'Send SMS') {
-      return Icons.message_rounded;
-    } else if (subject == 'Call') {
-      return Icons.phone;
-    } else if (subject == 'Send Email') {
-      return Icons.mail;
-    } else if (subject == 'Showroom appointment') {
-      return Icons.person_2_outlined;
-    } else if (subject == 'Trade in evaluation') {
-      return Icons.handshake;
-    } else if (subject == 'Test Drive') {
-      return Icons.directions_car;
-    } else {
-      return Icons.phone; // default fallback icon
-    }
-  }
-
-  // Icon logic for events from first code
-  IconData _getIconForEventSubject(String eventSubject) {
-    if (eventSubject == 'Test Drive') {
-      return Icons.directions_car;
-    } else if (eventSubject == 'Showroom appointment') {
-      return FontAwesomeIcons.solidCalendar;
-    } else if (eventSubject == 'Quotation') {
-      return FontAwesomeIcons.solidCalendar;
-    } else {
-      return Icons.phone;
-    }
-  }
+  bool _shouldShowSeeMore(String remarks) => remarks.length > 60;
 
   @override
   Widget build(BuildContext context) {
-    // Reverse the tasks list to show from bottom to top
     final reversedTasks = widget.tasks.reversed.toList();
-
-    // Reverse the upcomingEvents list to show from bottom to top
     final reversedUpcomingEvents = widget.overdueEvents.reversed.toList();
 
     if (reversedTasks.isEmpty && reversedUpcomingEvents.isEmpty) {
@@ -891,42 +1294,39 @@ class _timelineOverdueState extends State<timelineOverdue> {
       );
     }
 
-    const double minBoxHeight = 90.0;
+    const double minBoxHeight = 68.0;
 
     return Column(
       children: [
-        // TASKS - Updated styling with icon
+        // TASKS
         ...List.generate(reversedTasks.length, (index) {
           final task = reversedTasks[index];
           String remarks = task['remarks'] ?? '';
           String dueDate = _formatDate(task['due_date'] ?? 'N/A');
           String subject = task['subject'] ?? 'No Subject';
+          String taskId = task['task_id'] ?? '';
 
           bool isExpanded = expandedTaskIndexes.contains(index);
           bool showSeeMore = _shouldShowSeeMore(remarks);
-
-          // Get icon for this subject
-          IconData icon = _getIconForSubject(subject);
+          IconData icon = _getIconFromSubject(subject);
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Date & Action Row with icon
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Icon
                   Container(
-                    width: 30,
-                    height: 30,
+                    width: 32,
+                    height: 32,
+                    padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
                       color: AppColors.sideRed,
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(icon, color: Colors.white, size: 16),
+                    child: Icon(icon, color: Colors.white, size: 18),
                   ),
                   const SizedBox(width: 12),
-                  // Date Badge
                   Text(
                     dueDate,
                     style: AppFont.dropDowmLabel(context)?.copyWith(
@@ -936,20 +1336,39 @@ class _timelineOverdueState extends State<timelineOverdue> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  // Action Text
-                  Text(
-                    subject,
-                    style: AppFont.dropDowmLabel(context)?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12.5,
-                      color: AppColors.sideRed,
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            subject,
+                            style: AppFont.dropDowmLabel(context)?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 12.5,
+                              color: AppColors.sideRed,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            Icons.edit,
+                            size: 18,
+                            color: Colors.red,
+                          ), // Red pencil
+                          onPressed: () => _handleEdit(subject, taskId),
+                          tooltip: 'Edit',
+                          splashRadius: 18,
+                          padding: EdgeInsets.zero,
+                          constraints: BoxConstraints(),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 10),
-
-              // Card with only Remarks
+              // REMARKS CARD
               Container(
                 width: double.infinity,
                 constraints: BoxConstraints(minHeight: minBoxHeight),
@@ -963,42 +1382,57 @@ class _timelineOverdueState extends State<timelineOverdue> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Remarks:', style: AppFont.dropDowmLabel(context)),
-                    const SizedBox(height: 2),
-                    if (remarks.isNotEmpty) ...[
-                      Text(
-                        remarks,
-                        maxLines: (!showSeeMore || isExpanded) ? null : 2,
-                        overflow: (!showSeeMore || isExpanded)
-                            ? TextOverflow.visible
-                            : TextOverflow.ellipsis,
-                        style: AppFont.smallText12(context),
-                      ),
-                      if (showSeeMore) ...[
-                        const SizedBox(height: 8),
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              if (isExpanded) {
-                                expandedTaskIndexes.remove(index);
-                              } else {
-                                expandedTaskIndexes.add(index);
-                              }
-                            });
-                          },
-                          child: Text(
-                            isExpanded ? 'See less' : 'See more',
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 12,
+                    const SizedBox(height: 4),
+                    if (remarks.isNotEmpty)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            remarks,
+                            maxLines: (!showSeeMore || isExpanded) ? null : 2,
+                            overflow: (!showSeeMore || isExpanded)
+                                ? TextOverflow.visible
+                                : TextOverflow.ellipsis,
+                            style: AppFont.smallText12(
+                              context,
+                            )?.copyWith(color: Colors.black),
+                          ),
+                          if (showSeeMore) ...[
+                            const SizedBox(height: 8),
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  if (isExpanded) {
+                                    expandedTaskIndexes.remove(index);
+                                  } else {
+                                    expandedTaskIndexes.add(index);
+                                  }
+                                });
+                              },
+                              child: Text(
+                                isExpanded ? 'See less' : 'See more',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 12,
+                                ),
+                              ),
                             ),
+                          ],
+                        ],
+                      )
+                    else
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Text(
+                          'No remarks',
+                          style: GoogleFonts.poppins(
+                            color: Colors.grey[600],
+                            fontSize: 13,
+                            fontWeight: FontWeight.normal,
                           ),
                         ),
-                      ],
-                    ],
-                    if (remarks.isEmpty)
-                      const SizedBox(
-                        height: 24,
-                      ), // For empty remarks, to match box size
+                      ),
                   ],
                 ),
               ),
@@ -1006,11 +1440,11 @@ class _timelineOverdueState extends State<timelineOverdue> {
           );
         }),
 
-        // EVENTS - Updated styling with icon
+        // EVENTS
         ...List.generate(reversedUpcomingEvents.length, (index) {
           final event = reversedUpcomingEvents[index];
-          String eventId = event['event_id'] ?? 'No ID';
-          String leadId = event['lead_id'] ?? 'No ID';
+          String eventId = event['event_id'] ?? '';
+          String leadId = event['lead_id'] ?? '';
           String gmail = event['lead_email'] ?? '';
           String remarks = event['remarks'] ?? '';
           String mobile = event['mobile'] ?? '';
@@ -1019,60 +1453,69 @@ class _timelineOverdueState extends State<timelineOverdue> {
 
           bool isExpanded = expandedEventIndexes.contains(index);
           bool showSeeMore = _shouldShowSeeMore(remarks);
-          bool isTestDriveEvent = _isTestDrive(eventSubject);
-
-          // Get icon for this event subject
-          IconData icon = _getIconForEventSubject(eventSubject);
-
-          // Choose colors based on whether it's a test drive
-          Color badgeColor = AppColors.sideRed;
-          Color badgeBackgroundColor = AppColors.sideRed.withOpacity(0.1);
-          Color badgeBorderColor = AppColors.sideRed.withOpacity(0.3);
+          IconData icon = _getIconFromSubject(eventSubject);
 
           return Container(
             margin: const EdgeInsets.only(bottom: 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Date & Action Row with icon
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Icon
                     Container(
-                      width: 30,
-                      height: 30,
+                      width: 32,
+                      height: 32,
+                      padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
                         color: AppColors.sideRed,
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(icon, color: Colors.white, size: 16),
+                      child: Icon(icon, color: Colors.white, size: 18),
                     ),
                     const SizedBox(width: 12),
-                    // Date Badge
                     Text(
                       eventDate,
                       style: AppFont.dropDowmLabel(context)?.copyWith(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: badgeColor,
+                        color: AppColors.sideRed,
                       ),
                     ),
                     const SizedBox(width: 12),
-                    // Action Text
-                    Text(
-                      eventSubject,
-                      style: AppFont.dropDowmLabel(context)?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                        color: AppColors.sideRed,
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              eventSubject,
+                              style: AppFont.dropDowmLabel(context)?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                                color: AppColors.sideRed,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(
+                              Icons.edit,
+                              size: 18,
+                              color: const Color.fromARGB(255, 0, 0, 0),
+                            ), // Red pencil
+                            onPressed: () => _handleEdit(eventSubject, eventId),
+                            tooltip: 'Edit',
+                            splashRadius: 18,
+                            padding: EdgeInsets.zero,
+                            constraints: BoxConstraints(),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 10),
-
-                // Card with only Remarks
+                // REMARKS CARD
                 Container(
                   width: double.infinity,
                   constraints: BoxConstraints(minHeight: minBoxHeight),
@@ -1086,40 +1529,57 @@ class _timelineOverdueState extends State<timelineOverdue> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Remarks:', style: AppFont.dropDowmLabel(context)),
-                      const SizedBox(height: 2),
-                      if (remarks.isNotEmpty) ...[
-                        Text(
-                          remarks,
-                          maxLines: (!showSeeMore || isExpanded) ? null : 2,
-                          overflow: (!showSeeMore || isExpanded)
-                              ? TextOverflow.visible
-                              : TextOverflow.ellipsis,
-                          style: AppFont.smallText12(context),
-                        ),
-                        if (showSeeMore) ...[
-                          const SizedBox(height: 8),
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                if (isExpanded) {
-                                  expandedEventIndexes.remove(index);
-                                } else {
-                                  expandedEventIndexes.add(index);
-                                }
-                              });
-                            },
-                            child: Text(
-                              isExpanded ? 'See less' : 'See more',
-                              style: GoogleFonts.poppins(
-                                color: badgeColor,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 12,
+                      const SizedBox(height: 4),
+                      if (remarks.isNotEmpty)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              remarks,
+                              maxLines: (!showSeeMore || isExpanded) ? null : 2,
+                              overflow: (!showSeeMore || isExpanded)
+                                  ? TextOverflow.visible
+                                  : TextOverflow.ellipsis,
+                              style: AppFont.smallText12(
+                                context,
+                              )?.copyWith(color: Colors.black),
+                            ),
+                            if (showSeeMore) ...[
+                              const SizedBox(height: 8),
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    if (isExpanded) {
+                                      expandedEventIndexes.remove(index);
+                                    } else {
+                                      expandedEventIndexes.add(index);
+                                    }
+                                  });
+                                },
+                                child: Text(
+                                  isExpanded ? 'See less' : 'See more',
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 12,
+                                  ),
+                                ),
                               ),
+                            ],
+                          ],
+                        )
+                      else
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Text(
+                            'No remarks',
+                            style: GoogleFonts.poppins(
+                              color: Colors.grey[600],
+                              fontSize: 13,
+                              fontWeight: FontWeight.normal,
                             ),
                           ),
-                        ],
-                      ],
-                      if (remarks.isEmpty) const SizedBox(height: 24),
+                        ),
                     ],
                   ),
                 ),

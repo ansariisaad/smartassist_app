@@ -712,9 +712,9 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                       ),
                       items: [
                         DropdownMenuItem(
-                          value: 'budget_constraints',
+                          value: 'bought_competitor',
                           child: Text(
-                            'Budget Constraints',
+                            'Bought competitor',
                             style: TextStyle(
                               fontFamily: GoogleFonts.poppins().fontFamily,
                               color: Colors.grey.shade800,
@@ -724,9 +724,9 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                           ),
                         ),
                         DropdownMenuItem(
-                          value: 'timeline_issues',
+                          value: 'duplicate_lead',
                           child: Text(
-                            'Timeline Issues',
+                            'Duplicate lead',
                             style: TextStyle(
                               fontFamily: GoogleFonts.poppins().fontFamily,
                               color: Colors.grey.shade800,
@@ -736,9 +736,9 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                           ),
                         ),
                         DropdownMenuItem(
-                          value: 'changed_requirements',
+                          value: 'no_intention',
                           child: Text(
-                            'Changed Requirements',
+                            'No intention to buy',
                             style: TextStyle(
                               fontFamily: GoogleFonts.poppins().fontFamily,
                               color: Colors.grey.shade800,
@@ -748,21 +748,9 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                           ),
                         ),
                         DropdownMenuItem(
-                          value: 'chose_competitor',
+                          value: 'unable_to_contact',
                           child: Text(
-                            'Chose Competitor',
-                            style: TextStyle(
-                              fontFamily: GoogleFonts.poppins().fontFamily,
-                              color: Colors.grey.shade800,
-                              fontSize:
-                                  MediaQuery.of(context).size.width * 0.038,
-                            ),
-                          ),
-                        ),
-                        DropdownMenuItem(
-                          value: 'other',
-                          child: Text(
-                            'Other',
+                            'Unable to contact',
                             style: TextStyle(
                               fontFamily: GoogleFonts.poppins().fontFamily,
                               color: Colors.grey.shade800,

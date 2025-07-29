@@ -35,6 +35,7 @@ class _CreateLeadsState extends State<CreateLeads> {
   String? selectedVehicleName;
   String? selectedBrand;
   String? vehicleId;
+  String? houseOfBrand;
   Map<String, dynamic>? selectedVehicleData;
   final PageController _pageController = PageController();
   List<Map<String, String>> dropdownItems = [];
@@ -916,6 +917,7 @@ class _CreateLeadsState extends State<CreateLeads> {
                                 selectedVehicle['vehicle_name'];
                             selectedBrand = selectedVehicle['brand'];
                             vehicleId = selectedVehicle['vehicle_id'];
+                            houseOfBrand = selectedVehicle['houseOfBrand'];
 
                             if (_errors.containsKey('vehicleName')) {
                               _errors.remove('vehicleName');
@@ -1906,6 +1908,7 @@ class _CreateLeadsState extends State<CreateLeads> {
         'purchase_type': _selectedPurchaseType,
         'brand': selectedBrand ?? '',
         'vehicle_id': vehicleId ?? '',
+        'houseOfBrand': houseOfBrand ?? '',
         'type': 'Product',
         'sub_type': selectedSubType,
         'chat_id': "91${mobileController.text}@c.us",

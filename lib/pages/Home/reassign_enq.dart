@@ -1690,6 +1690,16 @@ class _TaskItemState extends State<TaskItem>
       onLongPress: () {
         HapticFeedback.heavyImpact();
         widget.onLongPress();
+        _slidableController = SlidableController(this);
+
+        _slidableController.animation.addListener(() {
+          final isOpen = _slidableController.ratio != 0;
+          if (_isActionPaneOpen != isOpen) {
+            setState(() {
+              _isActionPaneOpen = isOpen;
+            });
+          }
+        });
       },
       onTap:
           widget.onTap ??
@@ -1843,6 +1853,7 @@ class _TaskItemState extends State<TaskItem>
                         ),
                       ),
                     ),
+                    _buildNavigationButton(context),
                   ],
                 ),
               ),

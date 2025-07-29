@@ -991,8 +991,6 @@
 //     }
 //   }
 // }
-  
- 
 
 import 'dart:convert';
 import 'dart:math' as math;
@@ -1023,7 +1021,7 @@ class _CalendarSmState extends State<CalendarSm> {
   int _selectedProfileIndex = 0;
   String _selectedUserId = '';
   String _selectedType = 'your';
-  
+
   // Selection state without ticking
   Set<String> _selectedLetters = {};
   bool _isMultiSelectMode = false;
@@ -1574,7 +1572,9 @@ class _CalendarSmState extends State<CalendarSm> {
           ),
         ),
         // Match the spacing with profile avatars
-        const SizedBox(height: 28), // Increased to match profile avatar total height
+        const SizedBox(
+          height: 28,
+        ), // Increased to match profile avatar total height
       ],
     );
   }
@@ -1597,7 +1597,7 @@ class _CalendarSmState extends State<CalendarSm> {
         GestureDetector(
           onTap: () async {
             HapticFeedback.lightImpact();
-            
+
             // Call the updated handler that includes refresh logic
             await _handleTeamMemberSelection(index, userId);
           },
@@ -1609,52 +1609,61 @@ class _CalendarSmState extends State<CalendarSm> {
               height: 50,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: _getBorderStyle(isSelectedForComparison, isCurrentlySelected),
+                border: _getBorderStyle(
+                  isSelectedForComparison,
+                  isCurrentlySelected,
+                ),
               ),
-child: ClipOval(
-  child: _buildProfileContent(
-    profileUrl,
-    initials,
-    firstName,
-  ),
-),
-
+              child: ClipOval(
+                child: _buildProfileContent(profileUrl, initials, firstName),
+              ),
             ),
           ),
         ),
         const SizedBox(height: 6),
-Container(
-  constraints: const BoxConstraints(maxWidth: 70),
-  child: Text(
-    _getDisplayText(firstName, isSelectedForComparison, isCurrentlySelected),
-    textAlign: TextAlign.center,
-    maxLines: 1,
-    overflow: TextOverflow.ellipsis,
-    style: GoogleFonts.poppins(
-      fontSize: 14,
-      fontWeight: (isSelectedForComparison || isCurrentlySelected)
-          ? FontWeight.w600
-          : FontWeight.normal,
-      color: _getNameTextColor(
-        isSelectedForComparison,
-        isCurrentlySelected,
-      ),
-    ),
-  ),
-),
+        Container(
+          constraints: const BoxConstraints(maxWidth: 70),
+          child: Text(
+            _getDisplayText(
+              firstName,
+              isSelectedForComparison,
+              isCurrentlySelected,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: (isSelectedForComparison || isCurrentlySelected)
+                  ? FontWeight.w600
+                  : FontWeight.normal,
+              color: _getNameTextColor(
+                isSelectedForComparison,
+                isCurrentlySelected,
+              ),
+            ),
+          ),
+        ),
         const SizedBox(height: 4),
       ],
     );
   }
 
   // Helper method to determine what text to display under avatar
-  String _getDisplayText(String firstName, bool isSelectedForComparison, bool isCurrentlySelected) {
+  String _getDisplayText(
+    String firstName,
+    bool isSelectedForComparison,
+    bool isCurrentlySelected,
+  ) {
     // Always show the person's name, regardless of selection state
     return firstName;
   }
 
   // Helper methods for visual selection indicators - UPDATED: removed blue highlight
-  Color _getNameTextColor(bool isSelectedForComparison, bool isCurrentlySelected) {
+  Color _getNameTextColor(
+    bool isSelectedForComparison,
+    bool isCurrentlySelected,
+  ) {
     if (isCurrentlySelected) {
       return AppColors.fontColor; // Selected avatar name in normal color
     } else if (_selectedUserId.isNotEmpty) {
@@ -1664,17 +1673,29 @@ Container(
     }
   }
 
-  Border? _getBorderStyle(bool isSelectedForComparison, bool isCurrentlySelected) {
+  Border? _getBorderStyle(
+    bool isSelectedForComparison,
+    bool isCurrentlySelected,
+  ) {
     if (isCurrentlySelected) {
       // CHANGED: Use grey border instead of blue for selected avatar
       return Border.all(color: Colors.grey.shade300, width: 1.5);
     }
-    return Border.all(color: Colors.grey.withOpacity(0.1), width: 1); // Light border for unselected
+    return Border.all(
+      color: Colors.grey.withOpacity(0.1),
+      width: 1,
+    ); // Light border for unselected
   }
 
-  double _getAvatarOpacity(bool isSelectedForComparison, bool isCurrentlySelected) {
-    if (_selectedUserId.isEmpty) return 1.0; // All full opacity when no selection
-    return isCurrentlySelected ? 1.0 : 0.6; // Selected full opacity, others dimmed
+  double _getAvatarOpacity(
+    bool isSelectedForComparison,
+    bool isCurrentlySelected,
+  ) {
+    if (_selectedUserId.isEmpty)
+      return 1.0; // All full opacity when no selection
+    return isCurrentlySelected
+        ? 1.0
+        : 0.6; // Selected full opacity, others dimmed
   }
 
   // Profile content builder without ticking overlay

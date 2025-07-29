@@ -410,15 +410,18 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/services/api_srv.dart';
+import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/followups.dart';
 import 'package:smartassist/widgets/testdrive_verifyotp.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class TimelineUpcoming extends StatefulWidget {
   final bool isFromTeams;
+  final String mobile = '';
   final carIcon = '/assets/caricon.png';
   final List<Map<String, dynamic>> tasks;
   final List<Map<String, dynamic>> upcomingEvents;
+
   const TimelineUpcoming({
     super.key,
     required this.tasks,
@@ -430,9 +433,78 @@ class TimelineUpcoming extends StatefulWidget {
   State<TimelineUpcoming> createState() => _TimelineUpcomingState();
 }
 
-class _TimelineUpcomingState extends State<TimelineUpcoming> {
+class _TimelineUpcomingState extends State<TimelineUpcoming>
+    with WidgetsBindingObserver {
+  bool _wasCallingPhone = false;
   final Set<int> expandedTaskIndexes = {};
   final Set<int> expandedEventIndexes = {};
+  String? currentTaskId;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _wasCallingPhone) {
+      _wasCallingPhone = false;
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted && currentTaskId != null) {
+          _wsCall(currentTaskId!);
+        }
+      });
+    }
+  }
+
+  void _wsCall(String taskId) {
+    print("WS Call triggered for task: $taskId");
+
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) {
+        return Dialog(
+          insetPadding: const EdgeInsets.symmetric(horizontal: 10),
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: FollowupsEdit(onFormSubmit: () {}, taskId: taskId),
+        );
+      },
+    );
+  }
+
+  void _phoneAction(String mobileNumber, String taskId) async {
+    if (mobileNumber.isNotEmpty) {
+      try {
+        _wasCallingPhone = true;
+        currentTaskId = taskId;
+        await launchUrl(Uri.parse('tel:$mobileNumber'));
+      } catch (e) {
+        _wasCallingPhone = false;
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not launch phone dialer')),
+          );
+        }
+      }
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No phone number available')),
+        );
+      }
+    }
+  }
 
   String _formatDate(String date) {
     try {
@@ -443,30 +515,29 @@ class _TimelineUpcomingState extends State<TimelineUpcoming> {
     }
   }
 
-  // Icon logic from old code
   IconData _getIconFromSubject(String subject) {
-    if (subject == 'Provide Quotation') {
-      return Icons.receipt_long;
-    } else if (subject == 'Send SMS') {
-      return Icons.message_rounded;
-    } else if (subject == 'Call') {
-      return Icons.phone;
-    } else if (subject == 'Send Email') {
-      return Icons.mail;
-    } else if (subject == 'Showroom appointment') {
-      return Icons.person_2_outlined;
-    } else if (subject == 'Trade in evaluation') {
-      return Icons.handshake;
-    } else if (subject == 'Test Drive') {
-      return Icons.directions_car;
-    } else if (subject == 'Quotation') {
-      return FontAwesomeIcons.solidCalendar;
-    } else {
-      return Icons.info_outline; // default fallback icon
+    switch (subject) {
+      case 'Provide Quotation':
+        return Icons.receipt_long;
+      case 'Send SMS':
+        return Icons.message_rounded;
+      case 'Call':
+        return Icons.phone;
+      case 'Send Email':
+        return Icons.mail;
+      case 'Showroom appointment':
+        return Icons.person_2_outlined;
+      case 'Trade in evaluation':
+        return Icons.handshake;
+      case 'Test Drive':
+        return Icons.directions_car;
+      case 'Quotation':
+        return FontAwesomeIcons.solidCalendar;
+      default:
+        return Icons.info_outline;
     }
   }
 
-  // Route handling logic from old code - SNACKBAR REMOVED
   void _handleIconPress(
     String subject,
     String mobile,
@@ -475,16 +546,19 @@ class _TimelineUpcomingState extends State<TimelineUpcoming> {
     String leadId,
     BuildContext context,
   ) {
-    if (widget.isFromTeams) return; // Don't handle actions if from teams
+    if (widget.isFromTeams) return;
 
-    if (subject == 'Call') {
-      launchUrl(Uri.parse('tel:$mobile'));
-    } else if (subject == 'Send SMS') {
-      launchUrl(Uri.parse('sms:$mobile'));
-    } else if (subject == 'Test Drive') {
-      _showAleart(eventId, gmail, leadId, mobile, context);
+    switch (subject) {
+      case 'Call':
+        _phoneAction(mobile, '');
+        break;
+      case 'Send SMS':
+        launchUrl(Uri.parse('sms:$mobile'));
+        break;
+      case 'Test Drive':
+        _showAleart(eventId, gmail, leadId, mobile, context);
+        break;
     }
-    // Removed the else clause that showed the snackbar
   }
 
   Future<void> _showAleart(
@@ -558,15 +632,8 @@ class _TimelineUpcomingState extends State<TimelineUpcoming> {
     }
   }
 
-  // Updated method to check if text needs "See more" based on line count
   bool _shouldShowSeeMore(String text) {
-    // Rough estimation: ~40-50 characters per line on average mobile screen
-    // For 2 lines, that's approximately 80-100 characters
     return text.length > 100;
-  }
-
-  bool _isTestDrive(String subject) {
-    return subject.toLowerCase().contains('test drive');
   }
 
   @override
@@ -588,7 +655,6 @@ class _TimelineUpcomingState extends State<TimelineUpcoming> {
 
     return Column(
       children: [
-        // TASKS
         ...List.generate(reversedTasks.length, (index) {
           final task = reversedTasks[index];
           String remarks = task['remarks'] ?? '';
@@ -598,18 +664,13 @@ class _TimelineUpcomingState extends State<TimelineUpcoming> {
 
           bool isExpanded = expandedTaskIndexes.contains(index);
           bool showSeeMore = _shouldShowSeeMore(remarks);
-
-          // Get icon from old code logic
           IconData iconData = _getIconFromSubject(subject);
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Date & Action Row WITH ICON AND ROUTING
               Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Clickable Icon with routing functionality
                   GestureDetector(
                     onTap: () {
                       _handleIconPress(subject, mobile, '', '', '', context);
@@ -626,7 +687,6 @@ class _TimelineUpcomingState extends State<TimelineUpcoming> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  // Date Badge
                   Text(
                     dueDate,
                     style: AppFont.dropDowmLabel(context)?.copyWith(
@@ -636,7 +696,6 @@ class _TimelineUpcomingState extends State<TimelineUpcoming> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  // Action Text
                   Expanded(
                     child: Text(
                       subject,
@@ -651,8 +710,6 @@ class _TimelineUpcomingState extends State<TimelineUpcoming> {
                 ],
               ),
               const SizedBox(height: 10),
-
-              // Card with only Remarks
               Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
@@ -661,62 +718,58 @@ class _TimelineUpcomingState extends State<TimelineUpcoming> {
                 ),
                 padding: const EdgeInsets.all(14),
                 margin: const EdgeInsets.only(top: 4, bottom: 20),
-                child: IntrinsicHeight(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Remarks:',
-                        style: AppFont.dropDowmLabel(
-                          context,
-                        )?.copyWith(color: Colors.black),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Remarks:',
+                      style: AppFont.dropDowmLabel(
+                        context,
+                      )?.copyWith(color: Colors.black),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      remarks.isNotEmpty ? remarks : 'No remarks',
+                      style: AppFont.smallText12(context)?.copyWith(
+                        color: remarks.isNotEmpty
+                            ? Colors.black
+                            : Colors.grey[600],
+                        height: 1.4,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        remarks.isNotEmpty ? remarks : 'No remarks',
-                        style: AppFont.smallText12(context)?.copyWith(
-                          color: remarks.isNotEmpty
-                              ? Colors.black
-                              : Colors.grey[600],
-                          height: 1.4,
-                        ),
-                        maxLines: (!showSeeMore || isExpanded) ? null : 2,
-                        overflow: (!showSeeMore || isExpanded)
-                            ? TextOverflow.visible
-                            : TextOverflow.ellipsis,
-                      ),
-                      if (showSeeMore) ...[
-                        const SizedBox(height: 8),
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              if (isExpanded) {
-                                expandedTaskIndexes.remove(index);
-                              } else {
-                                expandedTaskIndexes.add(index);
-                              }
-                            });
-                          },
-                          child: Text(
-                            isExpanded ? 'See less' : 'See more',
-                            style: GoogleFonts.poppins(
-                              color: Colors.black,
-                              fontWeight: FontWeight.w500,
-                              fontSize: 12,
-                            ),
+                      maxLines: (!showSeeMore || isExpanded) ? null : 2,
+                      overflow: (!showSeeMore || isExpanded)
+                          ? TextOverflow.visible
+                          : TextOverflow.ellipsis,
+                    ),
+                    if (showSeeMore) ...[
+                      const SizedBox(height: 8),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            if (isExpanded) {
+                              expandedTaskIndexes.remove(index);
+                            } else {
+                              expandedTaskIndexes.add(index);
+                            }
+                          });
+                        },
+                        child: Text(
+                          isExpanded ? 'See less' : 'See more',
+                          style: GoogleFonts.poppins(
+                            color: Colors.black,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 12,
                           ),
                         ),
-                      ],
+                      ),
                     ],
-                  ),
+                  ],
                 ),
               ),
             ],
           );
         }),
 
-        // EVENTS
         ...List.generate(reversedUpcomingEvents.length, (index) {
           final event = reversedUpcomingEvents[index];
           String eventId = event['event_id'] ?? 'No ID';
@@ -725,28 +778,23 @@ class _TimelineUpcomingState extends State<TimelineUpcoming> {
           String remarks = event['remarks'] ?? '';
           String mobile = event['mobile'] ?? '';
           String eventDate = _formatDate(event['start_date'] ?? 'N/A');
-          String eventSubject = event['subject'] ?? 'No Subject';
+          String subject = event['subject'] ?? 'No Subject';
 
           bool isExpanded = expandedEventIndexes.contains(index);
           bool showSeeMore = _shouldShowSeeMore(remarks);
-
-          // Get icon from old code logic
-          IconData iconData = _getIconFromSubject(eventSubject);
+          IconData iconData = _getIconFromSubject(subject);
 
           return Container(
             margin: const EdgeInsets.only(bottom: 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Date & Action Row WITH ICON AND ROUTING
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Clickable Icon with routing functionality
                     GestureDetector(
                       onTap: () {
                         _handleIconPress(
-                          eventSubject,
+                          subject,
                           mobile,
                           eventId,
                           gmail,
@@ -766,7 +814,6 @@ class _TimelineUpcomingState extends State<TimelineUpcoming> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    // Date Badge
                     Text(
                       eventDate,
                       style: AppFont.dropDowmLabel(context)?.copyWith(
@@ -776,10 +823,9 @@ class _TimelineUpcomingState extends State<TimelineUpcoming> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    // Action Text
                     Expanded(
                       child: Text(
-                        eventSubject,
+                        subject,
                         style: AppFont.dropDowmLabel(context)?.copyWith(
                           fontWeight: FontWeight.w600,
                           fontSize: 14,
@@ -791,8 +837,6 @@ class _TimelineUpcomingState extends State<TimelineUpcoming> {
                   ],
                 ),
                 const SizedBox(height: 10),
-
-                // Card with only Remarks
                 Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
@@ -800,63 +844,58 @@ class _TimelineUpcomingState extends State<TimelineUpcoming> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   padding: const EdgeInsets.all(14),
-                  margin: const EdgeInsets.only(top: 4),
-                  child: IntrinsicHeight(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Remarks:',
-                          style: AppFont.dropDowmLabel(
-                            context,
-                          )?.copyWith(color: Colors.black),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Remarks:',
+                        style: AppFont.dropDowmLabel(
+                          context,
+                        )?.copyWith(color: Colors.black),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        remarks.isNotEmpty ? remarks : 'No remarks available',
+                        style: AppFont.smallText12(context)?.copyWith(
+                          color: remarks.isNotEmpty
+                              ? Colors.black
+                              : Colors.grey[600],
+                          height: 1.4,
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          remarks.isNotEmpty ? remarks : 'No remarks available',
-                          style: AppFont.smallText12(context)?.copyWith(
-                            color: remarks.isNotEmpty
-                                ? Colors.black
-                                : Colors.grey[600],
-                            height: 1.4,
-                          ),
-                          maxLines: (!showSeeMore || isExpanded) ? null : 2,
-                          overflow: (!showSeeMore || isExpanded)
-                              ? TextOverflow.visible
-                              : TextOverflow.ellipsis,
-                        ),
-                        if (showSeeMore) ...[
-                          const SizedBox(height: 8),
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                if (isExpanded) {
-                                  expandedEventIndexes.remove(index);
-                                } else {
-                                  expandedEventIndexes.add(index);
-                                }
-                              });
-                            },
-                            child: Text(
-                              isExpanded ? 'See less' : 'See more',
-                              style: GoogleFonts.poppins(
-                                color: Colors.black,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 12,
-                              ),
+                        maxLines: (!showSeeMore || isExpanded) ? null : 2,
+                        overflow: (!showSeeMore || isExpanded)
+                            ? TextOverflow.visible
+                            : TextOverflow.ellipsis,
+                      ),
+                      if (showSeeMore) ...[
+                        const SizedBox(height: 8),
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              if (isExpanded) {
+                                expandedEventIndexes.remove(index);
+                              } else {
+                                expandedEventIndexes.add(index);
+                              }
+                            });
+                          },
+                          child: Text(
+                            isExpanded ? 'See less' : 'See more',
+                            style: GoogleFonts.poppins(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 12,
                             ),
                           ),
-                        ],
+                        ),
                       ],
-                    ),
+                    ],
                   ),
                 ),
               ],
             ),
           );
         }),
-
         const SizedBox(height: 10),
       ],
     );

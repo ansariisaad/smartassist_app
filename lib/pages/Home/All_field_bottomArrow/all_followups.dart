@@ -40,6 +40,8 @@ class _AddFollowupsState extends State<AddFollowups>
   String _query = '';
   int _upcomingButtonIndex = 0;
   int count = 0;
+  int upComingCount = 0;
+  int allCount = 0;
   late stt.SpeechToText _speech;
 
   final TextEditingController _searchController = TextEditingController();
@@ -224,6 +226,8 @@ class _AddFollowupsState extends State<AddFollowups>
         final Map<String, dynamic> data = json.decode(response.body);
         setState(() {
           count = data['data']['overdueWeekTasks']?['count'] ?? 0;
+          upComingCount = data['data']['upcomingWeekTasks']?['count'] ?? 0;
+          allCount = data['data']['allTasks']?['count'] ?? 0;
           _originalAllTasks = data['data']['allTasks']?['rows'] ?? [];
           _originalUpcomingTasks =
               data['data']['upcomingWeekTasks']?['rows'] ?? [];
@@ -351,7 +355,7 @@ class _AddFollowupsState extends State<AddFollowups>
         title: Align(
           alignment: Alignment.centerLeft,
           child: Text(
-            'Your Follow-ups',
+            'Your Follow ups',
             style: GoogleFonts.poppins(
               fontSize: _titleFontSize,
               fontWeight: FontWeight.w400,
@@ -388,7 +392,7 @@ class _AddFollowupsState extends State<AddFollowups>
                 children: [
                   SpeechSearchWidget(
                     controller: _searchController,
-                    hintText: "Search test drives...",
+                    hintText: "Search by name, email or phone",
                     onChanged: (value) => _onSearchChanged(),
                     primaryColor: AppColors.fontColor,
                     backgroundColor: Colors.grey.shade100,
@@ -568,13 +572,13 @@ class _AddFollowupsState extends State<AddFollowups>
                               _buildFilterButton(
                                 color: AppColors.colorsBlue,
                                 index: 0,
-                                text: 'All',
+                                text: 'All ($allCount)',
                                 activeColor: AppColors.borderblue,
                               ),
                               _buildFilterButton(
                                 color: AppColors.containerGreen,
                                 index: 1,
-                                text: 'Upcoming',
+                                text: 'Upcoming ($upComingCount)',
                                 activeColor: AppColors.borderGreen,
                               ),
                               _buildFilterButton(

@@ -888,7 +888,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/services/api_srv.dart';
-import 'package:smartassist/widgets/testdrive_overview.dart';
+import 'package:smartassist/widgets/testdrive_summary.dart';
 import 'package:timeline_tile/timeline_tile.dart';
 import 'package:intl/intl.dart';
 
@@ -1006,7 +1006,7 @@ class _TimelineCompletedState extends State<TimelineCompleted> {
           String eventId = task['event_id'] ?? 'No Time';
           String taskId = task['task_id'] ?? 'empty';
           String comment = task['remarks'] ?? 'No Remarks';
-
+          String leadId = task['lead_id'] ?? 'No Time';
           bool isExpanded = expandedTaskIndexes.contains(index);
           bool showSeeMore = _shouldShowSeeMore(comment);
           IconData icon = _getIconForSubject(subject);
@@ -1020,8 +1020,14 @@ class _TimelineCompletedState extends State<TimelineCompleted> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          TestdriveOverview(eventId: eventId, leadId: ''),
+                      builder: (context) => TestdriveOverview(
+                        eventId: eventId,
+                        leadId: '',
+                        isFromCompletedEventId: eventId,
+                        isFromTestdrive: true,
+                        isFromCompletdTimeline: true,
+                        isFromCompletedLeadId: leadId,
+                      ),
                     ),
                   );
                 }
@@ -1165,7 +1171,7 @@ class _TimelineCompletedState extends State<TimelineCompleted> {
           String completeAt = task['completed_at'] != null
               ? _formatDate(task['completed_at'])
               : 'No complete date';
-
+          String leadId = task['lead_id'] ?? 'No Time';
           String startTime = task['start_time'] ?? 'No Start time';
           String endTime = task['end_time'] ?? 'No end time';
           String duration = task['duration'] ?? 'No duration';
@@ -1189,8 +1195,14 @@ class _TimelineCompletedState extends State<TimelineCompleted> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          TestdriveOverview(eventId: eventId, leadId: ''),
+                      builder: (context) => TestdriveOverview(
+                        isFromCompletedEventId: eventId,
+                        eventId: eventId,
+                        leadId: '',
+                        isFromTestdrive: true,
+                        isFromCompletdTimeline: true,
+                        isFromCompletedLeadId : leadId,
+                      ),
                     ),
                   );
                 }

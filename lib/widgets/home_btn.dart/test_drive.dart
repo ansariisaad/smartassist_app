@@ -282,50 +282,55 @@ class _TestDriveState extends State<TestDrive> {
     double screenWidth,
     Color valueColor,
   ) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(screenWidth * 0.04),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            textAlign: TextAlign.left,
-            softWrap: true,
-            overflow: TextOverflow.ellipsis,
-            maxLines: 4,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: FontWeight.w400,
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      color: Colors.white,
+      shadowColor: const Color.fromRGBO(0, 0, 0, 5).withOpacity(0.5),
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.all(screenWidth * 0.04),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              textAlign: TextAlign.left,
+              softWrap: true,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 4,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w400,
+              ),
             ),
-          ),
-          Text(
-            value,
-            textAlign: TextAlign.left,
-            style: GoogleFonts.poppins(
-              fontSize: 30,
-              fontWeight: FontWeight.w700,
-              color: valueColor,
+            Text(
+              value,
+              textAlign: TextAlign.left,
+              style: GoogleFonts.poppins(
+                fontSize: 30,
+                fontWeight: FontWeight.w700,
+                color: valueColor,
+              ),
             ),
-          ),
-          Text(
-            title1,
-            textAlign: TextAlign.left,
-            softWrap: true,
-            overflow: TextOverflow.ellipsis,
-            maxLines: 4,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: FontWeight.w400,
+            Text(
+              title1,
+              textAlign: TextAlign.left,
+              softWrap: true,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 4,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w400,
+              ),
             ),
-          ),
-          // const SizedBox(width: 10),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -338,43 +343,33 @@ class _TestDriveState extends State<TestDrive> {
     String value1,
     double screenWidth,
   ) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(screenWidth * 0.04),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            decoration: const BoxDecoration(color: Colors.transparent),
-            child: Text(value, style: AppFont.dropDowmLabel(context)),
-          ),
-          Text(
-            title,
-            style: GoogleFonts.inter(
-              fontSize: 30,
-              fontWeight: FontWeight.w700,
-              color: AppColors.colorsBlue,
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      color: Colors.white,
+      shadowColor: const Color.fromRGBO(0, 0, 0, 5).withOpacity(0.5),
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.all(screenWidth * 0.04),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              decoration: const BoxDecoration(color: Colors.transparent),
+              child: Text(value, style: AppFont.dropDowmLabel(context)),
             ),
-          ),
-          Text(value1, style: AppFont.dropDowmLabel(context)),
-          // const SizedBox(height: 2),
-          // const SizedBox(
-          //   height: 5,
-          // ),
-          // const Align(
-          //     alignment: Alignment.centerRight,
-          //     child: Text(
-          //       textAlign: TextAlign.center,
-          //       '😍',
-          //       style:
-          //           TextStyle(fontSize: 20, fontFamily: 'YourAppleEmojiFont'),
-          //     ))
-        ],
+            Text(
+              title,
+              style: GoogleFonts.inter(
+                fontSize: 30,
+                fontWeight: FontWeight.w700,
+                color: AppColors.colorsBlue,
+              ),
+            ),
+            Text(value1, style: AppFont.dropDowmLabel(context)),
+          ],
+        ),
       ),
     );
   }
@@ -385,29 +380,30 @@ class _TestDriveState extends State<TestDrive> {
     String value,
     double screenWidth,
   ) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(screenWidth * 0.04),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(value, style: AppFont.dropDowmLabel(context)),
-          Text(
-            title,
-            style: GoogleFonts.inter(
-              fontSize: 30,
-              fontWeight: FontWeight.w700,
-              color: AppColors.colorsBlue,
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      color: Colors.white,
+      shadowColor: const Color.fromRGBO(0, 0, 0, 5).withOpacity(0.5),
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.all(screenWidth * 0.04),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(value, style: AppFont.dropDowmLabel(context)),
+            Text(
+              title,
+              style: GoogleFonts.inter(
+                fontSize: 30,
+                fontWeight: FontWeight.w700,
+                color: AppColors.colorsBlue,
+              ),
             ),
-          ),
-          // const SizedBox(height: 2),
-          const SizedBox(height: 5),
-        ],
+            const SizedBox(height: 5),
+          ],
+        ),
       ),
     );
   }

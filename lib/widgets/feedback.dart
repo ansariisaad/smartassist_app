@@ -11,7 +11,7 @@ import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:smartassist/widgets/remarks_field.dart';
-import 'package:smartassist/widgets/testdrive_overview.dart';
+import 'package:smartassist/widgets/testdrive_summary.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class Feedbackscreen extends StatefulWidget {
@@ -164,8 +164,12 @@ class _FeedbackscreenState extends State<Feedbackscreen> {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => TestdriveOverview(
+              isFromCompletdTimeline: false,
               leadId: widget.leadId,
               eventId: widget.eventId,
+              isFromTestdrive: true,
+              isFromCompletedEventId: '',
+              isFromCompletedLeadId: '',
             ),
           ),
         );

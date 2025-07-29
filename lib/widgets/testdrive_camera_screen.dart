@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 import 'dart:ui';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -236,53 +235,59 @@ class _LicenseVarificationState extends State<LicenseVarification>
       // Get the actual image dimensions
       final imageBytes = await File(file.path).readAsBytes();
       final image = img.decodeImage(imageBytes);
-
       if (image == null) {
         print("Failed to decode image");
         throw Exception("Failed to decode image");
       }
 
-      // Get screen dimensions
+      // TEMPORARY: Save the full uncropped image first to see what we're working with
+      final Directory appDir = await getApplicationDocumentsDirectory();
+      final String fullImagePath = path.join(
+        appDir.path,
+        'full_${DateTime.now().millisecondsSinceEpoch}.jpg',
+      );
+      final File fullImageFile = File(fullImagePath);
+      await fullImageFile.writeAsBytes(img.encodeJpg(image, quality: 85));
+      print('Full image saved for debugging: $fullImagePath');
+
+      // Get screen dimensions and camera preview info
       final screenSize = MediaQuery.of(context).size;
-      final screenWidth = screenSize.width;
-      final screenHeight = screenSize.height;
-
-      // Calculate frame dimensions (same as in build method)
-      final frameWidth = screenWidth * 0.85;
-      final frameHeight = screenWidth * 0.55;
-
-      // Calculate frame position (centered on screen)
-      final frameLeft = (screenWidth - frameWidth) / 2;
-      final frameTop = (screenHeight - frameHeight) / 2;
-
-      // Calculate the scale between the actual image and the preview
       final previewSize = cameraController!.value.previewSize!;
-      final imageWidth = image.width;
-      final imageHeight = image.height;
 
-      // Calculate scale factors
-      final scaleX =
-          imageWidth /
-          previewSize.height; // Note: swapped for camera orientation
-      final scaleY =
-          imageHeight /
-          previewSize.width; // Note: swapped for camera orientation
+      print('=== DEBUG INFO ===');
+      print('Screen size: ${screenSize.width} x ${screenSize.height}');
+      print('Preview size: ${previewSize.width} x ${previewSize.height}');
+      print('Image size: ${image.width} x ${image.height}');
 
-      // Calculate crop coordinates in the actual image
-      final cropX = (frameLeft * scaleX).round();
-      final cropY = (frameTop * scaleY).round();
-      final cropWidth = (frameWidth * scaleX).round();
-      final cropHeight = (frameHeight * scaleY).round();
+      // Calculate frame dimensions and position (same as UI)
+      final frameWidth = screenSize.width * 0.85;
+      final frameHeight = screenSize.width * 0.55;
+      final frameLeft = (screenSize.width - frameWidth) / 2;
+      final frameTop = (screenSize.height - frameHeight) / 2;
 
-      // Ensure coordinates are within bounds
-      final safeCropX = cropX.clamp(0, imageWidth - 1);
-      final safeCropY = cropY.clamp(0, imageHeight - 1);
-      final safeCropWidth = (cropWidth).clamp(1, imageWidth - safeCropX);
-      final safeCropHeight = (cropHeight).clamp(1, imageHeight - safeCropY);
+      print('Frame size: ${frameWidth} x ${frameHeight}');
+      print('Frame position: left=$frameLeft, top=$frameTop');
 
-      print('Image dimensions: ${imageWidth}x${imageHeight}');
+      // Simple approach: calculate crop based on center percentage
+      final centerX = image.width / 2;
+      final centerY = image.height / 2;
+
+      // Use the same proportions as the frame
+      final cropWidth = (image.width * 0.85).round();
+      final cropHeight = (image.width * 0.55)
+          .round(); // Note: using width for aspect ratio
+
+      final cropX = (centerX - cropWidth / 2).round();
+      final cropY = (centerY - cropHeight / 2).round();
+
+      // Ensure within bounds
+      final safeCropX = cropX.clamp(0, image.width - cropWidth);
+      final safeCropY = cropY.clamp(0, image.height - cropHeight);
+      final safeCropWidth = cropWidth.clamp(1, image.width - safeCropX);
+      final safeCropHeight = cropHeight.clamp(1, image.height - safeCropY);
+
       print(
-        'Crop parameters: x=$safeCropX, y=$safeCropY, w=$safeCropWidth, h=$safeCropHeight',
+        'Crop area: x=$safeCropX, y=$safeCropY, w=$safeCropWidth, h=$safeCropHeight',
       );
 
       // Crop the image
@@ -294,19 +299,17 @@ class _LicenseVarificationState extends State<LicenseVarification>
         height: safeCropHeight,
       );
 
-      // Resize if needed to optimize file size
+      // Resize if needed
       final img.Image finalImage = safeCropWidth > 800
           ? img.copyResize(croppedImage, width: 800)
           : croppedImage;
 
-      // Save the processed image
-      final Directory appDir = await getApplicationDocumentsDirectory();
-      final String imagePath = path.join(
+      // Save the cropped image
+      final String croppedImagePath = path.join(
         appDir.path,
-        '${DateTime.now().millisecondsSinceEpoch}.jpg',
+        'cropped_${DateTime.now().millisecondsSinceEpoch}.jpg',
       );
-      final File croppedFile = File(imagePath);
-
+      final File croppedFile = File(croppedImagePath);
       await croppedFile.writeAsBytes(img.encodeJpg(finalImage, quality: 85));
 
       // Clean up
@@ -326,7 +329,6 @@ class _LicenseVarificationState extends State<LicenseVarification>
         setState(() {
           _capturedImage = croppedFile;
         });
-
         if (mounted) {
           await _disposeCamera();
           Navigator.push(
@@ -339,8 +341,6 @@ class _LicenseVarificationState extends State<LicenseVarification>
               ),
             ),
           );
-
-          // Call the return handler
           _onReturnFromPreview();
         }
       }
@@ -354,6 +354,129 @@ class _LicenseVarificationState extends State<LicenseVarification>
       rethrow;
     }
   }
+  // Future<void> _processAndCropImage(XFile file) async {
+  //   try {
+  //     // Get the actual image dimensions
+  //     final imageBytes = await File(file.path).readAsBytes();
+  //     final image = img.decodeImage(imageBytes);
+
+  //     if (image == null) {
+  //       print("Failed to decode image");
+  //       throw Exception("Failed to decode image");
+  //     }
+
+  //     // Get screen dimensions
+  //     final screenSize = MediaQuery.of(context).size;
+  //     final screenWidth = screenSize.width;
+  //     final screenHeight = screenSize.height;
+
+  //     // Calculate frame dimensions (same as in build method)
+  //     final frameWidth = screenWidth * 0.85;
+  //     final frameHeight = screenWidth * 0.55;
+
+  //     // Calculate frame position (centered on screen)
+  //     final frameLeft = (screenWidth - frameWidth) / 2;
+  //     final frameTop = (screenHeight - frameHeight) / 2;
+
+  //     // Calculate the scale between the actual image and the preview
+  //     final previewSize = cameraController!.value.previewSize!;
+  //     final imageWidth = image.width;
+  //     final imageHeight = image.height;
+
+  //     // Calculate scale factors
+  //     final scaleX =
+  //         imageWidth /
+  //         previewSize.height; // Note: swapped for camera orientation
+  //     final scaleY =
+  //         imageHeight /
+  //         previewSize.width; // Note: swapped for camera orientation
+
+  //     // Calculate crop coordinates in the actual image
+  //     final cropX = (frameLeft * scaleX).round();
+  //     final cropY = (frameTop * scaleY).round();
+  //     final cropWidth = (frameWidth * scaleX).round();
+  //     final cropHeight = (frameHeight * scaleY).round();
+
+  //     // Ensure coordinates are within bounds
+  //     final safeCropX = cropX.clamp(0, imageWidth - 1);
+  //     final safeCropY = cropY.clamp(0, imageHeight - 1);
+  //     final safeCropWidth = (cropWidth).clamp(1, imageWidth - safeCropX);
+  //     final safeCropHeight = (cropHeight).clamp(1, imageHeight - safeCropY);
+
+  //     print('Image dimensions: ${imageWidth}x${imageHeight}');
+  //     print(
+  //       'Crop parameters: x=$safeCropX, y=$safeCropY, w=$safeCropWidth, h=$safeCropHeight',
+  //     );
+
+  //     // Crop the image
+  //     final img.Image croppedImage = img.copyCrop(
+  //       image,
+  //       x: safeCropX,
+  //       y: safeCropY,
+  //       width: safeCropWidth,
+  //       height: safeCropHeight,
+  //     );
+
+  //     // Resize if needed to optimize file size
+  //     final img.Image finalImage = safeCropWidth > 800
+  //         ? img.copyResize(croppedImage, width: 800)
+  //         : croppedImage;
+
+  //     // Save the processed image
+  //     final Directory appDir = await getApplicationDocumentsDirectory();
+  //     final String imagePath = path.join(
+  //       appDir.path,
+  //       '${DateTime.now().millisecondsSinceEpoch}.jpg',
+  //     );
+  //     final File croppedFile = File(imagePath);
+
+  //     await croppedFile.writeAsBytes(img.encodeJpg(finalImage, quality: 85));
+
+  //     // Clean up
+  //     try {
+  //       await File(file.path).delete();
+  //       print('Temporary file deleted: ${file.path}');
+  //     } catch (e) {
+  //       print('Error deleting temporary file: $e');
+  //     }
+
+  //     // Clear images from memory
+  //     image.clear();
+  //     croppedImage.clear();
+  //     if (finalImage != croppedImage) finalImage.clear();
+
+  //     if (!_isDisposed) {
+  //       setState(() {
+  //         _capturedImage = croppedFile;
+  //       });
+
+  //       if (mounted) {
+  //         await _disposeCamera();
+  //         Navigator.push(
+  //           context,
+  //           MaterialPageRoute(
+  //             builder: (context) => LicencePreview(
+  //               imageFile: croppedFile,
+  //               eventId: widget.eventId,
+  //               leadId: widget.leadId,
+  //             ),
+  //           ),
+  //         );
+
+  //         // Call the return handler
+  //         _onReturnFromPreview();
+  //       }
+  //     }
+  //   } catch (e) {
+  //     print('Error processing image: $e');
+  //     try {
+  //       await File(file.path).delete();
+  //     } catch (deleteError) {
+  //       print('Error deleting file after processing failure: $deleteError');
+  //     }
+  //     rethrow;
+  //   }
+  // }
 
   Future<void> submitFeedback(String skipReason) async {
     if (_isDisposed) return;

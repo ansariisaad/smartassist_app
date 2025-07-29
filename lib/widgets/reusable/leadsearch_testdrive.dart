@@ -760,7 +760,7 @@ class _LeadsearchTestdriveState extends State<LeadsearchTestdrive> {
                     ),
                     filled: true,
                     fillColor: AppColors.containerBg,
-                    hintText: selectedVehicleName ?? 'Search vehicles...',
+                    hintText: selectedVehicleName ?? 'Search for a lead',
                     // hintText:
                     //     selectedVehicleName ??
                     //     (selectedLeadPMI != null

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -10,7 +11,6 @@ import 'package:smartassist/utils/bottom_navigation.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:smartassist/utils/snackbar_helper.dart';
-//
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/services/reassign_enq_srv.dart';
 import 'package:smartassist/services/api_srv.dart';
@@ -33,8 +33,9 @@ class _AllEnqState extends State<AllEnq> {
   Set<String> selectedLeads = {};
   List<dynamic> upcomingTasks = [];
   List<dynamic> _searchResults = [];
-  List<dynamic> _filteredTasks = []; // Local filtered results
+  List<dynamic> _filteredTasks = [];
   String _query = '';
+  Timer? _debounceTimer; // Added for proper debouncing
 
   // Filter variables
   String _selectedBrand = 'All';
@@ -50,6 +51,7 @@ class _AllEnqState extends State<AllEnq> {
   ];
 
   void _onHorizontalDragUpdate(DragUpdateDetails details, String leadId) {
+    if (!mounted) return;
     setState(() {
       _swipeOffsets[leadId] =
           (_swipeOffsets[leadId] ?? 0) + (details.primaryDelta ?? 0);
@@ -70,13 +72,14 @@ class _AllEnqState extends State<AllEnq> {
 
   @override
   void dispose() {
+    _debounceTimer?.cancel(); // Cancel any pending timer
+    _searchController.removeListener(_onSearchChanged); // Remove listener first
     _searchController.dispose();
     _scrollController.dispose();
-
     super.dispose();
   }
 
-  // Helper methods to get responsive dimensions - moved to methods to avoid context issues
+  // Helper methods to get responsive dimensions
   bool _isTablet(BuildContext context) =>
       MediaQuery.of(context).size.width > 768;
   bool _isSmallScreen(BuildContext context) =>
@@ -99,6 +102,8 @@ class _AllEnqState extends State<AllEnq> {
       _isTablet(context) ? 14 : (_isSmallScreen(context) ? 10 : 12);
 
   Future<void> fetchTasksData() async {
+    if (!mounted) return; // Check if widget is still mounted
+
     final token = await Storage.getToken();
     try {
       final response = await http.get(
@@ -109,41 +114,46 @@ class _AllEnqState extends State<AllEnq> {
         },
       );
 
+      if (!mounted) return; // Check again before setState
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         print('this is the leadall $data');
 
-        setState(() {
-          upcomingTasks = data['data']['rows'] ?? [];
-          _filteredTasks = List.from(upcomingTasks); // Initialize filtered list
-          isLoading = false;
-        });
-
-        // Extract filter options after setting the data
-        _extractFilterOptions();
-
-        // Debug: Print the extracted filter options
-        print('Available Brands: $_availableBrands');
-        print('Available Assignees: $_availableAssignees');
+        if (mounted) {
+          // Always check before setState
+          setState(() {
+            upcomingTasks = data['data']['rows'] ?? [];
+            _filteredTasks = List.from(upcomingTasks);
+            isLoading = false;
+          });
+          _extractFilterOptions();
+        }
       } else {
         print("Failed to load data: ${response.statusCode}");
-        setState(() => isLoading = false);
+        if (mounted) {
+          setState(() => isLoading = false);
+        }
       }
     } catch (e) {
       print("Error fetching data: $e");
-      setState(() => isLoading = false);
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
     }
   }
 
-  // Enhanced method to extract unique brands and assignees from the data
   void _extractFilterOptions() {
+    if (!mounted) return;
+
     Set<String> brands = {};
     Set<String> assignees = {};
 
     print('Extracting filter options from ${upcomingTasks.length} tasks');
 
     for (var task in upcomingTasks) {
-      // Debug: Print each task to see the structure
+      if (task == null) continue; // Null safety check
+
       print('Task data: ${task.toString()}');
 
       // Extract brand information
@@ -168,17 +178,17 @@ class _AllEnqState extends State<AllEnq> {
       }
     }
 
-    setState(() {
-      // Create lists with 'All' as the first option, then sorted unique values
-      _availableBrands = ['All', ...brands.toList()..sort()];
-      _availableAssignees = ['All', ...assignees.toList()..sort()];
-    });
+    if (mounted) {
+      setState(() {
+        _availableBrands = ['All', ...brands.toList()..sort()];
+        _availableAssignees = ['All', ...assignees.toList()..sort()];
+      });
+    }
 
     print('Final Available Brands: $_availableBrands');
     print('Final Available Assignees: $_availableAssignees');
   }
 
-  // Check if a date falls within the selected time frame
   bool _isDateInTimeFrame(String dateString, String timeFrame) {
     if (timeFrame == 'All') return true;
 
@@ -205,17 +215,19 @@ class _AllEnqState extends State<AllEnq> {
       }
     } catch (e) {
       print('Error parsing date: $dateString');
-      return true; // Include items with invalid dates
+      return true;
     }
   }
 
-  // Apply all filters (search + brand + assignee + time frame)
   void _applyAllFilters() {
+    if (!mounted) return;
+
     List<dynamic> filtered = List.from(upcomingTasks);
 
     // Apply search filter
     if (_query.isNotEmpty) {
       filtered = filtered.where((item) {
+        if (item == null) return false; // Null safety
         String name = (item['lead_name'] ?? '').toString().toLowerCase();
         String email = (item['email'] ?? '').toString().toLowerCase();
         String phone = (item['mobile'] ?? '').toString().toLowerCase();
@@ -230,6 +242,7 @@ class _AllEnqState extends State<AllEnq> {
     // Apply brand filter
     if (_selectedBrand != 'All') {
       filtered = filtered.where((item) {
+        if (item == null) return false; // Null safety
         String itemBrand = (item['brand'] ?? '').toString().trim();
         bool match = itemBrand == _selectedBrand;
         print('Checking brand: $itemBrand == $_selectedBrand ? $match');
@@ -240,6 +253,7 @@ class _AllEnqState extends State<AllEnq> {
     // Apply assignee filter
     if (_selectedAssignee != 'All') {
       filtered = filtered.where((item) {
+        if (item == null) return false; // Null safety
         String itemAssignee = (item['lead_owner'] ?? '').toString().trim();
         bool match = itemAssignee == _selectedAssignee;
         print(
@@ -252,6 +266,7 @@ class _AllEnqState extends State<AllEnq> {
     // Apply time frame filter
     if (_selectedTimeFrame != 'All') {
       filtered = filtered.where((item) {
+        if (item == null) return false; // Null safety
         String dateString = item['created_at'] ?? '';
         return _isDateInTimeFrame(dateString, _selectedTimeFrame);
       }).toList();
@@ -259,12 +274,13 @@ class _AllEnqState extends State<AllEnq> {
 
     print('Filtered results count: ${filtered.length}');
 
-    setState(() {
-      _filteredTasks = filtered;
-    });
+    if (mounted) {
+      setState(() {
+        _filteredTasks = filtered;
+      });
+    }
   }
 
-  // Local search function for name, email, phone
   void _performLocalSearch(String query) {
     _query = query;
     _applyAllFilters();
@@ -276,34 +292,42 @@ class _AllEnqState extends State<AllEnq> {
 
   Future<void> _fetchSearchResults(String query) async {
     if (query.isEmpty) {
-      setState(() {
-        _searchResults.clear();
-      });
+      if (mounted) {
+        setState(() {
+          _searchResults.clear();
+        });
+      }
       return;
     }
 
-    setState(() {
-      _isLoadingSearch = true;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoadingSearch = true;
+      });
+    }
   }
 
   void _onSearchChanged() {
     final newQuery = _searchController.text.trim();
     if (newQuery == _query) return;
 
+    // Cancel previous timer
+    _debounceTimer?.cancel();
+
     // Perform local search immediately for better UX
     _performLocalSearch(newQuery);
 
-    // Also perform API search with debounce
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (newQuery == _searchController.text.trim()) {
+    // Set new timer for API search
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      if (newQuery == _searchController.text.trim() && mounted) {
         _fetchSearchResults(newQuery);
       }
     });
   }
 
-  //select leads
   void _toggleSelection(String leadId) {
+    if (!mounted) return;
+
     HapticFeedback.selectionClick();
 
     setState(() {
@@ -323,6 +347,8 @@ class _AllEnqState extends State<AllEnq> {
   }
 
   void _clearSelection() {
+    if (!mounted) return;
+
     HapticFeedback.lightImpact();
 
     setState(() {
@@ -331,8 +357,9 @@ class _AllEnqState extends State<AllEnq> {
     });
   }
 
-  // Reset all filters
   void _resetFilters() {
+    if (!mounted) return;
+
     setState(() {
       _selectedBrand = 'All';
       _selectedAssignee = 'All';
@@ -343,7 +370,6 @@ class _AllEnqState extends State<AllEnq> {
     _applyAllFilters();
   }
 
-  // Get active filter count
   int _getActiveFilterCount() {
     int count = 0;
     if (_selectedBrand != 'All') count++;
@@ -356,10 +382,10 @@ class _AllEnqState extends State<AllEnq> {
   // Responsive helper methods
   double _getResponsiveFontSize(BuildContext context, bool isTablet) {
     final screenWidth = MediaQuery.of(context).size.width;
-    if (screenWidth < 360) return 12; // Very small screens
-    if (screenWidth < 400) return 13; // Small screens
+    if (screenWidth < 360) return 12;
+    if (screenWidth < 400) return 13;
     if (isTablet) return 16;
-    return 14; // Default
+    return 14;
   }
 
   double _getResponsiveHintFontSize(BuildContext context, bool isTablet) {
@@ -402,7 +428,6 @@ class _AllEnqState extends State<AllEnq> {
     return 50;
   }
 
-  //build users profile pics
   Widget _buildUserAvatar(Map<String, dynamic> user, String userName) {
     final profilePic = user['profile_pic']?.toString();
 
@@ -544,13 +569,15 @@ class _AllEnqState extends State<AllEnq> {
                           print("Selected leads: $selectedLeads");
 
                           if (selectedLeads.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Please select leads to reassign',
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Please select leads to reassign',
+                                  ),
                                 ),
-                              ),
-                            );
+                              );
+                            }
                             return;
                           }
 
@@ -791,19 +818,21 @@ class _AllEnqState extends State<AllEnq> {
                                                       if (userId != null &&
                                                           userId.isNotEmpty &&
                                                           userId != 'null') {
-                                                        Navigator.of(
-                                                          context,
-                                                        ).pop({
-                                                          'id': userId,
-                                                          'name': userName,
-                                                        });
+                                                        if (context.mounted) {
+                                                          Navigator.of(
+                                                            context,
+                                                          ).pop({
+                                                            'id': userId,
+                                                            'name': userName,
+                                                          });
+                                                        }
                                                       } else {
-                                                        // Close dialog first, then show snackbar
-                                                        Navigator.of(
-                                                          context,
-                                                        ).pop();
+                                                        if (context.mounted) {
+                                                          Navigator.of(
+                                                            context,
+                                                          ).pop();
+                                                        }
 
-                                                        // Use a slight delay to ensure navigator is unlocked
                                                         await Future.delayed(
                                                           const Duration(
                                                             milliseconds: 100,
@@ -843,7 +872,6 @@ class _AllEnqState extends State<AllEnq> {
                                                           ),
                                                       child: Row(
                                                         children: [
-                                                          // Avatar
                                                           Container(
                                                             width: 48,
                                                             height: 48,
@@ -877,8 +905,6 @@ class _AllEnqState extends State<AllEnq> {
                                                           const SizedBox(
                                                             width: 16,
                                                           ),
-
-                                                          // User info
                                                           Expanded(
                                                             child: Column(
                                                               crossAxisAlignment:
@@ -900,8 +926,6 @@ class _AllEnqState extends State<AllEnq> {
                                                               ],
                                                             ),
                                                           ),
-
-                                                          // Arrow icon
                                                           Icon(
                                                             Icons
                                                                 .arrow_forward_ios_rounded,
@@ -937,8 +961,11 @@ class _AllEnqState extends State<AllEnq> {
                                             MainAxisAlignment.end,
                                         children: [
                                           TextButton(
-                                            onPressed: () =>
-                                                Navigator.of(context).pop(),
+                                            onPressed: () {
+                                              if (context.mounted) {
+                                                Navigator.of(context).pop();
+                                              }
+                                            },
                                             style: TextButton.styleFrom(
                                               padding:
                                                   const EdgeInsets.symmetric(
@@ -977,66 +1004,78 @@ class _AllEnqState extends State<AllEnq> {
                           final selectedUserName = selectedUser['name']!;
 
                           // Show loading indicator
-                          showDialog(
-                            context: context,
-                            barrierDismissible: false,
-                            builder: (context) => const Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                          );
+                          if (context.mounted) {
+                            showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (context) => const Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            );
+                          }
 
                           try {
                             final result = await ApiService.reassignLeads(
                               leadIds: selectedLeads,
-                              assignee:
-                                  selectedUserId, // This is the user_id from fetchUsers response
+                              assignee: selectedUserId,
                             );
 
                             // Hide loading indicator
-                            Navigator.of(context).pop();
+                            if (context.mounted) {
+                              Navigator.of(context).pop();
+                            }
 
                             if (result['success']) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'Reassigned to $selectedUserName',
-                                    style: GoogleFonts.poppins(),
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Reassigned to $selectedUserName',
+                                      style: GoogleFonts.poppins(),
+                                    ),
+                                    backgroundColor: Colors.green,
+                                    duration: const Duration(seconds: 2),
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
                                   ),
-                                  backgroundColor: Colors.green,
-                                  duration: const Duration(seconds: 2),
-                                  behavior: SnackBarBehavior
-                                      .floating, // Optional: Makes it float above UI
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      10,
-                                    ), // Optional: rounded corners
-                                  ),
-                                ),
-                              );
+                                );
+                              }
+
                               // Clear selection
-                              setState(() {
-                                selectedLeads.clear();
-                              });
+                              if (mounted) {
+                                setState(() {
+                                  selectedLeads.clear();
+                                });
+                              }
 
                               // Refresh the leads data
                               await fetchTasksData();
                             } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    result['error'] ?? 'Unknown error occurred',
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      result['error'] ??
+                                          'Unknown error occurred',
+                                    ),
                                   ),
-                                ),
-                              );
+                                );
+                              }
                             }
                           } catch (e) {
                             // Hide loading indicator
-                            Navigator.of(context).pop();
+                            if (context.mounted) {
+                              Navigator.of(context).pop();
+                            }
 
-                            print("Error reassigning leads: $e"); // Debug log
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Unexpected error: $e')),
-                            );
+                            print("Error reassigning leads: $e");
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Unexpected error: $e')),
+                              );
+                            }
                           }
                         },
                         style: TextButton.styleFrom(
@@ -1067,9 +1106,9 @@ class _AllEnqState extends State<AllEnq> {
                 Container(
                   margin: EdgeInsets.all(isTablet ? 15 : 10),
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: 38, // Minimum height for accessibility
-                      maxHeight: 38, // Maximum height to prevent oversizing
+                    constraints: const BoxConstraints(
+                      minHeight: 38,
+                      maxHeight: 38,
                     ),
                     child: TextField(
                       autofocus: false,
@@ -1159,10 +1198,12 @@ class _AllEnqState extends State<AllEnq> {
                               _selectedBrand,
                               _availableBrands,
                               (value) {
-                                setState(() {
-                                  _selectedBrand = value!;
-                                });
-                                _applyAllFilters();
+                                if (mounted) {
+                                  setState(() {
+                                    _selectedBrand = value!;
+                                  });
+                                  _applyAllFilters();
+                                }
                               },
                               isTablet,
                             ),
@@ -1176,10 +1217,12 @@ class _AllEnqState extends State<AllEnq> {
                               _selectedAssignee,
                               _availableAssignees,
                               (value) {
-                                setState(() {
-                                  _selectedAssignee = value!;
-                                });
-                                _applyAllFilters();
+                                if (mounted) {
+                                  setState(() {
+                                    _selectedAssignee = value!;
+                                  });
+                                  _applyAllFilters();
+                                }
                               },
                               isTablet,
                             ),
@@ -1193,10 +1236,12 @@ class _AllEnqState extends State<AllEnq> {
                               _selectedTimeFrame,
                               _timeFrameOptions,
                               (value) {
-                                setState(() {
-                                  _selectedTimeFrame = value!;
-                                });
-                                _applyAllFilters();
+                                if (mounted) {
+                                  setState(() {
+                                    _selectedTimeFrame = value!;
+                                  });
+                                  _applyAllFilters();
+                                }
                               },
                               isTablet,
                             ),
@@ -1254,20 +1299,10 @@ class _AllEnqState extends State<AllEnq> {
                       bottom: isTablet ? 8 : 5,
                       right: isTablet ? 15 : 10,
                     ),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      // child: Text(
-                      //   _buildFilterSummary(),
-                      //   style: GoogleFonts.poppins(
-                      //     fontSize: isTablet ? 14 : 12,
-                      //     fontStyle: FontStyle.italic,
-                      //     color: Colors.grey[600],
-                      //   ),
-                      // ),
-                    ),
+                    child: const Align(alignment: Alignment.centerLeft),
                   ),
 
-                // Results list - using filtered local results
+                // Results list - FIXED: Removed duplicate _buildTasksList call
                 Expanded(
                   child: Scrollbar(
                     controller: _scrollController,
@@ -1276,14 +1311,9 @@ class _AllEnqState extends State<AllEnq> {
                     thickness: 8.0,
                     radius: const Radius.circular(4.0),
                     interactive: true,
-                    child:
-                        //  _query.isNotEmpty
-                        // ? _buildTasksList(_searchResults)
-                        _buildTasksList(_filteredTasks),
+                    child: _buildTasksList(_filteredTasks),
                   ),
                 ),
-
-                //  _buildTasksList(_filteredTasks)
               ],
             ),
     );
@@ -1296,7 +1326,6 @@ class _AllEnqState extends State<AllEnq> {
     ValueChanged<String?> onChanged,
     bool isTablet,
   ) {
-    // Debug: Print dropdown options
     print('Building dropdown for $label with options: $options');
 
     return Container(
@@ -1319,7 +1348,7 @@ class _AllEnqState extends State<AllEnq> {
                 : Colors.grey.withOpacity(0.05),
             spreadRadius: 1,
             blurRadius: 3,
-            offset: Offset(0, 1),
+            offset: const Offset(0, 1),
           ),
         ],
       ),
@@ -1372,7 +1401,7 @@ class _AllEnqState extends State<AllEnq> {
                   children: [
                     if (isSelected && !isAllOption)
                       Container(
-                        margin: EdgeInsets.only(right: 8),
+                        margin: const EdgeInsets.only(right: 8),
                         child: Icon(
                           Icons.check_circle,
                           size: isTablet ? 16 : 14,
@@ -1413,7 +1442,7 @@ class _AllEnqState extends State<AllEnq> {
                   children: [
                     if (selectedValue != 'All')
                       Container(
-                        margin: EdgeInsets.only(right: 6),
+                        margin: const EdgeInsets.only(right: 6),
                         width: isTablet ? 6 : 5,
                         height: isTablet ? 6 : 5,
                         decoration: BoxDecoration(
@@ -1446,26 +1475,6 @@ class _AllEnqState extends State<AllEnq> {
       ),
     );
   }
-
-  // String _buildFilterSummary() {
-  //   List<String> activeSummary = [];
-
-  //   if (_query.isNotEmpty) {
-  //     activeSummary.add('Search: "$_query"');
-  //   }
-  //   if (_selectedBrand != 'All') {
-  //     activeSummary.add('Brand: $_selectedBrand');
-  //   }
-  //   if (_selectedAssignee != 'All') {
-  //     activeSummary.add('Assignee: $_selectedAssignee');
-  //   }
-  //   if (_selectedTimeFrame != 'All') {
-  //     activeSummary.add('Time: $_selectedTimeFrame');
-  //   }
-
-  //   String summary = activeSummary.join(' | ');
-  //   return 'Filtered by: $summary (${_filteredTasks.length} results)';
-  // }
 
   Widget _buildTasksList(List<dynamic> tasks) {
     if (tasks.isEmpty) {
@@ -1538,13 +1547,25 @@ class _AllEnqState extends State<AllEnq> {
       physics: const AlwaysScrollableScrollPhysics(),
       itemCount: tasks.length,
       itemBuilder: (context, index) {
+        // Safety check for index bounds
+        if (index >= tasks.length) return const SizedBox.shrink();
+
         var item = tasks[index];
 
-        if (!(item.containsKey('lead_id') && item.containsKey('lead_name'))) {
-          return ListTile(title: Text('Invalid data at index $index'));
+        // Enhanced null safety checks
+        if (item == null ||
+            !item.containsKey('lead_id') ||
+            !item.containsKey('lead_name') ||
+            item['lead_id'] == null ||
+            item['lead_name'] == null) {
+          return const SizedBox.shrink(); // Return empty widget instead of error
         }
 
-        String leadId = item['lead_id'] ?? '';
+        String leadId = item['lead_id']?.toString() ?? '';
+        if (leadId.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
         double swipeOffset = _swipeOffsets[leadId] ?? 0;
         bool isSelected = selectedLeads.contains(leadId);
 
@@ -1552,15 +1573,15 @@ class _AllEnqState extends State<AllEnq> {
           onHorizontalDragUpdate: (details) =>
               _onHorizontalDragUpdate(details, leadId),
           child: TaskItem(
-            name: item['lead_name'] ?? '',
-            date: item['created_at'] ?? '',
-            subject: item['email'] ?? 'No subject',
-            vehicle: item['PMI'] ?? 'Discovery Sport',
+            name: item['lead_name']?.toString() ?? '',
+            date: item['created_at']?.toString() ?? '',
+            subject: item['email']?.toString() ?? 'No subject',
+            vehicle: item['PMI']?.toString() ?? 'Discovery Sport',
             leadId: leadId,
             taskId: leadId,
-            brand: item['brand'] ?? '',
-            assignee: item['lead_owner'] ?? '',
-            number: item['mobile'] ?? '',
+            brand: item['brand']?.toString() ?? '',
+            assignee: item['lead_owner']?.toString() ?? '',
+            number: item['mobile']?.toString() ?? '',
             isFavorite: item['favourite'] ?? false,
             swipeOffset: swipeOffset,
             isSelected: isSelected,
@@ -1577,7 +1598,7 @@ class _AllEnqState extends State<AllEnq> {
   }
 }
 
-// Rest of the classes remain the same...
+// TaskItem class with proper disposal
 class TaskItem extends StatefulWidget {
   final String name, subject, number;
   final String date;
@@ -1593,10 +1614,6 @@ class TaskItem extends StatefulWidget {
   final VoidCallback fetchDashboardData;
   final VoidCallback onLongPress;
   final VoidCallback? onTap;
-
-  // final VoidCallback onFavoriteToggled;
-  // final Function(bool) onFavoriteChanged;
-  // final VoidCallback onToggleFavorite;
 
   const TaskItem({
     super.key,
@@ -1616,9 +1633,6 @@ class TaskItem extends StatefulWidget {
     required this.number,
     required this.onLongPress,
     this.onTap,
-    // required this.onFavoriteToggled,
-    // required this.onFavoriteChanged,
-    // required this.onToggleFavorite,
   });
 
   @override
@@ -1631,9 +1645,11 @@ class _TaskItemState extends State<TaskItem>
   late SlidableController _slidableController;
 
   void updateFavoriteStatus(bool newStatus) {
-    setState(() {
-      isFav = newStatus;
-    });
+    if (mounted) {
+      setState(() {
+        isFav = newStatus;
+      });
+    }
   }
 
   @override
@@ -1641,6 +1657,12 @@ class _TaskItemState extends State<TaskItem>
     super.initState();
     isFav = widget.isFavorite;
     _slidableController = SlidableController(this);
+  }
+
+  @override
+  void dispose() {
+    _slidableController.dispose(); // Proper controller disposal
+    super.dispose();
   }
 
   @override
@@ -1659,12 +1681,6 @@ class _TaskItemState extends State<TaskItem>
     );
   }
 
-  @override
-  void dispose() {
-    _slidableController.dispose();
-    super.dispose();
-  }
-
   Widget _buildFollowupCard(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final isTablet = screenSize.width > 600;
@@ -1674,6 +1690,16 @@ class _TaskItemState extends State<TaskItem>
       onLongPress: () {
         HapticFeedback.heavyImpact();
         widget.onLongPress();
+        _slidableController = SlidableController(this);
+
+        _slidableController.animation.addListener(() {
+          final isOpen = _slidableController.ratio != 0;
+          if (_isActionPaneOpen != isOpen) {
+            setState(() {
+              _isActionPaneOpen = isOpen;
+            });
+          }
+        });
       },
       onTap:
           widget.onTap ??
@@ -1687,7 +1713,6 @@ class _TaskItemState extends State<TaskItem>
                     leadId: widget.leadId,
                     isFromFreshlead: false,
                     isFromManager: true,
-
                     isFromTestdriveOverview: false,
                     refreshDashboard: () async {},
                   ),
@@ -1699,7 +1724,7 @@ class _TaskItemState extends State<TaskItem>
           },
       child: Slidable(
         key: ValueKey(widget.leadId),
-        controller: _slidableController, // Add the controller here
+        controller: _slidableController,
         endActionPane: ActionPane(
           motion: const StretchMotion(),
           extentRatio: isTablet ? 0.15 : 0.2,
@@ -1707,7 +1732,7 @@ class _TaskItemState extends State<TaskItem>
             ReusableSlidableAction(
               onPressed: () {
                 HapticFeedback.heavyImpact();
-                widget.onLongPress(); // Handle slide action
+                widget.onLongPress();
               },
               onDismissed: () {},
               backgroundColor: const Color.fromARGB(255, 231, 225, 225),
@@ -1719,7 +1744,6 @@ class _TaskItemState extends State<TaskItem>
         ),
         child: Stack(
           children: [
-            // Main Container with AnimatedContainer styling
             AnimatedContainer(
               duration: const Duration(milliseconds: 30),
               curve: Curves.easeInOut,
@@ -1753,7 +1777,7 @@ class _TaskItemState extends State<TaskItem>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Animated check icon (appears when selected)
+                    // Animated check icon
                     AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
@@ -1814,7 +1838,7 @@ class _TaskItemState extends State<TaskItem>
                       ),
                     ),
 
-                    // Animated navigation button (hides when selected)
+                    // Animated navigation button
                     AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
@@ -1829,6 +1853,7 @@ class _TaskItemState extends State<TaskItem>
                         ),
                       ),
                     ),
+                    _buildNavigationButton(context),
                   ],
                 ),
               ),
@@ -1886,41 +1911,40 @@ class _TaskItemState extends State<TaskItem>
     }
   }
 
-  //navigation button to show action slider
-
-  bool _isActionPaneOpen = false; // Declare this in your StatefulWidget
+  bool _isActionPaneOpen = false;
 
   Widget _buildNavigationButton(BuildContext context) {
     return GestureDetector(
       onTap: () {
         if (_isActionPaneOpen) {
           _slidableController.close();
-          setState(() {
-            _isActionPaneOpen = false;
-          });
+          if (mounted) {
+            setState(() {
+              _isActionPaneOpen = false;
+            });
+          }
         } else {
           _slidableController.close();
-          Future.delayed(Duration(milliseconds: 100), () {
-            _slidableController.openEndActionPane();
-            setState(() {
-              _isActionPaneOpen = true;
-            });
+          Future.delayed(const Duration(milliseconds: 100), () {
+            if (mounted) {
+              _slidableController.openEndActionPane();
+              setState(() {
+                _isActionPaneOpen = true;
+              });
+            }
           });
         }
       },
-
       child: Container(
         padding: const EdgeInsets.all(3),
         decoration: BoxDecoration(
           color: AppColors.arrowContainerColor,
           borderRadius: BorderRadius.circular(30),
         ),
-
         child: Icon(
           _isActionPaneOpen
               ? Icons.arrow_forward_ios_rounded
               : Icons.arrow_back_ios_rounded,
-
           size: 25,
           color: Colors.white,
         ),
@@ -1971,13 +1995,12 @@ class _TaskItemState extends State<TaskItem>
       widget.assignee,
       textAlign: TextAlign.start,
       style: AppFont.assigneeName(context),
-
       overflow: TextOverflow.ellipsis,
     );
   }
 }
 
-// Keep the existing FlexibleButton and ReusableSlidableAction classes
+// FlexibleButton class
 class FlexibleButton extends StatelessWidget {
   final String title;
   final VoidCallback onPressed;
@@ -2019,6 +2042,7 @@ class FlexibleButton extends StatelessWidget {
   }
 }
 
+// ReusableSlidableAction class
 class ReusableSlidableAction extends StatelessWidget {
   final VoidCallback onPressed;
   final Color backgroundColor;
@@ -2039,7 +2063,6 @@ class ReusableSlidableAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomSlidableAction(
-      // borderRadius: BorderRadius.circular(10),
       onPressed: (context) => onPressed(),
       backgroundColor: backgroundColor,
       padding: EdgeInsets.zero,

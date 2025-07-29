@@ -590,12 +590,12 @@ import 'package:smartassist/utils/bottom_navigation.dart';
 import 'package:smartassist/utils/button.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
-import 'package:smartassist/widgets/license_varification.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:smartassist/widgets/testdrive_camera_screen.dart';
 import 'package:sms_autofill/sms_autofill.dart';
 
 class TestdriveVerifyotp extends StatefulWidget {

@@ -35,6 +35,7 @@ class _CreateLeadsState extends State<CreateLeads> {
   String? selectedVehicleName;
   String? selectedBrand;
   String? vehicleId;
+  String? houseOfBrand;
   Map<String, dynamic>? selectedVehicleData;
   final PageController _pageController = PageController();
   List<Map<String, String>> dropdownItems = [];
@@ -72,11 +73,12 @@ class _CreateLeadsState extends State<CreateLeads> {
   String _selectedType = '';
   String _selectedPurchaseType = '';
   String _selectedEnquiryType = '';
+  String _selectedHaloOption = ''; // State for the new "Halo?" radio group
   Map<String, dynamic>? _existingLeadData;
 
   // Define constants
   final double _minValue = 4000000; // 40 lakhs
-  final double _maxValue = 20000000; // 200 lakhs (2 crore)
+  final double _maxValue = 40000000; // 400 lakhs (2 crore)
 
   // Initialize range values within min-max bounds
   late RangeValues _rangeAmount;
@@ -838,7 +840,6 @@ class _CreateLeadsState extends State<CreateLeads> {
                           ),
                         ],
                       ),
-
                       _buildNumberWidget(
                         isRequired: true,
                         label: 'Mobile No',
@@ -916,12 +917,12 @@ class _CreateLeadsState extends State<CreateLeads> {
                                 selectedVehicle['vehicle_name'];
                             selectedBrand = selectedVehicle['brand'];
                             vehicleId = selectedVehicle['vehicle_id'];
+                            houseOfBrand = selectedVehicle['houseOfBrand'];
 
                             if (_errors.containsKey('vehicleName')) {
                               _errors.remove('vehicleName');
                             }
                           });
-
                           print("Selected Vehicle: $selectedVehicleName");
                           print(
                             "Selected Brand: ${selectedBrand ?? 'No Brand'}",
@@ -1026,6 +1027,20 @@ class _CreateLeadsState extends State<CreateLeads> {
                           print("Selected Campaign ID: $selectedCampaignId");
                         },
                       ),
+                      const SizedBox(height: 10),
+
+                      // New "Halo?" radio button group
+                      _buildButtonsFloat(
+                        isRequired: false, // Assuming it's not required
+                        label: 'Halo?',
+                        options: const {"Yes": "Yes", "No": "No"},
+                        groupValue: _selectedHaloOption,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedHaloOption = value;
+                          });
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -1124,11 +1139,11 @@ class _CreateLeadsState extends State<CreateLeads> {
                   hintText: 'Search campaign',
                   hintStyle: GoogleFonts.poppins(
                     color: Colors.grey,
-                    fontSize: 12,
+                    fontSize: 14,
                   ),
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 10,
-                    vertical: 10,
+                    vertical: 14,
                   ),
                   border: InputBorder.none,
                   suffixIcon: _isLoadingCampaignSearch
@@ -1157,7 +1172,6 @@ class _CreateLeadsState extends State<CreateLeads> {
                       : const Icon(Icons.search, color: Colors.grey),
                 ),
               ),
-
               // Campaign Results
               if (_searchResultsCampaign.isNotEmpty &&
                   _searchControllerCampaign.text.isNotEmpty &&
@@ -1211,7 +1225,7 @@ class _CreateLeadsState extends State<CreateLeads> {
                           // Create the campaign data
                           final campaignData = {
                             'campaign_name': campaignName,
-                            'campaign_id': campaignId,
+                            // 'campaign_id': campaignId,
                           };
 
                           // Call the callback
@@ -1235,7 +1249,7 @@ class _CreateLeadsState extends State<CreateLeads> {
                     style: GoogleFonts.poppins(
                       fontSize: 14,
                       color: Colors.grey,
-                      fontStyle: FontStyle.italic,
+                      // fontStyle: FontStyle.italic,
                     ),
                   ),
                 ),
@@ -1583,6 +1597,7 @@ class _CreateLeadsState extends State<CreateLeads> {
     );
   }
 
+  // REVERTED to the original widget to maintain styling
   Widget _buildButtonsFloat({
     bool isRequired = false,
     required Map<String, String> options,
@@ -1592,7 +1607,6 @@ class _CreateLeadsState extends State<CreateLeads> {
     String? errorText,
   }) {
     List<String> optionKeys = options.keys.toList();
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1894,6 +1908,7 @@ class _CreateLeadsState extends State<CreateLeads> {
         'purchase_type': _selectedPurchaseType,
         'brand': selectedBrand ?? '',
         'vehicle_id': vehicleId ?? '',
+        'houseOfBrand': houseOfBrand ?? '',
         'type': 'Product',
         'sub_type': selectedSubType,
         'chat_id': "91${mobileController.text}@c.us",
@@ -1907,7 +1922,8 @@ class _CreateLeadsState extends State<CreateLeads> {
             ? null
             : _locationController.text.trim(),
         'exterior_color': selectedColorName,
-        'Campaign': selectedCampaignId, // Add campaign ID to form data
+        'Campaign': selectedCampaignId,
+        'halo': _selectedHaloOption.isNotEmpty ? _selectedHaloOption : null,
       };
 
       print("Submitting lead data: $leadData");
@@ -1916,7 +1932,6 @@ class _CreateLeadsState extends State<CreateLeads> {
 
       if (response != null) {
         print("Response received: $response");
-
         if (response.containsKey('data')) {
           String leadId = response['data']['lead_id'];
 

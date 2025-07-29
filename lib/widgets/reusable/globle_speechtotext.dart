@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:speech_to_text/speech_recognition_result.dart' as stt;
 import 'package:speech_to_text/speech_to_text.dart' as stt;
@@ -432,17 +433,29 @@ class _SpeechSearchWidgetState extends State<SpeechSearchWidget>
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      margin: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      constraints: BoxConstraints(
+        minHeight: 40, // Minimum touch target size
+        maxHeight: 48, // Maximum height for single line
+      ),
       child: TextField(
         controller: widget.controller,
         enabled: widget.enabled && !_isListening,
         onChanged: widget.onChanged,
         onSubmitted: widget.onSubmitted,
-        style: TextStyle(fontSize: widget.fontSize, color: widget.textColor),
+        style: TextStyle(
+          fontSize: widget.fontSize,
+          color: widget.textColor,
+          fontFamily: GoogleFonts.poppins().fontFamily,
+          fontWeight: FontWeight.w400,
+        ),
         decoration: InputDecoration(
           hintText: _isListening ? "Listening..." : widget.hintText,
           hintStyle: TextStyle(
-            color: _isListening ? _primaryColor : Colors.grey,
+            color: _isListening ? _primaryColor : Colors.grey.shade500,
+            fontFamily: GoogleFonts.poppins().fontFamily,
+            fontWeight: FontWeight.w300,
+            fontSize: widget.fontSize! * 0.95,
           ),
           prefixIcon: widget.prefixIcon,
           suffixIcon: Row(
@@ -454,14 +467,15 @@ class _SpeechSearchWidgetState extends State<SpeechSearchWidget>
           ),
           contentPadding:
               widget.contentPadding ??
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          filled: widget.backgroundColor != null,
-          fillColor: widget.backgroundColor,
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          filled: true,
+          fillColor: widget.backgroundColor ?? Colors.grey.shade50,
           border:
               widget.border ??
               (widget.showBorder
                   ? OutlineInputBorder(
                       borderRadius: BorderRadius.circular(widget.borderRadius),
+                      borderSide: BorderSide.none,
                     )
                   : InputBorder.none),
           enabledBorder:
@@ -469,7 +483,10 @@ class _SpeechSearchWidgetState extends State<SpeechSearchWidget>
               (widget.showBorder
                   ? OutlineInputBorder(
                       borderRadius: BorderRadius.circular(widget.borderRadius),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
+                      borderSide: BorderSide(
+                        color: Colors.grey.shade200,
+                        width: 1.5,
+                      ),
                     )
                   : InputBorder.none),
           focusedBorder:
@@ -477,9 +494,17 @@ class _SpeechSearchWidgetState extends State<SpeechSearchWidget>
               (widget.showBorder
                   ? OutlineInputBorder(
                       borderRadius: BorderRadius.circular(widget.borderRadius),
-                      borderSide: BorderSide(color: _primaryColor),
+                      borderSide: BorderSide(color: _primaryColor, width: 0.2),
                     )
                   : InputBorder.none),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(widget.borderRadius),
+            borderSide: BorderSide(color: Colors.red.shade300, width: 1.5),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(widget.borderRadius),
+            borderSide: BorderSide(color: Colors.red.shade400, width: 2.0),
+          ),
         ),
       ),
     );
@@ -487,50 +512,193 @@ class _SpeechSearchWidgetState extends State<SpeechSearchWidget>
 
   Widget _buildSpeechButton() {
     if (!_speechAvailable) {
-      return IconButton(
-        onPressed: null,
-        icon: const Icon(Icons.mic_off, color: Colors.grey),
-        tooltip: 'Microphone not available',
+      return Container(
+        margin: EdgeInsets.only(right: 6),
+        child: IconButton(
+          onPressed: null,
+          icon: Icon(
+            Icons.mic_off_rounded,
+            color: Colors.grey.shade400,
+            size: 16,
+          ),
+          tooltip: 'Microphone not available',
+          splashRadius: 18,
+          style: IconButton.styleFrom(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+          ),
+        ),
       );
     }
 
     if (!_isInitialized) {
-      return const Padding(
-        padding: EdgeInsets.all(12.0),
-        child: SizedBox(
-          width: 18,
-          height: 18,
-          child: CircularProgressIndicator(strokeWidth: 2),
+      return Container(
+        margin: EdgeInsets.only(right: 8),
+        child: Padding(
+          padding: EdgeInsets.all(8.0),
+          child: SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(
+              strokeWidth: 2.5,
+              valueColor: AlwaysStoppedAnimation<Color>(_primaryColor),
+            ),
+          ),
         ),
       );
     }
 
-    return IconButton(
-      onPressed: (_speechAvailable && !_isProcessing)
-          ? () {
-              if (_isListening) {
-                _stopListening();
-              } else {
-                _startListening();
-              }
-            }
-          : null,
-      icon: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 200),
-        child: Icon(
-          _isListening ? FontAwesomeIcons.stop : FontAwesomeIcons.microphone,
-          key: ValueKey(_isListening),
-          color: _isListening
-              ? Colors.red
-              : (_speechAvailable ? _primaryColor : Colors.grey),
-          size: 16,
+    return Container(
+      margin: EdgeInsets.only(right: 6),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: (_speechAvailable && !_isProcessing)
+              ? () {
+                  if (_isListening) {
+                    _stopListening();
+                  } else {
+                    _startListening();
+                  }
+                }
+              : null,
+          borderRadius: BorderRadius.circular(20),
+          splashColor: _primaryColor.withOpacity(0.1),
+          highlightColor: _primaryColor.withOpacity(0.05),
+          child: Container(
+            padding: EdgeInsets.all(6),
+            child: AnimatedContainer(
+              duration: Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 250),
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return ScaleTransition(
+                    scale: animation,
+                    child: FadeTransition(opacity: animation, child: child),
+                  );
+                },
+                child: Icon(
+                  _isListening
+                      ? FontAwesomeIcons.stop
+                      : FontAwesomeIcons.microphone,
+                  key: ValueKey(_isListening),
+                  color: _isListening
+                      ? Colors.red.shade500
+                      : (_speechAvailable
+                            ? _primaryColor
+                            : Colors.grey.shade400),
+                  size: 14,
+                ),
+              ),
+            ),
+          ),
         ),
       ),
-      tooltip: _isListening ? 'Stop recording' : 'Start voice input',
-      splashRadius: 24,
     );
   }
 }
+//   Widget build(BuildContext context) {
+//     return Container(
+//       margin: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+//       child: TextField(
+//         controller: widget.controller,
+//         enabled: widget.enabled && !_isListening,
+//         onChanged: widget.onChanged,
+//         onSubmitted: widget.onSubmitted,
+//         style: TextStyle(fontSize: widget.fontSize, color: widget.textColor),
+//         decoration: InputDecoration(
+//           hintText: _isListening ? "Listening..." : widget.hintText,
+//           hintStyle: TextStyle(
+//             color: _isListening ? _primaryColor : Colors.grey,
+//           ),
+//           prefixIcon: widget.prefixIcon,
+//           suffixIcon: Row(
+//             mainAxisSize: MainAxisSize.min,
+//             children: [
+//               if (widget.suffixIcon != null) widget.suffixIcon!,
+//               _buildSpeechButton(),
+//             ],
+//           ),
+//           contentPadding:
+//               widget.contentPadding ??
+//               const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+//           filled: widget.backgroundColor != null,
+//           fillColor: widget.backgroundColor,
+//           border:
+//               widget.border ??
+//               (widget.showBorder
+//                   ? OutlineInputBorder(
+//                       borderRadius: BorderRadius.circular(widget.borderRadius),
+//                     )
+//                   : InputBorder.none),
+//           enabledBorder:
+//               widget.enabledBorder ??
+//               (widget.showBorder
+//                   ? OutlineInputBorder(
+//                       borderRadius: BorderRadius.circular(widget.borderRadius),
+//                       borderSide: BorderSide(color: Colors.grey.shade300),
+//                     )
+//                   : InputBorder.none),
+//           focusedBorder:
+//               widget.focusedBorder ??
+//               (widget.showBorder
+//                   ? OutlineInputBorder(
+//                       borderRadius: BorderRadius.circular(widget.borderRadius),
+//                       borderSide: BorderSide(color: _primaryColor),
+//                     )
+//                   : InputBorder.none),
+//         ),
+//       ),
+//     );
+//   }
+
+//   Widget _buildSpeechButton() {
+//     if (!_speechAvailable) {
+//       return IconButton(
+//         onPressed: null,
+//         icon: const Icon(Icons.mic_off, color: Colors.grey),
+//         tooltip: 'Microphone not available',
+//       );
+//     }
+
+//     if (!_isInitialized) {
+//       return const Padding(
+//         padding: EdgeInsets.all(12.0),
+//         child: SizedBox(
+//           width: 18,
+//           height: 18,
+//           child: CircularProgressIndicator(strokeWidth: 2),
+//         ),
+//       );
+//     }
+
+//     return IconButton(
+//       onPressed: (_speechAvailable && !_isProcessing)
+//           ? () {
+//               if (_isListening) {
+//                 _stopListening();
+//               } else {
+//                 _startListening();
+//               }
+//             }
+//           : null,
+//       icon: AnimatedSwitcher(
+//         duration: const Duration(milliseconds: 200),
+//         child: Icon(
+//           _isListening ? FontAwesomeIcons.stop : FontAwesomeIcons.microphone,
+//           key: ValueKey(_isListening),
+//           color: _isListening
+//               ? Colors.red
+//               : (_speechAvailable ? _primaryColor : Colors.grey),
+//           size: 16,
+//         ),
+//       ),
+//       tooltip: _isListening ? 'Stop recording' : 'Start voice input',
+//       splashRadius: 24,
+//     );
+//   }
+// }
 
 // import 'dart:async';
 // import 'dart:io';

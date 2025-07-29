@@ -40,6 +40,8 @@ class _AllAppointmentState extends State<AllAppointment>
   String _query = '';
   int _upcomingButtonIndex = 0; // Fixed typo
   int count = 0;
+  int upcomingCount = 0;
+  int allCount = 0;
   late stt.SpeechToText _speech;
 
   final TextEditingController _searchController = TextEditingController();
@@ -224,6 +226,8 @@ class _AllAppointmentState extends State<AllAppointment>
         final Map<String, dynamic> data = json.decode(response.body);
         setState(() {
           count = data['data']['overdueWeekTasks']?['count'] ?? 0;
+          upcomingCount = data['data']['upcomingWeekTasks']?['count'] ?? 0;
+          allCount = data['data']['allTasks']?['count'] ?? 0;
           _originalAllTasks = data['data']['allTasks']?['rows'] ?? [];
           _originalUpcomingTasks =
               data['data']['upcomingWeekTasks']?['rows'] ?? [];
@@ -362,7 +366,7 @@ class _AllAppointmentState extends State<AllAppointment>
                 children: [
                   SpeechSearchWidget(
                     controller: _searchController,
-                    hintText: "Search test drives...",
+                    hintText: "Search by name, email or phone",
                     onChanged: (value) => _onSearchChanged(),
                     primaryColor: AppColors.fontColor,
                     backgroundColor: Colors.grey.shade100,
@@ -539,13 +543,13 @@ class _AllAppointmentState extends State<AllAppointment>
                               _buildFilterButton(
                                 color: AppColors.colorsBlue,
                                 index: 0,
-                                text: 'All',
+                                text: 'All ($allCount)',
                                 activeColor: AppColors.borderblue,
                               ),
                               _buildFilterButton(
                                 color: AppColors.containerGreen,
                                 index: 1,
-                                text: 'Upcoming',
+                                text: 'Upcoming ($upcomingCount)',
                                 activeColor: AppColors.borderGreen,
                               ),
                               _buildFilterButton(

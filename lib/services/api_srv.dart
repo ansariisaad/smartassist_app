@@ -16,7 +16,19 @@ class LeadsSrv {
   static const String baseUrl = 'https://api.smartassistapp.in/api/';
   static final ConnectionService _connectionService = ConnectionService();
 
-  // ApiService(this.baseUrl);
+  static Future<void> handleUnauthorizedIfNeeded(
+    int statusCode,
+    String errorMessage,
+  ) async {
+    if (statusCode == 401 ||
+        errorMessage.toLowerCase().contains("unauthorized")) {
+      await TokenManager.clearAuthData();
+      await Future.delayed(Duration(seconds: 2));
+      Get.offAll(() => LoginPage(email: '', onLoginSuccess: () {}));
+      showErrorMessageGetx(message: 'Someone logic on another devices..');
+      throw Exception('Unauthorized. Redirecting to login.');
+    }
+  }
 
   // Add this to your API helper file
   static Future<http.Response> makeAuthenticatedRequest(
@@ -317,6 +329,12 @@ class LeadsSrv {
       final result = json['items'] as List;
       return result;
     } else {
+      final Map<String, dynamic> errorData = json.decode(response.body);
+      final String errorMessage =
+          errorData['message'] ?? 'Failed to load dashboard data';
+
+      await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+      ();
       return null;
     }
   }
@@ -355,6 +373,14 @@ class LeadsSrv {
           throw Exception('Invalid response structure - missing data.rows');
         }
       } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+        print("Failed to load data: $errorMessage");
+
+        // Check if unauthorized: status 401 or error message includes "unauthorized"
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+        ();
         print('❌ HTTP Error: ${response.statusCode}');
         print('❌ Error body: ${response.body}');
         throw Exception(
@@ -386,6 +412,14 @@ class LeadsSrv {
 
         return List<String>.from(data['options']);
       } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+        print("Failed to load data: $errorMessage");
+
+        // Check if unauthorized: status 401 or error message includes "unauthorized"
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+        ();
         throw Exception('Failed to fetch options');
       }
     } catch (error) {
@@ -717,6 +751,14 @@ class LeadsSrv {
           throw Exception('Unexpected response structure: ${response.body}');
         }
       } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+        print("Failed to load data: $errorMessage");
+
+        // Check if unauthorized: status 401 or error message includes "unauthorized"
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+        ();
         throw Exception(
           'Failed to load data: ${response.statusCode} - ${response.body}',
         );
@@ -755,6 +797,14 @@ class LeadsSrv {
         final data = json.decode(response.body);
         return data;
       } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+        print("Failed to load data: $errorMessage");
+
+        // Check if unauthorized: status 401 or error message includes "unauthorized"
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+        ();
         throw Exception('Failed to load data: ${response.statusCode}');
       }
     } catch (e) {
@@ -806,6 +856,14 @@ class LeadsSrv {
           return []; // Return empty list if no tasks found
         }
       } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+        print("Failed to load data: $errorMessage");
+
+        // Check if unauthorized: status 401 or error message includes "unauthorized"
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+        ();
         throw Exception('Failed to load data: ${response.statusCode}');
       }
     } catch (e) {
@@ -884,6 +942,14 @@ class LeadsSrv {
         final Map<String, dynamic> data = jsonResponse['data'];
         return data;
       } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+        print("Failed to load data: $errorMessage");
+
+        // Check if unauthorized: status 401 or error message includes "unauthorized"
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+        ();
         throw Exception('Failed to load data: ${response.statusCode}');
       }
     } catch (e) {
@@ -920,6 +986,14 @@ class LeadsSrv {
         final Map<String, dynamic> data = jsonResponse['data'];
         return data;
       } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+        print("Failed to load data: $errorMessage");
+
+        // Check if unauthorized: status 401 or error message includes "unauthorized"
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+        ();
         throw Exception('Failed to load data: ${response.statusCode}');
       }
     } catch (e) {
@@ -960,6 +1034,14 @@ class LeadsSrv {
           return []; // Return empty list if no events found
         }
       } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+        print("Failed to load data: $errorMessage");
+
+        // Check if unauthorized: status 401 or error message includes "unauthorized"
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+        ();
         throw Exception('Failed to load data: ${response.statusCode}');
       }
     } catch (e) {
@@ -1008,6 +1090,14 @@ class LeadsSrv {
           return []; // Return empty list if no tasks found
         }
       } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+        print("Failed to load data: $errorMessage");
+
+        // Check if unauthorized: status 401 or error message includes "unauthorized"
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+        ();
         throw Exception('Failed to load data: ${response.statusCode}');
       }
     } catch (e) {
@@ -1052,6 +1142,14 @@ class LeadsSrv {
         final data = json.decode(response.body);
         return data; // Return the response data
       } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+        print("Failed to load data: $errorMessage");
+
+        // Check if unauthorized: status 401 or error message includes "unauthorized"
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+        ();
         throw Exception('Failed to load data: ${response.statusCode}');
       }
     } catch (e) {
@@ -1081,6 +1179,14 @@ class LeadsSrv {
         print("Total Appointments Fetched: ${data['data']['rows']?.length}");
         return data['data']['rows'] ?? [];
       } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+        print("Failed to load data: $errorMessage");
+
+        // Check if unauthorized: status 401 or error message includes "unauthorized"
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+        ();
         print("Error: ${response.statusCode}");
         return [];
       }
@@ -1112,6 +1218,14 @@ class LeadsSrv {
         final Map<String, dynamic> data = json.decode(response.body);
         return data['data']['rows'] ?? [];
       } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+        print("Failed to load data: $errorMessage");
+
+        // Check if unauthorized: status 401 or error message includes "unauthorized"
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+        ();
         print("Error: ${response.statusCode}");
         return [];
       }
@@ -1147,6 +1261,14 @@ class LeadsSrv {
               data['data']['overdueAppointmentsCount'] ?? 0,
         };
       } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+        print("Failed to load data: $errorMessage");
+
+        // Check if unauthorized: status 401 or error message includes "unauthorized"
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+        ();
         print('API Error: ${response.statusCode}');
         return {};
       }
@@ -1156,66 +1278,61 @@ class LeadsSrv {
     }
   }
 
-  // static Future<Map<String, dynamic>> fetchDashboardData() async {
-  //   final token = await Storage.getToken();
-  //   try {
-  //     final response = await http.get(
-  //       Uri.parse('${baseUrl}users/dashboard?filterType=MTD&category=Leads'),
-  //       headers: {
-  //         'Authorization': 'Bearer $token',
-  //         'Content-Type': 'application/json',
-  //       },
-  //     );
-
-  //     if (response.statusCode == 200) {
-  //       final Map<String, dynamic> jsonResponse = json.decode(response.body);
-  //       // Dashboard data is nested under "data"
-  //       final Map<String, dynamic> data = jsonResponse['data'];
-  //       return data;
-  //     } else {
-  //       // Decode the error response
-  //       final Map<String, dynamic> errorData = json.decode(response.body);
-  //       final String errorMessage =
-  //           errorData['message'] ?? 'Failed to load dashboard data';
-  //       print("Failed to load data: $errorMessage");
-
-  //       // Check if unauthorized: status 401 or error message includes "unauthorized"
-  //       if (response.statusCode == 401 ||
-  //           errorMessage.toLowerCase().contains("unauthorized")) {
-  //         await TokenManager.clearAuthData();
-  //         // Navigate to the login page using GetX
-  //         Get.offAll(() => LoginPage(email: '', onLoginSuccess: () {}));
-  //         throw Exception('Unauthorized. Redirecting to login.');
-  //       } else {
-  //         throw Exception(errorMessage);
-  //       }
-  //     }
-  //   } catch (e) {
-  //     throw Exception(e.toString());
-  //   }
-  // }
-
-  static Future<Map<String, dynamic>> fetchDashboardDataapi() async {
+  static Future<Map<String, dynamic>> fetchDashboardData() async {
+    final token = await Storage.getToken();
     try {
-      final response = await makeAuthenticatedRequest(
-        'GET',
-        '${baseUrl}users/dashboard?filterType=MTD&category=Leads',
+      final response = await http.get(
+        Uri.parse('${baseUrl}users/dashboard?filterType=MTD&category=Leads'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
       );
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonResponse = json.decode(response.body);
+        // Dashboard data is nested under "data"
         final Map<String, dynamic> data = jsonResponse['data'];
         return data;
       } else {
         final Map<String, dynamic> errorData = json.decode(response.body);
         final String errorMessage =
             errorData['message'] ?? 'Failed to load dashboard data';
-        throw Exception(errorMessage);
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+        throw Exception(
+          'Failed to load dashboard data: ${response.statusCode}',
+        );
       }
     } catch (e) {
       throw Exception(e.toString());
     }
   }
+
+  // static Future<Map<String, dynamic>> fetchDashboardDataapi() async {
+  //   const url = '${baseUrl}users/dashboard?filterType=MTD&category=Leads';
+  //   final uri = Uri.parse(url);
+  //   try {
+  //     // final response = await http.get(uri);
+
+  //     final response = await makeAuthenticatedRequest(
+  //       'GET',
+  //       '${baseUrl}users/dashboard?filterType=MTD&category=Leads',
+  //     );
+
+  //     if (response.statusCode == 200) {
+  //       final Map<String, dynamic> jsonResponse = json.decode(response.body);
+  //       final Map<String, dynamic> data = jsonResponse['data'];
+  //       return data;
+  //     } else {
+  //       final Map<String, dynamic> errorData = json.decode(response.body);
+  //       final String errorMessage =
+  //           errorData['message'] ?? 'Failed to load dashboard data';
+  //       throw Exception(errorMessage);
+  //     }
+  //   } catch (e) {
+  //     throw Exception(e.toString());
+  //   }
+  // }
 
   static Future<Map<String, dynamic>> fetchDashboardAnalytics() async {
     final token = await Storage.getToken();
@@ -1239,15 +1356,9 @@ class LeadsSrv {
         print("Failed to load data: $errorMessage");
 
         // Check if unauthorized: status 401 or error message includes "unauthorized"
-        if (response.statusCode == 401 ||
-            errorMessage.toLowerCase().contains("unauthorized")) {
-          await TokenManager.clearAuthData();
-          // Navigate to the login page using GetX
-          Get.offAll(() => LoginPage(email: '', onLoginSuccess: () {}));
-          throw Exception('Unauthorized. Redirecting to login.');
-        } else {
-          throw Exception(errorMessage);
-        }
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+        ();
+        throw Exception('');
       }
     } catch (e) {
       throw Exception(e.toString());
@@ -1306,15 +1417,16 @@ class LeadsSrv {
         final jsonData = json.decode(response.body);
         return jsonData['data'];
       } else {
-        if (response.statusCode == 401 ||
-            errorMessage.toLowerCase().contains("unauthorized")) {
-          await TokenManager.clearAuthData();
-          // Navigate to the login page using GetX
-          Get.offAll(() => LoginPage(email: '', onLoginSuccess: () {}));
-          throw Exception('Unauthorized. Redirecting to login.');
-        } else {
-          throw Exception(errorMessage);
-        }
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+        print("Failed to load data: $errorMessage");
+
+        // Check if unauthorized: status 401 or error message includes "unauthorized"
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+        throw Exception(
+          'Failed to fetch single call log data: ${response.statusCode}',
+        );
       }
     } catch (e) {
       print(e.toString());
@@ -1373,6 +1485,14 @@ class LeadsSrv {
           ),
         };
       } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+        print("Failed to load data: $errorMessage");
+
+        // Check if unauthorized: status 401 or error message includes "unauthorized"
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+        ();
         throw Exception(
           'Failed to fetch call analytics: ${response.statusCode}',
         );
@@ -1461,6 +1581,14 @@ class LeadsSrv {
           ),
         };
       } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+        print("Failed to load data: $errorMessage");
+
+        // Check if unauthorized: status 401 or error message includes "unauthorized"
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+        ();
         throw Exception('Failed to fetch data: ${response.statusCode}');
       }
     } catch (e) {
@@ -1508,6 +1636,14 @@ class LeadsSrv {
           'message': 'Notifications fetched successfully',
         };
       } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+        print("Failed to load data: $errorMessage");
+
+        // Check if unauthorized: status 401 or error message includes "unauthorized"
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+        ();
         return {
           'success': false,
           'data': [],
@@ -1642,6 +1778,14 @@ class LeadsSrv {
         final Map<String, dynamic> data = json.decode(response.body);
         return {'success': true, 'data': data['data']['rows'] ?? []};
       } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+        print("Failed to load data: $errorMessage");
+
+        // Check if unauthorized: status 401 or error message includes "unauthorized"
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+        ();
         return {
           'success': false,
           'error': 'HTTP ${response.statusCode}: ${response.reasonPhrase}',
@@ -1695,6 +1839,14 @@ class LeadsSrv {
         final Map<String, dynamic> data = json.decode(response.body);
         return {'success': true, 'data': data['data']['results'] ?? []};
       } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+        print("Failed to load data: $errorMessage");
+
+        // Check if unauthorized: status 401 or error message includes "unauthorized"
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+        ();
         return {
           'success': false,
           'error': 'HTTP ${response.statusCode}: ${response.reasonPhrase}',
@@ -1721,6 +1873,14 @@ class LeadsSrv {
         final Map<String, dynamic> data = json.decode(response.body);
         return {'success': true, 'data': data['data']['suggestions'] ?? []};
       } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+        print("Failed to load data: $errorMessage");
+
+        // Check if unauthorized: status 401 or error message includes "unauthorized"
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+        ();
         return {
           'success': false,
           'error': 'HTTP ${response.statusCode}: ${response.reasonPhrase}',

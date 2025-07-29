@@ -7,10 +7,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
-import 'package:smartassist/utils/bottom_navigation.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/services/reassign_enq_srv.dart';
 import 'package:smartassist/services/api_srv.dart';
@@ -58,10 +56,10 @@ class _AllEnqState extends State<AllEnq> {
     });
   }
 
-  void _handleCall(dynamic item) {
-    print("Call action triggered for ${item['name']}");
-    // Implement actual call functionality here
-  }
+  // void _handleCall(dynamic item) {
+  //   print("Call action triggered for ${item['name']}");
+  //   // Implement actual call functionality here
+  // }
 
   @override
   void initState() {
@@ -1643,7 +1641,7 @@ class _TaskItemState extends State<TaskItem>
     with SingleTickerProviderStateMixin {
   late bool isFav;
   late SlidableController _slidableController;
-
+  bool _isActionPaneOpen = false;
   void updateFavoriteStatus(bool newStatus) {
     if (mounted) {
       setState(() {
@@ -1657,6 +1655,14 @@ class _TaskItemState extends State<TaskItem>
     super.initState();
     isFav = widget.isFavorite;
     _slidableController = SlidableController(this);
+    _slidableController.animation.addListener(() {
+      final isOpen = _slidableController.ratio != 0;
+      if (_isActionPaneOpen != isOpen) {
+        setState(() {
+          _isActionPaneOpen = isOpen;
+        });
+      }
+    });
   }
 
   @override
@@ -1690,16 +1696,6 @@ class _TaskItemState extends State<TaskItem>
       onLongPress: () {
         HapticFeedback.heavyImpact();
         widget.onLongPress();
-        _slidableController = SlidableController(this);
-
-        _slidableController.animation.addListener(() {
-          final isOpen = _slidableController.ratio != 0;
-          if (_isActionPaneOpen != isOpen) {
-            setState(() {
-              _isActionPaneOpen = isOpen;
-            });
-          }
-        });
       },
       onTap:
           widget.onTap ??
@@ -1838,21 +1834,6 @@ class _TaskItemState extends State<TaskItem>
                       ),
                     ),
 
-                    // Animated navigation button
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                      width: widget.isSelected ? 0 : 36,
-                      child: AnimatedOpacity(
-                        duration: const Duration(milliseconds: 200),
-                        opacity: widget.isSelected ? 0.0 : 1.0,
-                        child: AnimatedScale(
-                          duration: const Duration(milliseconds: 300),
-                          scale: widget.isSelected ? 0.8 : 1.0,
-                          child: _buildNavigationButton(context),
-                        ),
-                      ),
-                    ),
                     _buildNavigationButton(context),
                   ],
                 ),
@@ -1910,8 +1891,6 @@ class _TaskItemState extends State<TaskItem>
       return mobile;
     }
   }
-
-  bool _isActionPaneOpen = false;
 
   Widget _buildNavigationButton(BuildContext context) {
     return GestureDetector(

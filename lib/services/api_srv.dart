@@ -1258,53 +1258,67 @@ class LeadsSrv {
     required int periodIndex,
     required String selectedUserId,
   }) async {
-    final token = await Storage.getToken();
+    try {
+      final token = await Storage.getToken();
 
-    String periodParam;
-    switch (periodIndex) {
-      case 0:
-        periodParam = 'DAY';
-        break;
-      case 1:
-        periodParam = 'WEEK';
-        break;
-      case 2:
-        periodParam = 'MTD';
-        break;
-      case 3:
-        periodParam = 'QTD';
-        break;
-      case 4:
-        periodParam = 'YTD';
-        break;
-      default:
-        periodParam = 'DAY';
-    }
+      String periodParam;
+      switch (periodIndex) {
+        case 0:
+          periodParam = 'DAY';
+          break;
+        case 1:
+          periodParam = 'WEEK';
+          break;
+        case 2:
+          periodParam = 'MTD';
+          break;
+        case 3:
+          periodParam = 'QTD';
+          break;
+        case 4:
+          periodParam = 'YTD';
+          break;
+        default:
+          periodParam = 'DAY';
+      }
 
-    final Map<String, String> queryParams = {
-      'type': periodParam,
-      if (selectedUserId.isNotEmpty) 'userId': selectedUserId,
-    };
+      final Map<String, String> queryParams = {
+        'type': periodParam,
+        if (selectedUserId.isNotEmpty) 'userId': selectedUserId,
+      };
 
-    final uri = Uri.parse(
-      '${baseUrl}users/sm/dashboard/individual/call-analytics',
-    ).replace(queryParameters: queryParams);
+      final uri = Uri.parse(
+        '${baseUrl}users/sm/dashboard/individual/call-analytics',
+      ).replace(queryParameters: queryParams);
 
-    final response = await http.get(
-      uri,
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      final jsonData = json.decode(response.body);
-      return jsonData['data'];
-    } else {
-      throw Exception(
-        'Failed to load single call log. Status: ${response.statusCode}',
+      final response = await http.get(
+        uri,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
       );
+      final Map<String, dynamic> errorData = json.decode(response.body);
+      final String errorMessage =
+          errorData['message'] ?? 'Failed to load dashboard data';
+
+      if (response.statusCode == 200) {
+        final jsonData = json.decode(response.body);
+        return jsonData['data'];
+      } else {
+        if (response.statusCode == 401 ||
+            errorMessage.toLowerCase().contains("unauthorized")) {
+          await TokenManager.clearAuthData();
+          // Navigate to the login page using GetX
+          Get.offAll(() => LoginPage(email: '', onLoginSuccess: () {}));
+          throw Exception('Unauthorized. Redirecting to login.');
+        } else {
+          throw Exception(errorMessage);
+        }
+      }
+    } catch (e) {
+      print(e.toString());
+      throw Exception('Error fetching single call log data: $e');
     }
   }
 

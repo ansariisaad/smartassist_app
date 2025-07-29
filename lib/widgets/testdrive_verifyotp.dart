@@ -589,7 +589,7 @@ import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/utils/bottom_navigation.dart';
 import 'package:smartassist/utils/button.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
-import 'package:smartassist/utils/storage.dart'; 
+import 'package:smartassist/utils/storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -1056,6 +1056,8 @@ class _TestdriveVerifyotpState extends State<TestdriveVerifyotp>
 
       if (!mounted) return;
 
+      print('this is the final otp send ${jsonDecode.toString()}');
+      print('this is the final otp send ${response.body}');
       final decoded = jsonDecode(response.body);
 
       print(response.body);

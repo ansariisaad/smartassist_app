@@ -1,9 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class FabController extends GetxController {
-  final ScrollController scrollController = ScrollController();
+  ScrollController? _scrollController;
   final RxBool isFabExpanded = false.obs;
   final RxList events = <dynamic>[].obs;
 
@@ -16,106 +17,185 @@ class FabController extends GetxController {
   // Add a small threshold to prevent excessive state changes
   static const double scrollThreshold = 10.0;
 
+  // Add debouncing for scroll events
+  DateTime? lastScrollTime;
+  static const Duration scrollDebounceTime = Duration(milliseconds: 100);
+
+  // Add timer reference to properly manage disable state
+  Timer? _disableTimer;
+
+  ScrollController get scrollController {
+    _scrollController ??= ScrollController();
+    return _scrollController!;
+  }
+
   @override
   void onInit() {
     super.onInit();
     scrollController.addListener(_scrollListener);
+
+    // Add periodic check to ensure FAB state is correct
+    Timer.periodic(const Duration(seconds: 30), (timer) {
+      if (isClosed) {
+        timer.cancel();
+        return;
+      }
+      _validateFabState();
+    });
   }
 
   void _scrollListener() {
-  if (!scrollController.hasClients) return;
-
-  final currentScrollPosition = scrollController.offset;
-  final scrollDifference = (currentScrollPosition - lastScrollPosition).abs();
-
-  // Add debouncing to prevent rapid state changes
-  if (scrollDifference < scrollThreshold) return;
-
-  // The issue might be here - rapid visibility changes
-  if (currentScrollPosition > lastScrollPosition && currentScrollPosition > 50) {
-    if (isFabVisible.value) {
-      isFabVisible.value = false;
-      if (isFabExpanded.value) {
-        isFabExpanded.value = false;
-      }
+    // Check if controller is disposed or doesn't have clients
+    if (isClosed ||
+        _scrollController == null ||
+        !_scrollController!.hasClients) {
+      return;
     }
-  } else if (currentScrollPosition < lastScrollPosition) {
-    if (!isFabVisible.value) {
-      isFabVisible.value = true;
+
+    final now = DateTime.now();
+
+    // Debounce scroll events
+    if (lastScrollTime != null &&
+        now.difference(lastScrollTime!) < scrollDebounceTime) {
+      return;
+    }
+    lastScrollTime = now;
+
+    try {
+      final currentScrollPosition = _scrollController!.offset;
+      final scrollDifference = (currentScrollPosition - lastScrollPosition)
+          .abs();
+
+      // Add debouncing to prevent rapid state changes
+      if (scrollDifference < scrollThreshold) return;
+
+      // Hide FAB when scrolling down, show when scrolling up
+      if (currentScrollPosition > lastScrollPosition &&
+          currentScrollPosition > 50) {
+        if (isFabVisible.value) {
+          isFabVisible.value = false;
+          if (isFabExpanded.value) {
+            isFabExpanded.value = false;
+          }
+        }
+      } else if (currentScrollPosition < lastScrollPosition) {
+        if (!isFabVisible.value) {
+          isFabVisible.value = true;
+        }
+      }
+
+      lastScrollPosition = currentScrollPosition;
+    } catch (e) {
+      print('Error in scroll listener: $e');
+      // Reset scroll position on error
+      lastScrollPosition = 0.0;
     }
   }
-
-  lastScrollPosition = currentScrollPosition;
-}
-
-  
-  // void _scrollListener() {
-  //   if (!scrollController.hasClients) return;
-
-  //   final currentScrollPosition = scrollController.offset;
-  //   final scrollDifference = (currentScrollPosition - lastScrollPosition).abs();
-
-  //   // Only process if scroll difference is significant enough
-  //   if (scrollDifference < scrollThreshold) return;
-
-  //   // If scrolling down significantly
-  //   if (currentScrollPosition > lastScrollPosition &&
-  //       currentScrollPosition > 50) {
-  //     if (isFabVisible.value) {
-  //       isFabVisible.value = false;
-  //       // Only close FAB if it was expanded, but don't force it
-  //       if (isFabExpanded.value) {
-  //         isFabExpanded.value = false;
-  //       }
-  //     }
-  //   }
-  //   // If scrolling up
-  //   else if (currentScrollPosition < lastScrollPosition) {
-  //     if (!isFabVisible.value) {
-  //       isFabVisible.value = true;
-  //     }
-  //   }
-
-  //   lastScrollPosition = currentScrollPosition;
-  // }
 
   void toggleFab() {
-    // Simplified condition - only check if visible
+    print(
+      'toggleFab called - Visible: ${isFabVisible.value}, Disabled: ${isFabDisabled.value}',
+    );
+
+    // Check if controller is disposed
+    if (isClosed) {
+      print('Controller is disposed, ignoring toggle');
+      return;
+    }
+
+    // Simplified condition - only check if visible and not disabled
     if (isFabVisible.value && !isFabDisabled.value) {
-      HapticFeedback.lightImpact();
-      isFabExpanded.toggle();
+      try {
+        HapticFeedback.lightImpact();
+        isFabExpanded.toggle();
+        print('FAB toggled successfully - Expanded: ${isFabExpanded.value}');
+      } catch (e) {
+        print('Error toggling FAB: $e');
+      }
+    } else {
+      print(
+        'FAB toggle blocked - Visible: ${isFabVisible.value}, Disabled: ${isFabDisabled.value}',
+      );
     }
   }
 
-  // Method to disable FAB temporarily
-  void temporarilyDisableFab() {
+  // Method to disable FAB temporarily with better error handling
+  void temporarilyDisableFab({Duration duration = const Duration(seconds: 2)}) {
+    if (isClosed) return;
+
+    print('Temporarily disabling FAB for ${duration.inSeconds} seconds');
+
+    // Cancel any existing timer
+    _disableTimer?.cancel();
+
     isFabDisabled.value = true;
     isFabExpanded.value = false;
 
-    // Enable after 10 seconds
-    Future.delayed(const Duration(seconds: 2), () {
+    // Create new timer
+    _disableTimer = Timer(duration, () {
       // Check if controller is still initialized
       if (!isClosed) {
         isFabDisabled.value = false;
+        print('FAB re-enabled after timeout');
       }
     });
   }
 
   void closeFab() {
+    if (isClosed) return;
     isFabExpanded.value = false;
   }
 
   // Add this method to reset FAB state if needed
   void resetFabState() {
+    if (isClosed) return;
+
+    print('Resetting FAB state');
+    _disableTimer?.cancel();
     isFabExpanded.value = false;
     isFabVisible.value = true;
     isFabDisabled.value = false;
   }
 
+  // Add method to validate FAB state periodically
+  void _validateFabState() {
+    if (isClosed) return;
+
+    // If FAB has been disabled for more than 30 seconds, something is wrong
+    if (isFabDisabled.value) {
+      print('Warning: FAB has been disabled for extended period, resetting...');
+      resetFabState();
+    }
+  }
+
+  // Add method to force enable FAB (for debugging)
+  void forceEnableFab() {
+    if (isClosed) return;
+
+    print('Force enabling FAB');
+    _disableTimer?.cancel();
+    isFabDisabled.value = false;
+    isFabVisible.value = true;
+  }
+
   @override
   void onClose() {
-    scrollController.removeListener(_scrollListener);
-    scrollController.dispose();
+    print('FabController disposing...');
+
+    // Cancel timer first
+    _disableTimer?.cancel();
+
+    // Remove listener and dispose controller
+    if (_scrollController != null) {
+      try {
+        _scrollController!.removeListener(_scrollListener);
+        _scrollController!.dispose();
+      } catch (e) {
+        print('Error disposing scroll controller: $e');
+      }
+      _scrollController = null;
+    }
+
     super.onClose();
   }
 }

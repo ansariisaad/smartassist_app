@@ -15,6 +15,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     
     <!-- Notification permissions -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -65,9 +66,22 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            
+            <intent-filter>
+                <action android:name="FLUTTER_NOTIFICATION_CLICK" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
         
-        <!-- Background service declaration -->
+        <!-- ✅ NATIVE: Your custom background service -->
+        <service 
+            android:name=".TestDriveBackgroundService"
+            android:exported="false"
+            android:enabled="true"
+            android:foregroundServiceType="location"
+            android:stopWithTask="false" />
+            
+        <!-- ✅ KEEP: Flutter background service (as fallback) -->
         <service 
             android:name="id.flutter.flutter_background_service.BackgroundService" 
             android:exported="false"

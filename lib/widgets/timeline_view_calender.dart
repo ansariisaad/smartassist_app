@@ -599,9 +599,7 @@
 //   }
 // }
 
-
-//before time line desging 
-
+//before time line desging
 
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -621,7 +619,7 @@ class CalendarWithTimeline extends StatefulWidget {
   final String leadName;
 
   const CalendarWithTimeline({Key? key, required this.leadName})
-      : super(key: key);
+    : super(key: key);
 
   @override
   State<CalendarWithTimeline> createState() => _CalendarWithTimelineState();
@@ -897,12 +895,7 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
                       child: Text(
                         "Show More (${items.length - 2} more) ▼",
                         style: TextStyle(
-                          color: const Color.fromRGBO(
-                            117,
-                            117,
-                            117,
-                            1,
-                          ),
+                          color: const Color.fromRGBO(117, 117, 117, 1),
                           fontSize: 13.5,
                           fontWeight: FontWeight.w500,
                         ),
@@ -927,12 +920,7 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
                       child: Text(
                         "Show Less ▲",
                         style: TextStyle(
-                          color: const Color.fromRGBO(
-                            117,
-                            117,
-                            117,
-                            1,
-                          ),
+                          color: const Color.fromRGBO(117, 117, 117, 1),
                           fontSize: 13.5,
                           fontWeight: FontWeight.w500,
                         ),
@@ -964,7 +952,8 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
 
     final c = category.toLowerCase();
     final isTestDrive = c.contains('test drive');
-    final isSpecialBlue = c.contains('call') ||
+    final isSpecialBlue =
+        c.contains('call') ||
         c.contains('quotation') ||
         c.contains('provide quotation') ||
         c.contains('send email') ||
@@ -1191,6 +1180,3 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
     return DateTime(2022, 1, 1, hour, minute);
   }
 }
-
-
-

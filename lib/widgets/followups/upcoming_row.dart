@@ -520,7 +520,7 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
 
     showDialog(
       barrierDismissible: false,
-      context: context,
+      context : context,
       builder: (context) {
         return Dialog(
           insetPadding: const EdgeInsets.symmetric(horizontal: 10),

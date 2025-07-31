@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -11,8 +13,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:smartassist/config/environment/environment.dart';
 import 'package:smartassist/config/route/route.dart';
 import 'package:smartassist/config/route/route_name.dart';
-import 'package:smartassist/services/notifacation_srv.dart'; 
-import 'package:smartassist/utils/connection_service.dart'; 
+import 'package:smartassist/services/notifacation_srv.dart';
+import 'package:smartassist/utils/connection_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -62,42 +64,118 @@ void main() async {
 
 Future<void> _requestLocationPermissions() async {
   try {
-    // Request location permissions using permission_handler
-    PermissionStatus locationStatus = await Permission.location.request();
-    print('📍 Location permission status: $locationStatus');
+    // First check current permission status
+    PermissionStatus currentStatus = await Permission.location.status;
+    print('📍 Current location permission status: $currentStatus');
 
-    if (locationStatus.isGranted) {
-      // Request background location for Android 10+
-      if (await Permission.locationAlways.isDenied) {
+    // Only request if not already granted
+    if (!currentStatus.isGranted) {
+      if (currentStatus.isPermanentlyDenied) {
+        print('❌ Location permission permanently denied - opening settings');
+        await openAppSettings();
+        return;
+      }
+
+      // Request location permission
+      PermissionStatus locationStatus = await Permission.location.request();
+      print('📍 Location permission request result: $locationStatus');
+
+      if (locationStatus.isPermanentlyDenied) {
+        print('❌ Location permission permanently denied after request');
+        await openAppSettings();
+        return;
+      }
+
+      if (!locationStatus.isGranted) {
+        print('❌ Location permission denied');
+        return;
+      }
+    }
+
+    print('✅ Location permission granted');
+
+    // Now handle background location (Android 10+)
+    if (Platform.isAndroid) {
+      PermissionStatus backgroundStatus =
+          await Permission.locationAlways.status;
+      print('📍 Background location permission status: $backgroundStatus');
+
+      if (!backgroundStatus.isGranted &&
+          !backgroundStatus.isPermanentlyDenied) {
         PermissionStatus backgroundLocationStatus = await Permission
             .locationAlways
             .request();
         print(
-          '📍 Background location permission status: $backgroundLocationStatus',
+          '📍 Background location permission result: $backgroundLocationStatus',
         );
 
         if (backgroundLocationStatus.isPermanentlyDenied) {
           print('❌ Background location permission permanently denied');
-          // You might want to show a dialog here explaining why this is needed
+          // Optionally show dialog explaining why this is needed
         }
       }
-    } else if (locationStatus.isPermanentlyDenied) {
-      print('❌ Location permission permanently denied');
-      // Open app settings
-      await openAppSettings();
     }
 
-    // Also check with Geolocator for compatibility
+    // Cross-check with Geolocator
     LocationPermission geolocatorPermission =
         await Geolocator.checkPermission();
     print('📍 Geolocator permission status: $geolocatorPermission');
 
     if (geolocatorPermission == LocationPermission.denied) {
       geolocatorPermission = await Geolocator.requestPermission();
+      print('📍 Geolocator permission after request: $geolocatorPermission');
     }
   } catch (e) {
     print('❌ Error requesting location permissions: $e');
   }
+}
+
+// Alternative approach with better user experience
+Future<bool> _requestLocationPermissionsWithDialog() async {
+  try {
+    PermissionStatus status = await Permission.location.status;
+
+    if (status.isGranted) {
+      print('✅ Location permission already granted');
+      return true;
+    }
+
+    if (status.isDenied) {
+      // Show explanation dialog before requesting
+      bool shouldRequest = await _showPermissionDialog();
+      if (!shouldRequest) return false;
+
+      status = await Permission.location.request();
+    }
+
+    if (status.isPermanentlyDenied) {
+      // Show dialog explaining how to enable in settings
+      bool openSettings = await _showSettingsDialog();
+      if (openSettings) {
+        await openAppSettings();
+      }
+      return false;
+    }
+
+    return status.isGranted;
+  } catch (e) {
+    print('❌ Error in permission request: $e');
+    return false;
+  }
+}
+
+// Helper method to show permission explanation dialog
+Future<bool> _showPermissionDialog() async {
+  // Implement your dialog here
+  // Return true if user agrees to grant permission
+  return true;
+}
+
+// Helper method to show settings dialog
+Future<bool> _showSettingsDialog() async {
+  // Implement your dialog here explaining how to enable in settings
+  // Return true if user wants to open settings
+  return true;
 }
 
 class MyApp extends StatelessWidget {

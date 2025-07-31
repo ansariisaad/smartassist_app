@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -10,6 +11,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
 import 'package:http_parser/http_parser.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -141,7 +143,97 @@ class _ProfileScreenState extends State<ProfileScreen>
     }
   }
 
-  Future<void> _pickImage() async {
+  Future<void> _showPermissionDialog() async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Permission Required'),
+          content: const Text(
+            'This app needs access to your photos to select a profile picture. Do you want to grant permission?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close dialog
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close dialog
+                _requestPermissionsAndPick(); // Then request permissions
+              },
+              child: const Text('Allow'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Request permissions and proceed with image picking
+  Future<void> _requestPermissionsAndPick() async {
+    final hasPermission = await _requestPermissions();
+
+    if (hasPermission) {
+      _proceedWithImagePicking();
+    } else {
+      _showPermissionDeniedDialog();
+    }
+  }
+
+  Future<void> _showPermissionDeniedDialog() async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Permission Denied'),
+          content: const Text(
+            'Photo access is required to select profile pictures. You can enable it in app settings.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                openAppSettings(); // Open device settings
+              },
+              child: const Text('Settings'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<bool> _requestPermissions() async {
+    if (Platform.isAndroid) {
+      // Check if permission is already granted
+      if (await Permission.photos.isGranted) {
+        return true;
+      }
+
+      // For Android 13+ (API 33+), request photos permission
+      final androidInfo = await DeviceInfoPlugin().androidInfo;
+      if (androidInfo.version.sdkInt >= 33) {
+        final status = await Permission.photos.request();
+        return status == PermissionStatus.granted;
+      }
+
+      // For older Android versions, request storage permission
+      final status = await Permission.storage.request();
+      return status == PermissionStatus.granted;
+    }
+    return true; // iOS permissions are handled automatically
+  }
+
+  Future<void> _proceedWithImagePicking() async {
     final pickedFile = await ImagePicker().pickImage(
       source: ImageSource.gallery,
     );
@@ -194,6 +286,73 @@ class _ProfileScreenState extends State<ProfileScreen>
       });
     }
   }
+
+  // Future<void> _pickImage() async {
+  //   // Request permissions first
+  //   final hasPermission = await _requestPermissions();
+
+  //   if (!hasPermission) {
+  //     // Show a dialog or snackbar to inform user about permission denial
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(
+  //         content: Text('Storage permission is required to select images'),
+  //         backgroundColor: Colors.red,
+  //       ),
+  //     );
+  //     return;
+  //   }
+  //   final pickedFile = await ImagePicker().pickImage(
+  //     source: ImageSource.gallery,
+  //   );
+
+  //   if (pickedFile == null) return;
+
+  //   File imageFile = File(pickedFile.path);
+
+  //   setState(() {
+  //     _profileImage = imageFile;
+  //     _isUploading = true;
+  //   });
+
+  //   final token = await Storage.getToken();
+  //   final uri = Uri.parse(
+  //     'https://api.smartassistapp.in/api/users/profile/set',
+  //   );
+
+  //   final request = http.MultipartRequest('POST', uri)
+  //     ..headers['Authorization'] = 'Bearer $token'
+  //     ..files.add(
+  //       http.MultipartFile(
+  //         'file',
+  //         imageFile.readAsBytes().asStream(),
+  //         imageFile.lengthSync(),
+  //         filename: path.basename(imageFile.path),
+  //         contentType: MediaType('image', 'jpeg'),
+  //       ),
+  //     );
+
+  //   try {
+  //     final streamedResponse = await request.send();
+  //     final response = await http.Response.fromStream(streamedResponse);
+
+  //     if (response.statusCode == 200) {
+  //       final res = json.decode(response.body);
+  //       print(response.body);
+  //       print('this is the update img');
+  //       setState(() {
+  //         profilePic = res['data'];
+  //         _profileImage = null;
+  //       });
+  //       // fetchProfileData();
+  //     }
+  //   } catch (e) {
+  //     print("❌ Upload error: $e");
+  //   } finally {
+  //     setState(() {
+  //       _isUploading = false;
+  //     });
+  //   }
+  // }
 
   void _removeImage() {
     setState(() {
@@ -559,7 +718,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                     color: Colors.transparent,
                     child: InkWell(
                       borderRadius: BorderRadius.circular(20),
-                      onTap: _pickImage,
+                      onTap: _showPermissionDialog,
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         child: const Icon(

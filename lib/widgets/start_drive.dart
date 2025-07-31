@@ -2,10 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_background_service/flutter_background_service.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_background_service/flutter_background_service.dart'; 
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -13,11 +13,9 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:smartassist/config/component/color/colors.dart';
-import 'package:smartassist/services/socket_backgroundsrv.dart';
+import 'package:smartassist/config/component/color/colors.dart'; 
 import 'package:smartassist/utils/bottom_navigation.dart';
-import 'package:smartassist/utils/storage.dart';
-import 'package:smartassist/utils/testdrive_notification_helper.dart';
+import 'package:smartassist/utils/storage.dart'; 
 import 'package:smartassist/widgets/feedback.dart';
 import 'package:smartassist/widgets/testdrive_summary.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
@@ -137,6 +135,8 @@ class _StartDriveMapState extends State<StartDriveMap>
   Timer? _connectionHealthTimer;
   int _socketReconnectAttempts = 0;
 
+  static const platform = MethodChannel('testdrive_native_service');
+
   // Enhanced constants for better accuracy
   static const double MIN_DISTANCE_THRESHOLD = 0.001; // 1 meter in km
   static const double MAX_SPEED_THRESHOLD =
@@ -158,6 +158,8 @@ class _StartDriveMapState extends State<StartDriveMap>
     driveStartTime = DateTime.now();
     totalDistance = 0.0;
     WidgetsBinding.instance.addObserver(this);
+    _requestBatteryOptimization();
+
     _initializeBackgroundService();
     _determinePosition();
     _startServiceHealthCheck();
@@ -168,6 +170,51 @@ class _StartDriveMapState extends State<StartDriveMap>
       points: routePoints,
       color: AppColors.colorsBlue,
       width: 5,
+    );
+  }
+
+  Future<void> _requestBatteryOptimization() async {
+    try {
+      final bool isDisabled = await platform.invokeMethod(
+        'isBatteryOptimizationDisabled',
+      );
+      if (!isDisabled) {
+        // Show dialog to user explaining why this is needed
+        _showBatteryOptimizationDialog();
+      }
+    } catch (e) {
+      print('❌ Failed to check battery optimization: $e');
+    }
+  }
+
+  void _showBatteryOptimizationDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Battery Optimization'),
+          content: Text(
+            'To ensure accurate test drive tracking in the background, please disable battery optimization for this app.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Skip'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                try {
+                  await platform.invokeMethod('requestBatteryOptimization');
+                } catch (e) {
+                  print('❌ Failed to request battery optimization: $e');
+                }
+              },
+              child: Text('Open Settings'),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -285,37 +332,191 @@ class _StartDriveMapState extends State<StartDriveMap>
   }
 
   Future<void> _initializeBackgroundService() async {
-    try {
-      await BackgroundService.initializeService();
-      _setupBackgroundServiceListeners();
-    } catch (e) {
-      print('Background service initialization failed: $e');
-      // Continue without background service
-    }
+    final service = FlutterBackgroundService();
+
+    await service.configure(
+      androidConfiguration: AndroidConfiguration(
+        onStart: onStart,
+        autoStart: false,
+        isForegroundMode: true,
+        notificationChannelId: 'testdrive_tracking',
+        initialNotificationTitle: 'Test Drive Service',
+        initialNotificationContent: 'Preparing location tracking...',
+        foregroundServiceNotificationId: 888,
+        foregroundServiceTypes: [AndroidForegroundType.location],
+      ),
+      iosConfiguration: IosConfiguration(
+        autoStart: false,
+        onForeground: onStart,
+        onBackground: onIosBackground,
+      ),
+    );
   }
+
+  @pragma('vm:entry-point')
+  static void onStart(ServiceInstance service) async {
+    DartPluginRegistrant.ensureInitialized();
+
+    print('🚀 Background service started');
+
+    // ✅ CRITICAL: Start foreground immediately
+    if (service is AndroidServiceInstance) {
+      service.setForegroundNotificationInfo(
+        title: 'Test Drive Service',
+        content: 'Initializing...',
+      );
+      service.setAsForegroundService();
+      print('✅ Set as foreground service immediately');
+    }
+
+    String? eventId;
+    double totalDistance = 0.0;
+
+    // Listen for start command
+    service.on('start_tracking').listen((event) async {
+      if (event != null) {
+        eventId = event['eventId'];
+        totalDistance = event['totalDistance']?.toDouble() ?? 0.0;
+
+        print('📍 Starting background tracking for: $eventId');
+
+        // Update notification
+        if (service is AndroidServiceInstance) {
+          service.setForegroundNotificationInfo(
+            title: 'Test Drive Active',
+            content: 'Tracking location...',
+          );
+        }
+
+        // Simple periodic location updates (no complex location streaming)
+        Timer.periodic(Duration(seconds: 10), (timer) async {
+          try {
+            Position position = await Geolocator.getCurrentPosition(
+              desiredAccuracy: LocationAccuracy.high,
+            );
+
+            print(
+              '📍 Background location: ${position.latitude}, ${position.longitude}',
+            );
+
+            // Send location update to main app
+            service.invoke('location_update', {
+              'position': {
+                'latitude': position.latitude,
+                'longitude': position.longitude,
+              },
+              'totalDistance': totalDistance,
+              'timestamp': DateTime.now().millisecondsSinceEpoch,
+            });
+          } catch (e) {
+            print('❌ Background location error: $e');
+          }
+        });
+      }
+    });
+
+    // Listen for stop command
+    service.on('stop_tracking').listen((event) {
+      print('🛑 Stopping background service');
+      service.stopSelf();
+    });
+  }
+
+  @pragma('vm:entry-point')
+  static Future<bool> onIosBackground(ServiceInstance service) async {
+    WidgetsFlutterBinding.ensureInitialized();
+    DartPluginRegistrant.ensureInitialized();
+    return true;
+  }
+
+  // @override
+  // void didChangeAppLifecycleState(AppLifecycleState state) {
+  //   super.didChangeAppLifecycleState(state);
+
+  //   print('🔄 App lifecycle state: $state');
+
+  //   switch (state) {
+  //     case AppLifecycleState.paused:
+  //     case AppLifecycleState.detached:
+  //       if (!isDriveEnded && !_backgroundServiceStarted) {
+  //         _startBackgroundService();
+  //       }
+  //       break;
+  //     case AppLifecycleState.resumed:
+  //       if (_backgroundServiceStarted) {
+  //         _stopBackgroundService();
+  //       }
+  //       // Sync data from background service
+  //       _syncFromBackgroundService();
+  //       break;
+  //     default:
+  //       break;
+  //   }
+  // }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-
     print('🔄 App lifecycle state: $state');
 
     switch (state) {
       case AppLifecycleState.paused:
       case AppLifecycleState.detached:
-        if (!isDriveEnded && !_backgroundServiceStarted) {
-          _startBackgroundService();
+      case AppLifecycleState.hidden:
+        if (!isDriveEnded) {
+          // ✅ Use native service instead of Flutter background service
+          _startNativeBackgroundService();
         }
         break;
       case AppLifecycleState.resumed:
-        if (_backgroundServiceStarted) {
-          _stopBackgroundService();
+        // ✅ Stop native service when app resumes
+        _stopNativeBackgroundService();
+        // Restart foreground tracking
+        if (!isDriveEnded) {
+          _initializeSocket();
+          _startLocationTracking();
         }
-        // Sync data from background service
-        _syncFromBackgroundService();
         break;
       default:
         break;
+    }
+  }
+
+  // ✅ NEW: Start native background service
+  Future<void> _startNativeBackgroundService() async {
+    try {
+      print('🚀 Starting native background service');
+
+      await platform.invokeMethod('startBackgroundService', {
+        'eventId': widget.eventId,
+        'totalDistance': totalDistance,
+      });
+
+      // Stop foreground tracking to avoid conflicts
+      if (positionStreamSubscription != null) {
+        positionStreamSubscription!.cancel();
+        positionStreamSubscription = null;
+      }
+
+      // Disconnect foreground socket
+      if (socket != null && socket!.connected) {
+        socket!.disconnect();
+      }
+
+      print('✅ Native background service started');
+    } catch (e) {
+      print('❌ Failed to start native background service: $e');
+    }
+  }
+
+  // ✅ NEW: Stop native background service
+  Future<void> _stopNativeBackgroundService() async {
+    try {
+      print('🛑 Stopping native background service');
+      await platform.invokeMethod('stopBackgroundService');
+      print('✅ Native background service stopped');
+    } catch (e) {
+      print('❌ Failed to stop native background service: $e');
     }
   }
 

@@ -16,6 +16,7 @@ class LeadsSrv {
   static const String baseUrl = 'https://api.smartassistapp.in/api/';
   static final ConnectionService _connectionService = ConnectionService();
 
+
   static Future<void> handleUnauthorizedIfNeeded(
     int statusCode,
     String errorMessage,
@@ -25,7 +26,7 @@ class LeadsSrv {
       await TokenManager.clearAuthData();
       await Future.delayed(Duration(seconds: 2));
       Get.offAll(() => LoginPage(email: '', onLoginSuccess: () {}));
-      showErrorMessageGetx(message: 'Someone logic on another devices..');
+      showErrorMessageGetx(message: "Someone login with same Id's..");
       throw Exception('Unauthorized. Redirecting to login.');
     }
   }

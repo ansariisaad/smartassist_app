@@ -1354,7 +1354,7 @@ class _timelineOverdueState extends State<timelineOverdue> {
                           icon: Icon(
                             Icons.edit,
                             size: 18,
-                            color: Colors.red,
+                            color: Colors.black,
                           ), // Red pencil
                           onPressed: () => _handleEdit(subject, taskId),
                           tooltip: 'Edit',

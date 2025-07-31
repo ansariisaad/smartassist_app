@@ -1,4 +1,3 @@
-
 // import 'dart:convert';
 // import 'package:flutter/material.dart';
 // import 'package:get/get.dart';
@@ -991,7 +990,7 @@
 //       return DateTime(2022, 1, 1, 0, 0);
 //     }
 //   }
-// 
+//
 
 import 'dart:convert';
 import 'dart:math' as math;
@@ -1765,154 +1764,146 @@ class _CalendarSmState extends State<CalendarSm> {
     );
   }
 
-Widget _buildTimelineView() {
-  if (_isLoading) {
-    return SkeletonCalendarCard();
-  }
+  Widget _buildTimelineView() {
+    if (_isLoading) {
+      return SkeletonCalendarCard();
+    }
 
-  if (_selectedType == 'team' && _selectedUserId.isEmpty) {
-    return _emptyState('Select a PS to view their schedule');
-  }
+    if (_selectedType == 'team' && _selectedUserId.isEmpty) {
+      return _emptyState('Select a PS to view their schedule');
+    }
 
-  final activeTimeSlots = _timeSlotItems.keys.toList()..sort();
-  if (activeTimeSlots.isEmpty) {
-    return _emptyState('No scheduled activities for this date');
-  }
+    final activeTimeSlots = _timeSlotItems.keys.toList()..sort();
+    if (activeTimeSlots.isEmpty) {
+      return _emptyState('No scheduled activities for this date');
+    }
 
-  return ListView.separated(
-    shrinkWrap: true,
-    physics: NeverScrollableScrollPhysics(),
-    itemCount: activeTimeSlots.length,
-    separatorBuilder: (_, __) => Divider(
-      height: 1,
-      color: Colors.grey.shade300,
-      thickness: 1,
-      indent: 8,
-      endIndent: 8,
-    ),
-    itemBuilder: (context, index) {
-      final timeKey = activeTimeSlots[index];
-      final items = _timeSlotItems[timeKey] ?? [];
-      final events = items.where((item) => item['start_time'] != null).toList();
-      final tasks = items.where((item) => item['start_time'] == null).toList();
-      List<dynamic> allItems = [];
-      allItems.addAll(events);
-      allItems.addAll(tasks);
-      bool isExpanded = _expandedSlots[timeKey] ?? false;
-      int showCount = isExpanded ? allItems.length : 2;
-      bool showMore = allItems.length > 2;
-      List<dynamic> displayItems = allItems.take(showCount).toList();
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      itemCount: activeTimeSlots.length,
+      separatorBuilder: (_, __) => Divider(
+        height: 1,
+        color: Colors.grey.shade300,
+        thickness: 1,
+        indent: 8,
+        endIndent: 8,
+      ),
+      itemBuilder: (context, index) {
+        final timeKey = activeTimeSlots[index];
+        final items = _timeSlotItems[timeKey] ?? [];
+        final events = items
+            .where((item) => item['start_time'] != null)
+            .toList();
+        final tasks = items
+            .where((item) => item['start_time'] == null)
+            .toList();
+        List<dynamic> allItems = [];
+        allItems.addAll(events);
+        allItems.addAll(tasks);
+        bool isExpanded = _expandedSlots[timeKey] ?? false;
+        int showCount = isExpanded ? allItems.length : 2;
+        bool showMore = allItems.length > 2;
+        List<dynamic> displayItems = allItems.take(showCount).toList();
 
-      // TIME ABOVE, CARDS BELOW:
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 8, bottom: 2),
-              child: Text(
-                timeKey,
-                style: TextStyle(
-                  color: Colors.grey.shade700,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
+        // TIME ABOVE, CARDS BELOW:
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 8, bottom: 2),
+                child: Text(
+                  timeKey,
+                  style: TextStyle(
+                    color: Colors.grey.shade700,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
                 ),
               ),
-            ),
-            ...displayItems.map(
-              (item) => Padding(
-                padding: const EdgeInsets.only(bottom: 8.0),
-                child: _buildTaskCard(item),
+              ...displayItems.map(
+                (item) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: _buildTaskCard(item),
+                ),
               ),
-            ),
-            if (showMore && !isExpanded)
-              Align(
-                alignment: Alignment.centerRight,
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _expandedSlots[timeKey] = true;
-                    });
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 3.0,
-                      horizontal: 8,
-                    ),
-                    child: Text(
-                      "Show More (${allItems.length - 2} more) ▼",
-                      style: TextStyle(
-                        color: const Color.fromRGBO(
-                          117,
-                          117,
-                          117,
-                          1,
+              if (showMore && !isExpanded)
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _expandedSlots[timeKey] = true;
+                      });
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 3.0,
+                        horizontal: 8,
+                      ),
+                      child: Text(
+                        "Show More (${allItems.length - 2} more) ▼",
+                        style: TextStyle(
+                          color: const Color.fromRGBO(117, 117, 117, 1),
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w500,
                         ),
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
                 ),
-              ),
-            if (showMore && isExpanded)
-              Align(
-                alignment: Alignment.centerRight,
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _expandedSlots[timeKey] = false;
-                    });
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 3.0,
-                      horizontal: 8,
-                    ),
-                    child: Text(
-                      "Show Less ▲",
-                      style: TextStyle(
-                        color: const Color.fromRGBO(
-                          117,
-                          117,
-                          117,
-                          1.0,
+              if (showMore && isExpanded)
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _expandedSlots[timeKey] = false;
+                      });
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 3.0,
+                        horizontal: 8,
+                      ),
+                      child: Text(
+                        "Show Less ▲",
+                        style: TextStyle(
+                          color: const Color.fromRGBO(117, 117, 117, 1.0),
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w500,
                         ),
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
                 ),
-              ),
-          ],
-        ),
-      );
-    },
-  );
-}
-
-
-Color getTaskCardColor(String category) {
-  final c = category.toLowerCase();
-  if (c.contains('test drive')) {
-    return Color(0xFFF5EFFA);
+            ],
+          ),
+        );
+      },
+    );
   }
-  if (c.contains('call') ||
-      c.contains('quotation') ||
-      c.contains('provide quotation') ||
-      c.contains('send email') ||
-      c.contains('send sms') ||
-      c.contains('meeting') ||
-      c.contains('vehicle selection') ||
-      c.contains('showroom appointment') ||
-      c.contains('trade in evaluation')) {
-    return Color(0xFFEAF2FE);
-  }
-  return Color(0xFFF0F3FA);
-}
 
+  Color getTaskCardColor(String category) {
+    final c = category.toLowerCase();
+    if (c.contains('test drive')) {
+      return Color(0xFFF5EFFA);
+    }
+    if (c.contains('call') ||
+        c.contains('quotation') ||
+        c.contains('provide quotation') ||
+        c.contains('send email') ||
+        c.contains('send sms') ||
+        c.contains('meeting') ||
+        c.contains('vehicle selection') ||
+        c.contains('showroom appointment') ||
+        c.contains('trade in evaluation')) {
+      return Color(0xFFEAF2FE);
+    }
+    return Color(0xFFF0F3FA);
+  }
 
   Widget _buildTaskCard(dynamic item) {
     String leadId = item['lead_id']?.toString() ?? '';

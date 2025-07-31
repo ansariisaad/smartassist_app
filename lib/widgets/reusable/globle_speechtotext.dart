@@ -76,7 +76,7 @@ class _SpeechSearchWidgetState extends State<SpeechSearchWidget>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _initSpeechEngine();
+    // _initSpeechEngine();
     _forceAnimationSync();
   }
 
@@ -133,7 +133,7 @@ class _SpeechSearchWidgetState extends State<SpeechSearchWidget>
           _isInitialized = true;
           _speechAvailable = false;
         });
-        _showFeedback("Microphone permission not granted", isError: true);
+        // _showFeedback("Microphone permission not granted", isError: true);
         return;
       }
 
@@ -515,7 +515,7 @@ class _SpeechSearchWidgetState extends State<SpeechSearchWidget>
       return Container(
         margin: EdgeInsets.only(right: 6),
         child: IconButton(
-          onPressed: null,
+          onPressed: _initSpeechEngine,
           icon: Icon(
             Icons.mic_off_rounded,
             color: Colors.grey.shade400,

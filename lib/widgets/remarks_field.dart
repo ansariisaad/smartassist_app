@@ -393,7 +393,8 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
     // Check permissions first
     bool hasPermissions = await _checkMicrophonePermission();
     if (!hasPermissions) {
-      _showFeedback("Microphone permission required", isError: true);
+      print('permission not granted ');
+      // _showFeedback("Microphone permission required", isError: true);
       return;
     }
 

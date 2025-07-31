@@ -54,8 +54,8 @@ class _AllTestdriveState extends State<AllTestdrive>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     fetchTasks();
-    _speech = stt.SpeechToText();
-    _initSpeech();
+    // _speech = stt.SpeechToText();
+    // _initSpeech();
   }
 
   @override
@@ -87,12 +87,12 @@ class _AllTestdriveState extends State<AllTestdrive>
         // );
       },
     );
-    if (!available) {
-      showErrorMessage(
-        context,
-        message: 'Speech recognition not available on this device',
-      );
-    }
+    // if (!available) {
+    //   showErrorMessage(
+    //     context,
+    //     message: 'Speech recognition not available on this device',
+    //   );
+    // }
   }
 
   // Toggle listening

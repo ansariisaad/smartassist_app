@@ -522,6 +522,7 @@ class _FollowupsEditState extends State<FollowupsEdit> {
                     ),
                   ],
                 ),
+
                 // if (_hasDeferredError)
                 //   Container(
                 //     margin: const EdgeInsets.only(top: 5),

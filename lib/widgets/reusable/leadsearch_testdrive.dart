@@ -864,7 +864,24 @@ class _LeadsearchTestdriveState extends State<LeadsearchTestdrive> {
           padding: const EdgeInsets.only(bottom: 0.0, left: 5),
           child: Row(
             children: [
-              Text('Select Vehicle', style: AppFont.dropDowmLabel(context)),
+              // Text('Select Vehicle', style: AppFont.dropDowmLabel(context)),
+              RichText(
+                text: TextSpan(
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.fontBlack,
+                  ),
+                  children: [
+                    TextSpan(text: 'Select Vehicle'),
+                    if (widget.isRequired)
+                      const TextSpan(
+                        text: " *",
+                        style: TextStyle(color: Colors.red),
+                      ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),

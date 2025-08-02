@@ -565,7 +565,24 @@ class _SlotCalendarState extends State<SlotCalendar> {
         // Time Picker Section - Show when date is selected
         if (_selectedDate != null) ...[
           const SizedBox(height: 15),
-          Text('Select Time', style: AppFont.dropDowmLabel(context)),
+          // Text('Select Time', style: AppFont.dropDowmLabel(context)),
+          RichText(
+            text: TextSpan(
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: AppColors.fontBlack,
+              ),
+              children: [
+                TextSpan(text: 'Select Time'),
+                if (widget.isRequired)
+                  const TextSpan(
+                    text: " *",
+                    style: TextStyle(color: Colors.red),
+                  ),
+              ],
+            ),
+          ),
           const SizedBox(height: 8),
 
           Row(

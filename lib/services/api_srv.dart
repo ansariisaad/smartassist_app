@@ -16,7 +16,6 @@ class LeadsSrv {
   static const String baseUrl = 'https://api.smartassistapp.in/api/';
   static final ConnectionService _connectionService = ConnectionService();
 
-
   static Future<void> handleUnauthorizedIfNeeded(
     int statusCode,
     String errorMessage,

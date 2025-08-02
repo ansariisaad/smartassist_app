@@ -223,70 +223,57 @@ class BottomBtnSecondState extends State<BottomBtnSecond> {
                     horizontal: 10,
                   ),
                   child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    child: SizedBox(
-                      height: MediaQuery.sizeOf(context).height * .05,
-                      width: double.infinity,
-                      child: Row(
-                        children: [
-                          // Leads Button
-                          Expanded(
-                            child: TextButton(
-                              onPressed: () {
-                                setState(() {
-                                  _leadButton = 0;
-                                  _updateLeadsWidget();
-                                });
-                              },
-                              style: _buttonStyle(_leadButton == 0),
-                              child: Text(
-                                'Enquiries',
-                                textAlign: TextAlign.center,
-                                style: AppFont.buttonwhite(context),
-                              ),
-                            ),
+                    height: MediaQuery.sizeOf(context).height * .05,
+                    width: double.infinity,
+                    child: Row(
+                      children: [
+                        // Enquiries Button
+                        Expanded(
+                          child: _buildTabButton(
+                            'Enquiries',
+                            Icons.person_search,
+                            0,
+                            () {
+                              setState(() {
+                                _leadButton = 0;
+                                _updateLeadsWidget();
+                              });
+                            },
                           ),
+                        ),
+                        SizedBox(width: 8.0),
 
-                          // Test Drive Button
-                          Expanded(
-                            child: TextButton(
-                              onPressed: () {
-                                setState(() {
-                                  _leadButton = 1;
-                                  _updateTestDriveWidget();
-                                });
-                              },
-                              style: _buttonStyle(_leadButton == 1),
-                              child: Text(
-                                'Test Drives',
-                                textAlign: TextAlign.center,
-                                style: AppFont.buttonwhite(context),
-                              ),
-                            ),
+                        // Test Drive Button
+                        Expanded(
+                          child: _buildTabButton(
+                            'Test Drives',
+                            Icons.directions_car,
+                            1,
+                            () {
+                              setState(() {
+                                _leadButton = 1;
+                                _updateTestDriveWidget();
+                              });
+                            },
                           ),
+                        ),
+                        SizedBox(width: 8.0),
 
-                          // Orders Button
-                          Expanded(
-                            child: TextButton(
-                              onPressed: () {
-                                setState(() {
-                                  _leadButton = 2;
-                                  _updateOrdersWidget();
-                                });
-                              },
-                              style: _buttonStyle(_leadButton == 2),
-                              child: Text(
-                                'Orders',
-                                textAlign: TextAlign.center,
-                                style: AppFont.buttonwhite(context),
-                              ),
-                            ),
+                        // Orders Button
+                        Expanded(
+                          child: _buildTabButton(
+                            'Orders',
+                            Icons.receipt_long,
+                            2,
+                            () {
+                              setState(() {
+                                _leadButton = 2;
+                                _updateOrdersWidget();
+                              });
+                            },
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -297,19 +284,67 @@ class BottomBtnSecondState extends State<BottomBtnSecond> {
     );
   }
 
-  // Button Style
-  ButtonStyle _buttonStyle(bool isSelected) {
-    return TextButton.styleFrom(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      minimumSize: const Size(0, 0),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-      backgroundColor: isSelected ? AppColors.colorsBlue : Colors.transparent,
-      foregroundColor: isSelected ? Colors.white : AppColors.fontColor,
-      textStyle: AppFont.threeBtn(context),
+  // New tab button widget with icons and consistent styling
+  // New tab button widget with icons on the left and consistent styling
+  Widget _buildTabButton(
+    String title,
+    IconData icon,
+    int index,
+    VoidCallback onPressed,
+  ) {
+    final isActive = _leadButton == index;
+
+    return TextButton(
+      onPressed: onPressed,
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+        minimumSize: const Size(0, 0),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+          side: BorderSide(
+            color: isActive
+                ? AppColors.colorsBlue
+                : AppColors.fontColor.withOpacity(0.2),
+            width: 1.0,
+          ),
+        ),
+        backgroundColor: isActive ? AppColors.colorsBlue : Colors.transparent,
+        foregroundColor: isActive ? Colors.white : AppColors.fontColor,
+      ),
+      child: Container(
+        width: double.infinity,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: isActive ? Colors.white : AppColors.fontColor,
+            ),
+            SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                title,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppFont.buttonwhite(context).copyWith(
+                  color: isActive ? Colors.white : AppColors.fontColor,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
+  // Remove the old _buttonStyle method as it's no longer needed
+
   Widget _buildSkeletonLoader() {
+    // [Skeleton loader remains the same]
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Shimmer.fromColors(
@@ -391,7 +426,6 @@ class BottomBtnSecondState extends State<BottomBtnSecond> {
                         children: [
                           Container(
                             width: MediaQuery.sizeOf(context).width * 0.5,
-                            // height: 30,
                             height: MediaQuery.sizeOf(context).height * 0.2,
                             decoration: BoxDecoration(
                               color: Colors.green[400],
@@ -407,7 +441,6 @@ class BottomBtnSecondState extends State<BottomBtnSecond> {
                           const SizedBox(width: 12),
                           Container(
                             width: MediaQuery.sizeOf(context).width * 0.3,
-                            // height: 30,
                             height: MediaQuery.sizeOf(context).height * 0.2,
                             decoration: BoxDecoration(
                               color: Colors.green[400],

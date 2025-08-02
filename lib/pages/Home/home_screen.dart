@@ -862,180 +862,443 @@ class _HomeScreenState extends State<HomeScreen> {
   // FAB Builder
   Widget _buildFloatingActionButton(BuildContext context) {
     return Obx(() {
-      // Add debugging info
       if (!fabController.isFabVisible.value) {
-        print('FAB not visible - hiding');
-      }
-      if (fabController.isFabDisabled.value) {
-        print('FAB is disabled');
+        return const SizedBox.shrink();
       }
 
-      return GestureDetector(
-        onTap: () {
-          print(
-            'FAB tapped - Current state: Visible(${fabController.isFabVisible.value}), Disabled(${fabController.isFabDisabled.value})',
-          );
-          fabController.toggleFab();
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          width: MediaQuery.of(context).size.width * .15,
-          height: MediaQuery.of(context).size.height * .08,
-          decoration: BoxDecoration(
-            color: fabController.isFabDisabled.value
-                ? Colors.grey.withOpacity(
-                    0.5,
-                  ) // Visual indication when disabled
-                : (fabController.isFabExpanded.value
-                      ? Colors.red
-                      : AppColors.colorsBlue),
-            shape: BoxShape.circle,
-          ),
-          child: Center(
-            child: AnimatedRotation(
-              turns: fabController.isFabExpanded.value ? 0.25 : 0.0,
-              duration: const Duration(milliseconds: 300),
-              child: Icon(
-                fabController.isFabExpanded.value ? Icons.close : Icons.add,
-                color: fabController.isFabDisabled.value
-                    ? Colors.grey
-                    : Colors.white,
-                size: 30,
-              ),
-            ),
-          ),
-        ),
-      );
-    });
-  }
+      return AnimatedBuilder(
+        animation: Listenable.merge([
+          fabController.rotation,
+          fabController.scale,
+        ]),
+        builder: (context, child) {
+          // Ensure all animation values are safe
+          final rotationValue = (fabController.rotation.value).clamp(0.0, 1.0);
+          final scaleValue = (fabController.scale.value).clamp(0.5, 2.0);
 
-  Widget _buildPopupMenu(BuildContext context) {
-    return GestureDetector(
-      onTap: fabController.closeFab,
-      child: Stack(
-        children: [
-          // Background overlay
-          Positioned.fill(
-            child: Container(color: Colors.black.withOpacity(0.7)),
-          ),
-
-          // Popup Items Container aligned bottom right
-          Positioned(
-            bottom: 90,
-            right: 20,
-            child: SizedBox(
-              width: 200,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  _buildPopupItem(
-                    Icons.calendar_month_outlined,
-                    "Appointment",
-                    -80,
-                    onTap: () {
-                      fabController.closeFab();
-                      _showAppointmentPopup(context);
-                    },
+          return Transform.scale(
+            scale: scaleValue,
+            child: Transform.rotate(
+              angle: rotationValue * 2 * 3.14159,
+              child: GestureDetector(
+                onTap: () {
+                  print(
+                    'FAB tapped - Current state: Visible(${fabController.isFabVisible.value}), Disabled(${fabController.isFabDisabled.value})',
+                  );
+                  fabController.toggleFab();
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  width: MediaQuery.of(context).size.width * .15,
+                  height: MediaQuery.of(context).size.height * .08,
+                  decoration: BoxDecoration(
+                    color: fabController.isFabDisabled.value
+                        ? Colors.grey.withOpacity(0.5)
+                        : (fabController.isFabExpanded.value
+                              ? Colors.red
+                              : AppColors.colorsBlue),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: fabController.isFabExpanded.value
+                            ? Colors.red.withOpacity(0.3)
+                            : AppColors.colorsBlue.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  _buildPopupItem(
-                    Icons.receipt_long_rounded,
-                    "Enquiry",
-                    -60,
-                    onTap: () {
-                      fabController.closeFab();
-                      _showLeadPopup(context);
-                    },
-                  ),
-                  _buildPopupItem(
-                    Icons.call,
-                    "Followup",
-                    -40,
-                    onTap: () {
-                      fabController.closeFab();
-                      _showFollowupPopup(context);
-                    },
-                  ),
-                  _buildPopupItem(
-                    Icons.directions_car,
-                    "Test Drive",
-                    -20,
-                    onTap: () {
-                      fabController.closeFab();
-                      _showTestdrivePopup(context);
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // ✅ FAB positioned above the overlay
-          Positioned(
-            bottom: 26,
-            right: 18,
-            child: _buildFloatingActionButton(context),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Popup Item Builder
-  Widget _buildPopupItem(
-    IconData icon,
-    String label,
-    double offsetY, {
-    required Function() onTap,
-  }) {
-    return Obx(
-      () => TweenAnimationBuilder(
-        tween: Tween<double>(
-          begin: 0,
-          end: fabController.isFabExpanded.value ? 1 : 0,
-        ),
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOutBack,
-        builder: (context, double value, child) {
-          return Transform.translate(
-            offset: Offset(0, offsetY * (1 - value)),
-            child: Opacity(
-              opacity: value.clamp(0.0, 1.0),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      label,
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white,
+                  child: Center(
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      transitionBuilder: (child, animation) {
+                        return ScaleTransition(scale: animation, child: child);
+                      },
+                      child: Icon(
+                        fabController.isFabExpanded.value
+                            ? Icons.close
+                            : Icons.add,
+                        key: ValueKey(fabController.isFabExpanded.value),
+                        color: fabController.isFabDisabled.value
+                            ? Colors.grey
+                            : Colors.white,
+                        size: 30,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    GestureDetector(
-                      onTap: onTap,
-                      behavior: HitTestBehavior.opaque,
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.colorsBlue,
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        child: Icon(icon, color: Colors.white, size: 24),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
           );
         },
+      );
+    });
+  }
+  // Widget _buildFloatingActionButton(BuildContext context) {
+  //   return Obx(() {
+  //     // Add debugging info
+  //     if (!fabController.isFabVisible.value) {
+  //       print('FAB not visible - hiding');
+  //     }
+  //     if (fabController.isFabDisabled.value) {
+  //       print('FAB is disabled');
+  //     }
+
+  //     return GestureDetector(
+  //       onTap: () {
+  //         print(
+  //           'FAB tapped - Current state: Visible(${fabController.isFabVisible.value}), Disabled(${fabController.isFabDisabled.value})',
+  //         );
+  //         fabController.toggleFab();
+  //       },
+  //       child: AnimatedContainer(
+  //         duration: const Duration(milliseconds: 300),
+  //         width: MediaQuery.of(context).size.width * .15,
+  //         height: MediaQuery.of(context).size.height * .08,
+  //         decoration: BoxDecoration(
+  //           color: fabController.isFabDisabled.value
+  //               ? Colors.grey.withOpacity(
+  //                   0.5,
+  //                 ) // Visual indication when disabled
+  //               : (fabController.isFabExpanded.value
+  //                     ? Colors.red
+  //                     : AppColors.colorsBlue),
+  //           shape: BoxShape.circle,
+  //         ),
+  //         child: Center(
+  //           child: AnimatedRotation(
+  //             turns: fabController.isFabExpanded.value ? 0.25 : 0.0,
+  //             duration: const Duration(milliseconds: 300),
+  //             child: Icon(
+  //               fabController.isFabExpanded.value ? Icons.close : Icons.add,
+  //               color: fabController.isFabDisabled.value
+  //                   ? Colors.grey
+  //                   : Colors.white,
+  //               size: 30,
+  //             ),
+  //           ),
+  //         ),
+  //       ),
+  //     );
+  //   });
+  // }
+
+  // Widget _buildPopupMenu(BuildContext context) {
+  //   return GestureDetector(
+  //     onTap: fabController.closeFab,
+  //     child: Stack(
+  //       children: [
+  //         // Background overlay
+  //         Positioned.fill(
+  //           child: Container(color: Colors.black.withOpacity(0.7)),
+  //         ),
+
+  //         // Popup Items Container aligned bottom right
+  //         Positioned(
+  //           bottom: 90,
+  //           right: 20,
+  //           child: SizedBox(
+  //             width: 200,
+  //             child: Column(
+  //               mainAxisSize: MainAxisSize.min,
+  //               crossAxisAlignment: CrossAxisAlignment.end,
+  //               children: [
+  //                 _buildPopupItem(
+  //                   Icons.calendar_month_outlined,
+  //                   "Appointment",
+  //                   -80,
+  //                   onTap: () {
+  //                     fabController.closeFab();
+  //                     _showAppointmentPopup(context);
+  //                   },
+  //                 ),
+  //                 _buildPopupItem(
+  //                   Icons.receipt_long_rounded,
+  //                   "Enquiry",
+  //                   -60,
+  //                   onTap: () {
+  //                     fabController.closeFab();
+  //                     _showLeadPopup(context);
+  //                   },
+  //                 ),
+  //                 _buildPopupItem(
+  //                   Icons.call,
+  //                   "Followup",
+  //                   -40,
+  //                   onTap: () {
+  //                     fabController.closeFab();
+  //                     _showFollowupPopup(context);
+  //                   },
+  //                 ),
+  //                 _buildPopupItem(
+  //                   Icons.directions_car,
+  //                   "Test Drive",
+  //                   -20,
+  //                   onTap: () {
+  //                     fabController.closeFab();
+  //                     _showTestdrivePopup(context);
+  //                   },
+  //                 ),
+  //               ],
+  //             ),
+  //           ),
+  //         ),
+
+  //         // ✅ FAB positioned above the overlay
+  //         Positioned(
+  //           bottom: 26,
+  //           right: 18,
+  //           child: _buildFloatingActionButton(context),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
+
+  Widget _buildPopupMenu(BuildContext context) {
+    return Obx(() {
+      if (!fabController.isFabExpanded.value ||
+          !fabController.isFabVisible.value) {
+        return const SizedBox.shrink();
+      }
+
+      return GestureDetector(
+        onTap: fabController.closeFab,
+        child: Stack(
+          children: [
+            // Simple background overlay without animation
+            Positioned.fill(
+              child: Container(color: Colors.black.withOpacity(0.7)),
+            ),
+
+            // Popup Items Container with safe animation
+            Positioned(
+              bottom: 90,
+              right: 20,
+              child: AnimatedBuilder(
+                animation: fabController.menu,
+                builder: (context, child) {
+                  final menuValue = fabController.menu.value.clamp(0.0, 1.0);
+
+                  return Transform.scale(
+                    scale: (0.3 + (menuValue * 0.7)).clamp(0.3, 1.0),
+                    alignment: Alignment.bottomRight,
+                    child: Opacity(
+                      opacity: menuValue,
+                      child: SizedBox(
+                        width: 200,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            _buildSafePopupItem(
+                              Icons.calendar_month_outlined,
+                              "Appointment",
+                              0,
+                              menuValue,
+                              onTap: () {
+                                fabController.closeFab();
+                                _showAppointmentPopup(context);
+                              },
+                            ),
+                            _buildSafePopupItem(
+                              Icons.receipt_long_rounded,
+                              "Enquiry",
+                              1,
+                              menuValue,
+                              onTap: () {
+                                fabController.closeFab();
+                                _showLeadPopup(context);
+                              },
+                            ),
+                            _buildSafePopupItem(
+                              Icons.call,
+                              "Followup",
+                              2,
+                              menuValue,
+                              onTap: () {
+                                fabController.closeFab();
+                                _showFollowupPopup(context);
+                              },
+                            ),
+                            _buildSafePopupItem(
+                              Icons.directions_car,
+                              "Test Drive",
+                              3,
+                              menuValue,
+                              onTap: () {
+                                fabController.closeFab();
+                                _showTestdrivePopup(context);
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+
+            // FAB positioned above the overlay
+            Positioned(
+              bottom: 26,
+              right: 18,
+              child: _buildFloatingActionButton(context),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _buildSafePopupItem(
+    IconData icon,
+    String label,
+    int index,
+    double menuProgress, {
+    required Function() onTap,
+  }) {
+    // Simple delay calculation that won't cause issues
+    final delay = (index * 100).toDouble(); // milliseconds delay
+    final totalDuration = 400.0; // total animation duration in ms
+
+    // Calculate progress for this item (0.0 to 1.0)
+    double itemProgress = 0.0;
+    if (menuProgress > 0.1) {
+      // Start after 10% of menu animation
+      itemProgress = ((menuProgress - 0.1) / 0.9).clamp(0.0, 1.0);
+    }
+
+    // Apply easing curve safely
+    final easedProgress = Curves.easeOutBack.transform(itemProgress);
+    final safeOpacity = easedProgress.clamp(0.0, 1.0);
+    final safeScale = (0.3 + (easedProgress * 0.7)).clamp(0.3, 1.0);
+    final safeTranslateY = ((1.0 - easedProgress) * 30.0).clamp(0.0, 30.0);
+
+    return AnimatedContainer(
+      duration: Duration(milliseconds: (300 + delay).round()),
+      curve: Curves.easeOutBack,
+      transform: Matrix4.translationValues(0, safeTranslateY, 0),
+      child: Transform.scale(
+        scale: safeScale,
+        child: Opacity(
+          opacity: safeOpacity,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.95),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: safeOpacity > 0.3
+                        ? [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ]
+                        : [],
+                  ),
+                  child: Text(
+                    label,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.colorsBlue,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: onTap,
+                  behavior: HitTestBehavior.opaque,
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.colorsBlue,
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: safeOpacity > 0.3
+                          ? [
+                              BoxShadow(
+                                color: AppColors.colorsBlue.withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ]
+                          : [],
+                    ),
+                    child: Icon(icon, color: Colors.white, size: 24),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
-  }
+  } // Popup Item Builder
+  // Widget _buildPopupItem(
+  //   IconData icon,
+  //   String label,
+  //   double offsetY, {
+  //   required Function() onTap,
+  // }) {
+  //   return Obx(
+  //     () => TweenAnimationBuilder(
+  //       tween: Tween<double>(
+  //         begin: 0,
+  //         end: fabController.isFabExpanded.value ? 1 : 0,
+  //       ),
+  //       duration: const Duration(milliseconds: 300),
+  //       curve: Curves.easeOutBack,
+  //       builder: (context, double value, child) {
+  //         return Transform.translate(
+  //           offset: Offset(0, offsetY * (1 - value)),
+  //           child: Opacity(
+  //             opacity: value.clamp(0.0, 1.0),
+  //             child: Padding(
+  //               padding: const EdgeInsets.symmetric(vertical: 6),
+  //               child: Row(
+  //                 mainAxisSize: MainAxisSize.min,
+  //                 children: [
+  //                   Text(
+  //                     label,
+  //                     style: GoogleFonts.poppins(
+  //                       fontSize: 14,
+  //                       fontWeight: FontWeight.w500,
+  //                       color: Colors.white,
+  //                     ),
+  //                   ),
+  //                   const SizedBox(width: 8),
+  //                   GestureDetector(
+  //                     onTap: onTap,
+  //                     behavior: HitTestBehavior.opaque,
+  //                     child: Container(
+  //                       padding: const EdgeInsets.all(12),
+  //                       decoration: BoxDecoration(
+  //                         color: AppColors.colorsBlue,
+  //                         borderRadius: BorderRadius.circular(30),
+  //                       ),
+  //                       child: Icon(icon, color: Colors.white, size: 24),
+  //                     ),
+  //                   ),
+  //                 ],
+  //               ),
+  //             ),
+  //           ),
+  //         );
+  //       },
+  //     ),
+  //   );
+  // }
 
   void _showFollowupPopup(BuildContext context) async {
     final result = await showDialog<bool>(

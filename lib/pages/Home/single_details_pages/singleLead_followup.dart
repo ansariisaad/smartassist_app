@@ -114,8 +114,8 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
     fetchSingleIdData(widget.leadId).then((_) {
       fetchCallLogs(mobile);
       // _fetchCallLogs();
-      _speech = stt.SpeechToText();
-      _initSpeech();
+      // _speech = stt.SpeechToText();
+      // _initSpeech();
     });
 
     // Initially, set the selected widget

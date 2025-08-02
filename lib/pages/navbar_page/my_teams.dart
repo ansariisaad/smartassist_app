@@ -565,9 +565,28 @@ class _MyTeamsState extends State<MyTeams> {
               _teamData['teamComparsion'] ?? [],
             );
             print('📊 Team Comparison Data Updated: $_teamComparisonData');
+
+            // 🔥 FIX: Reset display count to show all comparison data
+            if (_isComparing && _teamComparisonData.isNotEmpty) {
+              _currentDisplayCount = math.max(
+                _teamComparisonData.length,
+                _incrementCount,
+              );
+              print(
+                '📊 Reset display count for comparison: $_currentDisplayCount',
+              );
+            }
           } else {
             _teamComparisonData = [];
           }
+          // if (_teamData.containsKey('teamComparsion')) {
+          //   _teamComparisonData = List<dynamic>.from(
+          //     _teamData['teamComparsion'] ?? [],
+          //   );
+          //   print('📊 Team Comparison Data Updated: $_teamComparisonData');
+          // } else {
+          //   _teamComparisonData = [];
+          // }
 
           // added this one for new logic
 
@@ -793,12 +812,18 @@ class _MyTeamsState extends State<MyTeams> {
                   onTap: () async {
                     setState(() {
                       _isComparing = true;
+                      _isLoadingComparison = true;
                       _teamComparisonData = []; // 🔥 ADD THIS
+                      _currentDisplayCount = math.max(
+                        selectedUserIds.length,
+                        _incrementCount,
+                      );
                     });
                     await Future.delayed(
                       Duration(milliseconds: 50),
                     ); // 🔥 ADD THIS
-                    _fetchTeamDetails();
+                    await Future.delayed(Duration(milliseconds: 100));
+                    await _fetchTeamDetails();
                   },
                   child: Text(
                     'Compare',
@@ -1321,7 +1346,23 @@ class _MyTeamsState extends State<MyTeams> {
                   selectedUserIds.add(userId);
                 }
               });
-              _resetDisplayCountForNewData();
+              // _resetDisplayCountForNewData();
+              if (_isComparing) {
+                // Reset to show all selected users (minimum of selected users count or increment count)
+                _currentDisplayCount = math.max(
+                  selectedUserIds.length,
+                  _incrementCount,
+                );
+              } else {
+                _resetDisplayCountForNewData();
+              }
+
+              if (_isComparing && selectedUserIds.isNotEmpty) {
+                // Add a small delay to ensure setState completes
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  _fetchTeamDetails();
+                });
+              }
             } else if (!_isComparing) {
               // Single select mode: your existing logic
               setState(() {
@@ -1429,16 +1470,6 @@ class _MyTeamsState extends State<MyTeams> {
     }
     return Border.all(color: AppColors.colorsBlue.withOpacity(0.1), width: 1);
   }
-
-  // Border _getBorderStyle(bool isSelectedForComparison, int index) {
-  //   bool isCurrentlySelected =
-  //       _selectedProfileIndex == index && _selectedUserId == selectedUserIds;
-  //   return isSelectedForComparison || isCurrentlySelected
-  //       ? Border.all(color: AppColors.colorsBlue, width: 2.5)
-  //       : Border.all(color: Colors.grey.withOpacity(0.3), width: 1);
-  // }
-
-  // Helper method to build profile content with modern styling
 
   Widget _buildProfileContent(
     bool isSelectedForComparison,

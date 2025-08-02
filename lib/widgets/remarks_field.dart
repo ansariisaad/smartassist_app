@@ -69,7 +69,7 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
   String? _lastError;
   final FlutterTts _flutterTts = FlutterTts();
   bool _isSpeaking = false;
-  bool _permissionChecked = false;
+  // bool _permissionChecked = false;
   Color get _primaryColor => widget.primaryColor ?? Colors.grey.shade800;
   Color get _errorColor => Colors.red;
 
@@ -102,14 +102,14 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
     _engineSyncTimer?.cancel();
   }
 
-  // === Always force UI to match engine ===
   void _forceAnimationSync() {
     _stateCheckTimer?.cancel();
     _stateCheckTimer = Timer.periodic(const Duration(seconds: 1), (_) async {
       if (!mounted || _isDisposing || _speech == null) return;
+
       final actuallyListening = _speech!.isListening;
       if (_isListening != actuallyListening) {
-        setState(() => _isListening = actuallyListening);
+        if (mounted) setState(() => _isListening = actuallyListening);
         if (actuallyListening) {
           _waveController.repeat();
         } else {
@@ -132,20 +132,104 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
           await Future.delayed(const Duration(milliseconds: 100));
           await _speech!.cancel();
         }
+        // Clear callbacks to prevent further setState calls
+        _speech = null;
       }
     } catch (_) {}
-    _speech = null;
   }
+
+  // Future<void> _initSpeechEngine() async {
+  //   _isProcessing = true;
+  //   await _killSpeechEngine();
+  //   _speech = stt.SpeechToText();
+
+  //   _speechAvailable = await _speech!.initialize(
+  //     onStatus: _onSpeechStatus,
+  //     onError: _onSpeechError,
+  //     debugLogging: false,
+  //   );
+
+  //   if (_speechAvailable) {
+  //     final locales = await _speech!.locales();
+  //     List<String> englishLocaleIds = [
+  //       'en_US',
+  //       'en_GB',
+  //       'en_IN',
+  //       'en_AU',
+  //       'en_CA',
+  //       'en_IE',
+  //       'en_SG',
+  //     ];
+  //     _currentLocaleId = locales
+  //         .map((l) => l.localeId)
+  //         .firstWhere(
+  //           (id) => englishLocaleIds.contains(id),
+  //           orElse: () => locales.first.localeId,
+  //         );
+  //   }
+
+  //   // Initialize TTS here
+  //   await _initTextToSpeech();
+
+  //   try {
+  //     if (mounted) setState(() => _isInitialized = true);
+  //   } catch (e) {
+  //     debugPrint('Speech init error: $e');
+  //     if (mounted) {
+  //       setState(() {
+  //         _isInitialized = true;
+  //         _speechAvailable = false;
+  //       });
+  //     }
+  //   }
+  //   _isProcessing = false;
+  // }
 
   Future<void> _initSpeechEngine() async {
     _isProcessing = true;
     await _killSpeechEngine();
     _speech = stt.SpeechToText();
 
-    // Initialize TTS here
-    await _initTextToSpeech();
-
     try {
+      bool hasPermission = await _checkMicrophonePermission();
+      if (!mounted) return;
+
+      if (!hasPermission) {
+        setState(() {
+          _isInitialized = true;
+          _speechAvailable = false;
+        });
+        return;
+      }
+
+      _speechAvailable = await _speech!.initialize(
+        onStatus: _onSpeechStatus,
+        onError: _onSpeechError,
+        debugLogging: false,
+      );
+
+      if (_speechAvailable) {
+        final locales = await _speech!.locales();
+        List<String> englishLocaleIds = [
+          'en_US',
+          'en_GB',
+          'en_IN',
+          'en_AU',
+          'en_CA',
+          'en_IE',
+          'en_SG',
+        ];
+        _currentLocaleId = locales
+            .map((l) => l.localeId)
+            .firstWhere(
+              (id) => englishLocaleIds.contains(id),
+              orElse: () => locales.first.localeId,
+            );
+      }
+
+      // Initialize TTS after speech
+      await _initTextToSpeech();
+
       if (mounted) setState(() => _isInitialized = true);
     } catch (e) {
       debugPrint('Speech init error: $e');
@@ -185,6 +269,32 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
     }
   }
 
+  // Future<void> _initTextToSpeech() async {
+  //   try {
+  //     await _flutterTts.setLanguage("en-US");
+  //     await _flutterTts.setSpeechRate(0.5);
+  //     await _flutterTts.setPitch(1.0);
+  //     await _flutterTts.setVolume(1.0);
+
+  //     _flutterTts.setStartHandler(() {
+  //       if (mounted) setState(() => _isSpeaking = true);
+  //     });
+
+  //     _flutterTts.setCompletionHandler(() {
+  //       if (mounted) setState(() => _isSpeaking = false);
+  //     });
+
+  //     _flutterTts.setErrorHandler((msg) {
+  //       debugPrint('TTS Error: $msg');
+  //       if (mounted) setState(() => _isSpeaking = false);
+  //     });
+
+  //     debugPrint('Text-to-speech initialized');
+  //   } catch (e) {
+  //     debugPrint('TTS initialization error: $e');
+  //   }
+  // }
+
   Future<void> _speakText() async {
     try {
       if (_isSpeaking) {
@@ -199,42 +309,81 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
     }
   }
 
-  Future<bool> _checkMicrophonePermission() async {
-    if (_permissionChecked) {
-      // Check current status without requesting again
-      PermissionStatus currentStatus = await Permission.microphone.status;
-      return currentStatus.isGranted;
-    }
+  // Future<bool> _checkMicrophonePermission() async {
+  //   if (_permissionChecked) {
+  //     // Check current status without requesting again
+  //     PermissionStatus currentStatus = await Permission.microphone.status;
+  //     return currentStatus.isGranted;
+  //   }
 
+  //   try {
+  //     if (Platform.isIOS) {
+  //       Map<Permission, PermissionStatus> statuses = await [
+  //         Permission.microphone,
+  //         Permission.speech,
+  //       ].request();
+
+  //       bool micGranted = statuses[Permission.microphone]?.isGranted ?? false;
+  //       bool speechGranted = statuses[Permission.speech]?.isGranted ?? false;
+
+  //       setState(() => _permissionChecked = true);
+
+  //       if (!micGranted || !speechGranted) {
+  //         _showPermissionDialog();
+  //         return false;
+  //       }
+  //       return true;
+  //     } else {
+  //       PermissionStatus micStatus = await Permission.microphone.request();
+  //       setState(() => _permissionChecked = true);
+
+  //       if (!micStatus.isGranted) {
+  //         _showPermissionDialog();
+  //       }
+  //       return micStatus.isGranted;
+  //     }
+  //   } catch (e) {
+  //     debugPrint('Permission check error: $e');
+  //     setState(() => _permissionChecked = true);
+  //     return false;
+  //   }
+  // }
+
+  Future<bool> _checkMicrophonePermission() async {
     try {
       if (Platform.isIOS) {
-        Map<Permission, PermissionStatus> statuses = await [
-          Permission.microphone,
-          Permission.speech,
-        ].request();
+        bool speechPermission = await _speech!.hasPermission;
+        PermissionStatus micStatus = await Permission.microphone.status;
 
-        bool micGranted = statuses[Permission.microphone]?.isGranted ?? false;
-        bool speechGranted = statuses[Permission.speech]?.isGranted ?? false;
+        if (speechPermission) {
+          return true;
+        }
 
-        setState(() => _permissionChecked = true);
-
-        if (!micGranted || !speechGranted) {
+        if (!speechPermission && !micStatus.isGranted) {
           _showPermissionDialog();
           return false;
         }
-        return true;
-      } else {
-        PermissionStatus micStatus = await Permission.microphone.request();
-        setState(() => _permissionChecked = true);
 
-        if (!micStatus.isGranted) {
+        return speechPermission;
+      } else {
+        PermissionStatus micStatus = await Permission.microphone.status;
+
+        if (micStatus.isGranted) {
+          return true;
+        }
+
+        if (micStatus.isPermanentlyDenied) {
+          _showPermissionDialog();
+          return false;
+        }
+
+        PermissionStatus requestResult = await Permission.microphone.request();
+        if (!requestResult.isGranted) {
           _showPermissionDialog();
         }
-        return micStatus.isGranted;
+        return requestResult.isGranted;
       }
     } catch (e) {
-      debugPrint('Permission check error: $e');
-      setState(() => _permissionChecked = true);
       return false;
     }
   }
@@ -363,76 +512,62 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
   void _startForceStopTimer() {
     _forceStopTimer?.cancel();
     _forceStopTimer = Timer(const Duration(seconds: 10), () async {
-      if (mounted && _isListening) {
-        debugPrint('[SAFETY TIMEOUT] No speech or engine event - force stop.');
-        // Immediate UI update
-        _updateListeningUI(false);
+      if (!mounted || !_isListening) return; // Add mounted check here
 
-        // Aggressive cleanup sequence to prevent system sound popup
-        try {
-          if (_speech != null && _speech!.isListening) {
-            await _speech!.stop();
-            await Future.delayed(const Duration(milliseconds: 300));
-            await _speech!.cancel();
-            await Future.delayed(const Duration(milliseconds: 200));
-            // Kill and reinitialize engine to ensure clean state
-            await _killSpeechEngine();
-            await Future.delayed(const Duration(milliseconds: 300));
-            _initSpeechEngine();
-          }
-        } catch (_) {}
+      debugPrint('[SAFETY TIMEOUT] No speech or engine event - force stop.');
+      _updateListeningUI(false);
 
+      try {
+        if (_speech != null && _speech!.isListening) {
+          await _speech!.stop();
+          await Future.delayed(const Duration(milliseconds: 300));
+          await _speech!.cancel();
+          await Future.delayed(const Duration(milliseconds: 200));
+          await _killSpeechEngine();
+          await Future.delayed(const Duration(milliseconds: 300));
+          if (mounted) _initSpeechEngine(); // Add mounted check here
+        }
+      } catch (_) {}
+
+      if (mounted)
         _showFeedback("Mic stopped due to inactivity.", isError: true);
-      }
     });
   }
 
+  // void _startForceStopTimer() {
+  //   _forceStopTimer?.cancel();
+  //   _forceStopTimer = Timer(const Duration(seconds: 10), () async {
+  //     if (mounted && _isListening) {
+  //       debugPrint('[SAFETY TIMEOUT] No speech or engine event - force stop.');
+  //       // Immediate UI update
+  //       _updateListeningUI(false);
+
+  //       // Aggressive cleanup sequence to prevent system sound popup
+  //       try {
+  //         if (_speech != null && _speech!.isListening) {
+  //           await _speech!.stop();
+  //           await Future.delayed(const Duration(milliseconds: 300));
+  //           await _speech!.cancel();
+  //           await Future.delayed(const Duration(milliseconds: 200));
+  //           // Kill and reinitialize engine to ensure clean state
+  //           await _killSpeechEngine();
+  //           await Future.delayed(const Duration(milliseconds: 300));
+  //           _initSpeechEngine();
+  //         }
+  //       } catch (_) {}
+
+  //       _showFeedback("Mic stopped due to inactivity.", isError: true);
+  //     }
+  //   });
+  // }
+
   Future<void> _startListening() async {
-    if (!mounted || _isProcessing) return;
-
-    // Check permissions first
-    bool hasPermissions = await _checkMicrophonePermission();
-    if (!hasPermissions) {
-      _showFeedback("Microphone permission required", isError: true);
+    if (!mounted || !_isInitialized || !_speechAvailable || _isProcessing)
       return;
-    }
+    if (_speech == null) return;
 
-    // Initialize speech engine if needed
-    if (_speech == null || !_speechAvailable) {
-      _speech = stt.SpeechToText();
-      try {
-        _speechAvailable = await _speech!.initialize(
-          onStatus: _onSpeechStatus,
-          onError: _onSpeechError,
-          debugLogging: false,
-        );
-
-        if (_speechAvailable) {
-          final locales = await _speech!.locales();
-          List<String> englishLocaleIds = [
-            'en_US',
-            'en_GB',
-            'en_IN',
-            'en_AU',
-            'en_CA',
-            'en_IE',
-            'en_SG',
-          ];
-          _currentLocaleId = locales
-              .map((l) => l.localeId)
-              .firstWhere(
-                (id) => englishLocaleIds.contains(id),
-                orElse: () => locales.first.localeId,
-              );
-        }
-      } catch (e) {
-        _showFeedback("Failed to initialize speech engine", isError: true);
-        return;
-      }
-    }
-
-    if (!_speechAvailable || _speech == null) {
-      _showFeedback("Speech recognition not available", isError: true);
+    if (!await _checkMicrophonePermission()) {
+      _showFeedback("Please enable microphone permissions!", isError: true);
       return;
     }
 
@@ -442,6 +577,7 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
     }
 
     _updateListeningUI(true);
+
     try {
       await _speech!.listen(
         onResult: _onSpeechResult,
@@ -450,7 +586,6 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
         partialResults: true,
         cancelOnError: true,
         listenMode: stt.ListenMode.dictation,
-        localeId: _currentLocaleId.isNotEmpty ? _currentLocaleId : null,
       );
       _startForceStopTimer();
     } catch (e) {
@@ -459,6 +594,79 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
       _forceStopTimer?.cancel();
     }
   }
+  // Future<void> _startListening() async {
+  //   if (!mounted || _isProcessing) return;
+
+  //   // Check permissions first
+  //   bool hasPermissions = await _checkMicrophonePermission();
+  //   if (!hasPermissions) {
+  //     print('permission not granted ');
+  //     // _showFeedback("Microphone permission required", isError: true);
+  //     return;
+  //   }
+
+  //   // Initialize speech engine if needed
+  //   if (_speech == null || !_speechAvailable) {
+  //     _speech = stt.SpeechToText();
+  //     try {
+  //       _speechAvailable = await _speech!.initialize(
+  //         onStatus: _onSpeechStatus,
+  //         onError: _onSpeechError,
+  //         debugLogging: false,
+  //       );
+
+  //       if (_speechAvailable) {
+  //         final locales = await _speech!.locales();
+  //         List<String> englishLocaleIds = [
+  //           'en_US',
+  //           'en_GB',
+  //           'en_IN',
+  //           'en_AU',
+  //           'en_CA',
+  //           'en_IE',
+  //           'en_SG',
+  //         ];
+  //         _currentLocaleId = locales
+  //             .map((l) => l.localeId)
+  //             .firstWhere(
+  //               (id) => englishLocaleIds.contains(id),
+  //               orElse: () => locales.first.localeId,
+  //             );
+  //       }
+  //     } catch (e) {
+  //       _showFeedback("Failed to initialize speech engine", isError: true);
+  //       return;
+  //     }
+  //   }
+
+  //   if (!_speechAvailable || _speech == null) {
+  //     _showFeedback("Speech recognition not available", isError: true);
+  //     return;
+  //   }
+
+  //   if (_speech!.isListening) {
+  //     await _speech!.stop();
+  //     await Future.delayed(const Duration(milliseconds: 100));
+  //   }
+
+  //   _updateListeningUI(true);
+  //   try {
+  //     await _speech!.listen(
+  //       onResult: _onSpeechResult,
+  //       listenFor: widget.listenDuration,
+  //       pauseFor: widget.pauseDuration,
+  //       partialResults: true,
+  //       cancelOnError: true,
+  //       listenMode: stt.ListenMode.dictation,
+  //       localeId: _currentLocaleId.isNotEmpty ? _currentLocaleId : null,
+  //     );
+  //     _startForceStopTimer();
+  //   } catch (e) {
+  //     _updateListeningUI(false);
+  //     _showFeedback(_getErrorMessage(e.toString()), isError: true);
+  //     _forceStopTimer?.cancel();
+  //   }
+  // }
 
   Future<void> _stopListening() async {
     if (!mounted || _speech == null) return;
@@ -674,7 +882,61 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
     );
   }
 
+  // Widget _buildSpeechButton() {
+  //   if (!_isInitialized) {
+  //     return const Padding(
+  //       padding: EdgeInsets.all(12.0),
+  //       child: SizedBox(
+  //         width: 18,
+  //         height: 18,
+  //         child: CircularProgressIndicator(strokeWidth: 2),
+  //       ),
+  //     );
+  //   }
+
+  //   return IconButton(
+  //     onPressed:
+  //         !_isProcessing // Remove the _speechAvailable check here
+  //         ? () {
+  //             if (_isListening) {
+  //               _stopListening();
+  //             } else {
+  //               _startListening();
+  //             }
+  //           }
+  //         : null,
+  //     icon: AnimatedSwitcher(
+  //       duration: const Duration(milliseconds: 200),
+  //       child: Icon(
+  //         _isListening ? FontAwesomeIcons.stop : FontAwesomeIcons.microphone,
+  //         key: ValueKey(_isListening),
+  //         color: _isListening
+  //             ? Colors.red
+  //             : (_permissionChecked
+  //                   ? _primaryColor
+  //                   : Colors.grey), // Change this line
+  //         size: 16,
+  //       ),
+  //     ),
+  //     tooltip: _isListening ? 'Stop recording' : 'Start voice input',
+  //     splashRadius: 24,
+  //   );
+  // }
+
   Widget _buildSpeechButton() {
+    if (!_speechAvailable) {
+      return IconButton(
+        onPressed: _initSpeechEngine,
+        icon: Icon(
+          Icons.mic_off_rounded,
+          color: Colors.grey.shade400,
+          size: 16,
+        ),
+        tooltip: 'Microphone not available',
+        splashRadius: 24,
+      );
+    }
+
     if (!_isInitialized) {
       return const Padding(
         padding: EdgeInsets.all(12.0),
@@ -687,8 +949,7 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
     }
 
     return IconButton(
-      onPressed:
-          !_isProcessing // Remove the _speechAvailable check here
+      onPressed: (_speechAvailable && !_isProcessing)
           ? () {
               if (_isListening) {
                 _stopListening();
@@ -704,9 +965,7 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
           key: ValueKey(_isListening),
           color: _isListening
               ? Colors.red
-              : (_permissionChecked
-                    ? _primaryColor
-                    : Colors.grey), // Change this line
+              : (_speechAvailable ? _primaryColor : Colors.grey.shade400),
           size: 16,
         ),
       ),

@@ -27,7 +27,6 @@ class Threebtn extends StatefulWidget {
   final Future<void> Function() refreshDashboard;
   final TabControllerNew tabController;
   final void Function(int)? onTabChanged;
-  
 
   const Threebtn({
     super.key,
@@ -42,7 +41,8 @@ class Threebtn extends StatefulWidget {
     required this.overdueTestDrivesCount,
     required this.upcomingTestDrives,
     required this.overdueTestDrives,
-    required this.tabController, this.onTabChanged,
+    required this.tabController,
+    this.onTabChanged,
   });
 
   @override
@@ -213,7 +213,7 @@ class _ThreebtnState extends State<Threebtn> {
 
   double _getMainTabFontSize() {
     // Use your existing AppFont.threeBtn or scale accordingly
-    final baseSize = 14.0; // Approximate base font size
+    final baseSize = 12.0; // Approximate base font size
     return baseSize * _getResponsiveScale();
   }
 
@@ -222,7 +222,7 @@ class _ThreebtnState extends State<Threebtn> {
   }
 
   double _getBorderRadius() {
-    return 5.0 * _getResponsiveScale();
+    return 10.0 * _getResponsiveScale();
   }
 
   @override
@@ -247,60 +247,85 @@ class _ThreebtnState extends State<Threebtn> {
         horizontal: _getResponsivePadding(),
       ),
       child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.searchBar,
-          borderRadius: BorderRadius.circular(_getBorderRadius()),
-        ),
-        child: Container(
-          height: _getMainTabHeight(),
-          width: double.infinity,
-          child: Row(
-            children: [
-              _buildTabButton('Follow ups', 0),
-              _buildTabButton('Appointments', 1),
-              _buildTabButton('Test Drives', 2),
-            ],
-          ),
+        height: _getMainTabHeight(),
+        width: double.infinity,
+        child: Row(
+          children: [
+            Expanded(child: _buildTabButton('Follow ups', Icons.call, 0)),
+            SizedBox(width: 8.0 * _getResponsiveScale()),
+            Expanded(child: _buildTabButton('Appointments', Icons.event, 1)),
+            SizedBox(width: 8.0 * _getResponsiveScale()),
+            Expanded(
+              child: _buildTabButton('Test Drives', Icons.directions_car, 2),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildTabButton(String title, int index) {
+  Widget _buildTabButton(String title, IconData icon, int index) {
     final isActive = _currentMainTab == index;
 
     return Expanded(
-      child: Container(
-        height: double.infinity,
-        child: TextButton(
-          onPressed: () => _changeMainTab(index),
-          style: TextButton.styleFrom(
-            padding: EdgeInsets.symmetric(
-              vertical: 8.0 * _getResponsiveScale(),
-              horizontal: 4.0 * _getResponsiveScale(),
-            ),
-            minimumSize: const Size(0, 0),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(_getBorderRadius()),
-            ),
-            backgroundColor: isActive
-                ? AppColors.containerblue
-                : Colors.transparent,
-            foregroundColor: isActive ? Colors.white : AppColors.fontColor,
+      child: TextButton(
+        onPressed: () => _changeMainTab(index),
+        style: TextButton.styleFrom(
+          padding: EdgeInsets.symmetric(
+            vertical: 8.0 * _getResponsiveScale(),
+            horizontal:
+                8.0 * _getResponsiveScale(), // Increased from 4.0 to 12.0
           ),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              title,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.poppins(
-                fontSize: _getMainTabFontSize(),
-                fontWeight: FontWeight.w400,
+          minimumSize: const Size(0, 0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(_getBorderRadius()),
+            side: BorderSide(
+              color: isActive
+                  ? AppColors.containerblue
+                  : AppColors.fontColor.withOpacity(0.2),
+              width: 1.0,
+            ),
+          ),
+          backgroundColor: isActive
+              ? AppColors.containerblue
+              : Colors.transparent,
+          foregroundColor: isActive ? Colors.white : AppColors.fontColor,
+        ),
+        child: Container(
+          width: double.infinity,
+          padding: EdgeInsets.symmetric(
+            horizontal: 4.0 * _getResponsiveScale(),
+          ), // Added extra padding
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size:
+                    _getMainTabFontSize() *
+                    1.1, // Slightly increased icon relative to smaller text
                 color: isActive ? Colors.white : AppColors.fontColor,
               ),
-            ),
+              SizedBox(
+                width: 6.0 * _getResponsiveScale(),
+              ), // Increased spacing between icon and text
+              Flexible(
+                child: Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    fontSize: _getMainTabFontSize(),
+                    fontWeight: FontWeight.w400,
+                    color: isActive ? Colors.white : AppColors.fontColor,
+                    letterSpacing:
+                        0.2, // Added letter spacing for better readability
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

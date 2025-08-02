@@ -1013,7 +1013,7 @@ class _HomeScreenState extends State<HomeScreen> {
   //                   },
   //                 ),
   //                 _buildPopupItem(
-  //                   Icons.receipt_long_rounded,
+  //                   Icons.person_search,
   //                   "Enquiry",
   //                   -60,
   //                   onTap: () {
@@ -1102,7 +1102,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               },
                             ),
                             _buildSafePopupItem(
-                              Icons.receipt_long_rounded,
+                              Icons.person_search,
                               "Enquiry",
                               1,
                               menuValue,

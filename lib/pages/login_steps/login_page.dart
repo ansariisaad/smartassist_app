@@ -69,6 +69,16 @@ class _LoginPageState extends State<LoginPage>
     super.dispose();
   }
 
+  // Helper method to check if input is email or excellence ID
+  bool _isEmail(String input) {
+    return RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(input);
+  }
+
+  // Helper method to validate excellence ID format (customize as needed)
+  bool _isValidExcellenceId(String input) {
+    return RegExp(r'^[0-9]{6}$').hasMatch(input);
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -116,12 +126,13 @@ class _LoginPageState extends State<LoginPage>
                           child: Column(
                             children: [
                               const SizedBox(height: 32),
-                              buildInputLabel('Email'),
+                              buildInputLabel('Email or Excellence ID'),
                               buildTextField(
                                 newEmailController,
-                                'Enter Email ID',
+                                'Enter Email or Excellence ID',
                                 false,
-                                keyboardType: TextInputType.emailAddress,
+                                keyboardType: TextInputType
+                                    .text, // Changed from emailAddress to text
                               ),
                               const SizedBox(height: 25),
                               buildInputLabel('Password'),
@@ -169,17 +180,6 @@ class _LoginPageState extends State<LoginPage>
                   ),
                 ),
               ),
-
-              // Loading Overlay (if needed, can be triggered later during login)
-              // if (isLoading)
-              //   Container(
-              //     color: Colors.black.withOpacity(0.5),
-              //     child: const Center(
-              //       child: CircularProgressIndicator(
-              //         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-              //       ),
-              //     ),
-              //   ),
             ],
           ),
         ),
@@ -327,110 +327,30 @@ class _LoginPageState extends State<LoginPage>
     );
   }
 
-  // Update the login page's submitBtn method to handle successful login
-  // Future<void> submitBtn() async {
-  //   if (!mounted) return;
-  //   final email = newEmailController.text.trim();
-  //   final pwd = newPwdController.text.trim();
-
-  //   if (email.isEmpty || pwd.isEmpty) {
-  //     showErrorMessage(context, message: 'Email and Password cannot be empty.');
-  //     return;
-  //   }
-
-  //   setState(() => isLoading = true);
-
-  //   try {
-  //     final deviceToken = await FirebaseMessaging.instance.getToken();
-  //     if (deviceToken == null) {
-  //       throw Exception('Failed to retrieve device token.');
-  //     }
-
-  //     final response = await LeadsSrv.onLogin({
-  //       "email": email,
-  //       "password": pwd,
-  //       "device_token": deviceToken,
-  //     });
-
-  //     if (!mounted) return;
-
-  //     if (response['isSuccess'] == true && response['user'] != null) {
-  //       final user = response['user'];
-  //       final userId = user['user_id'];
-  //       // final teamRole = user['team_role'];
-  //       final authToken = response['token'];
-  //       final userRole = user['user_role'];
-
-  //       if (userId != null && authToken != null) {
-  //         // Save authentication data
-  //         await TokenManager.saveAuthData(authToken, userId, userRole);
-  //         String successMessage =
-  //             response['message']?.toString() ?? 'Login Successful';
-  //         Get.snackbar(
-  //           'Success',
-  //           successMessage,
-  //           backgroundColor: Colors.green,
-  //           colorText: Colors.white,
-  //         );
-  //         // showSuccessMessage(context, message: 'Login Successful!');
-
-  //         // Initialize FCM after successful login
-  //         await NotificationService.instance.initialize();
-
-  //         // Navigate directly to home page, no biometric needed on first login
-  //         Get.offAll(() => BottomNavigation());
-  //         widget.onLoginSuccess?.call();
-  //       } else {
-  //         String errorMessage = response['error'] ??
-  //             response['message'] ??
-  //             'Something went wrong';
-  //         Get.snackbar(
-  //           'Error',
-  //           errorMessage,
-  //           backgroundColor: Colors.red,
-  //           colorText: Colors.white,
-  //         );
-  //         // throw Exception('Invalid user data or token received');
-  //       }
-  //     } else {
-  //       String errorMessage =
-  //           response['error'] ?? response['message'] ?? 'Something went wrong';
-  //       Get.snackbar(
-  //         'Error',
-  //         errorMessage,
-  //         backgroundColor: Colors.red,
-  //         colorText: Colors.white,
-  //       );
-  //       // throw Exception(response['message'] ?? 'Login failed: Unknown error');
-  //     }
-  //   } catch (error) {
-  //     if (!mounted) return;
-  //     print('error');
-  //     // showErrorMessage(context, message: error.toString());
-
-  //     Get.snackbar(
-  //       'Error',
-  //       error.toString(),
-  //       backgroundColor: Colors.red,
-  //       colorText: Colors.white,
-  //     );
-  //   } finally {
-  //     if (mounted) {
-  //       setState(() => isLoading = false);
-  //     }
-  //   }
-  // }
-
   // login page
   Future<void> submitBtn() async {
     if (!mounted) return;
-    final email = newEmailController.text.trim();
+    final emailOrExcellence = newEmailController.text.trim();
     final pwd = newPwdController.text.trim();
 
-    if (email.isEmpty || pwd.isEmpty) {
-      showErrorMessage(context, message: 'Email and Password cannot be empty.');
+    if (emailOrExcellence.isEmpty || pwd.isEmpty) {
+      showErrorMessage(
+        context,
+        message: 'Email/Excellence ID and Password cannot be empty.',
+      );
       return;
     }
+
+    // Validate input format
+    if (!_isEmail(emailOrExcellence) &&
+        !_isValidExcellenceId(emailOrExcellence)) {
+      showErrorMessage(
+        context,
+        message: 'Please enter a valid email address or Excellence ID.',
+      );
+      return;
+    }
+
     await ConnectionService().checkConnection();
     final isConnected = ConnectionService().isConnected;
     print("Internet connection status: $isConnected");
@@ -464,11 +384,19 @@ class _LoginPageState extends State<LoginPage>
         print("Error retrieving device token: $e");
       }
 
-      final response = await LeadsSrv.onLogin({
-        "email": email,
+      // Determine if input is email or excellence ID
+      Map<String, dynamic> loginData = {
         "password": pwd,
         "device_token": deviceToken,
-      });
+      };
+
+      if (_isEmail(emailOrExcellence)) {
+        loginData["email"] = emailOrExcellence;
+      } else {
+        loginData["excellence"] = emailOrExcellence;
+      }
+
+      final response = await LeadsSrv.onLogin(loginData);
 
       if (!mounted) return;
 
@@ -477,7 +405,7 @@ class _LoginPageState extends State<LoginPage>
         final userId = user['user_id'];
         final authToken = response['token'];
         final userRole = user['user_role'];
-        final userEmail = user['email'];
+        final userEmail = user['email'] ?? emailOrExcellence;
 
         if (userId != null && authToken != null) {
           // Save authentication data
@@ -516,8 +444,6 @@ class _LoginPageState extends State<LoginPage>
             // Navigate to BiometricScreen with isFirstTime flag
             Get.offAll(() => const BiometricScreen(isFirstTime: true));
           } else {
-            // Device doesn't support biometrics, go directly to home
-            // Also set hasMadeBiometricChoice to avoid future checks
             await BiometricPreference.setUseBiometric(false);
             Get.offAll(() => BottomNavigation());
           }
@@ -561,65 +487,4 @@ class _LoginPageState extends State<LoginPage>
       }
     }
   }
-
-  // Future<void> submitBtn() async {
-  //   if (!mounted) return;
-
-  //   final email = newEmailController.text.trim();
-  //   final pwd = newPwdController.text.trim();
-
-  //   if (email.isEmpty || pwd.isEmpty) {
-  //     showErrorMessage(context, message: 'Email and Password cannot be empty.');
-  //     return;
-  //   }
-
-  //   setState(() => isLoading = true);
-
-  //   try {
-  //     final deviceToken = await FirebaseMessaging.instance.getToken();
-  //     if (deviceToken == null) {
-  //       throw Exception('Failed to retrieve device token.');
-  //     }
-
-  //     final response = await LeadsSrv.onLogin({
-  //       "email": email,
-  //       "password": pwd,
-  //       "device_token": deviceToken,
-  //     });
-
-  //     if (!mounted) return;
-
-  //     if (response['isSuccess'] == true && response['user'] != null) {
-  //       final user = response['user'];
-  //       final userId = user['user_id'];
-  //       final teamRole = user['team_role'];
-  //       final authToken = response['token'];
-
-  //       if (userId != null && authToken != null) {
-  //         // Save authentication data
-  //         await TokenManager.saveAuthData(authToken, userId, teamRole);
-  //         print(teamRole);
-  //         // Initialize FCM after successful login
-  //         await NotificationService.instance.initialize();
-
-  //         showSuccessMessage(context, message: 'Login Successful!');
-  //         Get.offAll(() => BottomNavigation());
-
-  //         widget.onLoginSuccess?.call();
-  //       } else {
-  //         throw Exception('Invalid user data or token received');
-  //       }
-  //     } else {
-  //       // Throw an exception with the error message from the backend
-  //       throw Exception(response['message'] ?? 'Login failed: Unknown error');
-  //     }
-  //   } catch (error) {
-  //     if (!mounted) return;
-  //     showErrorMessage(context, message: error.toString());
-  //   } finally {
-  //     if (mounted) {
-  //       setState(() => isLoading = false);
-  //     }
-  //   }
-  // }
 }

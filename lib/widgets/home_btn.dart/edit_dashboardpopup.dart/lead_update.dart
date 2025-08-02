@@ -16,6 +16,7 @@ import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/storage.dart';
+import 'package:smartassist/widgets/popups_widget/vehicleSearch_textfield.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class LeadUpdate extends StatefulWidget {
@@ -37,15 +38,16 @@ class _LeadUpdateState extends State<LeadUpdate> {
   final PageController _pageController = PageController();
   bool isLoading = true;
   int _currentStep = 0;
+  String? selectedVehicleName;
+  String? selectedBrand;
   late stt.SpeechToText _speech;
   bool _isListening = false;
   bool isSubmitting = false;
-
-  String? selectedVehicleName;
+  String? vehicleId;
   List<dynamic> vehicleList = [];
   List<dynamic> _searchResults = [];
   List<String> uniqueVehicleNames = [];
-
+  Map<String, dynamic>? selectedVehicleData;
   // Form error tracking
   Map<String, String> _errors = {};
   bool _isLoadingSearch = false;
@@ -56,7 +58,8 @@ class _LeadUpdateState extends State<LeadUpdate> {
   final TextEditingController _searchController = TextEditingController();
 
   TextEditingController emailController = TextEditingController();
-  TextEditingController nameController = TextEditingController();
+  TextEditingController firstNameController = TextEditingController();
+  TextEditingController lastNameController = TextEditingController();
   TextEditingController mobileController = TextEditingController();
   TextEditingController modelInterestController = TextEditingController();
   bool consentValue = false;
@@ -211,8 +214,16 @@ class _LeadUpdateState extends State<LeadUpdate> {
           setState(() {
             _existingLeadData = data['data'];
 
-            // Set form field values
-            nameController.text = data['data']['lead_name'] ?? '';
+            // Split the existing lead_name into first and last name
+            String fullName = data['data']['lead_name'] ?? '';
+            List<String> nameParts = fullName.split(' ');
+            if (nameParts.isNotEmpty) {
+              firstNameController.text = nameParts[0];
+              if (nameParts.length > 1) {
+                lastNameController.text = nameParts.sublist(1).join(' ');
+              }
+            }
+
             emailController.text = data['data']['email'] ?? '';
 
             // Handle mobile number formatting (remove +91 if present)
@@ -252,32 +263,22 @@ class _LeadUpdateState extends State<LeadUpdate> {
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
-  // Validate page 1 fields
+  // Validate page 1 fields (removed required validations)
   bool _validatePage1() {
     bool isValid = true;
     setState(() {
       _errors = {}; // Clear previous errors
 
-      // Validate first name
-      if (nameController.text.trim().isEmpty) {
-        _errors['name'] = 'Name is required';
-        isValid = false;
-      }
-
-      // Validate email
-      if (emailController.text.trim().isEmpty) {
-        _errors['email'] = 'Email is required';
-        isValid = false;
-      } else if (!_isValidEmail(emailController.text.trim())) {
+      // Optional email validation (only validate format if provided)
+      if (emailController.text.trim().isNotEmpty &&
+          !_isValidEmail(emailController.text.trim())) {
         _errors['email'] = 'Please enter a valid email';
         isValid = false;
       }
 
-      // Validate mobile
-      if (mobileController.text.trim().isEmpty) {
-        _errors['mobile'] = 'Mobile number is required';
-        isValid = false;
-      } else if (!_isValidMobile(mobileController.text.trim())) {
+      // Optional mobile validation (only validate format if provided)
+      if (mobileController.text.trim().isNotEmpty &&
+          !_isValidMobile(mobileController.text.trim())) {
         _errors['mobile'] = 'Please enter a valid 10-digit mobile number';
         isValid = false;
       }
@@ -286,26 +287,13 @@ class _LeadUpdateState extends State<LeadUpdate> {
     return isValid;
   }
 
-  // Validate page 2 fields
+  // Validate page 2 fields (removed required validations)
   bool _validatePage2() {
-    bool isValid = true;
+    // Since all validations are removed, always return true
     setState(() {
       _errors = {}; // Clear previous errors
-
-      // Validate brand
-      // if (_selectedBrand.isEmpty) {
-      //   _errors['brand'] = 'Please select a brand';
-      //   isValid = false;
-      // }
-
-      // Validate enquiry type if needed
-      if (_selectedEnquiryType.isEmpty) {
-        _errors['enquiryType'] = 'Please select an enquiry type';
-        isValid = false;
-      }
     });
-
-    return isValid;
+    return true;
   }
 
   // Email validation
@@ -386,7 +374,7 @@ class _LeadUpdateState extends State<LeadUpdate> {
                     child: Container(
                       margin: const EdgeInsets.only(left: 10),
                       child: Text(
-                        'Update Enquiries',
+                        'Update Enquiry',
                         style: AppFont.popupTitleBlack(context),
                       ),
                     ),
@@ -506,15 +494,27 @@ class _LeadUpdateState extends State<LeadUpdate> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             _buildTextField(
-                              label: 'Name',
-                              controller: nameController,
-                              hintText: 'Enter name',
-                              errorText: _errors['name'],
-                              isRequired: true,
+                              label: 'First Name',
+                              controller: firstNameController,
+                              hintText: 'Enter first name',
+                              errorText: _errors['firstName'],
                               onChanged: (value) {
-                                if (_errors.containsKey('name')) {
+                                if (_errors.containsKey('firstName')) {
                                   setState(() {
-                                    _errors.remove('name');
+                                    _errors.remove('firstName');
+                                  });
+                                }
+                              },
+                            ),
+                            _buildTextField(
+                              label: 'Last Name',
+                              controller: lastNameController,
+                              hintText: 'Enter last name',
+                              errorText: _errors['lastName'],
+                              onChanged: (value) {
+                                if (_errors.containsKey('lastName')) {
+                                  setState(() {
+                                    _errors.remove('lastName');
                                   });
                                 }
                               },
@@ -524,7 +524,6 @@ class _LeadUpdateState extends State<LeadUpdate> {
                               controller: emailController,
                               hintText: 'Email address',
                               errorText: _errors['email'],
-                              isRequired: true,
                               onChanged: (value) {
                                 if (_errors.containsKey('email')) {
                                   setState(() {
@@ -538,7 +537,6 @@ class _LeadUpdateState extends State<LeadUpdate> {
                               controller: mobileController,
                               errorText: _errors['mobile'],
                               hintText: 'Mobile number',
-                              isRequired: true,
                               onChanged: (value) {
                                 if (_errors.containsKey('mobile')) {
                                   setState(() {
@@ -557,24 +555,6 @@ class _LeadUpdateState extends State<LeadUpdate> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const SizedBox(height: 10),
-                            // _buildButtonsFloat(
-                            //   options: {
-                            //     "Jaguar": "Jaguar",
-                            //     "Land Rover": "Land Rover",
-                            //   },
-                            //   groupValue: _selectedBrand,
-                            //   label: 'Brand',
-                            //   errorText: _errors['brand'],
-                            //   isRequired: true,
-                            //   onChanged: (value) {
-                            //     setState(() {
-                            //       _selectedBrand = value;
-                            //       if (_errors.containsKey('brand')) {
-                            //         _errors.remove('brand');
-                            //       }
-                            //     });
-                            //   },
-                            // ),
                             const SizedBox(height: 15),
                             _buildEnquiryTypeSelector(
                               options: {
@@ -594,18 +574,55 @@ class _LeadUpdateState extends State<LeadUpdate> {
                               },
                             ),
                             const SizedBox(height: 15),
+
                             // _buildSearchField(),
-                            _buildTextField(
-                              label: 'Primary Model Interest',
-                              controller: modelInterestController,
-                              hintText: 'Enter model name',
-                              errorText: _errors['model'],
-                              onChanged: (value) {
-                                if (_errors.containsKey('model')) {
-                                  setState(() {
-                                    _errors.remove('model');
-                                  });
-                                }
+                            // _buildTextField(
+                            //   label: 'Primary Model Interest',
+                            //   controller: modelInterestController,
+                            //   hintText: 'Enter model name',
+                            //   errorText: _errors['model'],
+                            //   onChanged: (value) {
+                            //     if (_errors.containsKey('model')) {
+                            //       setState(() {
+                            //         _errors.remove('model');
+                            //       });
+                            //     }
+                            //   },
+                            // ),
+                            VehiclesearchTextfield(
+                              initialVehicleName:
+                                  modelInterestController.text.isNotEmpty
+                                  ? modelInterestController.text
+                                  : null, // Pass PMI here
+                              initialVehicleId: '',
+                              onVehicleSelected: (selectedVehicle) {
+                                setState(() {
+                                  // Handle clearing
+                                  if (selectedVehicle.isEmpty) {
+                                    selectedVehicleData = null;
+                                    selectedVehicleName =
+                                        modelInterestController.text.isNotEmpty
+                                        ? modelInterestController.text
+                                        : null; // Revert to original PMI
+                                    vehicleId = '';
+                                    selectedBrand = null;
+                                    return;
+                                  }
+
+                                  // Handle new selection
+                                  selectedVehicleData = selectedVehicle;
+                                  selectedVehicleName =
+                                      selectedVehicle['vehicle_name'];
+                                  vehicleId = selectedVehicle['vehicle_id'];
+                                  // houseOfBrand = selectedVehicle['houseOfBrand'];
+                                  selectedBrand =
+                                      selectedVehicle['brand'] ?? '';
+                                });
+
+                                print("Selected Vehicle: $selectedVehicleName");
+                                print(
+                                  "Selected Brand: ${selectedBrand ?? 'No Brand'}",
+                                );
                               },
                             ),
                           ],
@@ -793,7 +810,6 @@ class _LeadUpdateState extends State<LeadUpdate> {
     required String hintText,
     required String label,
     required ValueChanged<String> onChanged,
-    bool isRequired = false,
     String? errorText,
   }) {
     return Column(
@@ -802,21 +818,12 @@ class _LeadUpdateState extends State<LeadUpdate> {
         const SizedBox(height: 5),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 5),
-          child: RichText(
-            text: TextSpan(
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
-              ),
-              children: [
-                TextSpan(text: label),
-                if (isRequired)
-                  const TextSpan(
-                    text: " *",
-                    style: TextStyle(color: Colors.red),
-                  ),
-              ],
+          child: Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
             ),
           ),
         ),
@@ -873,7 +880,6 @@ class _LeadUpdateState extends State<LeadUpdate> {
     required String hintText,
     required String label,
     required ValueChanged<String> onChanged,
-    bool isRequired = false,
     String? errorText,
   }) {
     return Column(
@@ -882,21 +888,12 @@ class _LeadUpdateState extends State<LeadUpdate> {
         const SizedBox(height: 5),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 5),
-          child: RichText(
-            text: TextSpan(
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: AppColors.fontBlack,
-              ),
-              children: [
-                TextSpan(text: label),
-                if (isRequired)
-                  const TextSpan(
-                    text: " *",
-                    style: TextStyle(color: Colors.red),
-                  ),
-              ],
+          child: Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.fontBlack,
             ),
           ),
         ),
@@ -948,7 +945,6 @@ class _LeadUpdateState extends State<LeadUpdate> {
     required String groupValue,
     required String label,
     required ValueChanged<String> onChanged,
-    bool isRequired = false,
     String? errorText,
   }) {
     List<String> optionKeys = options.keys.toList();
@@ -974,18 +970,9 @@ class _LeadUpdateState extends State<LeadUpdate> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     SizedBox(
-                      child: RichText(
-                        text: TextSpan(
-                          style: AppFont.dropDowmLabel(context),
-                          children: [
-                            TextSpan(text: label),
-                            if (isRequired)
-                              const TextSpan(
-                                text: " *",
-                                style: TextStyle(color: Colors.red),
-                              ),
-                          ],
-                        ),
+                      child: Text(
+                        label,
+                        style: AppFont.dropDowmLabel(context),
                         textAlign: TextAlign.left,
                       ),
                     ),
@@ -1044,20 +1031,12 @@ class _LeadUpdateState extends State<LeadUpdate> {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 5),
-          child: RichText(
-            text: TextSpan(
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: AppColors.fontBlack,
-              ),
-              children: [
-                TextSpan(text: 'Enquiry Type'),
-                const TextSpan(
-                  text: " *",
-                  style: TextStyle(color: Colors.red),
-                ),
-              ],
+          child: Text(
+            'Enquiry Type',
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.fontBlack,
             ),
           ),
         ),
@@ -1162,8 +1141,6 @@ class _LeadUpdateState extends State<LeadUpdate> {
     );
   }
 
-  // Future<void> submitLeadUpdate() async {}
-
   Future<void> submitLeadUpdate() async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -1183,12 +1160,25 @@ class _LeadUpdateState extends State<LeadUpdate> {
       String mobileNumber = mobileController.text;
 
       // Ensure the mobile number always includes the country code
-      if (!mobileNumber.startsWith('+91')) {
+      if (mobileNumber.isNotEmpty && !mobileNumber.startsWith('+91')) {
         mobileNumber = '+91$mobileNumber';
       }
 
+      // Combine first name and last name to create full name
+      String fullName = '';
+      if (firstNameController.text.trim().isNotEmpty) {
+        fullName = firstNameController.text.trim();
+        if (lastNameController.text.trim().isNotEmpty) {
+          fullName += ' ${lastNameController.text.trim()}';
+        }
+      } else if (lastNameController.text.trim().isNotEmpty) {
+        fullName = lastNameController.text.trim();
+      }
+
       final leadData = {
-        'lead_name': nameController.text,
+        'fname': firstNameController.text,
+        'lname': lastNameController.text,
+        'lead_name': fullName,
         'email': emailController.text,
         'mobile': mobileNumber,
         // 'brand': _selectedBrand,
@@ -1218,7 +1208,7 @@ class _LeadUpdateState extends State<LeadUpdate> {
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = json.decode(response.body);
         String message =
-            responseData['message'] ?? 'Enquiry updated suceesfully!';
+            responseData['message'] ?? 'Enquiry updated successfully!';
 
         Navigator.pop(context, true);
         widget.onEdit();

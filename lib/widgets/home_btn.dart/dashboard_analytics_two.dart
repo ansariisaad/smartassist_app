@@ -209,15 +209,6 @@ class _BottomBtnThirdState extends State<BottomBtnThird> {
           '0', //dealershiprank
     ]);
 
-    // Add Retail row
-    data.add([
-      'Retail',
-      performanceCount['retail']?.toString() ?? '0', //performance
-      allIndiaBestPerformace['retailCount']?.toString() ?? '0', //allIndiaRank
-      dealershipRank['retailRank']?.toString() ?? '0', //
-      currentAllIndiaRank['retailRank']?.toString() ?? '0', //dealershiprank
-    ]);
-
     data.add([
       'Net Orders',
       performanceCount['net_orders']?.toString() ?? '0', //performance
@@ -225,6 +216,14 @@ class _BottomBtnThirdState extends State<BottomBtnThird> {
           '0', //allIndiaRank
       dealershipRank['netOrdersRank']?.toString() ?? '0', //
       currentAllIndiaRank['netOrdersRank']?.toString() ?? '0', //dealershiprank
+    ]);
+    // Add Retail row
+    data.add([
+      'Retail',
+      performanceCount['retail']?.toString() ?? '0', //performance
+      allIndiaBestPerformace['retailCount']?.toString() ?? '0', //allIndiaRank
+      dealershipRank['retailRank']?.toString() ?? '0', //
+      currentAllIndiaRank['retailRank']?.toString() ?? '0', //dealershiprank
     ]);
 
     return data;

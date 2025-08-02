@@ -1115,7 +1115,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                                       borderRadius: BorderRadius.circular(50),
                                     ),
                                     child: const Icon(
-                                      Icons.receipt_long_rounded,
+                                      Icons.person_search,
                                       size: 40,
                                       color: AppColors.colorsBlue,
                                     ),
@@ -1256,7 +1256,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                                     const SizedBox(width: 10),
                                     Expanded(
                                       child: _buildContactRow(
-                                        icon: Icons.receipt_long_rounded,
+                                        icon: Icons.person_search,
                                         title: 'Enquiry type',
                                         subtitle: enquiry_type,
                                       ),

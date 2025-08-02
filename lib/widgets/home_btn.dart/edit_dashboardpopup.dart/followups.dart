@@ -435,9 +435,27 @@ class _FollowupsEditState extends State<FollowupsEdit> {
                         alignment: Alignment.centerLeft,
                         child: Container(
                           margin: const EdgeInsets.only(bottom: 5),
-                          child: Text(
-                            'Reason :',
-                            style: AppFont.dropDowmLabel(context),
+
+                          // child: Text(
+                          //   'Reason :',
+                          //   style: AppFont.dropDowmLabel(context),
+                          // ),
+                          child: RichText(
+                            text: TextSpan(
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.fontBlack,
+                              ),
+                              children: [
+                                TextSpan(text: 'Reason :'),
+                                const TextSpan(
+                                  text: " *",
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                                // TextSpan(text: ':'),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -504,19 +522,19 @@ class _FollowupsEditState extends State<FollowupsEdit> {
                     ),
                   ],
                 ),
-                if (_hasDeferredError)
-                  Container(
-                    margin: const EdgeInsets.only(top: 5),
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Please select a reason for deferring',
-                      style: TextStyle(
-                        color: Colors.red,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                  ),
+                // if (_hasDeferredError)
+                //   Container(
+                //     margin: const EdgeInsets.only(top: 5),
+                //     alignment: Alignment.centerLeft,
+                //     child: Text(
+                //       'Please select a reason for deferring',
+                //       style: TextStyle(
+                //         color: Colors.red,
+                //         fontSize: 12,
+                //         fontWeight: FontWeight.w400,
+                //       ),
+                //     ),
+                //   ),
               ],
             )
           : const SizedBox.shrink(),

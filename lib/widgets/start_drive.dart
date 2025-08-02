@@ -14,6 +14,7 @@ import 'package:http_parser/http_parser.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:smartassist/config/component/color/colors.dart';
+import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/utils/bottom_navigation.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/feedback.dart';
@@ -858,12 +859,15 @@ class _StartDriveMapState extends State<StartDriveMap>
             children: [
               Icon(Icons.location_off, color: Colors.red),
               SizedBox(width: 8),
-              Text('Location Services Disabled'),
+              Text(
+                'Location Services Disabled',
+                style: AppFont.mediumText14Black(context),
+              ),
             ],
           ),
           content: Text(
             'Location services are turned off. Please enable location services to use test drive tracking.',
-            style: TextStyle(fontSize: 16),
+            style: AppFont.smallText12(context),
           ),
           actions: [
             TextButton(
@@ -1630,284 +1634,500 @@ class _StartDriveMapState extends State<StartDriveMap>
               )
             : Stack(
                 children: [
-                  // Add this button to test notifications work
-                  Container(
-                    width: double.infinity,
-                    height: double.infinity,
-                    decoration: BoxDecoration(
-                      color: AppColors.backgroundLightGrey,
+                  // Fullscreen Google Map
+                  GoogleMap(
+                    onMapCreated: (GoogleMapController controller) {
+                      mapController = controller;
+                    },
+                    initialCameraPosition: CameraPosition(
+                      target: startMarker?.position ?? const LatLng(0, 0),
+                      zoom: 16,
                     ),
-                    child: SafeArea(
-                      child: SingleChildScrollView(
-                        child: Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: Column(
-                            children: [
-                              // Map Container
-                              Container(
-                                padding: const EdgeInsets.all(15),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(10),
+                    myLocationEnabled: true,
+                    zoomControlsEnabled: false,
+                    mapToolbarEnabled: false,
+                    compassEnabled: false,
+                    markers: {
+                      if (startMarker != null) startMarker!,
+                      if (userMarker != null) userMarker!,
+                      if (isDriveEnded && endMarker != null) endMarker!,
+                    },
+                    polylines: {routePolyline},
+                  ),
+
+                  // Drive Stats Container (positioned at top)
+                  if (!isDriveEnded)
+                    Positioned(
+                      top: 50,
+                      left: 16,
+                      right: 16,
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Distance: ${_formatDistance(totalDistance)}',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
-                                child: SizedBox(
-                                  height: 400,
-                                  width: 400,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.black,
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: GoogleMap(
-                                      onMapCreated:
-                                          (GoogleMapController controller) {
-                                            mapController = controller;
-                                          },
-                                      initialCameraPosition: CameraPosition(
-                                        target:
-                                            startMarker?.position ??
-                                            const LatLng(0, 0),
-                                        zoom: 16,
-                                      ),
-                                      myLocationEnabled: true,
-                                      zoomControlsEnabled: false,
-                                      mapToolbarEnabled: false,
-                                      compassEnabled: false,
-                                      markers: {
-                                        if (startMarker != null) startMarker!,
-                                        if (userMarker != null) userMarker!,
-                                        if (isDriveEnded && endMarker != null)
-                                          endMarker!,
-                                      },
-                                      polylines: {routePolyline},
-                                    ),
+                                Text(
+                                  'Duration: ${_calculateDuration()} mins',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (isDrivePaused)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8.0),
+                                child: Text(
+                                  'Drive Paused',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.orange,
                                   ),
                                 ),
                               ),
-
-                              const SizedBox(height: 10),
-
-                              // Drive Stats
-                              if (!isDriveEnded)
-                                Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            'Distance: ${_formatDistance(totalDistance)}',
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                          Text(
-                                            'Duration: ${_calculateDuration()} mins',
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      if (isDrivePaused)
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                            top: 8.0,
-                                          ),
-                                          child: Text(
-                                            'Drive Paused',
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w500,
-                                              color: Colors.orange,
-                                            ),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-
-                              const SizedBox(height: 10),
-
-                              // Pause/Resume Button
-                              // if (!isDriveEnded)
-                              //   SizedBox(
-                              //     width: double.infinity,
-                              //     height: 50,
-                              //     child: ElevatedButton(
-                              //       onPressed: isDrivePaused
-                              //           ? _resumeDrive
-                              //           : _pauseDrive,
-                              //       style: ElevatedButton.styleFrom(
-                              //         padding: const EdgeInsets.symmetric(
-                              //           vertical: 10,
-                              //         ),
-                              //         shape: RoundedRectangleBorder(
-                              //           borderRadius: BorderRadius.circular(10),
-                              //         ),
-                              //         backgroundColor: isDrivePaused
-                              //             ? Colors.green
-                              //             : Colors.orange,
-                              //       ),
-                              //       child: Text(
-                              //         isDrivePaused
-                              //             ? 'Resume Drive'
-                              //             : 'Pause Drive',
-                              //         style: GoogleFonts.poppins(
-                              //           fontSize: 14,
-                              //           fontWeight: FontWeight.w500,
-                              //           color: Colors.white,
-                              //         ),
-                              //       ),
-                              //     ),
-                              //   ),
-                              // const SizedBox(height: 10),
-
-                              // End Drive Buttons
-                              if (!isDriveEnded)
-                                SizedBox(
-                                  width: double.infinity,
-                                  height: 50,
-                                  child: ElevatedButton(
-                                    onPressed: isSubmitting
-                                        ? null
-                                        : () async {
-                                            try {
-                                              await _captureAndUploadImage()
-                                                  .catchError((e) {
-                                                    print(
-                                                      "Screenshot capture/upload failed: $e",
-                                                    );
-                                                    ScaffoldMessenger.of(
-                                                      context,
-                                                    ).showSnackBar(
-                                                      SnackBar(
-                                                        content: Text(
-                                                          'Could not capture map image: $e',
-                                                        ),
-                                                      ),
-                                                    );
-                                                  });
-                                              await _submitEndDrive();
-                                            } catch (e) {
-                                              print("Error ending drive: $e");
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    'Error ending drive: $e',
-                                                  ),
-                                                ),
-                                              );
-                                            }
-                                          },
-                                    style: ElevatedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 10,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      backgroundColor:
-                                          AppColors.colorsBlueButton,
-                                    ),
-                                    child: isSubmitting
-                                        ? const CircularProgressIndicator(
-                                            color: Colors.white,
-                                            strokeWidth: 2,
-                                          )
-                                        : Text(
-                                            'End Test Drive & Submit Feedback Now',
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w500,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                  ),
-                                ),
-
-                              const SizedBox(height: 10),
-
-                              SizedBox(
-                                width: double.infinity,
-                                height: 50,
-                                child: ElevatedButton(
-                                  onPressed: isSubmitting
-                                      ? null
-                                      : () async {
-                                          try {
-                                            await _captureAndUploadImage().catchError((
-                                              e,
-                                            ) {
-                                              print(
-                                                "Screenshot capture/upload failed: $e",
-                                              );
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    'Could not capture map image: $e',
-                                                  ),
-                                                ),
-                                              );
-                                            });
-                                            await _submitEndDriveNavigate();
-                                          } catch (e) {
-                                            print("Error ending drive: $e");
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                  'Error ending drive: $e',
-                                                ),
-                                              ),
-                                            );
-                                          }
-                                        },
-                                  style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 10,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    backgroundColor: Colors.black,
-                                  ),
-                                  child: isSubmitting
-                                      ? const CircularProgressIndicator(
-                                          color: Colors.white,
-                                          strokeWidth: 2,
-                                        )
-                                      : Text(
-                                          'End Test Drive & Submit Feedback Later',
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                ),
-                              ),
-                            ],
-                          ),
+                          ],
                         ),
                       ),
                     ),
-                  ),
+
+                  // Floating Buttons at Bottom
+                  if (!isDriveEnded)
+                    Positioned(
+                      bottom: 40,
+                      left: 16,
+                      right: 16,
+                      child: Column(
+                        children: [
+                          // First Button - Submit Feedback Now
+                          Container(
+                            width: double.infinity,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.2),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: ElevatedButton(
+                              onPressed: isSubmitting
+                                  ? null
+                                  : () async {
+                                      try {
+                                        await _captureAndUploadImage().catchError((
+                                          e,
+                                        ) {
+                                          print(
+                                            "Screenshot capture/upload failed: $e",
+                                          );
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                'Could not capture map image: $e',
+                                              ),
+                                            ),
+                                          );
+                                        });
+                                        await _submitEndDrive();
+                                      } catch (e) {
+                                        print("Error ending drive: $e");
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Error ending drive: $e',
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    },
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                backgroundColor: AppColors.colorsBlueButton,
+                                elevation: 0,
+                              ),
+                              child: isSubmitting
+                                  ? const CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    )
+                                  : Text(
+                                      'End Test Drive & Submit Feedback Now',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 12),
+
+                          // Second Button - Submit Feedback Later
+                          Container(
+                            width: double.infinity,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.2),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: ElevatedButton(
+                              onPressed: isSubmitting
+                                  ? null
+                                  : () async {
+                                      try {
+                                        await _captureAndUploadImage().catchError((
+                                          e,
+                                        ) {
+                                          print(
+                                            "Screenshot capture/upload failed: $e",
+                                          );
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                'Could not capture map image: $e',
+                                              ),
+                                            ),
+                                          );
+                                        });
+                                        await _submitEndDriveNavigate();
+                                      } catch (e) {
+                                        print("Error ending drive: $e");
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Error ending drive: $e',
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    },
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                backgroundColor: Colors.black,
+                                elevation: 0,
+                              ),
+                              child: isSubmitting
+                                  ? const CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    )
+                                  : Text(
+                                      'End Test Drive & Submit Feedback Later',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                 ],
               ),
+
+        // : Stack(
+        //     children: [
+        //       // Add this button to test notifications work
+        //       Container(
+        //         width: double.infinity,
+        //         height: double.infinity,
+        //         decoration: BoxDecoration(
+        //           color: AppColors.backgroundLightGrey,
+        //         ),
+        //         child: SafeArea(
+        //           child: Center(
+        //             child: SingleChildScrollView(
+        //               child: Padding(
+        //                 padding: const EdgeInsets.all(10.0),
+        //                 child: Column(
+        //                   crossAxisAlignment: CrossAxisAlignment.center,
+        //                   mainAxisAlignment: MainAxisAlignment.center,
+        //                   children: [
+        //                     // Map Container
+        //                     Container(
+        //                       padding: const EdgeInsets.all(15),
+        //                       decoration: BoxDecoration(
+        //                         color: Colors.white,
+        //                         borderRadius: BorderRadius.circular(10),
+        //                       ),
+        //                       child: SizedBox(
+        //                         height: 500,
+        //                         width: 400,
+        //                         child: Container(
+        //                           decoration: BoxDecoration(
+        //                             color: Colors.black,
+        //                             borderRadius: BorderRadius.circular(10),
+        //                           ),
+        //                           child: GoogleMap(
+        //                             onMapCreated:
+        //                                 (GoogleMapController controller) {
+        //                                   mapController = controller;
+        //                                 },
+        //                             initialCameraPosition: CameraPosition(
+        //                               target:
+        //                                   startMarker?.position ??
+        //                                   const LatLng(0, 0),
+        //                               zoom: 16,
+        //                             ),
+        //                             myLocationEnabled: true,
+        //                             zoomControlsEnabled: false,
+        //                             mapToolbarEnabled: false,
+        //                             compassEnabled: false,
+        //                             markers: {
+        //                               if (startMarker != null) startMarker!,
+        //                               if (userMarker != null) userMarker!,
+        //                               if (isDriveEnded && endMarker != null)
+        //                                 endMarker!,
+        //                             },
+        //                             polylines: {routePolyline},
+        //                           ),
+        //                         ),
+        //                       ),
+        //                     ),
+
+        //                     const SizedBox(height: 10),
+
+        //                     // Drive Stats
+        //                     if (!isDriveEnded)
+        //                       Container(
+        //                         padding: const EdgeInsets.all(10),
+        //                         decoration: BoxDecoration(
+        //                           color: Colors.white,
+        //                           borderRadius: BorderRadius.circular(10),
+        //                         ),
+        //                         child: Column(
+        //                           children: [
+        //                             Row(
+        //                               mainAxisAlignment:
+        //                                   MainAxisAlignment.spaceBetween,
+        //                               children: [
+        //                                 Text(
+        //                                   'Distance: ${_formatDistance(totalDistance)}',
+        //                                   style: GoogleFonts.poppins(
+        //                                     fontSize: 14,
+        //                                     fontWeight: FontWeight.w500,
+        //                                   ),
+        //                                 ),
+        //                                 Text(
+        //                                   'Duration: ${_calculateDuration()} mins',
+        //                                   style: GoogleFonts.poppins(
+        //                                     fontSize: 14,
+        //                                     fontWeight: FontWeight.w500,
+        //                                   ),
+        //                                 ),
+        //                               ],
+        //                             ),
+        //                             if (isDrivePaused)
+        //                               Padding(
+        //                                 padding: const EdgeInsets.only(
+        //                                   top: 8.0,
+        //                                 ),
+        //                                 child: Text(
+        //                                   'Drive Paused',
+        //                                   style: GoogleFonts.poppins(
+        //                                     fontSize: 12,
+        //                                     fontWeight: FontWeight.w500,
+        //                                     color: Colors.orange,
+        //                                   ),
+        //                                 ),
+        //                               ),
+        //                           ],
+        //                         ),
+        //                       ),
+
+        //                     const SizedBox(height: 10),
+
+        //                     // End Drive Buttons
+        //                     if (!isDriveEnded)
+        //                       SizedBox(
+        //                         width: double.infinity,
+        //                         height: 50,
+        //                         child: ElevatedButton(
+        //                           onPressed: isSubmitting
+        //                               ? null
+        //                               : () async {
+        //                                   try {
+        //                                     await _captureAndUploadImage()
+        //                                         .catchError((e) {
+        //                                           print(
+        //                                             "Screenshot capture/upload failed: $e",
+        //                                           );
+        //                                           ScaffoldMessenger.of(
+        //                                             context,
+        //                                           ).showSnackBar(
+        //                                             SnackBar(
+        //                                               content: Text(
+        //                                                 'Could not capture map image: $e',
+        //                                               ),
+        //                                             ),
+        //                                           );
+        //                                         });
+        //                                     await _submitEndDrive();
+        //                                   } catch (e) {
+        //                                     print("Error ending drive: $e");
+        //                                     ScaffoldMessenger.of(
+        //                                       context,
+        //                                     ).showSnackBar(
+        //                                       SnackBar(
+        //                                         content: Text(
+        //                                           'Error ending drive: $e',
+        //                                         ),
+        //                                       ),
+        //                                     );
+        //                                   }
+        //                                 },
+        //                           style: ElevatedButton.styleFrom(
+        //                             padding: const EdgeInsets.symmetric(
+        //                               vertical: 10,
+        //                             ),
+        //                             shape: RoundedRectangleBorder(
+        //                               borderRadius: BorderRadius.circular(
+        //                                 10,
+        //                               ),
+        //                             ),
+        //                             backgroundColor:
+        //                                 AppColors.colorsBlueButton,
+        //                           ),
+        //                           child: isSubmitting
+        //                               ? const CircularProgressIndicator(
+        //                                   color: Colors.white,
+        //                                   strokeWidth: 2,
+        //                                 )
+        //                               : Text(
+        //                                   'End Test Drive & Submit Feedback Now',
+        //                                   style: GoogleFonts.poppins(
+        //                                     fontSize: 14,
+        //                                     fontWeight: FontWeight.w500,
+        //                                     color: Colors.white,
+        //                                   ),
+        //                                 ),
+        //                         ),
+        //                       ),
+
+        //                     const SizedBox(height: 10),
+
+        //                     SizedBox(
+        //                       width: double.infinity,
+        //                       height: 50,
+        //                       child: ElevatedButton(
+        //                         onPressed: isSubmitting
+        //                             ? null
+        //                             : () async {
+        //                                 try {
+        //                                   await _captureAndUploadImage()
+        //                                       .catchError((e) {
+        //                                         print(
+        //                                           "Screenshot capture/upload failed: $e",
+        //                                         );
+        //                                         ScaffoldMessenger.of(
+        //                                           context,
+        //                                         ).showSnackBar(
+        //                                           SnackBar(
+        //                                             content: Text(
+        //                                               'Could not capture map image: $e',
+        //                                             ),
+        //                                           ),
+        //                                         );
+        //                                       });
+        //                                   await _submitEndDriveNavigate();
+        //                                 } catch (e) {
+        //                                   print("Error ending drive: $e");
+        //                                   ScaffoldMessenger.of(
+        //                                     context,
+        //                                   ).showSnackBar(
+        //                                     SnackBar(
+        //                                       content: Text(
+        //                                         'Error ending drive: $e',
+        //                                       ),
+        //                                     ),
+        //                                   );
+        //                                 }
+        //                               },
+        //                         style: ElevatedButton.styleFrom(
+        //                           padding: const EdgeInsets.symmetric(
+        //                             vertical: 10,
+        //                           ),
+        //                           shape: RoundedRectangleBorder(
+        //                             borderRadius: BorderRadius.circular(10),
+        //                           ),
+        //                           backgroundColor: Colors.black,
+        //                         ),
+        //                         child: isSubmitting
+        //                             ? const CircularProgressIndicator(
+        //                                 color: Colors.white,
+        //                                 strokeWidth: 2,
+        //                               )
+        //                             : Text(
+        //                                 'End Test Drive & Submit Feedback Later',
+        //                                 style: GoogleFonts.poppins(
+        //                                   fontSize: 14,
+        //                                   fontWeight: FontWeight.w500,
+        //                                   color: Colors.white,
+        //                                 ),
+        //                               ),
+        //                       ),
+        //                     ),
+        //                   ],
+        //                 ),
+        //               ),
+        //             ),
+        //           ),
+        //         ),
+        //       ),
+        //     ],
+        //   ),
       ),
     );
   }

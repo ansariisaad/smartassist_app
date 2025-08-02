@@ -28,7 +28,7 @@ class EnhancedSpeechTextField extends StatefulWidget {
   final Duration pauseDuration;
 
   const EnhancedSpeechTextField({
-    Key? key,
+    super.key,
     required this.label,
     required this.controller,
     required this.hint,
@@ -46,7 +46,7 @@ class EnhancedSpeechTextField extends StatefulWidget {
     this.pauseDuration = const Duration(seconds: 5),
     required this.isRequired,
     required this.error,
-  }) : super(key: key);
+  });
 
   @override
   State<EnhancedSpeechTextField> createState() =>
@@ -69,7 +69,7 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
   String? _lastError;
   final FlutterTts _flutterTts = FlutterTts();
   bool _isSpeaking = false;
-  // bool _permissionChecked = false;
+  bool _permissionChecked = false; //remove this is not working on the samsung
   Color get _primaryColor => widget.primaryColor ?? Colors.grey.shade800;
   Color get _errorColor => Colors.red;
 
@@ -309,110 +309,113 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
     }
   }
 
-  // Future<bool> _checkMicrophonePermission() async {
-  //   if (_permissionChecked) {
-  //     // Check current status without requesting again
-  //     PermissionStatus currentStatus = await Permission.microphone.status;
-  //     return currentStatus.isGranted;
-  //   }
-
-  //   try {
-  //     if (Platform.isIOS) {
-  //       Map<Permission, PermissionStatus> statuses = await [
-  //         Permission.microphone,
-  //         Permission.speech,
-  //       ].request();
-
-  //       bool micGranted = statuses[Permission.microphone]?.isGranted ?? false;
-  //       bool speechGranted = statuses[Permission.speech]?.isGranted ?? false;
-
-  //       setState(() => _permissionChecked = true);
-
-  //       if (!micGranted || !speechGranted) {
-  //         _showPermissionDialog();
-  //         return false;
-  //       }
-  //       return true;
-  //     } else {
-  //       PermissionStatus micStatus = await Permission.microphone.request();
-  //       setState(() => _permissionChecked = true);
-
-  //       if (!micStatus.isGranted) {
-  //         _showPermissionDialog();
-  //       }
-  //       return micStatus.isGranted;
-  //     }
-  //   } catch (e) {
-  //     debugPrint('Permission check error: $e');
-  //     setState(() => _permissionChecked = true);
-  //     return false;
-  //   }
-  // }
-
+  // if not working in the samsung remove this one and add the bottom one so it will work fine in samsung
   Future<bool> _checkMicrophonePermission() async {
+    if (_permissionChecked) {
+      // Check current status without requesting again
+      PermissionStatus currentStatus = await Permission.microphone.status;
+      return currentStatus.isGranted;
+    }
+
     try {
       if (Platform.isIOS) {
-        bool speechPermission = await _speech!.hasPermission;
-        PermissionStatus micStatus = await Permission.microphone.status;
+        Map<Permission, PermissionStatus> statuses = await [
+          Permission.microphone,
+          Permission.speech,
+        ].request();
 
-        if (speechPermission) {
-          return true;
-        }
+        bool micGranted = statuses[Permission.microphone]?.isGranted ?? false;
+        bool speechGranted = statuses[Permission.speech]?.isGranted ?? false;
 
-        if (!speechPermission && !micStatus.isGranted) {
-          _showPermissionDialog();
+        setState(() => _permissionChecked = true);
+
+        if (!micGranted || !speechGranted) {
+          // _showPermissionDialog();
+          print('permission not granted');
           return false;
         }
-
-        return speechPermission;
+        return true;
       } else {
-        PermissionStatus micStatus = await Permission.microphone.status;
+        PermissionStatus micStatus = await Permission.microphone.request();
+        setState(() => _permissionChecked = true);
 
-        if (micStatus.isGranted) {
-          return true;
-        }
+        if (!micStatus.isGranted) {
+          // _showPermissionDialog();
 
-        if (micStatus.isPermanentlyDenied) {
-          _showPermissionDialog();
-          return false;
         }
-
-        PermissionStatus requestResult = await Permission.microphone.request();
-        if (!requestResult.isGranted) {
-          _showPermissionDialog();
-        }
-        return requestResult.isGranted;
+        return micStatus.isGranted;
       }
     } catch (e) {
+      debugPrint('Permission check error: $e');
+      setState(() => _permissionChecked = true);
       return false;
     }
   }
 
-  void _showPermissionDialog() {
-    if (!mounted) return;
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Permissions Required'),
-        content: const Text(
-          'This app needs microphone and speech recognition permissions to work properly. Please enable them in Settings.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              openAppSettings();
-            },
-            child: const Text('Open Settings'),
-          ),
-        ],
-      ),
-    );
-  }
+  // Future<bool> _checkMicrophonePermission() async {
+  //   try {
+  //     if (Platform.isIOS) {
+  //       bool speechPermission = await _speech!.hasPermission;
+  //       PermissionStatus micStatus = await Permission.microphone.status;
+
+  //       if (speechPermission) {
+  //         return true;
+  //       }
+
+  //       if (!speechPermission && !micStatus.isGranted) {
+  //         _showPermissionDialog();
+  //         return false;
+  //       }
+
+  //       return speechPermission;
+  //     } else {
+  //       PermissionStatus micStatus = await Permission.microphone.status;
+
+  //       if (micStatus.isGranted) {
+  //         return true;
+  //       }
+
+  //       if (micStatus.isPermanentlyDenied) {
+  //         _showPermissionDialog();
+  //         return false;
+  //       }
+
+  //       PermissionStatus requestResult = await Permission.microphone.request();
+  //       if (!requestResult.isGranted) {
+  //         _showPermissionDialog();
+  //       }
+  //       return requestResult.isGranted;
+  //     }
+  //   } catch (e) {
+  //     return false;
+  //   }
+  // }
+
+  // void _showPermissionDialog() {
+  //   if (!mounted) return;
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //       title: const Text('Permissions Required'),
+  //       content: const Text(
+  //         'This app needs microphone and speech recognition permissions to work properly. Please enable them in Settings.',
+  //       ),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () => Navigator.pop(context),
+  //           child: const Text('Cancel'),
+  //         ),
+  //         TextButton(
+  //           onPressed: () {
+  //             Navigator.pop(context);
+  //             openAppSettings();
+  //           },
+  //           child: const Text('Open Settings'),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   void _onSpeechStatus(String status) {
     if (!mounted) return;

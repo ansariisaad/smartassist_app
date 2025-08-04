@@ -1431,36 +1431,36 @@ class _StartDriveMapState extends State<StartDriveMap>
     }
   }
 
-  void _startLocationTracking() {
-    try {
-      const LocationSettings locationSettings = LocationSettings(
-        accuracy: LocationAccuracy.bestForNavigation,
-        distanceFilter: 1, // 1 meter
-        timeLimit: Duration(seconds: 8),
-      );
+  // void _startLocationTracking() {
+  //   try {
+  //     const LocationSettings locationSettings = LocationSettings(
+  //       accuracy: LocationAccuracy.bestForNavigation,
+  //       distanceFilter: 1, // 1 meter
+  //       timeLimit: Duration(seconds: 8),
+  //     );
 
-      positionStreamSubscription =
-          Geolocator.getPositionStream(
-            locationSettings: locationSettings,
-          ).listen(
-            (Position position) {
-              if (!isDrivePaused) {
-                _processLocationUpdate(position);
-              }
-            },
-            onError: (error) {
-              print('Location stream error: $error');
-              Future.delayed(Duration(seconds: 5), () {
-                if (!isDriveEnded && mounted) {
-                  _startLocationTracking();
-                }
-              });
-            },
-          );
-    } catch (e) {
-      print('Error starting location tracking: $e');
-    }
-  }
+  //     positionStreamSubscription =
+  //         Geolocator.getPositionStream(
+  //           locationSettings: locationSettings,
+  //         ).listen(
+  //           (Position position) {
+  //             if (!isDrivePaused) {
+  //               _processLocationUpdate(position);
+  //             }
+  //           },
+  //           onError: (error) {
+  //             print('Location stream error: $error');
+  //             Future.delayed(Duration(seconds: 5), () {
+  //               if (!isDriveEnded && mounted) {
+  //                 _startLocationTracking();
+  //               }
+  //             });
+  //           },
+  //         );
+  //   } catch (e) {
+  //     print('Error starting location tracking: $e');
+  //   }
+  // }
 
   void _processLocationUpdate(Position position) {
     if (!mounted || isDriveEnded || isDrivePaused) return;
@@ -1523,13 +1523,21 @@ class _StartDriveMapState extends State<StartDriveMap>
     _throttledLocationUpdate(newLocation);
   }
 
+  // ✅ FIXED: Relaxed location validation for better Android performance
   bool _isValidLocationUpdate(
     LatLng newLocation,
     Position position,
     DateTime now,
   ) {
-    // Check accuracy - reject if GPS accuracy is poor
-    if (position.accuracy > 15.0) {
+    // ✅ RELAXED: More lenient accuracy check for Android
+    double maxAccuracy = Platform.isAndroid
+        ? 30.0
+        : 15.0; // 30m for Android, 15m for iOS
+
+    if (position.accuracy > maxAccuracy) {
+      print(
+        '❌ Location accuracy too low: ${position.accuracy}m (max: ${maxAccuracy}m)',
+      );
       return false;
     }
 
@@ -1537,11 +1545,15 @@ class _StartDriveMapState extends State<StartDriveMap>
     if (position.timestamp != null) {
       int locationAge = now.difference(position.timestamp!).inSeconds;
       if (locationAge > 10) {
+        print('❌ Location too old: ${locationAge}s');
         return false;
       }
     }
 
-    if (_lastValidLocation == null || _lastLocationTime == null) return true;
+    if (_lastValidLocation == null || _lastLocationTime == null) {
+      print('✅ First location - accepted');
+      return true;
+    }
 
     // Check for unrealistic speed
     double distance = _calculateAccurateDistance(
@@ -1555,14 +1567,75 @@ class _StartDriveMapState extends State<StartDriveMap>
 
     if (timeElapsed > 0) {
       double speed = (distance / timeElapsed) * 3600; // km/h
-      if (speed > 120.0) {
-        // 120 km/h max realistic speed
+      if (speed > 150.0) {
+        // Increased from 120 to 150 km/h
         print('❌ Unrealistic speed: ${speed.toStringAsFixed(1)} km/h');
         return false;
       }
     }
 
-    return distance >= 0.005; // 5 meters minimum movement
+    // ✅ RELAXED: Smaller minimum movement for better tracking
+    double minMovement = Platform.isAndroid
+        ? 0.003
+        : 0.005; // 3m for Android, 5m for iOS
+
+    if (distance >= minMovement) {
+      print('✅ Valid movement: ${(distance * 1000).toStringAsFixed(1)}m');
+      return true;
+    } else {
+      print(
+        '⏸️ Movement too small: ${(distance * 1000).toStringAsFixed(1)}m (min: ${(minMovement * 1000).toStringAsFixed(0)}m)',
+      );
+      return false;
+    }
+  }
+
+  // ✅ UPDATED: Better location settings for Android
+  void _startLocationTracking() {
+    try {
+      // ✅ Platform-specific location settings
+      LocationSettings locationSettings;
+
+      if (Platform.isAndroid) {
+        locationSettings = AndroidSettings(
+          accuracy:
+              LocationAccuracy.high, // Not bestForNavigation to save battery
+          distanceFilter: 3, // 3 meters for Android
+          timeLimit: Duration(seconds: 10), // Longer timeout for Android
+          forceLocationManager: false, // Use Google Play Services
+        );
+      } else {
+        locationSettings = AppleSettings(
+          accuracy: LocationAccuracy.bestForNavigation,
+          activityType: ActivityType.automotiveNavigation,
+          distanceFilter: 1, // 1 meter for iOS
+          pauseLocationUpdatesAutomatically: false,
+          timeLimit: Duration(seconds: 8),
+        );
+      }
+
+      positionStreamSubscription =
+          Geolocator.getPositionStream(
+            locationSettings: locationSettings,
+          ).listen(
+            (Position position) {
+              if (!isDrivePaused) {
+                _processLocationUpdate(position);
+              }
+            },
+            onError: (error) {
+              print('Location stream error: $error');
+              Future.delayed(Duration(seconds: 5), () {
+                if (!isDriveEnded && mounted) {
+                  print('Retrying location tracking...');
+                  _startLocationTracking();
+                }
+              });
+            },
+          );
+    } catch (e) {
+      print('Error starting location tracking: $e');
+    }
   }
 
   double _calculateAccurateDistance(LatLng point1, LatLng point2) {

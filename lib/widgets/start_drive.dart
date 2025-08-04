@@ -106,6 +106,7 @@ class StartDriveMap extends StatefulWidget {
 class _StartDriveMapState extends State<StartDriveMap>
     with WidgetsBindingObserver {
   late GoogleMapController mapController;
+
   Marker? startMarker;
   Marker? userMarker;
   Marker? endMarker;
@@ -137,6 +138,7 @@ class _StartDriveMapState extends State<StartDriveMap>
   int _socketReconnectAttempts = 0;
 
   static const platform = MethodChannel('testdrive_native_service');
+  static const iosChannel = MethodChannel('testdrive_ios_service');
 
   // Enhanced constants for better accuracy
   static const double MIN_DISTANCE_THRESHOLD = 0.001; // 1 meter in km
@@ -160,7 +162,7 @@ class _StartDriveMapState extends State<StartDriveMap>
     totalDistance = 0.0;
     WidgetsBinding.instance.addObserver(this);
     _requestBatteryOptimization();
-
+    _setupiOSLocationListener();
     _initializeBackgroundService();
     _determinePosition();
     _startServiceHealthCheck();
@@ -484,14 +486,60 @@ class _StartDriveMapState extends State<StartDriveMap>
   }
 
   // ✅ NEW: Start native background service
+  // Future<void> _startNativeBackgroundService() async {
+  //   try {
+  //     print('🚀 Starting native background service');
+
+  //     await platform.invokeMethod('startBackgroundService', {
+  //       'eventId': widget.eventId,
+  //       'totalDistance': totalDistance,
+  //     });
+
+  //     // Stop foreground tracking to avoid conflicts
+  //     if (positionStreamSubscription != null) {
+  //       positionStreamSubscription!.cancel();
+  //       positionStreamSubscription = null;
+  //     }
+
+  //     // Disconnect foreground socket
+  //     if (socket != null && socket!.connected) {
+  //       socket!.disconnect();
+  //     }
+
+  //     print('✅ Native background service started');
+  //   } catch (e) {
+  //     print('❌ Failed to start native background service: $e');
+  //   }
+  // }
+
+  // // ✅ NEW: Stop native background service
+  // Future<void> _stopNativeBackgroundService() async {
+  //   try {
+  //     print('🛑 Stopping native background service');
+  //     await platform.invokeMethod('stopBackgroundService');
+  //     print('✅ Native background service stopped');
+  //   } catch (e) {
+  //     print('❌ Failed to stop native background service: $e');
+  //   }
+  // }
+
+  // ✅ Updated: Start native background service for both platforms
   Future<void> _startNativeBackgroundService() async {
     try {
       print('🚀 Starting native background service');
 
-      await platform.invokeMethod('startBackgroundService', {
-        'eventId': widget.eventId,
-        'totalDistance': totalDistance,
-      });
+      if (Platform.isAndroid) {
+        await platform.invokeMethod('startBackgroundService', {
+          'eventId': widget.eventId,
+          'totalDistance': totalDistance,
+        });
+      } else if (Platform.isIOS) {
+        // ✅ NEW: Use iOS-specific channel
+        await iosChannel.invokeMethod('startTracking', {
+          'eventId': widget.eventId,
+          'distance': totalDistance,
+        });
+      }
 
       // Stop foreground tracking to avoid conflicts
       if (positionStreamSubscription != null) {
@@ -510,17 +558,23 @@ class _StartDriveMapState extends State<StartDriveMap>
     }
   }
 
-  // ✅ NEW: Stop native background service
+  // ✅ Updated: Stop native background service for both platforms
   Future<void> _stopNativeBackgroundService() async {
     try {
       print('🛑 Stopping native background service');
-      await platform.invokeMethod('stopBackgroundService');
+
+      if (Platform.isAndroid) {
+        await platform.invokeMethod('stopBackgroundService');
+      } else if (Platform.isIOS) {
+        // ✅ NEW: Use iOS-specific channel
+        await iosChannel.invokeMethod('stopTracking');
+      }
+
       print('✅ Native background service stopped');
     } catch (e) {
       print('❌ Failed to stop native background service: $e');
     }
   }
-
   // In your StartDriveMap widget, fix the background service handling:
 
   void _startBackgroundService() {
@@ -574,6 +628,93 @@ class _StartDriveMapState extends State<StartDriveMap>
     } catch (e) {
       print('❌ Failed to start background service: $e');
       _backgroundServiceStarted = false;
+    }
+  }
+
+  // ✅ NEW: Set up iOS location update listener
+  void _setupiOSLocationListener() {
+    if (Platform.isIOS) {
+      iosChannel.setMethodCallHandler((call) async {
+        switch (call.method) {
+          case 'location_update':
+            if (mounted && !isDriveEnded) {
+              try {
+                final arguments = call.arguments as Map<dynamic, dynamic>;
+                final latitude = arguments['latitude'] as double;
+                final longitude = arguments['longitude'] as double;
+                final distance = arguments['distance'] as double;
+                final duration = arguments['duration'] as int;
+                final accuracy = arguments['accuracy'] as double;
+
+                print(
+                  '📍 iOS location update: $latitude, $longitude, distance: $distance km',
+                );
+
+                setState(() {
+                  final newLocation = LatLng(latitude, longitude);
+
+                  // Update user marker
+                  userMarker = Marker(
+                    markerId: const MarkerId('user'),
+                    position: newLocation,
+                    infoWindow: InfoWindow(
+                      title: 'Current Location',
+                      snippet: 'Accuracy: ${accuracy.toStringAsFixed(1)}m',
+                    ),
+                    icon: BitmapDescriptor.defaultMarkerWithHue(
+                      BitmapDescriptor.hueAzure,
+                    ),
+                  );
+
+                  // Update distance if it's reasonable
+                  if (distance > totalDistance &&
+                      distance < totalDistance + 0.5) {
+                    totalDistance = distance;
+                    _totalDistanceAccumulator = distance;
+                  }
+
+                  // Add to route points
+                  if (routePoints.isEmpty ||
+                      _calculateAccurateDistance(
+                            routePoints.last,
+                            newLocation,
+                          ) >
+                          0.005) {
+                    routePoints.add(newLocation);
+                    _updatePolyline();
+                  }
+
+                  _lastValidLocation = newLocation;
+                  _lastLocationTime = DateTime.now();
+                });
+
+                // Move camera to current location
+                if (mapController != null) {
+                  mapController.animateCamera(
+                    CameraUpdate.newLatLng(LatLng(latitude, longitude)),
+                  );
+                }
+
+                // Send to socket if connected
+                if (socket != null && socket!.connected) {
+                  socket!.emit('updateLocation', {
+                    'eventId': widget.eventId,
+                    'newCoordinates': {
+                      'latitude': latitude,
+                      'longitude': longitude,
+                    },
+                    'totalDistance': totalDistance,
+                    'duration': _calculateDuration(),
+                    'timestamp': DateTime.now().millisecondsSinceEpoch,
+                  });
+                }
+              } catch (e) {
+                print('❌ Error processing iOS location update: $e');
+              }
+            }
+            break;
+        }
+      });
     }
   }
 
@@ -700,57 +841,6 @@ class _StartDriveMapState extends State<StartDriveMap>
     });
   }
 
-  // Future<void> _determinePosition() async {
-  //   bool serviceEnabled;
-  //   LocationPermission permission;
-
-  //   serviceEnabled = await Geolocator.isLocationServiceEnabled();
-  //   if (!serviceEnabled) {
-  //     setState(() {
-  //       error =
-  //           'Location services are disabled. Please enable location services in your device settings.';
-  //       isLoading = false;
-  //     });
-  //     return;
-  //   }
-
-  //   permission = await Geolocator.checkPermission();
-  //   if (permission == LocationPermission.denied) {
-  //     permission = await Geolocator.requestPermission();
-  //     if (permission == LocationPermission.denied) {
-  //       setState(() {
-  //         error =
-  //             'Location permissions are denied. Please allow access to your location.';
-  //         isLoading = false;
-  //       });
-  //       return;
-  //     }
-  //   }
-
-  //   if (permission == LocationPermission.deniedForever) {
-  //     setState(() {
-  //       error =
-  //           'Location permissions are permanently denied. Please enable them in app settings.';
-  //       isLoading = false;
-  //     });
-  //     return;
-  //   }
-
-  //   try {
-  //     Position position = await Geolocator.getCurrentPosition(
-  //       desiredAccuracy: LocationAccuracy.high,
-  //       timeLimit: Duration(seconds: 10),
-  //     );
-
-  //     _handleLocationObtained(position);
-  //   } catch (e) {
-  //     setState(() {
-  //       error = 'Error getting location: $e';
-  //       isLoading = false;
-  //     });
-  //   }
-  // }
-
   // Replace your existing _determinePosition method with this:
   Future<void> _determinePosition() async {
     setState(() {
@@ -759,7 +849,7 @@ class _StartDriveMapState extends State<StartDriveMap>
     });
 
     try {
-      // First check if location services are enabled
+      // First check if location services are enabled (works on both platforms)
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         setState(() {
@@ -767,24 +857,39 @@ class _StartDriveMapState extends State<StartDriveMap>
               'Location services are disabled. Please enable location services in your device settings.';
           isLoading = false;
         });
-
-        // Show dialog to open location settings
         _showLocationServiceDialog();
         return;
       }
 
-      // Check location permissions using permission_handler
-      PermissionStatus permission = await Permission.location.status;
-      print('📍 Current location permission status: $permission');
+      // ✅ SEPARATED: Platform-specific permission handling
+      if (Platform.isIOS) {
+        await _handleiOSPermissions();
+      } else if (Platform.isAndroid) {
+        await _handleAndroidPermissions();
+      }
+    } catch (e) {
+      print('❌ Error in _determinePosition: $e');
+      setState(() {
+        error = 'Error getting location: $e';
+        isLoading = false;
+      });
+    }
+  }
 
-      // Request permission if not granted
-      if (permission.isDenied) {
-        permission = await Permission.location.request();
-        print('📍 Location permission after request: $permission');
+  Future<void> _handleiOSPermissions() async {
+    print('📍 Handling iOS permissions...');
+
+    try {
+      // Use Geolocator for iOS permission checking (more reliable)
+      LocationPermission permission = await Geolocator.checkPermission();
+      print('📍 Current iOS permission status: $permission');
+
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        print('📍 iOS permission after request: $permission');
       }
 
-      // Handle different permission states
-      if (permission.isDenied) {
+      if (permission == LocationPermission.denied) {
         setState(() {
           error =
               'Location permissions are denied. Please allow access to your location.';
@@ -794,7 +899,7 @@ class _StartDriveMapState extends State<StartDriveMap>
         return;
       }
 
-      if (permission.isPermanentlyDenied) {
+      if (permission == LocationPermission.deniedForever) {
         setState(() {
           error =
               'Location permissions are permanently denied. Please enable them in app settings.';
@@ -804,45 +909,182 @@ class _StartDriveMapState extends State<StartDriveMap>
         return;
       }
 
-      // Check for background location permission (Android 10+)
-      if (permission.isGranted) {
-        PermissionStatus backgroundPermission =
-            await Permission.locationAlways.status;
-        if (backgroundPermission.isDenied) {
-          print('📍 Requesting background location permission...');
-          backgroundPermission = await Permission.locationAlways.request();
-          print('📍 Background location permission: $backgroundPermission');
+      // If we have basic permission, request always permission for background
+      if (permission == LocationPermission.whileInUse ||
+          permission == LocationPermission.always) {
+        print(
+          '✅ iOS basic permission granted, requesting always permission...',
+        );
+        await _requestiOSAlwaysPermission();
 
-          if (backgroundPermission.isDenied) {
-            print(
-              '⚠️ Background location denied, but continuing with foreground only',
-            );
-          }
-        }
+        // Get current location
+        await _getiOSLocation();
+      }
+    } catch (e) {
+      print('❌ Error handling iOS permissions: $e');
+      setState(() {
+        error = 'Error handling iOS permissions: $e';
+        isLoading = false;
+      });
+    }
+  }
+
+  // ✅ NEW: Android-specific permission handling
+  Future<void> _handleAndroidPermissions() async {
+    print('📍 Handling Android permissions...');
+
+    try {
+      // ✅ FIXED: Use Geolocator for Android permission checking (same as iOS)
+      LocationPermission permission = await Geolocator.checkPermission();
+      print('📍 Current Android permission status: $permission');
+
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        print('📍 Android permission after request: $permission');
       }
 
-      print('✅ All permissions granted, getting location...');
+      if (permission == LocationPermission.denied) {
+        setState(() {
+          error =
+              'Location permissions are denied. Please allow access to your location.';
+          isLoading = false;
+        });
+        _showPermissionDialog();
+        return;
+      }
 
-      // Get current position
+      if (permission == LocationPermission.deniedForever) {
+        setState(() {
+          error =
+              'Location permissions are permanently denied. Please enable them in app settings.';
+          isLoading = false;
+        });
+        _showPermanentlyDeniedDialog();
+        return;
+      }
+
+      // ✅ If we have basic permission, try to get background permission
+      if (permission == LocationPermission.whileInUse ||
+          permission == LocationPermission.always) {
+        print('✅ Android basic permission granted');
+
+        // ✅ OPTIONAL: Try to get background permission for Android 10+
+        await _tryRequestAndroidBackgroundPermission();
+
+        // Get current location
+        await _getAndroidLocation();
+      }
+    } catch (e) {
+      print('❌ Error handling Android permissions: $e');
+      setState(() {
+        error = 'Error handling Android permissions: $e';
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _tryRequestAndroidBackgroundPermission() async {
+    if (!Platform.isAndroid) return;
+
+    try {
+      // Only try background permission if Android version supports it
+      if (await Permission.locationAlways.status.isDenied) {
+        print('📍 Requesting Android background location permission...');
+        PermissionStatus backgroundPermission = await Permission.locationAlways
+            .request();
+        print(
+          '📍 Android background location permission: $backgroundPermission',
+        );
+
+        if (backgroundPermission.isDenied) {
+          print(
+            '⚠️ Android background location denied, but continuing with foreground only',
+          );
+          // Show info dialog but don't block the flow
+          _showBackgroundPermissionInfo();
+        } else if (backgroundPermission.isGranted) {
+          print('✅ Android background location granted');
+        }
+      }
+    } catch (e) {
+      print('❌ Error requesting Android background permission: $e');
+      // Don't block the flow for background permission errors
+    }
+  }
+
+  void _showBackgroundPermissionInfo() {
+    // Only show this once per session
+    if (mounted) {
+      Future.delayed(Duration(seconds: 1), () {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'For best tracking when app is minimized, enable "Allow all the time" in location settings',
+              ),
+              duration: Duration(seconds: 4),
+              action: SnackBarAction(
+                label: 'Settings',
+                onPressed: () async {
+                  await openAppSettings();
+                },
+              ),
+            ),
+          );
+        }
+      });
+    }
+  }
+
+  // ✅ NEW: Get location for iOS
+  Future<void> _getiOSLocation() async {
+    try {
+      print('✅ Getting iOS location...');
+
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
         timeLimit: Duration(seconds: 15),
       );
 
       print(
-        '📍 Location obtained: ${position.latitude}, ${position.longitude}',
+        '📍 iOS location obtained: ${position.latitude}, ${position.longitude}',
       );
-
-      // Handle successful location
       _handleLocationObtained(position);
 
       // Initialize socket after successful location
       print('🔌 Initializing socket connection...');
       _initializeSocket();
     } catch (e) {
-      print('❌ Error in _determinePosition: $e');
+      print('❌ Error getting iOS location: $e');
       setState(() {
-        error = 'Error getting location: $e';
+        error = 'Error getting iOS location: $e';
+        isLoading = false;
+      });
+    }
+  }
+
+  // ✅ NEW: Get location for Android
+  Future<void> _getAndroidLocation() async {
+    try {
+      print('✅ Getting Android location...');
+
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: Duration(seconds: 15),
+      );
+
+      print(
+        '📍 Android location obtained: ${position.latitude}, ${position.longitude}',
+      );
+      _handleLocationObtained(position);
+
+      // Initialize socket after successful location
+      print('🔌 Initializing socket connection...');
+      _initializeSocket();
+    } catch (e) {
+      print('❌ Error getting Android location: $e');
+      setState(() {
+        error = 'Error getting Android location: $e';
         isLoading = false;
       });
     }
@@ -859,15 +1101,11 @@ class _StartDriveMapState extends State<StartDriveMap>
             children: [
               Icon(Icons.location_off, color: Colors.red),
               SizedBox(width: 8),
-              Text(
-                'Location Services Disabled',
-                style: AppFont.mediumText14Black(context),
-              ),
+              Text('Location Services Disabled'),
             ],
           ),
           content: Text(
             'Location services are turned off. Please enable location services to use test drive tracking.',
-            style: AppFont.smallText12(context),
           ),
           actions: [
             TextButton(
@@ -893,8 +1131,57 @@ class _StartDriveMapState extends State<StartDriveMap>
       },
     );
   }
-
   // Show dialog for location permission
+  // void _showPermissionDialog() {
+  //   showDialog(
+  //     context: context,
+  //     barrierDismissible: false,
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         title: Row(
+  //           children: [
+  //             Icon(Icons.location_on, color: Colors.orange),
+  //             SizedBox(width: 8),
+  //             Text('Location Permission Required'),
+  //           ],
+  //         ),
+  //         content: Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           crossAxisAlignment: CrossAxisAlignment.start,
+  //           children: [
+  //             Text(
+  //               'This app needs location access to track your test drive.',
+  //               style: TextStyle(fontSize: 16),
+  //             ),
+  //             SizedBox(height: 12),
+  //             Text(
+  //               '• Allow location access in the next dialog\n'
+  //               '• For best results, choose "Allow all the time"',
+  //               style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+  //             ),
+  //           ],
+  //         ),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () {
+  //               Navigator.of(context).pop();
+  //             },
+  //             child: Text('Cancel'),
+  //           ),
+  //           ElevatedButton(
+  //             onPressed: () async {
+  //               Navigator.of(context).pop();
+  //               _determinePosition(); // Retry permission request
+  //             },
+  //             child: Text('Grant Permission'),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
+
+  // Updated permission dialog for iOS
   void _showPermissionDialog() {
     showDialog(
       context: context,
@@ -917,11 +1204,23 @@ class _StartDriveMapState extends State<StartDriveMap>
                 style: TextStyle(fontSize: 16),
               ),
               SizedBox(height: 12),
-              Text(
-                '• Allow location access in the next dialog\n'
-                '• For best results, choose "Allow all the time"',
-                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-              ),
+              if (Platform.isIOS) ...[
+                Text(
+                  'iOS Instructions:\n'
+                  '• Tap "Grant Permission" below\n'
+                  '• Choose "Allow While Using App" first\n'
+                  '• Later you\'ll be asked to "Change to Always Allow" for background tracking',
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                ),
+              ] else if (Platform.isAndroid) ...[
+                Text(
+                  'Android Instructions:\n'
+                  '• Tap "Grant Permission" below\n'
+                  '• Choose "While using the app" or "Only this time"\n'
+                  '• You can change this later in settings',
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                ),
+              ],
             ],
           ),
           actions: [
@@ -934,7 +1233,13 @@ class _StartDriveMapState extends State<StartDriveMap>
             ElevatedButton(
               onPressed: () async {
                 Navigator.of(context).pop();
-                _determinePosition(); // Retry permission request
+
+                // ✅ Retry with platform-specific handling
+                if (Platform.isIOS) {
+                  await _handleiOSPermissions();
+                } else if (Platform.isAndroid) {
+                  await _handleAndroidPermissions();
+                }
               },
               child: Text('Grant Permission'),
             ),
@@ -944,7 +1249,19 @@ class _StartDriveMapState extends State<StartDriveMap>
     );
   }
 
-  // Show dialog for permanently denied permissions
+  // ✅ UPDATED: iOS always permission request (unchanged but cleaner)
+  Future<void> _requestiOSAlwaysPermission() async {
+    if (Platform.isIOS) {
+      try {
+        await iosChannel.invokeMethod('requestAlwaysPermission');
+        print('✅ iOS always permission requested');
+      } catch (e) {
+        print('❌ Failed to request iOS always permission: $e');
+      }
+    }
+  }
+
+  // ✅ UPDATED: Platform-specific permanently denied dialog
   void _showPermanentlyDeniedDialog() {
     showDialog(
       context: context,
@@ -967,14 +1284,25 @@ class _StartDriveMapState extends State<StartDriveMap>
                 style: TextStyle(fontSize: 16),
               ),
               SizedBox(height: 12),
-              Text(
-                'Steps:\n'
-                '1. Open App Settings\n'
-                '2. Go to Permissions\n'
-                '3. Enable Location access\n'
-                '4. Choose "Allow all the time"',
-                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-              ),
+              if (Platform.isIOS) ...[
+                Text(
+                  'iOS Steps:\n'
+                  '1. Tap "Open Settings" below\n'
+                  '2. Find this app in the list\n'
+                  '3. Tap "Location"\n'
+                  '4. Choose "Always" or "While Using App"',
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                ),
+              ] else if (Platform.isAndroid) ...[
+                Text(
+                  'Android Steps:\n'
+                  '1. Tap "Open Settings" below\n'
+                  '2. Go to "Permissions"\n'
+                  '3. Tap "Location"\n'
+                  '4. Choose "Allow only while using the app"',
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                ),
+              ],
             ],
           ),
           actions: [
@@ -987,8 +1315,8 @@ class _StartDriveMapState extends State<StartDriveMap>
             ElevatedButton(
               onPressed: () async {
                 Navigator.of(context).pop();
-                // Open app settings
                 await openAppSettings();
+
                 // Show instruction to retry
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -996,6 +1324,12 @@ class _StartDriveMapState extends State<StartDriveMap>
                       'After enabling permissions, tap "Try Again"',
                     ),
                     duration: Duration(seconds: 4),
+                    action: SnackBarAction(
+                      label: 'Try Again',
+                      onPressed: () {
+                        _determinePosition();
+                      },
+                    ),
                   ),
                 );
               },
@@ -1006,47 +1340,6 @@ class _StartDriveMapState extends State<StartDriveMap>
       },
     );
   }
-
-  // Add this method to check notification permissions as well
-  // Future<void> _checkAndRequestNotificationPermissions() async {
-  //   bool hasNotificationPermission = await NotificationHelper.checkNotificationPermissions();
-
-  //   if (!hasNotificationPermission) {
-  //     showDialog(
-  //       context: context,
-  //       builder: (BuildContext context) {
-  //         return AlertDialog(
-  //           title: Row(
-  //             children: [
-  //               Icon(Icons.notifications, color: Colors.blue),
-  //               SizedBox(width: 8),
-  //               Text('Notification Permission'),
-  //             ],
-  //           ),
-  //           content: Text(
-  //             'Enable notifications to see test drive progress when the app is in background.',
-  //             style: TextStyle(fontSize: 16),
-  //           ),
-  //           actions: [
-  //             TextButton(
-  //               onPressed: () {
-  //                 Navigator.of(context).pop();
-  //               },
-  //               child: Text('Skip'),
-  //             ),
-  //             ElevatedButton(
-  //               onPressed: () async {
-  //                 Navigator.of(context).pop();
-  //                 await NotificationHelper.requestNotificationPermissions();
-  //               },
-  //               child: Text('Enable'),
-  //             ),
-  //           ],
-  //         );
-  //       },
-  //     );
-  //   }
-  // }
 
   // Update your _handleLocationObtained method to include notification check:
   void _handleLocationObtained(Position position) {
@@ -1089,41 +1382,6 @@ class _StartDriveMapState extends State<StartDriveMap>
       _startTestDrive(currentLocation);
     }
   }
-
-  // void _handleLocationObtained(Position position) {
-  //   final LatLng currentLocation = LatLng(
-  //     position.latitude,
-  //     position.longitude,
-  //   );
-
-  //   if (mounted) {
-  //     setState(() {
-  //       startMarker = Marker(
-  //         markerId: const MarkerId('start'),
-  //         position: currentLocation,
-  //         infoWindow: const InfoWindow(title: 'Start'),
-  //       );
-
-  //       userMarker = Marker(
-  //         markerId: const MarkerId('user'),
-  //         position: currentLocation,
-  //         infoWindow: const InfoWindow(title: 'User'),
-  //         icon: BitmapDescriptor.defaultMarkerWithHue(
-  //           BitmapDescriptor.hueAzure,
-  //         ),
-  //       );
-
-  //       routePoints.add(currentLocation);
-  //       _updatePolyline();
-  //       _lastValidLocation = currentLocation;
-  //       _lastLocationTime = DateTime.now();
-  //       isLoading = false;
-  //     });
-
-  //     _initializeSocket();
-  //     _startTestDrive(currentLocation);
-  //   }
-  // }
 
   void _updatePolyline() {
     routePolyline = Polyline(
@@ -1580,6 +1838,11 @@ class _StartDriveMapState extends State<StartDriveMap>
     if (_backgroundServiceStarted) {
       final service = FlutterBackgroundService();
       service.invoke('stop_tracking');
+    }
+
+    // ✅ NEW: Stop iOS native service
+    if (Platform.isIOS) {
+      _stopNativeBackgroundService();
     }
 
     _cleanupResources();

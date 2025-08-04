@@ -432,31 +432,6 @@ class _StartDriveMapState extends State<StartDriveMap>
     return true;
   }
 
-  // @override
-  // void didChangeAppLifecycleState(AppLifecycleState state) {
-  //   super.didChangeAppLifecycleState(state);
-
-  //   print('🔄 App lifecycle state: $state');
-
-  //   switch (state) {
-  //     case AppLifecycleState.paused:
-  //     case AppLifecycleState.detached:
-  //       if (!isDriveEnded && !_backgroundServiceStarted) {
-  //         _startBackgroundService();
-  //       }
-  //       break;
-  //     case AppLifecycleState.resumed:
-  //       if (_backgroundServiceStarted) {
-  //         _stopBackgroundService();
-  //       }
-  //       // Sync data from background service
-  //       _syncFromBackgroundService();
-  //       break;
-  //     default:
-  //       break;
-  //   }
-  // }
-
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
@@ -484,44 +459,6 @@ class _StartDriveMapState extends State<StartDriveMap>
         break;
     }
   }
-
-  // ✅ NEW: Start native background service
-  // Future<void> _startNativeBackgroundService() async {
-  //   try {
-  //     print('🚀 Starting native background service');
-
-  //     await platform.invokeMethod('startBackgroundService', {
-  //       'eventId': widget.eventId,
-  //       'totalDistance': totalDistance,
-  //     });
-
-  //     // Stop foreground tracking to avoid conflicts
-  //     if (positionStreamSubscription != null) {
-  //       positionStreamSubscription!.cancel();
-  //       positionStreamSubscription = null;
-  //     }
-
-  //     // Disconnect foreground socket
-  //     if (socket != null && socket!.connected) {
-  //       socket!.disconnect();
-  //     }
-
-  //     print('✅ Native background service started');
-  //   } catch (e) {
-  //     print('❌ Failed to start native background service: $e');
-  //   }
-  // }
-
-  // // ✅ NEW: Stop native background service
-  // Future<void> _stopNativeBackgroundService() async {
-  //   try {
-  //     print('🛑 Stopping native background service');
-  //     await platform.invokeMethod('stopBackgroundService');
-  //     print('✅ Native background service stopped');
-  //   } catch (e) {
-  //     print('❌ Failed to stop native background service: $e');
-  //   }
-  // }
 
   // ✅ Updated: Start native background service for both platforms
   Future<void> _startNativeBackgroundService() async {
@@ -716,129 +653,6 @@ class _StartDriveMapState extends State<StartDriveMap>
         }
       });
     }
-  }
-
-  // Fix the service setup
-  void _setupBackgroundServiceListeners() {
-    final service = FlutterBackgroundService();
-
-    // Listen for location updates from background service
-    service.on('location_update').listen((event) {
-      if (mounted && !isDrivePaused && event != null) {
-        try {
-          setState(() {
-            final position = event['position'];
-            final newLocation = LatLng(
-              position['latitude'],
-              position['longitude'],
-            );
-
-            userMarker = Marker(
-              markerId: const MarkerId('user'),
-              position: newLocation,
-              infoWindow: const InfoWindow(title: 'Current Location'),
-              icon: BitmapDescriptor.defaultMarkerWithHue(
-                BitmapDescriptor.hueAzure,
-              ),
-            );
-
-            // Update total distance from background service
-            double bgTotalDistance =
-                event['totalDistance']?.toDouble() ?? totalDistance;
-            if (bgTotalDistance > totalDistance) {
-              totalDistance = bgTotalDistance;
-            }
-
-            // Update route points from background service
-            final bgRoutePoints = event['routePoints'] as List<dynamic>?;
-            if (bgRoutePoints != null) {
-              routePoints = bgRoutePoints
-                  .map((point) => LatLng(point['latitude'], point['longitude']))
-                  .toList();
-              _updatePolyline();
-            }
-
-            // Move camera to current location
-            if (mapController != null) {
-              mapController.animateCamera(CameraUpdate.newLatLng(newLocation));
-            }
-          });
-        } catch (e) {
-          print('Error processing background location update: $e');
-        }
-      }
-    });
-
-    // Listen for socket status from background service
-    service.on('socket_status').listen((event) {
-      if (event != null) {
-        print('Background socket status: ${event['connected']}');
-        if (event['error'] != null) {
-          print('Background socket error: ${event['error']}');
-        }
-      }
-    });
-
-    // Listen for location errors from background service
-    service.on('location_error').listen((event) {
-      if (event != null) {
-        print('Background location error: ${event['error']}');
-        // Handle location errors (maybe restart foreground tracking)
-      }
-    });
-  }
-
-  void _stopBackgroundService() {
-    if (!_backgroundServiceStarted) return;
-
-    try {
-      print('🛑 Stopping background service');
-      final service = FlutterBackgroundService();
-      service.invoke('stop_tracking');
-      _backgroundServiceStarted = false;
-
-      if (!isDriveEnded) {
-        // Restart foreground tracking
-        _initializeSocket();
-        _startLocationTracking();
-      }
-
-      print('✅ Background service stopped');
-    } catch (e) {
-      print('❌ Failed to stop background service: $e');
-    }
-  }
-
-  void _syncFromBackgroundService() {
-    if (!_backgroundServiceStarted) return;
-
-    final service = FlutterBackgroundService();
-    service.invoke('get_data');
-
-    service.on('data_response').listen((event) {
-      if (mounted && event != null) {
-        setState(() {
-          double bgTotalDistance =
-              event['totalDistance']?.toDouble() ?? totalDistance;
-          if (bgTotalDistance > totalDistance) {
-            totalDistance = bgTotalDistance;
-          }
-
-          final bgRoutePoints = event['routePoints'] as List<dynamic>?;
-          if (bgRoutePoints != null &&
-              bgRoutePoints.length > routePoints.length) {
-            routePoints = bgRoutePoints
-                .map((point) => LatLng(point['latitude'], point['longitude']))
-                .toList();
-            _updatePolyline();
-          }
-        });
-
-        print(
-          '📊 Synced from background: ${totalDistance.toStringAsFixed(2)} km',
-        );
-      }
-    });
   }
 
   // Replace your existing _determinePosition method with this:
@@ -1371,9 +1185,6 @@ class _StartDriveMapState extends State<StartDriveMap>
         _lastLocationTime = DateTime.now();
         isLoading = false;
       });
-
-      // Check notification permissions after location is obtained
-      // _checkAndRequestNotificationPermissions();
 
       // Initialize socket (moved here from _determinePosition)
       print('🔌 Socket connection initialized');

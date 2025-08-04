@@ -1,9 +1,11 @@
-// 📁 Create this file: ios/Runner/LocationManager.swift
+// 📁 ios/Runner/LocationManager.swift
 import Foundation
 import CoreLocation
 import Flutter
 import UIKit
+import UserNotifications  // ✅ ADDED: Missing import
 
+@available(iOS 9.0, *)
 @objc(LocationManager)
 class LocationManager: NSObject, CLLocationManagerDelegate {
     private var locationManager: CLLocationManager!
@@ -23,7 +25,7 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
         setupLocationManager()
     }
     
-    func setMethodChannel(_ channel: FlutterMethodChannel) {
+    @objc func setMethodChannel(_ channel: FlutterMethodChannel) {
         self.channel = channel
     }
     
@@ -50,8 +52,12 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
         print("🚀 Starting iOS background tracking for event: \(eventId)")
         
         // Request permissions if needed
-        if locationManager.authorizationStatus == .notDetermined {
-            locationManager.requestAlwaysAuthorization()
+        if #available(iOS 14.0, *) {
+            if locationManager.authorizationStatus == .notDetermined {
+                locationManager.requestAlwaysAuthorization()
+            }
+        } else {
+            // Fallback on earlier versions
         }
         
         if CLLocationManager.locationServicesEnabled() {
@@ -244,147 +250,3 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
         return Int(activeDuration / 60) // Convert to minutes
     }
 }
-
-// // 📁 ios/Runner/LocationManager.swift
-// import Foundation
-// import CoreLocation
-// import Flutter
-
-// @objc(LocationManager)
-// class LocationManager: NSObject, CLLocationManagerDelegate {
-//     private var locationManager: CLLocationManager!
-//     private var channel: FlutterMethodChannel?
-//     private var isTracking = false
-//     private var lastLocation: CLLocation?
-//     private var totalDistance: Double = 0.0
-//     private var driveStartTime: Date?
-//     private var totalPausedDuration: TimeInterval = 0
-//     private var isPaused = false
-//     private var pauseStartTime: Date?
-    
-//     override init() {
-//         super.init()
-//         setupLocationManager()
-//     }
-    
-//     func setMethodChannel(_ channel: FlutterMethodChannel) {
-//         self.channel = channel
-//     }
-    
-//     private func setupLocationManager() {
-//         locationManager = CLLocationManager()
-//         locationManager.delegate = self
-//         locationManager.desiredAccuracy = kCLLocationAccuracyBest
-//         locationManager.distanceFilter = 5 // 5 meters
-        
-//         // Request permissions
-//         locationManager.requestWhenInUseAuthorization()
-//         locationManager.requestAlwaysAuthorization()
-//     }
-    
-//     @objc func startTracking(_ eventId: String, distance: Double) {
-//         guard !isTracking else { return }
-        
-//         driveStartTime = Date()
-//         totalDistance = distance
-//         isTracking = true
-        
-//         if CLLocationManager.locationServicesEnabled() {
-//             locationManager.startUpdatingLocation()
-//             locationManager.allowsBackgroundLocationUpdates = true
-//             locationManager.pausesLocationUpdatesAutomatically = false
-            
-//             print("✅ iOS background location tracking started")
-//         }
-//     }
-    
-//     @objc func stopTracking() {
-//         guard isTracking else { return }
-        
-//         isTracking = false
-//         locationManager.stopUpdatingLocation()
-//         locationManager.allowsBackgroundLocationUpdates = false
-        
-//         print("🛑 iOS background location tracking stopped")
-//     }
-    
-//     @objc func pauseTracking() {
-//         if !isPaused {
-//             isPaused = true
-//             pauseStartTime = Date()
-//             print("⏸️ iOS tracking paused")
-//         }
-//     }
-    
-//     @objc func resumeTracking() {
-//         if isPaused, let pauseStart = pauseStartTime {
-//             totalPausedDuration += Date().timeIntervalSince(pauseStart)
-//             isPaused = false
-//             pauseStartTime = nil
-//             print("▶️ iOS tracking resumed")
-//         }
-//     }
-    
-//     // MARK: - CLLocationManagerDelegate
-    
-//     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-//         guard isTracking, !isPaused else { return }
-        
-//         for location in locations {
-//             // Filter out inaccurate locations
-//             if location.horizontalAccuracy > 20 { continue }
-            
-//             if let lastLoc = lastLocation {
-//                 let distance = location.distance(from: lastLoc)
-//                 if distance >= 5 { // 5 meters minimum
-//                     totalDistance += distance / 1000.0 // Convert to km
-//                     print("📍 iOS location updated: \(totalDistance.formatted(.number.precision(.fractionLength(2)))) km")
-//                 }
-//             }
-            
-//             lastLocation = location
-            
-//             // Send to Flutter
-//             channel?.invokeMethod("location_update", arguments: [
-//                 "latitude": location.coordinate.latitude,
-//                 "longitude": location.coordinate.longitude,
-//                 "distance": totalDistance,
-//                 "duration": calculateDuration(),
-//                 "accuracy": location.horizontalAccuracy
-//             ])
-//         }
-//     }
-    
-//     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-//         print("❌ iOS location error: \(error.localizedDescription)")
-//     }
-    
-//     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
-//         switch status {
-//         case .authorizedAlways:
-//             print("✅ iOS always location permission granted")
-//         case .authorizedWhenInUse:
-//             print("⚠️ iOS when-in-use location permission granted")
-//             locationManager.requestAlwaysAuthorization()
-//         case .denied, .restricted:
-//             print("❌ iOS location permission denied")
-//         case .notDetermined:
-//             locationManager.requestAlwaysAuthorization()
-//         @unknown default:
-//             break
-//         }
-//     }
-    
-//     private func calculateDuration() -> Int {
-//         guard let startTime = driveStartTime else { return 0 }
-        
-//         let totalElapsed = Date().timeIntervalSince(startTime)
-//         let activeDuration = if isPaused, let pauseStart = pauseStartTime {
-//             totalElapsed - totalPausedDuration - Date().timeIntervalSince(pauseStart)
-//         } else {
-//             totalElapsed - totalPausedDuration
-//         }
-        
-//         return Int(activeDuration / 60) // Convert to minutes
-//     }
-// }

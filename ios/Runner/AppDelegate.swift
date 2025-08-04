@@ -27,23 +27,29 @@ import UserNotifications
         GMSServices.provideAPIKey(apiKey)
         GeneratedPluginRegistrant.register(with: self)
         
-        // ✅ ADD location manager setup
+        // ✅ Setup location manager
         setupLocationManager()
         
-        // ✅ ADD notification permissions
+        // ✅ Request notification permissions
         requestNotificationPermissions()
         
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
     
-    // ✅ ADD this method
+    // ✅ Setup location manager
     private func setupLocationManager() {
         guard let controller = window?.rootViewController as? FlutterViewController else {
             print("❌ Failed to get FlutterViewController")
             return
         }
         
-        locationManager = LocationManager()
+        // ✅ Create LocationManager instance
+        if #available(iOS 9.0, *) {
+            locationManager = LocationManager()
+        } else {
+            print("❌ iOS version not supported")
+            return
+        }
         
         let channel = FlutterMethodChannel(
             name: "testdrive_ios_service",
@@ -53,27 +59,32 @@ import UserNotifications
         locationManager?.setMethodChannel(channel)
         
         channel.setMethodCallHandler { [weak self] call, result in
+            guard let self = self else {
+                result(FlutterError(code: "NO_SELF", message: "Self is nil", details: nil))
+                return
+            }
+            
             switch call.method {
             case "startTracking":
                 if let args = call.arguments as? [String: Any],
                    let eventId = args["eventId"] as? String,
                    let distance = args["distance"] as? Double {
-                    self?.locationManager?.startTracking(eventId, distance: distance)
+                    self.locationManager?.startTracking(eventId, distance: distance)
                     result(true)
                 } else {
                     result(FlutterError(code: "INVALID_ARGS", message: "Invalid arguments", details: nil))
                 }
             case "stopTracking":
-                self?.locationManager?.stopTracking()
+                self.locationManager?.stopTracking()
                 result(true)
             case "pauseTracking":
-                self?.locationManager?.pauseTracking()
+                self.locationManager?.pauseTracking()
                 result(true)
             case "resumeTracking":
-                self?.locationManager?.resumeTracking()
+                self.locationManager?.resumeTracking()
                 result(true)
             case "requestAlwaysPermission":
-                self?.locationManager?.requestAlwaysPermission()
+                self.locationManager?.requestAlwaysPermission()
                 result(true)
             default:
                 result(FlutterMethodNotImplemented)
@@ -83,7 +94,7 @@ import UserNotifications
         print("✅ iOS location manager setup complete")
     }
     
-    // ✅ ADD notification permission request
+    // ✅ Request notification permission
     private func requestNotificationPermissions() {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
             DispatchQueue.main.async {
@@ -96,7 +107,7 @@ import UserNotifications
         }
     }
     
-    // ✅ ADD background app refresh handling
+    // ✅ Background app refresh handling
     override func applicationDidEnterBackground(_ application: UIApplication) {
         super.applicationDidEnterBackground(application)
         print("📱 iOS app entered background")

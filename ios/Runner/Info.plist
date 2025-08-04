@@ -2,146 +2,135 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-<key>UIBackgroundModes</key>
-<array>
-    <string>remote-notification</string>
-    <string>location</string>
-    <string>background-fetch</string>
-    <string>background-processing</string>
-</array>
+	<!-- ✅ FIXED: Combined all background modes into ONE key -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+		<string>location</string>
+		<string>background-fetch</string>
+		<string>background-processing</string>
+	</array>
 
-<!-- ✅ ADD location permissions -->
-<key>NSLocationWhenInUseUsageDescription</key>
-<string>This app needs location access to track your test drive accurately.</string>
+	<!-- ✅ FIXED: Location permissions (removed duplicates) -->
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app needs location access to track your test drive route and distance accurately, even when the app is in the background.</string>
 
-<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-<string>This app needs continuous location access to track your test drive even when the app is in background.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs location access to track your test drive route and distance.</string>
 
-<key>NSLocationAlwaysUsageDescription</key>
-<string>This app needs background location access to continue tracking your test drive when the app is not active.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app needs background location access to continue tracking your test drive when the app is minimized.</string>
 
-<!-- api keys -->
-<key>GoogleMapsAPIKey</key>
-<string>$(GOOGLE_MAPS_API_KEY)</string>
+	<!-- Required for iOS 14+ location permission -->
+	<key>NSLocationTemporaryUsageDescriptionDictionary</key>
+	<dict>
+		<key>testdrive</key>
+		<string>This app needs precise location to accurately track your test drive distance.</string>
+	</dict>
 
-<!-- CALL LOG PERMISSION (for call_log package) -->
-<key>NSContactsUsageDescription</key>
-<string>This app needs access to contacts to display call history and manage contacts.</string>
+	<!-- API keys -->
+	<key>GoogleMapsAPIKey</key>
+	<string>$(GOOGLE_MAPS_API_KEY)</string>
 
-<!-- LOCATION PERMISSIONS (for geolocator package) -->
-<key>NSLocationWhenInUseUsageDescription</key>
-<string>This app needs location access to show your position on the map.</string>
-<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-<string>This app requires location access even in the background for accurate updates.</string>
+	<!-- CONTACT PERMISSION -->
+	<key>NSContactsUsageDescription</key>
+	<string>This app needs access to contacts to display call history and manage contacts.</string>
 
-<!-- BIOMETRIC AUTHENTICATION (for local_auth package) -->
-<key>NSFaceIDUsageDescription</key>
-<string>This app uses Face ID to authenticate the user securely.</string>
+	<!-- BIOMETRIC AUTHENTICATION -->
+	<key>NSFaceIDUsageDescription</key>
+	<string>This app uses Face ID to authenticate the user securely.</string>
 
-<!-- PHOTO LIBRARY (for image_picker package) -->
-<key>NSPhotoLibraryUsageDescription</key>
-<string>This app needs access to your photo library to save and select images.</string>
-<key>NSPhotoLibraryAddUsageDescription</key>
-<string>This app needs permission to save photos to your photo library.</string>
+	<!-- PHOTO LIBRARY -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs access to your photo library to save and select images.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>This app needs permission to save photos to your photo library.</string>
 
-<!-- CAMERA (for camera and image_picker packages) -->
-<key>NSCameraUsageDescription</key>
-<string>This app requires camera access to take photos or scan QR codes.</string>
-<!-- SPEECH RECOGNITION PERMISSIONS - UNCOMMENTED AND ACTIVE -->
-<key>NSMicrophoneUsageDescription</key>
-<string>This app needs access to your microphone for speech recognition.</string>
-<key>NSSpeechRecognitionUsageDescription</key>
-<string>This app needs access to speech recognition to convert your speech to text.</string>
+	<!-- CAMERA -->
+	<key>NSCameraUsageDescription</key>
+	<string>This app requires camera access to take photos or scan QR codes.</string>
 
-<!-- COMBINED LSApplicationQueriesSchemes -->
-<key>LSApplicationQueriesSchemes</key>
-<array>
-<string>whatsapp</string>
-<string>whatsapp-business</string>
-<string>tel</string>
-</array>
+	<!-- SPEECH RECOGNITION -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app needs access to your microphone for speech recognition.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>This app needs access to speech recognition to convert your speech to text.</string>
 
-<key>io.flutter.embedded_views_preview</key>
-<true/>
+	<!-- BLUETOOTH -->
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>This app uses Bluetooth to connect with nearby devices and accessories.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>This app uses Bluetooth to communicate with peripheral devices.</string>
 
-<!-- SINGLE LOCATION PERMISSION -->
-<key>NSLocationWhenInUseUsageDescription</key>
-<string>This app needs location access to show your position on the map.</string>
-<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-<string>This app requires location access even in the background for accurate updates.</string>
+	<!-- LOCAL NETWORK -->
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>This app needs access to local network to discover and connect to devices.</string>
 
-<key>CADisableMinimumFrameDurationOnPhone</key>
-<true/>
-<key>CFBundleDevelopmentRegion</key>
-<string>$(DEVELOPMENT_LANGUAGE)</string>
-<key>CFBundleDisplayName</key>
-<string>Smart Assist</string>
-<key>CFBundleExecutable</key>
-<string>$(EXECUTABLE_NAME)</string>
-<key>CFBundleIdentifier</key>
-<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-<key>CFBundleInfoDictionaryVersion</key>
-<string>6.0</string>
-<key>CFBundleName</key>
-<string>smart_assist</string>
-<key>CFBundlePackageType</key>
-<string>APPL</string>
-<key>CFBundleShortVersionString</key>
-<string>$(FLUTTER_BUILD_NAME)</string>
-<key>CFBundleSignature</key>
-<string>????</string>
-<key>CFBundleVersion</key>
-<string>$(FLUTTER_BUILD_NUMBER)</string>
-<key>LSRequiresIPhoneOS</key>
-<true/>
-<key>UIApplicationSupportsIndirectInputEvents</key>
-<true/>
-<key>UILaunchStoryboardName</key>
-<string>LaunchScreen</string>
-<key>UIMainStoryboardFile</key>
-<string>Main</string>
-<key>UISupportedInterfaceOrientations</key>
-<array>
-<string>UIInterfaceOrientationPortrait</string>
-<string>UIInterfaceOrientationLandscapeLeft</string>
-<string>UIInterfaceOrientationLandscapeRight</string>
-</array>
-<key>UISupportedInterfaceOrientations~ipad</key>
-<array>
-<string>UIInterfaceOrientationPortrait</string>
-<string>UIInterfaceOrientationPortraitUpsideDown</string>
-<string>UIInterfaceOrientationLandscapeLeft</string>
-<string>UIInterfaceOrientationLandscapeRight</string>
-</array>
+	<!-- URL SCHEMES -->
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>whatsapp</string>
+		<string>whatsapp-business</string>
+		<string>tel</string>
+	</array>
 
-<!-- OTHER PRIVACY PERMISSIONS -->
-<key>NSCameraUsageDescription</key>
-<string>This app requires camera access to take photos or scan QR codes.</string>
-<key>NSBluetoothAlwaysUsageDescription</key>
-<string>This app uses Bluetooth to connect with nearby devices and accessories.</string>
-<key>NSBluetoothPeripheralUsageDescription</key>
-<string>This app uses Bluetooth to communicate with peripheral devices.</string>
-<key>NSFaceIDUsageDescription</key>
-<string>This app uses Face ID to authenticate the user securely.</string>
-<key>NSPhotoLibraryUsageDescription</key>
-<string>This app needs access to your photo library to save and select images.</string>
-<key>NSPhotoLibraryAddUsageDescription</key>
-<string>This app needs permission to save photos to your photo library.</string>
-<key>NSContactsUsageDescription</key>
-<string>This app needs access to contacts for enhanced functionality.</string>
-<key>NSLocalNetworkUsageDescription</key>
-<string>This app needs access to local network to discover and connect to devices.</string>
+	<!-- APP TRANSPORT SECURITY -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<false/>
+	</dict>
 
-<key>NSAppTransportSecurity</key>
-<dict>
-<key>NSAllowsArbitraryLoads</key>
-<false/>
-</dict>
-
-<key>UIRequiredDeviceCapabilities</key>
-<array>
-<string>armv7</string>
-</array>
+	<!-- FLUTTER AND APP CONFIG -->
+	<key>io.flutter.embedded_views_preview</key>
+	<true/>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDisplayName</key>
+	<string>Smart Assist</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>smart_assist</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(FLUTTER_BUILD_NAME)</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
+	<key>UIMainStoryboardFile</key>
+	<string>Main</string>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>armv7</string>
+	</array>
 </dict>
 </plist>
 

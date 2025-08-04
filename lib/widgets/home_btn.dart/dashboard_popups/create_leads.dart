@@ -477,8 +477,10 @@ class _CreateLeadsState extends State<CreateLeads> {
       }
 
       // Email validation - removed required validation
-      if (emailController.text.trim().isNotEmpty &&
-          !_isValidEmail(emailController.text.trim())) {
+      if (emailController.text.trim().isEmpty) {
+        _errors['email'] = 'Email is required';
+        isValid = false;
+      } else if (!_isValidEmail(emailController.text.trim())) {
         _errors['email'] = 'Please enter a valid email';
         isValid = false;
       }
@@ -856,7 +858,7 @@ class _CreateLeadsState extends State<CreateLeads> {
                         },
                       ),
                       _buildTextField(
-                        isRequired: false, // Changed to false
+                        isRequired: true,
                         label: 'Email',
                         controller: emailController,
                         hintText: 'Email',
@@ -1901,9 +1903,7 @@ class _CreateLeadsState extends State<CreateLeads> {
       final leadData = {
         'fname': firstNameController.text,
         'lname': lastNameController.text,
-        'email': emailController.text.trim().isEmpty
-            ? null
-            : emailController.text,
+        'email': emailController.text,
         'mobile': mobileNumber,
         'purchase_type': _selectedPurchaseType,
         'brand': selectedBrand ?? '',

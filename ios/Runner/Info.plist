@@ -5,7 +5,20 @@
 <key>UIBackgroundModes</key>
 <array>
     <string>remote-notification</string>
+    <string>location</string>
+    <string>background-fetch</string>
+    <string>background-processing</string>
 </array>
+
+<!-- ✅ ADD location permissions -->
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>This app needs location access to track your test drive accurately.</string>
+
+<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+<string>This app needs continuous location access to track your test drive even when the app is in background.</string>
+
+<key>NSLocationAlwaysUsageDescription</key>
+<string>This app needs background location access to continue tracking your test drive when the app is not active.</string>
 
 <!-- api keys -->
 <key>GoogleMapsAPIKey</key>

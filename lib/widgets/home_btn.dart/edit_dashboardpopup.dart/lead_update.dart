@@ -1,20 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
-import 'package:smartassist/config/getX/fab.controller.dart';
-import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
-
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/popups_widget/vehicleSearch_textfield.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
@@ -56,7 +50,6 @@ class _LeadUpdateState extends State<LeadUpdate> {
   Map<String, dynamic>? _existingLeadData;
   String _query = '';
   final TextEditingController _searchController = TextEditingController();
-
   TextEditingController emailController = TextEditingController();
   TextEditingController firstNameController = TextEditingController();
   TextEditingController lastNameController = TextEditingController();
@@ -1181,9 +1174,10 @@ class _LeadUpdateState extends State<LeadUpdate> {
         'lead_name': fullName,
         'email': emailController.text,
         'mobile': mobileNumber,
-        // 'brand': _selectedBrand,
         'sp_id': spId,
-        'PMI': modelInterestController.text,
+        'PMI': selectedVehicleName?.isNotEmpty == true
+            ? selectedVehicleName
+            : modelInterestController.text,
         'enquiry_type': _selectedEnquiryType,
       };
 
@@ -1219,6 +1213,7 @@ class _LeadUpdateState extends State<LeadUpdate> {
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );
+        await widget.onFormSubmit();
       } else {
         final Map<String, dynamic> responseData = json.decode(response.body);
         String message =

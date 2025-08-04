@@ -112,8 +112,8 @@ class _CreateLeadsState extends State<CreateLeads> {
     _searchControllerVehicleColor.addListener(_onVehicleColorSearchChanged);
     _searchControllerCampaign.addListener(_onCampaignSearchChanged);
     // Initialize speech recognition
-    _speech = stt.SpeechToText();
-    _initSpeech();
+    // _speech = stt.SpeechToText();
+    // _initSpeech();
   }
 
   @override

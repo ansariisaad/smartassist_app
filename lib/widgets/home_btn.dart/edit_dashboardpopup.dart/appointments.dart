@@ -373,7 +373,7 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
     }
 
     final newTaskForLead = {
-      'remarks': descriptionController.text,
+      'comments': descriptionController.text,
       'status': selectedValue,
       'sp_id': spId,
       'due_date': dueDate != null
@@ -697,9 +697,26 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
                       alignment: Alignment.centerLeft,
                       child: Container(
                         margin: const EdgeInsets.only(bottom: 5),
-                        child: Text(
-                          'Status :',
-                          style: AppFont.dropDowmLabel(context),
+                        // child: Text(
+                        //   'Status :',
+                        //   style: AppFont.dropDowmLabel(context),
+                        // ),
+                        child: RichText(
+                          text: TextSpan(
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black,
+                            ),
+                            children: [
+                              TextSpan(text: 'Status :'),
+                              // if (widget.isRequired)
+                              const TextSpan(
+                                text: " *",
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),

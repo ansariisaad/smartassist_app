@@ -207,8 +207,8 @@ class _TestdriveState extends State<Testdrive> {
       bool statusChanged = selectedValue != _initialStatus;
       bool remarksChanged =
           descriptionController.text.trim() != (_initialRemarks ?? '').trim();
-      bool locationChanged =
-          _locationController.text.trim() != (_initialLocation ?? '').trim();
+      // bool locationChanged =
+      //     _locationController.text.trim() != (_initialLocation ?? '').trim();
       bool noShowReasonChanged = selectedNoShowReason != _initialNoShowReason;
 
       // Check if No Show is selected but no reason is chosen
@@ -217,17 +217,18 @@ class _TestdriveState extends State<Testdrive> {
 
       // Check if required fields are valid
       bool remarksValid = descriptionController.text.trim().isNotEmpty;
-      bool locationValid = _locationController.text.trim().isNotEmpty;
+      // bool locationValid = _locationController.text.trim().isNotEmpty;
 
       // Enable button if any field changed and all validations pass
       isButtonEnabled =
           (statusChanged ||
               remarksChanged ||
-              locationChanged ||
+              // locationChanged ||
               noShowReasonChanged) &&
           isNoShowValid &&
-          remarksValid &&
-          locationValid;
+          remarksValid
+      // && locationValid
+      ;
     });
   }
 
@@ -262,10 +263,10 @@ class _TestdriveState extends State<Testdrive> {
     }
 
     // Validate location field
-    if (_locationController.text.trim().isEmpty) {
-      showErrorMessage(context, message: 'Please enter location');
-      return;
-    }
+    // if (_locationController.text.trim().isEmpty) {
+    //   showErrorMessage(context, message: 'Please enter location');
+    //   return;
+    // }
 
     submitForm();
   }

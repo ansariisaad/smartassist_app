@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -10,15 +9,10 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
 import 'package:http_parser/http_parser.dart';
-import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:screenshot/screenshot.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:smartassist/config/component/color/colors.dart';
-import 'dart:ui' as ui;
-
-import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/utils/storage.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -36,7 +30,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   bool _isUploading = false;
 
   bool isLoading = true;
-  String? name, email, location, mobile, userRole, profilePic;
+  String? userId, name, email, location, mobile, userRole, profilePic;
   double rating = 0.0;
   double professionalism = 0.0;
   double efficiency = 0.0;
@@ -103,6 +97,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       setState(() {
+        userId = data['data']['user_id'];
         name = data['data']['name'];
         email = data['data']['email'];
         location = data['data']['dealer_location'];
@@ -395,48 +390,22 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   Future<void> _shareFullBodyScreenshot() async {
     try {
-      Get.dialog(
-        const Center(child: CircularProgressIndicator()),
-        barrierDismissible: false,
+      await Share.share(
+        // 'Check out my SmartAssist profile! 🚀\n\n'
+        '👤 ${name ?? "User"}\n'
+        '📧 ${email ?? ""}\n'
+        // '📍 ${location ?? ""}\n'
+        '⭐ Rating: ${rating.toStringAsFixed(1)}/5\n'
+        '📊 My Performance Evaluation:\n'
+        '• Professionalism: ${(professionalism * 100).toStringAsFixed(0)}%\n'
+        '• Efficiency: ${(efficiency * 100).toStringAsFixed(0)}%\n'
+        // '• Response Time: ${(responseTime * 100).toStringAsFixed(0)}%\n'
+        '🔗 Feedback URL: https://api.smartassistapp.in/api/users/submit-feedback/${userId}\n\n',
+        // '• Product Knowledge: ${(productKnowledge * 100).toStringAsFixed(0)}%\n\n'
+        // '#SmartAssist #Profile #Performance',
+        // subject: '${name ?? "User"}\'s SmartAssist Profile',
       );
-
-      final Uint8List? image = await _screenshotController.capture();
-      Get.back();
-
-      if (image != null) {
-        final directory = await getTemporaryDirectory();
-        final filePath =
-            '${directory.path}/profile_${DateTime.now().millisecondsSinceEpoch}.png';
-        final file = File(filePath);
-        await file.writeAsBytes(image);
-
-        final XFile xFile = XFile(filePath);
-
-        await Share.shareXFiles(
-          [xFile],
-          text:
-              'Check out my SmartAssist profile! 🚀\n\n'
-              '👤 ${name ?? "User"}\n'
-              '📧 ${email ?? ""}\n'
-              '📍 ${location ?? ""}\n'
-              '⭐ Rating: ${rating.toStringAsFixed(1)}/5\n\n'
-              '📊 My Performance Evaluation:\n'
-              '• Professionalism: ${(professionalism * 100).toStringAsFixed(0)}%\n'
-              '• Efficiency: ${(efficiency * 100).toStringAsFixed(0)}%\n'
-              '• Response Time: ${(responseTime * 100).toStringAsFixed(0)}%\n'
-              '• Product Knowledge: ${(productKnowledge * 100).toStringAsFixed(0)}%\n\n'
-              '#SmartAssist #Profile #Performance',
-          subject: '${name ?? "User"}\'s SmartAssist Profile',
-        );
-
-        Future.delayed(const Duration(seconds: 5), () {
-          if (file.existsSync()) {
-            file.deleteSync();
-          }
-        });
-      }
     } catch (e) {
-      Get.back();
       Get.snackbar(
         'Error',
         'Failed to share profile: ${e.toString()}',
@@ -445,6 +414,59 @@ class _ProfileScreenState extends State<ProfileScreen>
       );
     }
   }
+
+  // Future<void> _shareFullBodyScreenshot() async {
+  //   try {
+  //     Get.dialog(
+  //       const Center(child: CircularProgressIndicator()),
+  //       barrierDismissible: false,
+  //     );
+
+  //     final Uint8List? image = await _screenshotController.capture();
+  //     Get.back();
+
+  //     if (image != null) {
+  //       final directory = await getTemporaryDirectory();
+  //       final filePath =
+  //           '${directory.path}/profile_${DateTime.now().millisecondsSinceEpoch}.png';
+  //       final file = File(filePath);
+  //       await file.writeAsBytes(image);
+
+  //       final XFile xFile = XFile(filePath);
+
+  //       await Share.shareXFiles(
+  //         [xFile],
+  //         text:
+  //             'Check out my SmartAssist profile! 🚀\n\n'
+  //             '👤 ${name ?? "User"}\n'
+  //             '📧 ${email ?? ""}\n'
+  //             '📍 ${location ?? ""}\n'
+  //             '⭐ Rating: ${rating.toStringAsFixed(1)}/5\n\n'
+  //             '📊 My Performance Evaluation:\n'
+  //             '• Professionalism: ${(professionalism * 100).toStringAsFixed(0)}%\n'
+  //             '• Efficiency: ${(efficiency * 100).toStringAsFixed(0)}%\n'
+  //             '• Response Time: ${(responseTime * 100).toStringAsFixed(0)}%\n'
+  //             '• Product Knowledge: ${(productKnowledge * 100).toStringAsFixed(0)}%\n\n'
+  //             '#SmartAssist #Profile #Performance',
+  //         subject: '${name ?? "User"}\'s SmartAssist Profile',
+  //       );
+
+  //       Future.delayed(const Duration(seconds: 5), () {
+  //         if (file.existsSync()) {
+  //           file.deleteSync();
+  //         }
+  //       });
+  //     }
+  //   } catch (e) {
+  //     Get.back();
+  //     Get.snackbar(
+  //       'Error',
+  //       'Failed to share profile: ${e.toString()}',
+  //       backgroundColor: Colors.red,
+  //       colorText: Colors.white,
+  //     );
+  //   }
+  // }
 
   bool _isTablet(BuildContext context) =>
       MediaQuery.of(context).size.width > 768;

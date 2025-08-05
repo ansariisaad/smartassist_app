@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -23,7 +24,7 @@ void main() async {
     await Firebase.initializeApp();
     await Environment.init();
     Environment.validateConfig();
-
+    await GetStorage.init();
     // Request location permissions
     await _requestLocationPermissions();
     // Request necessary permissions

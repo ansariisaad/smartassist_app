@@ -13,6 +13,7 @@ import 'package:smartassist/pages/Navigation/feedback_nav.dart';
 
 // Import with alias to avoid conflicts
 import 'package:smartassist/utils/navigation_controller.dart' as nav_utils;
+import 'package:url_launcher/url_launcher.dart';
 
 class BottomNavigation extends StatelessWidget {
   BottomNavigation({super.key});
@@ -407,7 +408,7 @@ class BottomNavigation extends StatelessWidget {
 
   double _calculateBottomSheetHeight(double screenHeight, bool isTablet) {
     final calculatedHeight = screenHeight * 0.4;
-    final minHeight = isTablet ? 500.0 : 400.0;
+    final minHeight = isTablet ? 500.0 : 450.0;
     final maxHeight = isTablet ? 650.0 : 500.0;
 
     return calculatedHeight.clamp(minHeight, maxHeight);
@@ -488,6 +489,27 @@ class BottomNavigation extends StatelessWidget {
                 onTap: () =>
                     Get.to(() => FeedbackForm(userId: '', userName: '')),
               ),
+
+              ListTile(
+                leading: const Icon(Icons.video_collection, size: 28),
+                title: Text(
+                  'Tutorial',
+                  style: GoogleFonts.poppins(fontSize: 18),
+                ),
+                onTap: () async {
+                  const youtubeUrl = 'https://www.youtube.com/watch?v=VIDEO_ID';
+
+                  if (await canLaunchUrl(Uri.parse(youtubeUrl))) {
+                    await launchUrl(
+                      Uri.parse(youtubeUrl),
+                      mode: LaunchMode.externalApplication,
+                    );
+                  } else {
+                    Get.snackbar('Error', 'Could not open tutorial');
+                  }
+                },
+              ),
+
               ListTile(
                 leading: const Icon(Icons.logout_outlined, size: 28),
                 title: Text('Logout', style: GoogleFonts.poppins(fontSize: 18)),

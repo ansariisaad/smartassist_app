@@ -1541,7 +1541,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
             ),
           ),
 
-          // Floating Action Button 
+          // Floating Action Button
           Obx(
             () => fabController.isFabExpanded.value
                 ? _buildPopupMenu(context)

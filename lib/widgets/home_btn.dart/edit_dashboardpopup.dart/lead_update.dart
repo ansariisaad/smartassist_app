@@ -282,9 +282,34 @@ class _LeadUpdateState extends State<LeadUpdate> {
         _errors['mobile'] = 'Please enter a valid 10-digit mobile number';
         isValid = false;
       }
+
+      // Optional first name validation (only validate format if provided)
+      if (firstNameController.text.trim().isNotEmpty &&
+          !_isValidFirst(firstNameController.text.trim())) {
+        _errors['firstName'] = 'Invalid first name format';
+        isValid = false;
+      }
+
+      // Optional last name validation (only validate format if provided)
+      if (lastNameController.text.trim().isNotEmpty &&
+          !_isValidSecond(lastNameController.text.trim())) {
+        _errors['lastName'] = 'Invalid last name format';
+        isValid = false;
+      }
     });
 
     return isValid;
+  }
+
+  // Add these validation methods if they don't exist:
+  bool _isValidFirst(String name) {
+    final nameRegExp = RegExp(r'^[A-Z][a-zA-Z0-9]*( [a-zA-Z0-9]+)*$');
+    return nameRegExp.hasMatch(name);
+  }
+
+  bool _isValidSecond(String name) {
+    final nameRegExp = RegExp(r'^[A-Z][a-zA-Z0-9]*( [a-zA-Z0-9]+)*$');
+    return nameRegExp.hasMatch(name);
   }
 
   // Validate page 2 fields (removed required validations)

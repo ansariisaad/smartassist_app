@@ -51,16 +51,70 @@ class Message {
     this.media,
   });
 
+  // factory Message.fromJson(Map<String, dynamic> json) {
+  //   String? mediaUrl;
+
+  //   // Handle media data from server
+  //   if (json['media'] != null && json['media']['base64'] != null) {
+  //     final mediaData = json['media'];
+  //     final base64Data = mediaData['base64'];
+  //     final mimeType = mediaData['mimetype'] ?? '';
+  //     // Convert base64 to data URL for display
+  //     mediaUrl = 'data:$mimeType;base64,$base64Data';
+  //   }
+
+  //   return Message(
+  //     body: json['body'] ?? '',
+  //     fromMe: json['fromMe'] ?? false,
+  //     timestamp:
+  //         json['timestamp'] ?? (DateTime.now().millisecondsSinceEpoch ~/ 1000),
+  //     type: json['type'] ?? 'chat',
+  //     mediaUrl: mediaUrl ?? json['mediaUrl'],
+  //     id: json['id'],
+  //     media: json['media'],
+  //   );
+  // }
+
   factory Message.fromJson(Map<String, dynamic> json) {
     String? mediaUrl;
 
-    // Handle media data from server
+    // Handle media data from server with size optimization
     if (json['media'] != null && json['media']['base64'] != null) {
       final mediaData = json['media'];
-      final base64Data = mediaData['base64'];
+      final base64Data = mediaData['base64'] as String;
       final mimeType = mediaData['mimetype'] ?? '';
-      // Convert base64 to data URL for display
-      mediaUrl = 'data:$mimeType;base64,$base64Data';
+      final messageType = json['type'] ?? 'chat';
+
+      // Only create data URLs for images and only if they're reasonably sized
+      if (messageType == 'image') {
+        // Check if base64Data already contains data URL prefix
+        if (base64Data.startsWith('data:')) {
+          // It's already a complete data URL, use it directly
+          mediaUrl = base64Data;
+        } else {
+          // It's just base64, add the data URL prefix
+          // Estimate file size from base64
+          final estimatedSize = (base64Data.length * 0.75).round();
+          const maxDataUrlSize = 5 * 1024 * 1024; // 5MB limit for data URLs
+
+          if (estimatedSize <= maxDataUrlSize && _isValidBase64(base64Data)) {
+            try {
+              // Clean the base64 string before creating data URL
+              final cleanBase64 = _cleanBase64String(base64Data);
+              mediaUrl = 'data:$mimeType;base64,$cleanBase64';
+            } catch (e) {
+              print('Error creating data URL: $e');
+              mediaUrl = null;
+            }
+          } else {
+            print('Image too large for data URL: ${estimatedSize} bytes');
+            mediaUrl = null;
+          }
+        }
+      } else {
+        // For documents and other media types, don't create data URLs
+        mediaUrl = null;
+      }
     }
 
     return Message(
@@ -73,6 +127,43 @@ class Message {
       id: json['id'],
       media: json['media'],
     );
+  }
+
+  // Helper method to validate base64 string
+  static bool _isValidBase64(String base64String) {
+    try {
+      // Remove data URL prefix if present
+      String cleanBase64 = base64String;
+      if (base64String.contains(',')) {
+        cleanBase64 = base64String.split(',').last;
+      }
+
+      // Check if it's valid base64
+      final RegExp base64RegExp = RegExp(r'^[A-Za-z0-9+/]*={0,2}$');
+      return base64RegExp.hasMatch(cleanBase64.replaceAll(RegExp(r'\s'), ''));
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Helper method to clean base64 string
+  static String _cleanBase64String(String base64String) {
+    String cleaned = base64String;
+
+    // Remove data URL prefix if present
+    if (cleaned.contains(',')) {
+      cleaned = cleaned.split(',').last;
+    }
+
+    // Remove any whitespace characters
+    cleaned = cleaned.replaceAll(RegExp(r'\s'), '');
+
+    // Ensure proper padding
+    while (cleaned.length % 4 != 0) {
+      cleaned += '=';
+    }
+
+    return cleaned;
   }
 }
 
@@ -384,64 +475,6 @@ class _MessageBubbleState extends State<MessageBubble> {
     );
   }
 
-  // Future<void> _openDocument(Map<String, dynamic>? media) async {
-  //   if (media == null || media['base64'] == null) {
-  //     _showSnackBar('Document data not available', Colors.red);
-  //     return;
-  //   }
-
-  //   try {
-  //     // Show loading indicator
-  //     _showLoadingDialog('Opening document...');
-
-  //     // Request storage permission
-  //     if (await _requestStoragePermission()) {
-  //       // Decode base64 data
-  //       final base64Data = media['base64'] as String;
-  //       final bytes = base64Decode(base64Data);
-
-  //       // Get filename and ensure it has an extension
-  //       String filename = media['filename'] ?? 'document';
-  //       if (!filename.contains('.')) {
-  //         final mimetype = media['mimetype'] ?? '';
-  //         final extension = _getExtensionFromMimeType(mimetype);
-  //         filename = '$filename.$extension';
-  //       }
-
-  //       // Get temporary directory
-  //       final directory = await getTemporaryDirectory();
-  //       final filePath = '${directory.path}/$filename';
-
-  //       // Write file to temporary directory
-  //       final file = File(filePath);
-  //       await file.writeAsBytes(bytes);
-
-  //       // Close loading dialog
-  //       Navigator.of(context).pop();
-
-  //       // Open the file
-  //       final result = await OpenFile.open(filePath);
-
-  //       if (result.type != ResultType.done) {
-  //         _showSnackBar(
-  //           'Could not open file: ${result.message}',
-  //           Colors.orange,
-  //         );
-  //       }
-  //     } else {
-  //       Navigator.of(context).pop(); // Close loading dialog
-  //       _showSnackBar(
-  //         'Storage permission required to open documents',
-  //         Colors.red,
-  //       );
-  //     }
-  //   } catch (e) {
-  //     Navigator.of(context).pop(); // Close loading dialog
-  //     print('Error opening document: $e');
-  //     _showSnackBar('Failed to open document', Colors.red);
-  //   }
-  // }
-
   static Future<bool> _processLargeFileInIsolate(
     FileProcessingData data,
   ) async {
@@ -692,23 +725,6 @@ class _MessageBubbleState extends State<MessageBubble> {
     }
   }
 
-  // Helper method to show loading dialog
-  // void _showLoadingDialog(String message) {
-  //   showDialog(
-  //     context: context,
-  //     barrierDismissible: false,
-  //     builder: (context) => AlertDialog(
-  //       content: Row(
-  //         children: [
-  //           CircularProgressIndicator(color: AppColors.colorsBlue),
-  //           const SizedBox(width: 16),
-  //           Text(message),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
-
   // Helper method to show snack bar
   void _showSnackBar(String message, Color color) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -719,83 +735,6 @@ class _MessageBubbleState extends State<MessageBubble> {
       ),
     );
   }
-
-  // Widget _buildDocumentWidget() {
-  //   final media = widget.message.media;
-  //   final filename = media?['filename'] ?? 'Document';
-  //   final mimetype = media?['mimetype'] ?? '';
-
-  //   // Get appropriate icon based on file type
-  //   IconData getDocumentIcon(String mimetype, String filename) {
-  //     final extension = filename.split('.').last.toLowerCase();
-
-  //     switch (extension) {
-  //       case 'pdf':
-  //         return Icons.picture_as_pdf;
-  //       case 'doc':
-  //       case 'docx':
-  //         return Icons.description;
-  //       case 'xls':
-  //       case 'xlsx':
-  //         return Icons.table_chart;
-  //       case 'ppt':
-  //       case 'pptx':
-  //         return Icons.slideshow;
-  //       case 'txt':
-  //         return Icons.text_snippet;
-  //       case 'zip':
-  //       case 'rar':
-  //       case '7z':
-  //         return Icons.archive;
-  //       case 'mp3':
-  //       case 'wav':
-  //         return Icons.audio_file;
-  //       case 'mp4':
-  //       case 'avi':
-  //       case 'mov':
-  //         return Icons.video_file;
-  //       default:
-  //         return Icons.insert_drive_file;
-  //     }
-  //   }
-
-  //   return Container(
-  //     decoration: BoxDecoration(
-  //       color: Colors.grey[100],
-  //       borderRadius: BorderRadius.circular(8),
-  //       border: Border.all(color: Colors.grey[300]!),
-  //     ),
-  //     padding: const EdgeInsets.all(12),
-  //     child: Row(
-  //       mainAxisSize: MainAxisSize.min,
-  //       children: [
-  //         Icon(
-  //           getDocumentIcon(mimetype, filename),
-  //           size: 32,
-  //           color: AppColors.colorsBlue,
-  //         ),
-  //         const SizedBox(width: 12),
-  //         Expanded(
-  //           child: Column(
-  //             crossAxisAlignment: CrossAxisAlignment.start,
-  //             children: [
-  //               Text(
-  //                 filename,
-  //                 style: const TextStyle(
-  //                   fontSize: 14,
-  //                   fontWeight: FontWeight.w500,
-  //                 ),
-  //                 maxLines: 2,
-  //                 overflow: TextOverflow.ellipsis,
-  //               ),
-  //               const SizedBox(height: 4),
-  //             ],
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 }
 
 class WhatsappChat extends StatefulWidget {

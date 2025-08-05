@@ -235,9 +235,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _onTabChanged() {
     if (mounted) {
-      setState(() {
-        // Just trigger rebuild, no need to change any state
-      });
+      setState(() {});
     }
   }
 

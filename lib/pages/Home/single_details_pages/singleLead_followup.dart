@@ -104,7 +104,10 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
   bool _isHiddenTop = true;
   bool _isHiddenMiddle = true;
   // Initialize the controller
-  final FabController fabController = Get.put(FabController());
+  // Create unique controller for this page using tag
+  late FabController fabController;
+  late ScrollController scrollController;
+  // final FabController fabController = Get.put(FabController());
   String leadId = '';
 
   @override
@@ -129,8 +132,53 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
       tasks: overdueTasks,
       overdueEvents: overdueEvents,
     );
+    fabController = Get.put(
+      FabController(),
+      tag: 'followups_details_${widget.leadId}', // Unique tag
+    );
 
+    // Create page-specific scroll controller
+    scrollController = ScrollController();
+    scrollController.addListener(_handleScroll);
     // _callLogsWidget = TimelineEightWid(tasks: upcomingTasks, upcomingEvents: upcomingEvents);
+  }
+
+  @override
+  void dispose() {
+    scrollController.removeListener(_handleScroll);
+    scrollController.dispose();
+
+    // Clean up the controller with the same tag
+    Get.delete<FabController>(tag: 'followups_details_${widget.leadId}');
+
+    super.dispose();
+  }
+
+  void _handleScroll() {
+    if (!scrollController.hasClients) return;
+
+    final currentScrollPosition = scrollController.offset;
+    double lastScrollPosition = 0.0;
+    final scrollDifference = (currentScrollPosition - lastScrollPosition).abs();
+
+    if (scrollDifference < 10) return;
+
+    // Hide FAB when scrolling down, show when scrolling up
+    if (currentScrollPosition > lastScrollPosition &&
+        currentScrollPosition > 50) {
+      if (fabController.isFabVisible.value) {
+        fabController.isFabVisible.value = false;
+        if (fabController.isFabExpanded.value) {
+          fabController.isFabExpanded.value = false;
+        }
+      }
+    } else if (currentScrollPosition < lastScrollPosition) {
+      if (!fabController.isFabVisible.value) {
+        fabController.isFabVisible.value = true;
+      }
+    }
+
+    lastScrollPosition = currentScrollPosition;
   }
 
   // Initialize speech recognition

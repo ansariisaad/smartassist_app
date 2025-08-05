@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
-import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'dart:convert';
 import 'package:table_calendar/table_calendar.dart';
@@ -18,8 +17,8 @@ class SlotCalendar extends StatefulWidget {
   final VoidCallback onTextFieldTap;
   final String vehicleId;
   final TextEditingController? controller;
-  final String? startTimeError; // Add this
-  final String? endTimeError; // Add this
+  final String? startTimeError;
+  final String? endTimeError;
 
   const SlotCalendar({
     super.key,

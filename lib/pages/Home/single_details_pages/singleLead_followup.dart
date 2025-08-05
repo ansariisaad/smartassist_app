@@ -1541,8 +1541,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
             ),
           ),
 
-          // Floating Action Button
-          // Popup Menu overlay (conditionally rendered)
+          // Floating Action Button 
           Obx(
             () => fabController.isFabExpanded.value
                 ? _buildPopupMenu(context)

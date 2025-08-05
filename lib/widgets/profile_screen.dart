@@ -400,7 +400,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         '• Professionalism: ${(professionalism * 100).toStringAsFixed(0)}%\n'
         '• Efficiency: ${(efficiency * 100).toStringAsFixed(0)}%\n'
         // '• Response Time: ${(responseTime * 100).toStringAsFixed(0)}%\n'
-        '🔗 Feedback URL: https://api.smartassistapp.in/api/users/submit-feedback/${userId}\n\n',
+        '🔗 Feedback URL: https://feedbacks.smartassistapp.in/user-feedback/feedback/${userId}\n\n',
         // '• Product Knowledge: ${(productKnowledge * 100).toStringAsFixed(0)}%\n\n'
         // '#SmartAssist #Profile #Performance',
         // subject: '${name ?? "User"}\'s SmartAssist Profile',

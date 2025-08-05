@@ -391,19 +391,17 @@ class _ProfileScreenState extends State<ProfileScreen>
   Future<void> _shareFullBodyScreenshot() async {
     try {
       await Share.share(
-        // 'Check out my SmartAssist profile! 🚀\n\n'
-        '👤 ${name ?? "User"}\n'
-        '📧 ${email ?? ""}\n'
-        // '📍 ${location ?? ""}\n'
-        '⭐ Rating: ${rating.toStringAsFixed(1)}/5\n'
-        '📊 My Performance Evaluation:\n'
-        '• Professionalism: ${(professionalism * 100).toStringAsFixed(0)}%\n'
-        '• Efficiency: ${(efficiency * 100).toStringAsFixed(0)}%\n'
-        // '• Response Time: ${(responseTime * 100).toStringAsFixed(0)}%\n'
-        '🔗 Feedback URL: https://feedbacks.smartassistapp.in/user-feedback/feedback/${userId}\n\n',
-        // '• Product Knowledge: ${(productKnowledge * 100).toStringAsFixed(0)}%\n\n'
-        // '#SmartAssist #Profile #Performance',
-        // subject: '${name ?? "User"}\'s SmartAssist Profile',
+        'Hi this is'
+        ' ${name ?? "User"},\n'
+        'from Jaguar Land Rover, India.\n\n'
+        'Rating: ${rating.toStringAsFixed(1)}/5\n'
+        'My Performance Evaluation:\n'
+        'Professionalism: ${(professionalism * 100).toStringAsFixed(0)}%\n'
+        'Efficiency: ${(efficiency * 100).toStringAsFixed(0)}%\n'
+        'Response Time: ${(responseTime * 100).toStringAsFixed(0)}%\n'
+        'Product Knowledge: ${(productKnowledge * 100).toStringAsFixed(0)}%\n\n'
+        'Feel free to share your feedback here 👇.\n\n'
+        'https://feedbacks.smartassistapp.in/user-feedback/feedback/${userId}\n\n',
       );
     } catch (e) {
       Get.snackbar(

@@ -25,7 +25,10 @@ class LeadsSrv {
       await TokenManager.clearAuthData();
       await Future.delayed(Duration(seconds: 2));
       Get.offAll(() => LoginPage(email: '', onLoginSuccess: () {}));
-      showErrorMessageGetx(message: "You have been logged out because your account was used on another device.");
+      showErrorMessageGetx(
+        message:
+            "You have been logged out because your account was used on another device.",
+      );
       throw Exception('Unauthorized. Redirecting to login.');
     }
   }

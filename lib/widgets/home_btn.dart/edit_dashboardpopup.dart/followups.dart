@@ -522,6 +522,7 @@ class _FollowupsEditState extends State<FollowupsEdit> {
                     ),
                   ],
                 ),
+
                 // if (_hasDeferredError)
                 //   Container(
                 //     margin: const EdgeInsets.only(top: 5),
@@ -573,9 +574,26 @@ class _FollowupsEditState extends State<FollowupsEdit> {
                       alignment: Alignment.centerLeft,
                       child: Container(
                         margin: const EdgeInsets.only(bottom: 5),
-                        child: Text(
-                          'Status :',
-                          style: AppFont.dropDowmLabel(context),
+                        // child: Text(
+                        //   'Status :',
+                        //   style: AppFont.dropDowmLabel(context),
+                        // ),
+                        child: RichText(
+                          text: TextSpan(
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black,
+                            ),
+                            children: [
+                              TextSpan(text: 'Status :'),
+                              // if (widget.isRequired)
+                              const TextSpan(
+                                text: " *",
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -644,7 +662,7 @@ class _FollowupsEditState extends State<FollowupsEdit> {
               EnhancedSpeechTextField(
                 isRequired: true,
                 error: _hasRemarksError,
-                label: 'Remarks:',
+                label: 'Remarks :',
                 controller: descriptionController,
                 hint: 'Type or speak... ',
                 onChanged: (text) {

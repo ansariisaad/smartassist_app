@@ -3,13 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/lead_update.dart';
 import 'package:smartassist/pages/Home/reassign_enq.dart';
@@ -940,6 +938,7 @@ class _AllLeadsState extends State<AllLeads> {
             onFavoriteToggled: () async {
               _updateFilteredResults();
             },
+            fetchTasksData: fetchTasksData,
             onTap: selectedLeads.isNotEmpty
                 ? () => _toggleSelection(leadId)
                 : null,
@@ -983,6 +982,7 @@ class TaskItem extends StatefulWidget {
   final Function(bool) onFavoriteChanged;
   final VoidCallback onToggleFavorite;
   final VoidCallback? onTap;
+  final VoidCallback? fetchTasksData;
 
   const TaskItem({
     super.key,
@@ -1001,6 +1001,7 @@ class TaskItem extends StatefulWidget {
     required this.onToggleFavorite,
     required this.number,
     required this.onTap,
+    this.fetchTasksData,
   });
 
   @override
@@ -1312,8 +1313,17 @@ class _TaskItemState extends State<TaskItem>
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
+          // child: LeadUpdate(
+          //   onFormSubmit: widget.fetchTasksData ?? () {},
+          //   leadId: widget.leadId,
+          //   onEdit: widget.onFavoriteToggled,
+          // ),
           child: LeadUpdate(
-            onFormSubmit: () {},
+            onFormSubmit: () async {
+              if (widget.fetchTasksData != null) {
+                widget.fetchTasksData!();
+              }
+            },
             leadId: widget.leadId,
             onEdit: widget.onFavoriteToggled,
           ),

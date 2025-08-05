@@ -81,7 +81,7 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
-    _initSpeechEngine();
+    // _initSpeechEngine();
     _forceAnimationSync();
   }
 
@@ -310,46 +310,112 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
   }
 
   // if not working in the samsung remove this one and add the bottom one so it will work fine in samsung
-  Future<bool> _checkMicrophonePermission() async {
-    if (_permissionChecked) {
-      // Check current status without requesting again
-      PermissionStatus currentStatus = await Permission.microphone.status;
-      return currentStatus.isGranted;
-    }
+  // Future<bool> _checkMicrophonePermission() async {
+  //   if (_permissionChecked) {
+  //     // Check current status without requesting again
+  //     PermissionStatus currentStatus = await Permission.microphone.status;
+  //     return currentStatus.isGranted;
+  //   }
 
+  //   try {
+  //     if (Platform.isIOS) {
+  //       Map<Permission, PermissionStatus> statuses = await [
+  //         Permission.microphone,
+  //         Permission.speech,
+  //       ].request();
+
+  //       bool micGranted = statuses[Permission.microphone]?.isGranted ?? false;
+  //       bool speechGranted = statuses[Permission.speech]?.isGranted ?? false;
+
+  //       setState(() => _permissionChecked = true);
+
+  //       if (!micGranted || !speechGranted) {
+  //         // _showPermissionDialog();
+  //         print('permission not granted');
+  //         return false;
+  //       }
+  //       return true;
+  //     } else {
+  //       PermissionStatus micStatus = await Permission.microphone.request();
+  //       setState(() => _permissionChecked = true);
+
+  //       if (!micStatus.isGranted) {
+  //         // _showPermissionDialog();
+  //       }
+  //       return micStatus.isGranted;
+  //     }
+  //   } catch (e) {
+  //     debugPrint('Permission check error: $e');
+  //     setState(() => _permissionChecked = true);
+  //     return false;
+  //   }
+  // }
+
+  Future<bool> _checkMicrophonePermission() async {
     try {
       if (Platform.isIOS) {
-        Map<Permission, PermissionStatus> statuses = await [
-          Permission.microphone,
-          Permission.speech,
-        ].request();
+        bool speechPermission = await _speech!.hasPermission;
+        PermissionStatus micStatus = await Permission.microphone.status;
 
-        bool micGranted = statuses[Permission.microphone]?.isGranted ?? false;
-        bool speechGranted = statuses[Permission.speech]?.isGranted ?? false;
+        if (speechPermission) {
+          return true;
+        }
 
-        setState(() => _permissionChecked = true);
-
-        if (!micGranted || !speechGranted) {
-          // _showPermissionDialog();
-          print('permission not granted');
+        if (!speechPermission && !micStatus.isGranted) {
+          _showPermissionDialog();
           return false;
         }
-        return true;
+
+        return speechPermission;
       } else {
-        PermissionStatus micStatus = await Permission.microphone.request();
-        setState(() => _permissionChecked = true);
+        PermissionStatus micStatus = await Permission.microphone.status;
 
-        if (!micStatus.isGranted) {
-          // _showPermissionDialog();
-
+        if (micStatus.isGranted) {
+          return true;
         }
-        return micStatus.isGranted;
+
+        if (micStatus.isPermanentlyDenied) {
+          _showPermissionDialog();
+          return false;
+        }
+
+        PermissionStatus requestResult = await Permission.microphone.request();
+        if (!requestResult.isGranted) {
+          _showPermissionDialog();
+        }
+        return requestResult.isGranted;
       }
     } catch (e) {
-      debugPrint('Permission check error: $e');
-      setState(() => _permissionChecked = true);
       return false;
     }
+  }
+
+  void _showPermissionDialog() {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Permissions Required'),
+        content: Text(
+          Platform.isIOS
+              ? 'This app needs microphone and speech recognition permissions to work properly. Please enable them in Settings > Privacy & Security > Microphone and Speech Recognition.'
+              : 'This app needs microphone permission to work properly. Please enable it in Settings.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              openAppSettings();
+            },
+            child: const Text('Open Settings'),
+          ),
+        ],
+      ),
+    );
   }
 
   // Future<bool> _checkMicrophonePermission() async {
@@ -467,12 +533,12 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
     });
 
     // For Samsung bug: show help
-    if (_lastError != null &&
-        (_lastError!.contains('Speech recognition not available') ||
-            _lastError!.contains('ERROR_CLIENT') ||
-            _lastError!.contains('not available on device'))) {
-      _showSamsungSpeechErrorDialog();
-    }
+    // if (_lastError != null &&
+    //     (_lastError!.contains('Speech recognition not available') ||
+    //         _lastError!.contains('ERROR_CLIENT') ||
+    //         _lastError!.contains('not available on device'))) {
+    //   _showSamsungSpeechErrorDialog();
+    // }
   }
 
   void _showSamsungSpeechErrorDialog() {
@@ -708,10 +774,11 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
       return 'A network error occurred.';
     } else if (error.contains('audio') || error.contains('e_3')) {
       return 'Microphone access error.';
-    } else if (error.contains('Speech recognition not available') ||
-        error.contains('ERROR_CLIENT')) {
-      return 'Speech-to-text is not available on this device. Please check your keyboard or voice input settings.';
     }
+    // else if (error.contains('Speech recognition not available') ||
+    //     error.contains('ERROR_CLIENT')) {
+    //   return 'Speech-to-text is not available on this device. Please check your keyboard or voice input settings.';
+    // }
     return 'No speech was detected.';
   }
 
@@ -805,7 +872,7 @@ class _EnhancedSpeechTextFieldState extends State<EnhancedSpeechTextField>
             color: Colors.black,
           ),
           children: [
-            TextSpan(text: widget.label),
+            TextSpan(text: '${widget.label}'),
             if (widget.isRequired)
               const TextSpan(
                 text: " *",

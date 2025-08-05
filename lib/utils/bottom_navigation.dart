@@ -497,7 +497,7 @@ class BottomNavigation extends StatelessWidget {
                   style: GoogleFonts.poppins(fontSize: 18),
                 ),
                 onTap: () async {
-                  const youtubeUrl = 'https://www.youtube.com/watch?v=VIDEO_ID';
+                  const youtubeUrl = 'https://www.youtube.com/@SmartAssist-p7v';
 
                   if (await canLaunchUrl(Uri.parse(youtubeUrl))) {
                     await launchUrl(

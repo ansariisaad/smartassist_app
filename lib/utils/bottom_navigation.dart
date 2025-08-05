@@ -406,15 +406,124 @@ class BottomNavigation extends StatelessWidget {
     );
   }
 
-  double _calculateBottomSheetHeight(double screenHeight, bool isTablet) {
+  // double _calculateBottomSheetHeight(double screenHeight, bool isTablet) {
+  //   final calculatedHeight = screenHeight * 0.4;
+  //   final minHeight = isTablet ? 500.0 : 400.0;
+  //   final maxHeight = isTablet ? 650.0 : 500.0;
+
+  //   return calculatedHeight.clamp(minHeight, maxHeight);
+  // }
+
+  double _calculateBottomSheetHeight(
+    double screenHeight,
+    bool isTablet,
+    bool isTutorialExpanded,
+  ) {
     final calculatedHeight = screenHeight * 0.4;
-    final minHeight = isTablet ? 500.0 : 450.0;
-    final maxHeight = isTablet ? 650.0 : 500.0;
+    final minHeight = isTablet ? 500.0 : (isTutorialExpanded ? 600.0 : 400.0);
+    final maxHeight = isTablet ? 650.0 : (isTutorialExpanded ? 700.0 : 500.0);
 
     return calculatedHeight.clamp(minHeight, maxHeight);
   }
 
   // ✅ Show Bottom Sheet for More options
+  // void _showMoreBottomSheet(BuildContext context) async {
+  //   String? teamRole = await SharedPreferences.getInstance().then(
+  //     (prefs) => prefs.getString('user_role'),
+  //   );
+
+  //   try {
+  //     final screenSize = MediaQuery.of(context).size;
+  //     final screenHeight = screenSize.height;
+  //     final isTablet = screenSize.width > 600;
+  //     // Calculate responsive height
+  //     final bottomSheetHeight = _calculateBottomSheetHeight(
+  //       screenHeight,
+  //       isTablet,
+  //     );
+  //     Get.bottomSheet(
+  //       Container(
+  //         // padding: const EdgeInsets.all(16),
+  //         padding: EdgeInsets.all(isTablet ? 24 : 16),
+  //         // height: teamRole == "Owner" ? 320 : 300,
+  //         // height: 310,
+  //         height: bottomSheetHeight,
+  //         decoration: const BoxDecoration(
+  //           color: Colors.white,
+  //           borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+  //         ),
+  //         child: Column(
+  //           children: [
+  //             ListTile(
+  //               leading: const Icon(Icons.person_search, size: 28),
+  //               title: Text(
+  //                 'My Enquiries',
+  //                 style: GoogleFonts.poppins(fontSize: 18),
+  //               ),
+  //               onTap: () => Get.to(() => const AllLeads()),
+  //             ),
+  //             ListTile(
+  //               leading: const Icon(Icons.call_outlined, size: 28),
+  //               title: Text(
+  //                 'My Call Analysis',
+  //                 style: GoogleFonts.poppins(fontSize: 18),
+  //               ),
+  //               onTap: () => Get.to(
+  //                 () =>
+  //                     const //CallLogs()
+  //                     CallAnalytics(userId: '', userName: ''),
+  //               ),
+  //             ),
+
+  //             if (teamRole == "SM")
+  //               ListTile(
+  //                 leading: const Icon(Icons.group, size: 28),
+  //                 title: Text(
+  //                   'Reassign Enquiries ',
+  //                   style: GoogleFonts.poppins(fontSize: 18),
+  //                 ),
+  //                 onTap: () => Get.to(() => const AllEnq()),
+  //               ),
+  //             ListTile(
+  //               leading: const Icon(Icons.star_border_rounded, size: 28),
+  //               title: Text(
+  //                 'Favourites',
+  //                 style: GoogleFonts.poppins(fontSize: 18),
+  //               ),
+  //               onTap: () => Get.to(() => const FavoritePage(leadId: '')),
+  //             ),
+  //             ListTile(
+  //               leading: const Icon(Icons.receipt_outlined, size: 28),
+  //               title: Text(
+  //                 'Raise a ticket',
+  //                 style: GoogleFonts.poppins(fontSize: 18),
+  //               ),
+  //               onTap: () =>
+  //                   Get.to(() => FeedbackForm(userId: '', userName: '')),
+  //             ),
+
+  //             _buildTutorialSection(),
+
+  //             ListTile(
+  //               leading: const Icon(Icons.logout_outlined, size: 28),
+  //               title: Text('Logout', style: GoogleFonts.poppins(fontSize: 18)),
+  //               onTap: () => Get.to(() => const LogoutPage()),
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //     );
+  //   } catch (e) {
+  //     debugPrint('Error showing bottom sheet: $e');
+  //     // Show a simple snackbar as fallback
+  //     Get.snackbar(
+  //       'Navigation',
+  //       'More options temporarily unavailable',
+  //       snackPosition: SnackPosition.BOTTOM,
+  //     );
+  //   }
+  // }
+
   void _showMoreBottomSheet(BuildContext context) async {
     String? teamRole = await SharedPreferences.getInstance().then(
       (prefs) => prefs.getString('user_role'),
@@ -424,109 +533,235 @@ class BottomNavigation extends StatelessWidget {
       final screenSize = MediaQuery.of(context).size;
       final screenHeight = screenSize.height;
       final isTablet = screenSize.width > 600;
-      // Calculate responsive height
+
+      // Calculate responsive height with tutorial expansion condition
       final bottomSheetHeight = _calculateBottomSheetHeight(
         screenHeight,
         isTablet,
+        _isTutorialExpanded,
       );
+
       Get.bottomSheet(
         Container(
-          // padding: const EdgeInsets.all(16),
           padding: EdgeInsets.all(isTablet ? 24 : 16),
-          // height: teamRole == "Owner" ? 320 : 300,
-          // height: 310,
           height: bottomSheetHeight,
           decoration: const BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
           ),
-          child: Column(
-            children: [
-              ListTile(
-                leading: const Icon(Icons.person_search, size: 28),
-                title: Text(
-                  'My Enquiries',
-                  style: GoogleFonts.poppins(fontSize: 18),
-                ),
-                onTap: () => Get.to(() => const AllLeads()),
-              ),
-              ListTile(
-                leading: const Icon(Icons.call_outlined, size: 28),
-                title: Text(
-                  'My Call Analysis',
-                  style: GoogleFonts.poppins(fontSize: 18),
-                ),
-                onTap: () => Get.to(
-                  () =>
-                      const //CallLogs()
-                      CallAnalytics(userId: '', userName: ''),
-                ),
-              ),
-
-              if (teamRole == "SM")
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
                 ListTile(
-                  leading: const Icon(Icons.group, size: 28),
+                  leading: const Icon(Icons.person_search, size: 28),
                   title: Text(
-                    'Reassign Enquiries ',
+                    'My Enquiries',
                     style: GoogleFonts.poppins(fontSize: 18),
                   ),
-                  onTap: () => Get.to(() => const AllEnq()),
+                  onTap: () => Get.to(() => const AllLeads()),
                 ),
-              ListTile(
-                leading: const Icon(Icons.star_border_rounded, size: 28),
-                title: Text(
-                  'Favourites',
-                  style: GoogleFonts.poppins(fontSize: 18),
+                ListTile(
+                  leading: const Icon(Icons.call_outlined, size: 28),
+                  title: Text(
+                    'My Call Analysis',
+                    style: GoogleFonts.poppins(fontSize: 18),
+                  ),
+                  onTap: () => Get.to(
+                    () => const CallAnalytics(userId: '', userName: ''),
+                  ),
                 ),
-                onTap: () => Get.to(() => const FavoritePage(leadId: '')),
-              ),
-              ListTile(
-                leading: const Icon(Icons.receipt_outlined, size: 28),
-                title: Text(
-                  'Raise a ticket',
-                  style: GoogleFonts.poppins(fontSize: 18),
+                if (teamRole == "SM")
+                  ListTile(
+                    leading: const Icon(Icons.group, size: 28),
+                    title: Text(
+                      'Reassign Enquiries ',
+                      style: GoogleFonts.poppins(fontSize: 18),
+                    ),
+                    onTap: () => Get.to(() => const AllEnq()),
+                  ),
+                ListTile(
+                  leading: const Icon(Icons.star_border_rounded, size: 28),
+                  title: Text(
+                    'Favourites',
+                    style: GoogleFonts.poppins(fontSize: 18),
+                  ),
+                  onTap: () => Get.to(() => const FavoritePage(leadId: '')),
                 ),
-                onTap: () =>
-                    Get.to(() => FeedbackForm(userId: '', userName: '')),
-              ),
+                ListTile(
+                  leading: const Icon(Icons.receipt_outlined, size: 28),
+                  title: Text(
+                    'Raise a ticket',
+                    style: GoogleFonts.poppins(fontSize: 18),
+                  ),
+                  onTap: () =>
+                      Get.to(() => FeedbackForm(userId: '', userName: '')),
+                ),
 
-              ListTile(
-                leading: const Icon(Icons.video_collection, size: 28),
-                title: Text(
-                  'Tutorial',
-                  style: GoogleFonts.poppins(fontSize: 18),
+                // Tutorial section with expansion condition
+                _buildTutorialSection(),
+
+                ListTile(
+                  leading: const Icon(Icons.logout_outlined, size: 28),
+                  title: Text(
+                    'Logout',
+                    style: GoogleFonts.poppins(fontSize: 18),
+                  ),
+                  onTap: () => Get.to(() => const LogoutPage()),
                 ),
-                onTap: () async {
-                  const youtubeUrl = 'https://www.youtube.com/watch?v=VIDEO_ID';
-
-                  if (await canLaunchUrl(Uri.parse(youtubeUrl))) {
-                    await launchUrl(
-                      Uri.parse(youtubeUrl),
-                      mode: LaunchMode.externalApplication,
-                    );
-                  } else {
-                    Get.snackbar('Error', 'Could not open tutorial');
-                  }
-                },
-              ),
-
-              ListTile(
-                leading: const Icon(Icons.logout_outlined, size: 28),
-                title: Text('Logout', style: GoogleFonts.poppins(fontSize: 18)),
-                onTap: () => Get.to(() => const LogoutPage()),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       );
     } catch (e) {
       debugPrint('Error showing bottom sheet: $e');
-      // Show a simple snackbar as fallback
       Get.snackbar(
         'Navigation',
         'More options temporarily unavailable',
         snackPosition: SnackPosition.BOTTOM,
       );
+    }
+  }
+
+  bool _isTutorialExpanded = false;
+
+  Widget _buildTutorialSection() {
+    return Column(
+      children: [
+        ListTile(
+          leading: const Icon(Icons.video_collection, size: 28),
+          title: Text('Tutorial', style: GoogleFonts.poppins(fontSize: 18)),
+          trailing: AnimatedRotation(
+            turns: _isTutorialExpanded ? 0.5 : 0.0,
+            duration: const Duration(milliseconds: 200),
+            child: const Icon(Icons.keyboard_arrow_down),
+          ),
+          onTap: () {
+            _isTutorialExpanded = !_isTutorialExpanded;
+            // Force rebuild of the bottom sheet
+            Get.back();
+            _showMoreBottomSheet(Get.context!);
+          },
+        ),
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          height: _isTutorialExpanded ? null : 0,
+          child: _isTutorialExpanded
+              ? Container(
+                  padding: const EdgeInsets.only(left: 56), // Align with title
+                  child: Column(
+                    children: [
+                      _buildNestedListTile(
+                        icon: Icons.play_circle_outline,
+                        title: 'Getting Started',
+                        onTap: () async {
+                          const url =
+                              'https://www.youtube.com/watch?v=example1';
+                          await _launchURL(url);
+                        },
+                      ),
+                      _buildNestedListTile(
+                        icon: Icons.dashboard_outlined,
+                        title: 'Dashboard Overview',
+                        onTap: () async {
+                          const url =
+                              'https://www.youtube.com/watch?v=example2';
+                          await _launchURL(url);
+                        },
+                      ),
+                      _buildNestedListTile(
+                        icon: Icons.phone_outlined,
+                        title: 'Call Management',
+                        onTap: () async {
+                          const url =
+                              'https://www.youtube.com/watch?v=example3';
+                          await _launchURL(url);
+                        },
+                      ),
+                      _buildNestedListTile(
+                        icon: Icons.calendar_today_outlined,
+                        title: 'Calendar Features',
+                        onTap: () async {
+                          const url =
+                              'https://www.youtube.com/watch?v=example4';
+                          await _launchURL(url);
+                        },
+                      ),
+                      _buildNestedListTile(
+                        icon: Icons.help_outline,
+                        title: 'FAQ & Tips',
+                        onTap: () async {
+                          const url =
+                              'https://www.youtube.com/watch?v=example5';
+                          await _launchURL(url);
+                        },
+                      ),
+                      _buildNestedListTile(
+                        icon: Icons.phone_outlined,
+                        title: 'Call Management',
+                        onTap: () async {
+                          const url =
+                              'https://www.youtube.com/watch?v=example3';
+                          await _launchURL(url);
+                        },
+                      ),
+                      _buildNestedListTile(
+                        icon: Icons.calendar_today_outlined,
+                        title: 'Calendar Features',
+                        onTap: () async {
+                          const url =
+                              'https://www.youtube.com/watch?v=example4';
+                          await _launchURL(url);
+                        },
+                      ),
+                      _buildNestedListTile(
+                        icon: Icons.help_outline,
+                        title: 'FAQ & Tips',
+                        onTap: () async {
+                          const url =
+                              'https://www.youtube.com/watch?v=example5';
+                          await _launchURL(url);
+                        },
+                      ),
+                    ],
+                  ),
+                )
+              : const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNestedListTile({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      dense: true,
+      leading: Icon(
+        icon,
+        size: 20,
+        color: AppColors.colorsBlue.withOpacity(0.7),
+      ),
+      title: Text(
+        title,
+        style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w400),
+      ),
+      onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
+    );
+  }
+
+  Future<void> _launchURL(String url) async {
+    try {
+      if (await canLaunchUrl(Uri.parse(url))) {
+        await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      } else {
+        Get.snackbar('Error', 'Could not open tutorial');
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to open tutorial: $e');
     }
   }
 }

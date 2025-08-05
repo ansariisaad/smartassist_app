@@ -24,7 +24,7 @@ void main() async {
     await Firebase.initializeApp();
     await Environment.init();
     Environment.validateConfig();
-    await GetStorage.init();
+    // await GetStorage.init();
     // Request location permissions
     await _requestLocationPermissions();
     // Request necessary permissions

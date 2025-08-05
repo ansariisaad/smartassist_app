@@ -1933,7 +1933,7 @@ class _CalendarSmState extends State<CalendarSm> {
             builder: (context) => FollowupsDetails(
               leadId: leadId,
               isFromFreshlead: false,
-              isFromManager: item['start_time'] == null,
+              isFromManager: true,
               isFromTestdriveOverview: false,
               refreshDashboard: () async {},
             ),

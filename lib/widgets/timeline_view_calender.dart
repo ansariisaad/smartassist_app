@@ -985,7 +985,7 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
             builder: (context) => FollowupsDetails(
               leadId: leadId,
               isFromFreshlead: false,
-              isFromManager: item['start_time'] == null,
+              isFromManager: false,
               isFromTestdriveOverview: false,
               refreshDashboard: () async {},
             ),

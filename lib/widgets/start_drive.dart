@@ -19,8 +19,10 @@ import 'package:smartassist/utils/bottom_navigation.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/feedback.dart';
 import 'package:smartassist/widgets/testdrive_summary.dart';
+// import 'package:smartassist/widgets/testdrive_summary.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:geolocator/geolocator.dart';
+import 'package:get/get.dart';
 
 // Improved distance calculation with better accuracy
 class DistanceCalculator {
@@ -1905,14 +1907,19 @@ class _StartDriveMapState extends State<StartDriveMap>
                                         await _submitEndDrive();
                                       } catch (e) {
                                         print("Error ending drive: $e");
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              'Error ending drive: $e',
-                                            ),
-                                          ),
+                                        //   ScaffoldMessenger.of(
+                                        //     context,
+                                        //   ).showSnackBar(
+                                        //     SnackBar(
+                                        //       content: Text(
+                                        //         'Error ending drive: $e',
+                                        //       ),
+                                        //     ),
+                                        //   );
+                                        // }
+                                        Get.snackbar(
+                                          'Error',
+                                          'Error ending drive: $e',
                                         );
                                       }
                                     },
@@ -2375,12 +2382,13 @@ class _StartDriveMapState extends State<StartDriveMap>
     } catch (e) {
       print("Error in end drive process: $e");
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error ending test drive: $e')));
-        setState(() {
-          isLoading = false;
-        });
+        // ScaffoldMessenger.of(
+        //   context,
+        // ).showSnackBar(SnackBar(content: Text('Error ending test drive: $e')));
+        // setState(() {
+        //   isLoading = false;
+        // });
+        Get.snackbar('Error', 'Error ending drive end: $e');
       }
       _cleanupResources();
     }
@@ -2442,12 +2450,13 @@ class _StartDriveMapState extends State<StartDriveMap>
     } catch (e) {
       print("Error in end drive process: $e");
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error ending test drive: $e')));
-        setState(() {
-          isLoading = false;
-        });
+        // ScaffoldMessenger.of(
+        //   context,
+        // ).showSnackBar(SnackBar(content: Text('Error ending test drive: $e')));
+        // setState(() {
+        //   isLoading = false;
+        // });
+        Get.snackbar('Error', 'Error ending drive: $e');
       }
       _cleanupResources();
     }

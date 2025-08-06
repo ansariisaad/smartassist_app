@@ -5,16 +5,14 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/services.dart';
 import 'package:smartassist/pages/navbar_page/call_analytics.dart';
+import 'package:smartassist/pages/navbar_page/customer_support.dart';
 import 'package:smartassist/pages/navbar_page/favorite.dart';
 import 'package:smartassist/pages/navbar_page/leads_all.dart';
 import 'package:smartassist/pages/navbar_page/logout_page.dart';
 import 'package:smartassist/pages/Home/reassign_enq.dart';
 import 'package:smartassist/pages/Navigation/feedback_nav.dart';
-
-// Import with alias to avoid conflicts
 import 'package:smartassist/utils/navigation_controller.dart' as nav_utils;
 import 'package:smartassist/widgets/bottom_tutorial.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class BottomNavigation extends StatelessWidget {
   BottomNavigation({super.key});
@@ -497,11 +495,16 @@ class BottomNavigation extends StatelessWidget {
                   'Tutorial',
                   style: GoogleFonts.poppins(fontSize: 18),
                 ),
-                onTap: () =>
-                    Get.to(() => MenuListWidget()),
+                onTap: () => Get.to(() => MenuListWidget()),
               ),
-              
-
+              ListTile(
+                leading: const Icon(Icons.video_collection, size: 28),
+                title: Text(
+                  'Support',
+                  style: GoogleFonts.poppins(fontSize: 18),
+                ),
+                onTap: () => Get.to(() => CustomerSupportPage()),
+              ),
               ListTile(
                 leading: const Icon(Icons.logout_outlined, size: 28),
                 title: Text('Logout', style: GoogleFonts.poppins(fontSize: 18)),

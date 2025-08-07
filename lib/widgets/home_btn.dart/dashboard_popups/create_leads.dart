@@ -843,6 +843,7 @@ class _CreateLeadsState extends State<CreateLeads> {
                           ),
                         ],
                       ),
+
                       _buildNumberWidget(
                         isRequired: true,
                         label: 'Mobile No',
@@ -859,19 +860,19 @@ class _CreateLeadsState extends State<CreateLeads> {
                         },
                       ),
 
-                      _buildSecondNumberWidget(
-                        isRequired: false,
-                        label: 'Mobile No',
-                        controller: mobileSecondController,
-                        // errorText: _errors['mobile'],
-                        hintText: '+91',
+                      _buildTextField(
+                        isRequired: true,
+                        label: 'Email',
+                        controller: emailController,
+                        hintText: 'Email',
+                        errorText: _errors['email'],
                         onChanged: (value) {
-                          if (_errors.containsKey('mobile')) {
+                          if (_errors.containsKey('email')) {
                             setState(() {
-                              _errors.remove('mobile');
+                              _errors.remove('email');
                             });
                           }
-                          print("mobile: $value");
+                          print("email : $value");
                         },
                       ),
 
@@ -911,21 +912,6 @@ class _CreateLeadsState extends State<CreateLeads> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildTextField(
-                        isRequired: true,
-                        label: 'Email',
-                        controller: emailController,
-                        hintText: 'Email',
-                        errorText: _errors['email'],
-                        onChanged: (value) {
-                          if (_errors.containsKey('email')) {
-                            setState(() {
-                              _errors.remove('email');
-                            });
-                          }
-                          print("email : $value");
-                        },
-                      ),
                       _buildAmountRange(isRequired: true),
                       VehiclesearchTextfield(
                         errorText: _errors['vehicleName'],
@@ -2110,7 +2096,7 @@ class _CreateLeadsState extends State<CreateLeads> {
         'lname': lastNameController.text,
         'email': emailController.text,
         'mobile': mobileNumber,
-        'mobile_second': mobileSecondController,
+        // 'mobile_second': mobileSecondController,
         'purchase_type': _selectedPurchaseType,
         'brand': selectedBrand ?? '',
         'vehicle_id': vehicleId ?? '',

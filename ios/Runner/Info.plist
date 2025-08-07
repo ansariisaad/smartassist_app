@@ -3,11 +3,6 @@
 <plist version="1.0">
 <dict>
 
-	<key>LSApplicationQueriesSchemes</key>
-	<array>
-	<string>tel</string>
-	<string>mailto</string>
-	</array>
 	<!-- ✅ FIXED: Combined all background modes into ONE key -->
 	<key>UIBackgroundModes</key>
 	<array>

@@ -407,7 +407,7 @@ class BottomNavigation extends StatelessWidget {
 
   double _calculateBottomSheetHeight(double screenHeight, bool isTablet) {
     final calculatedHeight = screenHeight * 0.4;
-    final minHeight = isTablet ? 500.0 : 450.0;
+    final minHeight = isTablet ? 500.0 : 460.0;
     final maxHeight = isTablet ? 650.0 : 500.0;
 
     return calculatedHeight.clamp(minHeight, maxHeight);
@@ -498,9 +498,9 @@ class BottomNavigation extends StatelessWidget {
                 onTap: () => Get.to(() => MenuListWidget()),
               ),
               ListTile(
-                leading: const Icon(Icons.video_collection, size: 28),
+                leading: const Icon(Icons.message, size: 28),
                 title: Text(
-                  'Support',
+                  'Help & Support',
                   style: GoogleFonts.poppins(fontSize: 18),
                 ),
                 onTap: () => Get.to(() => CustomerSupportPage()),

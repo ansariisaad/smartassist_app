@@ -97,6 +97,7 @@ class _CreateLeadsState extends State<CreateLeads> {
   TextEditingController firstNameController = TextEditingController();
   TextEditingController lastNameController = TextEditingController();
   TextEditingController mobileController = TextEditingController();
+  TextEditingController mobileSecondController = TextEditingController();
   TextEditingController locationController = TextEditingController();
   TextEditingController modelInterestController = TextEditingController();
   final TextEditingController _searchController = TextEditingController();
@@ -857,19 +858,20 @@ class _CreateLeadsState extends State<CreateLeads> {
                           print("mobile: $value");
                         },
                       ),
-                      _buildTextField(
-                        isRequired: true,
-                        label: 'Email',
-                        controller: emailController,
-                        hintText: 'Email',
-                        errorText: _errors['email'],
+
+                      _buildSecondNumberWidget(
+                        isRequired: false,
+                        label: 'Mobile No',
+                        controller: mobileSecondController,
+                        // errorText: _errors['mobile'],
+                        hintText: '+91',
                         onChanged: (value) {
-                          if (_errors.containsKey('email')) {
+                          if (_errors.containsKey('mobile')) {
                             setState(() {
-                              _errors.remove('email');
+                              _errors.remove('mobile');
                             });
                           }
-                          print("email : $value");
+                          print("mobile: $value");
                         },
                       ),
 
@@ -909,6 +911,21 @@ class _CreateLeadsState extends State<CreateLeads> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      _buildTextField(
+                        isRequired: true,
+                        label: 'Email',
+                        controller: emailController,
+                        hintText: 'Email',
+                        errorText: _errors['email'],
+                        onChanged: (value) {
+                          if (_errors.containsKey('email')) {
+                            setState(() {
+                              _errors.remove('email');
+                            });
+                          }
+                          print("email : $value");
+                        },
+                      ),
                       _buildAmountRange(isRequired: true),
                       VehiclesearchTextfield(
                         errorText: _errors['vehicleName'],
@@ -1273,6 +1290,194 @@ class _CreateLeadsState extends State<CreateLeads> {
 
   // All other existing widget methods remain the same...
   Widget _buildNumberWidget({
+    required TextEditingController controller,
+    required String hintText,
+    required String label,
+    required ValueChanged<String> onChanged,
+    bool isRequired = false,
+    String? errorText,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 5),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 5),
+          child: RichText(
+            text: TextSpan(
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+              children: [
+                TextSpan(text: label),
+                if (isRequired)
+                  const TextSpan(
+                    text: " *",
+                    style: TextStyle(color: Colors.red),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 5),
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(5),
+            color: const Color.fromARGB(255, 248, 247, 247),
+            border: errorText != null
+                ? Border.all(color: Colors.red, width: 1.0)
+                : null,
+          ),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: TextField(
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(10),
+              ],
+              controller: controller,
+              style: AppFont.dropDowmLabel(context),
+              decoration: InputDecoration(
+                hintText: hintText,
+                hintStyle: GoogleFonts.poppins(
+                  color: Colors.grey,
+                  fontSize: 12,
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 10,
+                ),
+                border: InputBorder.none,
+              ),
+
+              onChanged: (value) {
+                onChanged(value);
+
+                print("Current mobile input: $value, length: ${value.length}");
+
+                if (value.length != 10) {
+                  setState(() {
+                    _existingLeadData = null;
+                    _isLoading = false;
+                  });
+                }
+
+                if (value.length == 10) {
+                  print("Checking for existing lead with number: $value");
+                  _checkExistingLead(value);
+                }
+              },
+            ),
+          ),
+        ),
+
+        // Show this only if an existing lead is found
+        if (_existingLeadData != null)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.only(top: 4),
+                decoration: BoxDecoration(
+                  color: Colors.red[100],
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                child: Text(
+                  'Enquiry already exists',
+                  style: GoogleFonts.poppins(
+                    color: Colors.red,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.only(top: 4),
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              '${_existingLeadData!['name']}',
+                              style: GoogleFonts.poppins(
+                                color: Colors.black87,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Container(
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                              ),
+                              height: 15,
+                              width: 0.1,
+                              decoration: const BoxDecoration(
+                                border: Border(
+                                  right: BorderSide(color: AppColors.fontColor),
+                                ),
+                              ),
+                            ),
+                            Text(
+                              '${_existingLeadData!['PMI']}',
+                              style: AppFont.smallText(context),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Text(
+                              '${_existingLeadData!['mobile']}',
+                              style: GoogleFonts.poppins(
+                                color: Colors.black54,
+                                fontSize: 14,
+                              ),
+                            ),
+                            Container(
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                              ),
+                              height: 15,
+                              width: 0.1,
+                              decoration: const BoxDecoration(
+                                border: Border(
+                                  right: BorderSide(color: AppColors.fontColor),
+                                ),
+                              ),
+                            ),
+                            Text(
+                              'by ${_existingLeadData!['lead_owner']}',
+                              style: AppFont.smallText(context),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+      ],
+    );
+  }
+
+  Widget _buildSecondNumberWidget({
     required TextEditingController controller,
     required String hintText,
     required String label,
@@ -1905,6 +2110,7 @@ class _CreateLeadsState extends State<CreateLeads> {
         'lname': lastNameController.text,
         'email': emailController.text,
         'mobile': mobileNumber,
+        'mobile_second': mobileSecondController,
         'purchase_type': _selectedPurchaseType,
         'brand': selectedBrand ?? '',
         'vehicle_id': vehicleId ?? '',
@@ -1921,6 +2127,7 @@ class _CreateLeadsState extends State<CreateLeads> {
         'location': _locationController.text.trim().isEmpty
             ? null
             : _locationController.text.trim(),
+
         'exterior_color': selectedColorName,
         'Campaign': selectedCampaignId,
         'halo': _selectedHaloOption.isNotEmpty ? _selectedHaloOption : null,

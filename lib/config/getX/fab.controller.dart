@@ -290,7 +290,7 @@ class FabController extends GetxController with GetTickerProviderStateMixin {
         if (expanded) {
           _rotationController.forward();
           _menuController.forward();
-          _startAutoCloseTimer();
+          // _startAutoCloseTimer();
         } else {
           _rotationController.reverse();
           _menuController.reverse();

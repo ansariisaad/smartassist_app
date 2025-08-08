@@ -585,7 +585,7 @@ class _AllFollowupState extends State<AllFollowup> {
 
             return GestureDetector(
               child: AllFollowupItem(
-                key: ValueKey(item['task_id']),
+                // key: ValueKey(item['task_id']),
                 name: item['name'],
                 date: item['due_date'],
                 mobile: item['mobile'],

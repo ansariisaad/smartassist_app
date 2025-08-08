@@ -577,7 +577,8 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
             ? _locationController.text.trim()
             : '',
         if (_locationController.text.trim().isNotEmpty && _isLocationValid)
-          "places": selectedPlaceDetails!.toJson(),
+        
+        "places": selectedPlaceDetails!.toJson(),
       };
       final success = await LeadsSrv.submitTestDrive(testdriveData, _leadId!);
       print('Submitting testdrive data: $testdriveData');

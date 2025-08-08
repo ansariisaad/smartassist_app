@@ -933,6 +933,8 @@ class _AllLeadsState extends State<AllLeads> {
             brand: item['brand'] ?? '',
             number: item['mobile'] ?? '',
             isFavorite: item['favourite'] ?? false,
+
+            status: item['status'] ?? 'New',
             swipeOffset: swipeOffset,
             fetchDashboardData: () {},
             onFavoriteToggled: () async {
@@ -969,7 +971,7 @@ class _AllLeadsState extends State<AllLeads> {
 }
 
 class TaskItem extends StatefulWidget {
-  final String name, subject, number;
+  final String name, subject, number, status;
   final String date;
   final String vehicle;
   final String leadId;
@@ -1002,6 +1004,7 @@ class TaskItem extends StatefulWidget {
     required this.number,
     required this.onTap,
     this.fetchTasksData,
+    required this.status,
   });
 
   @override
@@ -1054,6 +1057,25 @@ class _TaskItemState extends State<TaskItem>
       ),
       child: _buildFollowupCard(context),
     );
+  }
+
+  Color _getStatusBorderColor() {
+    // Get the status from the widget (you might need to pass this as a parameter)
+    // For now, I'll assume you add a status parameter to TaskItem widget
+    String status = widget.status ?? 'New'; // Add this parameter to TaskItem
+
+    switch (status.toLowerCase()) {
+      case 'lost':
+        return AppColors.sideRed;
+      case 'qualified':
+        return AppColors.sideGreen;
+      case 'new':
+        return AppColors.colorsBlue;
+      case 'follow up':
+        return AppColors.colorsBlue; // or any color you prefer
+      default:
+        return AppColors.colorsBlue;
+    }
   }
 
   Widget _buildFollowupCard(BuildContext context) {
@@ -1231,6 +1253,16 @@ class _TaskItemState extends State<TaskItem>
                   left: BorderSide(
                     width: isTablet ? 10.0 : 8.0,
                     color: isFav
+                        // ? (isCallSwipe
+                        //       ? AppColors.colorsBlue.withOpacity(0.9)
+                        //       : Colors.yellow.withOpacity(
+                        //           isFavoriteSwipe ? 0.1 : 0.9,
+                        //         ))
+                        // : (isFavoriteSwipe
+                        //       ? Colors.yellow.withOpacity(0.1)
+                        //       : (isCallSwipe
+                        //             ? Colors.green.withOpacity(0.1)
+                        //             : AppColors.colorsBlue)),
                         ? (isCallSwipe
                               ? AppColors.colorsBlue.withOpacity(0.9)
                               : Colors.yellow.withOpacity(
@@ -1240,7 +1272,7 @@ class _TaskItemState extends State<TaskItem>
                               ? Colors.yellow.withOpacity(0.1)
                               : (isCallSwipe
                                     ? Colors.green.withOpacity(0.1)
-                                    : AppColors.colorsBlue)),
+                                    : _getStatusBorderColor())), // Modified this line
                   ),
                 ),
               ),

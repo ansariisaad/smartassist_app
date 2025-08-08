@@ -2569,7 +2569,7 @@ class _MyTeamsState extends State<MyTeams> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Show More ($recordsToShow more)'),
+                Text('Show ($recordsToShow more)'),
                 const SizedBox(width: 4),
                 const Icon(Icons.keyboard_arrow_down, size: 16),
               ],

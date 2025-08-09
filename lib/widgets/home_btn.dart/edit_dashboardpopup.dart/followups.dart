@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
+import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
@@ -59,7 +60,7 @@ class _FollowupsEditState extends State<FollowupsEdit> {
   @override
   void initState() {
     super.initState();
-    _fetchDataId();
+    _fetchDataId(widget.taskId);
     _speech = stt.SpeechToText();
     _initSpeech();
     // Add listener to descriptionController for real-time change detection
@@ -130,7 +131,7 @@ class _FollowupsEditState extends State<FollowupsEdit> {
     }
   }
 
-  Future<void> _fetchDataId() async {
+  Future<void> _fetchDataId(String taskId) async {
     setState(() {
       _isLoadingSearch = true;
     });
@@ -138,38 +139,28 @@ class _FollowupsEditState extends State<FollowupsEdit> {
     final token = await Storage.getToken();
 
     try {
-      final response = await http.get(
-        Uri.parse('https://api.smartassistapp.in/api/tasks/${widget.taskId}'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
-        final String comment = data['data']['remarks'] ?? '';
-        final String status = data['data']['status'] ?? '';
-        final String deferredReason = data['data']['deferred_reason'] ?? '';
+      final taskData = await LeadsSrv.getFollowupsById(taskId);
 
-        setState(() {
-          descriptionController.text = comment;
-          _initialRemarks = comment;
+      setState(() {
+        final String comment = taskData['data']['remarks'] ?? '';
+        final String status = taskData['data']['status'] ?? '';
+        final String deferredReason = taskData['data']['deferred_reason'] ?? '';
+        descriptionController.text = comment;
+        _initialRemarks = comment;
 
-          if (items.contains(status)) {
-            selectedValue = status;
-            _initialStatus = status;
-          }
+        if (items.contains(status)) {
+          selectedValue = status;
+          _initialStatus = status;
+        }
 
-          // Set deferred reason if status is deferred
-          if (status == 'Deferred' &&
-              deferredReasons.contains(deferredReason)) {
-            selectedDeferredReason = deferredReason;
-            _initialDeferredReason = deferredReason;
-          }
+        // Set deferred reason if status is deferred
+        if (status == 'Deferred' && deferredReasons.contains(deferredReason)) {
+          selectedDeferredReason = deferredReason;
+          _initialDeferredReason = deferredReason;
+        }
 
-          _checkIfFormIsComplete();
-        });
-      }
+        _checkIfFormIsComplete();
+      });
     } catch (e) {
       showErrorMessage(context, message: 'Something went wrong..!');
     } finally {
@@ -178,6 +169,55 @@ class _FollowupsEditState extends State<FollowupsEdit> {
       });
     }
   }
+
+  // Future<void> _fetchDataId() async {
+  //   setState(() {
+  //     _isLoadingSearch = true;
+  //   });
+
+  //   final token = await Storage.getToken();
+
+  //   try {
+  //     final response = await http.get(
+  //       Uri.parse('https://api.smartassistapp.in/api/tasks/${widget.taskId}'),
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+  //     if (response.statusCode == 200) {
+  //       final Map<String, dynamic> data = json.decode(response.body);
+  //       final String comment = data['data']['remarks'] ?? '';
+  //       final String status = data['data']['status'] ?? '';
+  //       final String deferredReason = data['data']['deferred_reason'] ?? '';
+
+  //       setState(() {
+  //         descriptionController.text = comment;
+  //         _initialRemarks = comment;
+
+  //         if (items.contains(status)) {
+  //           selectedValue = status;
+  //           _initialStatus = status;
+  //         }
+
+  //         // Set deferred reason if status is deferred
+  //         if (status == 'Deferred' &&
+  //             deferredReasons.contains(deferredReason)) {
+  //           selectedDeferredReason = deferredReason;
+  //           _initialDeferredReason = deferredReason;
+  //         }
+
+  //         _checkIfFormIsComplete();
+  //       });
+  //     }
+  //   } catch (e) {
+  //     showErrorMessage(context, message: 'Something went wrong..!');
+  //   } finally {
+  //     setState(() {
+  //       _isLoadingSearch = false;
+  //     });
+  //   }
+  // }
 
   bool get _hasRemarksError => descriptionController.text.trim().isEmpty;
   bool get _hasDeferredError =>
@@ -250,26 +290,20 @@ class _FollowupsEditState extends State<FollowupsEdit> {
     print('Sending PUT request body: ${jsonEncode(newTaskForLead)}');
 
     try {
-      final response = await http.put(
-        Uri.parse(
-          'https://api.smartassistapp.in/api/tasks/${widget.taskId}/update',
-        ),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(newTaskForLead),
+      bool success = await LeadsSrv.updateFollowups(
+        newTaskForLead,
+        widget.taskId!,
+        context,
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
-      if (response.statusCode == 200) {
+      if (success) {
         Navigator.pop(context, true);
         showSuccessMessage(context, message: 'Follow-up updated successfully');
         widget.onFormSubmit();
       } else {
-        final Map<String, dynamic> responseData = json.decode(response.body);
+        final Map<String, dynamic> responseData = json.decode(
+          success.toString(),
+        );
         String message =
             responseData['message'] ?? 'Submission failed. Try again.';
         showErrorMessage(context, message: message);

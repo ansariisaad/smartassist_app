@@ -13,6 +13,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:smartassist/config/component/color/colors.dart';
+import 'package:smartassist/services/api_srv.dart';
+import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -85,58 +87,96 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   // [Keep all your existing API methods unchanged]
   Future<void> fetchProfileData() async {
-    final token = await Storage.getToken();
-    final response = await http.get(
-      Uri.parse('https://api.smartassistapp.in/api/users/show-profile'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-    );
+    final data = await LeadsSrv.fetchProfileData();
+    setState(() {
+      userId = data['data']['user_id'];
+      name = data['data']['name'];
+      email = data['data']['email'];
+      location = data['data']['dealer_location'];
+      mobile = data['data']['phone'];
+      profilePic = data['data']['profile_pic'];
+      userRole = data['data']['user_role'];
+      rating = data['data']['rating'] != null
+          ? data['data']['rating'].toDouble()
+          : 0.0;
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      setState(() {
-        userId = data['data']['user_id'];
-        name = data['data']['name'];
-        email = data['data']['email'];
-        location = data['data']['dealer_location'];
-        mobile = data['data']['phone'];
-        profilePic = data['data']['profile_pic'];
-        userRole = data['data']['user_role'];
-        rating = data['data']['rating'] != null
-            ? data['data']['rating'].toDouble()
+      final evaluation = data['data']['evaluation'];
+      if (evaluation != null) {
+        professionalism = evaluation['professionalism'] != null
+            ? evaluation['professionalism'] / 10
             : 0.0;
+        efficiency = evaluation['efficiency'] != null
+            ? evaluation['efficiency'] / 10
+            : 0.0;
+        responseTime = evaluation['responseTime'] != null
+            ? evaluation['responseTime'] / 10
+            : 0.0;
+        productKnowledge = evaluation['productKnowledge'] != null
+            ? evaluation['productKnowledge'] / 10
+            : 0.0;
+      }
+      widget.refreshDashboard();
+      isLoading = false;
 
-        final evaluation = data['data']['evaluation'];
-        if (evaluation != null) {
-          professionalism = evaluation['professionalism'] != null
-              ? evaluation['professionalism'] / 10
-              : 0.0;
-          efficiency = evaluation['efficiency'] != null
-              ? evaluation['efficiency'] / 10
-              : 0.0;
-          responseTime = evaluation['responseTime'] != null
-              ? evaluation['responseTime'] / 10
-              : 0.0;
-          productKnowledge = evaluation['productKnowledge'] != null
-              ? evaluation['productKnowledge'] / 10
-              : 0.0;
-        }
-        widget.refreshDashboard();
-        isLoading = false;
-
-        // Start animations once data is loaded
-        _fadeController.forward();
-        _slideController.forward();
-      });
-    } else {
-      setState(() {
-        isLoading = false;
-      });
-      print('Failed to fetch profile data');
-    }
+      // Start animations once data is loaded
+      _fadeController.forward();
+      _slideController.forward();
+    });
   }
+
+  // Future<void> fetchProfileData() async {
+  //   final token = await Storage.getToken();
+  //   final response = await http.get(
+  //     Uri.parse('https://api.smartassistapp.in/api/users/show-profile'),
+  //     headers: {
+  //       'Authorization': 'Bearer $token',
+  //       'Content-Type': 'application/json',
+  //     },
+  //   );
+
+  //   if (response.statusCode == 200) {
+  //     final data = json.decode(response.body);
+  //     setState(() {
+  //       userId = data['data']['user_id'];
+  //       name = data['data']['name'];
+  //       email = data['data']['email'];
+  //       location = data['data']['dealer_location'];
+  //       mobile = data['data']['phone'];
+  //       profilePic = data['data']['profile_pic'];
+  //       userRole = data['data']['user_role'];
+  //       rating = data['data']['rating'] != null
+  //           ? data['data']['rating'].toDouble()
+  //           : 0.0;
+
+  //       final evaluation = data['data']['evaluation'];
+  //       if (evaluation != null) {
+  //         professionalism = evaluation['professionalism'] != null
+  //             ? evaluation['professionalism'] / 10
+  //             : 0.0;
+  //         efficiency = evaluation['efficiency'] != null
+  //             ? evaluation['efficiency'] / 10
+  //             : 0.0;
+  //         responseTime = evaluation['responseTime'] != null
+  //             ? evaluation['responseTime'] / 10
+  //             : 0.0;
+  //         productKnowledge = evaluation['productKnowledge'] != null
+  //             ? evaluation['productKnowledge'] / 10
+  //             : 0.0;
+  //       }
+  //       widget.refreshDashboard();
+  //       isLoading = false;
+
+  //       // Start animations once data is loaded
+  //       _fadeController.forward();
+  //       _slideController.forward();
+  //     });
+  //   } else {
+  //     setState(() {
+  //       isLoading = false;
+  //     });
+  //     print('Failed to fetch profile data');
+  //   }
+  // }
 
   Future<void> _showPermissionDialog() async {
     showDialog(
@@ -242,45 +282,78 @@ class _ProfileScreenState extends State<ProfileScreen>
       _isUploading = true;
     });
 
-    final token = await Storage.getToken();
-    final uri = Uri.parse(
-      'https://api.smartassistapp.in/api/users/profile/set',
-    );
-
-    final request = http.MultipartRequest('POST', uri)
-      ..headers['Authorization'] = 'Bearer $token'
-      ..files.add(
-        http.MultipartFile(
-          'file',
-          imageFile.readAsBytes().asStream(),
-          imageFile.lengthSync(),
-          filename: path.basename(imageFile.path),
-          contentType: MediaType('image', 'jpeg'),
-        ),
-      );
-
     try {
-      final streamedResponse = await request.send();
-      final response = await http.Response.fromStream(streamedResponse);
+      // Use the new uploadImage method
+      bool success = await LeadsSrv.uploadImage(imageFile);
 
-      if (response.statusCode == 200) {
-        final res = json.decode(response.body);
-        print(response.body);
-        print('this is the update img');
-        setState(() {
-          profilePic = res['data'];
-          _profileImage = null;
-        });
-        // fetchProfileData();
+      if (success) {
+        print('✅ Image uploaded successfully');
+      } else {
+        print('❌ Image upload failed');
       }
     } catch (e) {
       print("❌ Upload error: $e");
+      showErrorMessageGetx(message: 'Upload failed: ${e.toString()}');
     } finally {
       setState(() {
         _isUploading = false;
       });
     }
   }
+
+  // Future<void> _proceedWithImagePicking() async {
+  //   final pickedFile = await ImagePicker().pickImage(
+  //     source: ImageSource.gallery,
+  //   );
+
+  //   if (pickedFile == null) return;
+
+  //   File imageFile = File(pickedFile.path);
+
+  //   setState(() {
+  //     _profileImage = imageFile;
+  //     _isUploading = true;
+  //   });
+
+  //   final token = await Storage.getToken();
+  //   final uri = Uri.parse(
+  //     'https://api.smartassistapp.in/api/users/profile/set',
+  //   );
+
+  //   final request = http.MultipartRequest('POST', uri)
+  //     ..headers['Authorization'] = 'Bearer $token'
+  //     ..files.add(
+  //       http.MultipartFile(
+  //         'file',
+  //         imageFile.readAsBytes().asStream(),
+  //         imageFile.lengthSync(),
+  //         filename: path.basename(imageFile.path),
+  //         contentType: MediaType('image', 'jpeg'),
+  //       ),
+  //     );
+
+  //   try {
+  //     final streamedResponse = await request.send();
+  //     final response = await http.Response.fromStream(streamedResponse);
+
+  //     if (response.statusCode == 200) {
+  //       final res = json.decode(response.body);
+  //       print(response.body);
+  //       print('this is the update img');
+  //       setState(() {
+  //         profilePic = res['data'];
+  //         _profileImage = null;
+  //       });
+  //       // fetchProfileData();
+  //     }
+  //   } catch (e) {
+  //     print("❌ Upload error: $e");
+  //   } finally {
+  //     setState(() {
+  //       _isUploading = false;
+  //     });
+  //   }
+  // }
 
   // Future<void> _pickImage() async {
   //   // Request permissions first

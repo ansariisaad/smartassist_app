@@ -328,6 +328,7 @@ class _LoginPageState extends State<LoginPage>
   }
 
   // login page
+  // Updated login method for your login page
   Future<void> submitBtn() async {
     if (!mounted) return;
     final emailOrExcellence = newEmailController.text.trim();
@@ -374,8 +375,6 @@ class _LoginPageState extends State<LoginPage>
     try {
       String? deviceToken = '';
       try {
-        // deviceToken = await FirebaseMessaging.instance.getToken();
-
         deviceToken = await FirebaseMessaging.instance.getToken();
         if (deviceToken == null) {
           throw Exception('Failed to retrieve device token.');
@@ -403,18 +402,22 @@ class _LoginPageState extends State<LoginPage>
       if (response['isSuccess'] == true && response['user'] != null) {
         final user = response['user'];
         final userId = user['user_id'];
-        final authToken = response['token'];
+        final accessToken =
+            response['accessToken']; // Updated to use accessToken
+        final refreshToken = response['refreshToken']; // Get refresh token
         final userRole = user['user_role'];
         final userEmail = user['email'] ?? emailOrExcellence;
 
-        if (userId != null && authToken != null) {
-          // Save authentication data
+        if (userId != null && accessToken != null && refreshToken != null) {
+          // Save authentication data with both tokens
           await TokenManager.saveAuthData(
-            authToken,
+            accessToken,
+            refreshToken, // Save refresh token
             userId,
             userRole,
             userEmail,
           );
+
           String successMessage =
               response['message']?.toString() ?? 'Login Successful';
           Get.snackbar(
@@ -453,7 +456,7 @@ class _LoginPageState extends State<LoginPage>
           String errorMessage =
               response['error'] ??
               response['message'] ??
-              'Something went wrong';
+              'Authentication tokens missing';
           Get.snackbar(
             'Error',
             errorMessage,
@@ -473,11 +476,11 @@ class _LoginPageState extends State<LoginPage>
       }
     } catch (error) {
       if (!mounted) return;
-      print('error');
+      print('Login error: $error');
 
       Get.snackbar(
         'Error',
-        'Oops server is done...!',
+        'Oops server is down...!',
         backgroundColor: Colors.red[500],
         colorText: Colors.white,
       );
@@ -487,4 +490,163 @@ class _LoginPageState extends State<LoginPage>
       }
     }
   }
+  // Future<void> submitBtn() async {
+  //   if (!mounted) return;
+  //   final emailOrExcellence = newEmailController.text.trim();
+  //   final pwd = newPwdController.text.trim();
+
+  //   if (emailOrExcellence.isEmpty || pwd.isEmpty) {
+  //     showErrorMessage(
+  //       context,
+  //       message: 'Email/Excellence ID and Password cannot be empty.',
+  //     );
+  //     return;
+  //   }
+
+  //   // Validate input format
+  //   if (!_isEmail(emailOrExcellence) &&
+  //       !_isValidExcellenceId(emailOrExcellence)) {
+  //     showErrorMessage(
+  //       context,
+  //       message: 'Please enter a valid email address or Excellence ID.',
+  //     );
+  //     return;
+  //   }
+
+  //   await ConnectionService().checkConnection();
+  //   final isConnected = ConnectionService().isConnected;
+  //   print("Internet connection status: $isConnected");
+  //   if (!isConnected) {
+  //     showDialog(
+  //       context: context,
+  //       builder: (_) => AlertDialog(
+  //         content: InternetErrorWidget(
+  //           onRetry: () {
+  //             Navigator.pop(context);
+  //             submitBtn(); // retry login
+  //           },
+  //         ),
+  //       ),
+  //     );
+  //     return;
+  //   }
+
+  //   setState(() => isLoading = true);
+
+  //   try {
+  //     String? deviceToken = '';
+  //     try {
+  //       // deviceToken = await FirebaseMessaging.instance.getToken();
+
+  //       deviceToken = await FirebaseMessaging.instance.getToken();
+  //       if (deviceToken == null) {
+  //         throw Exception('Failed to retrieve device token.');
+  //       }
+  //     } catch (e) {
+  //       print("Error retrieving device token: $e");
+  //     }
+
+  //     // Determine if input is email or excellence ID
+  //     Map<String, dynamic> loginData = {
+  //       "password": pwd,
+  //       "device_token": deviceToken,
+  //     };
+
+  //     if (_isEmail(emailOrExcellence)) {
+  //       loginData["email"] = emailOrExcellence;
+  //     } else {
+  //       loginData["excellence"] = emailOrExcellence;
+  //     }
+
+  //     final response = await LeadsSrv.onLogin(loginData);
+
+  //     if (!mounted) return;
+
+  //     if (response['isSuccess'] == true && response['user'] != null) {
+  //       final user = response['user'];
+  //       final userId = user['user_id'];
+  //       final authToken = response['token'];
+  //       final userRole = user['user_role'];
+  //       final userEmail = user['email'] ?? emailOrExcellence;
+
+  //       if (userId != null && authToken != null) {
+  //         // Save authentication data
+  //         await TokenManager.saveAuthData(
+  //           authToken,
+  //           userId,
+  //           userRole,
+  //           userEmail,
+  //         );
+  //         String successMessage =
+  //             response['message']?.toString() ?? 'Login Successful';
+  //         Get.snackbar(
+  //           'Success',
+  //           successMessage,
+  //           backgroundColor: Colors.green,
+  //           colorText: Colors.white,
+  //         );
+
+  //         // Reset all biometric preferences since this is a fresh login
+  //         await BiometricPreference.resetBiometricPreferences();
+
+  //         // Check if device supports biometrics
+  //         final LocalAuthentication auth = LocalAuthentication();
+  //         bool canCheckBiometrics = false;
+
+  //         try {
+  //           canCheckBiometrics = await auth.canCheckBiometrics;
+  //           List<BiometricType> availableBiometrics = await auth
+  //               .getAvailableBiometrics();
+  //           print("Available biometrics: $availableBiometrics");
+  //         } catch (e) {
+  //           print("Error checking biometric capability: $e");
+  //         }
+
+  //         if (canCheckBiometrics) {
+  //           // Navigate to BiometricScreen with isFirstTime flag
+  //           Get.offAll(() => const BiometricScreen(isFirstTime: true));
+  //         } else {
+  //           await BiometricPreference.setUseBiometric(false);
+  //           Get.offAll(() => BottomNavigation());
+  //         }
+
+  //         widget.onLoginSuccess?.call();
+  //       } else {
+  //         String errorMessage =
+  //             response['error'] ??
+  //             response['message'] ??
+  //             'Something went wrong';
+  //         Get.snackbar(
+  //           'Error',
+  //           errorMessage,
+  //           backgroundColor: Colors.red,
+  //           colorText: Colors.white,
+  //         );
+  //       }
+  //     } else {
+  //       String errorMessage =
+  //           response['error'] ?? response['message'] ?? 'Something went wrong';
+  //       Get.snackbar(
+  //         'Error',
+  //         errorMessage,
+  //         backgroundColor: Colors.red,
+  //         colorText: Colors.white,
+  //       );
+  //     }
+  //   } catch (error) {
+  //     if (!mounted) return;
+  //     print('error');
+
+  //     Get.snackbar(
+  //       'Error',
+  //       'Oops server is done...!',
+  //       backgroundColor: Colors.red[500],
+  //       colorText: Colors.white,
+  //     );
+  //   } finally {
+  //     if (mounted) {
+  //       setState(() => isLoading = false);
+  //     }
+  //   }
+  // }
 }

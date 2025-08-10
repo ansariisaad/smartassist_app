@@ -1478,7 +1478,7 @@ class _FollowupsTeamsState extends State<FollowupsTeams> {
 //     try {
 //       final response = await http.get(
 //         Uri.parse(
-//             'https://api.smartassistapp.in/api/search/global?query=$query'),
+//             'https://api.smartassistapps.in/api/search/global?query=$query'),
 //         headers: {
 //           'Authorization': 'Bearer $token',
 //           'Content-Type': 'application/json',

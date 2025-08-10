@@ -102,33 +102,29 @@ class _AllEnqState extends State<AllEnq> {
   Future<void> fetchTasksData() async {
     if (!mounted) return; // Check if widget is still mounted
 
-    final token = await Storage.getToken();
+    // final token = await Storage.getToken();
     try {
-      final response = await http.get(
-        Uri.parse('https://api.smartassistapp.in/api/leads/my-teams/all'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
+      final result = await LeadsSrv.fetchFavFollowups();
 
-      if (!mounted) return; // Check again before setState
+      if (result['success'] == true) {
+        final data = result['data'];
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
         print('this is the leadall $data');
 
         if (mounted) {
           // Always check before setState
           setState(() {
-            upcomingTasks = data['data']['rows'] ?? [];
+            upcomingTasks = data['rows'] ?? [];
             _filteredTasks = List.from(upcomingTasks);
             isLoading = false;
           });
           _extractFilterOptions();
         }
       } else {
-        print("Failed to load data: ${response.statusCode}");
+        // print("Failed to load data: ${response.statusCode}");
+        final errorMessage = result['message'] ?? 'Failed to fetch tasks';
+        print('❌ Failed to fetch tasks: $errorMessage');
+
         if (mounted) {
           setState(() => isLoading = false);
         }
@@ -140,6 +136,48 @@ class _AllEnqState extends State<AllEnq> {
       }
     }
   }
+
+  // Future<void> fetchTasksData() async {
+  //   if (!mounted) return; // Check if widget is still mounted
+
+  //   final token = await Storage.getToken();
+  //   try {
+  //     final response = await http.get(
+  //       Uri.parse('https://api.smartassistapps.in/api/leads/my-teams/all'),
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+
+  //     if (!mounted) return; // Check again before setState
+
+  //     if (response.statusCode == 200) {
+  //       final data = json.decode(response.body);
+  //       print('this is the leadall $data');
+
+  //       if (mounted) {
+  //         // Always check before setState
+  //         setState(() {
+  //           upcomingTasks = data['data']['rows'] ?? [];
+  //           _filteredTasks = List.from(upcomingTasks);
+  //           isLoading = false;
+  //         });
+  //         _extractFilterOptions();
+  //       }
+  //     } else {
+  //       print("Failed to load data: ${response.statusCode}");
+  //       if (mounted) {
+  //         setState(() => isLoading = false);
+  //       }
+  //     }
+  //   } catch (e) {
+  //     print("Error fetching data: $e");
+  //     if (mounted) {
+  //       setState(() => isLoading = false);
+  //     }
+  //   }
+  // }
 
   void _extractFilterOptions() {
     if (!mounted) return;

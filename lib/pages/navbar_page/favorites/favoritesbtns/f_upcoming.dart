@@ -7,7 +7,8 @@ import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
-import 'package:smartassist/services/leads_srv.dart';
+import 'package:smartassist/services/api_srv.dart';
+import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/followups.dart';
 import 'package:smartassist/widgets/reusable/skeleton_card.dart';
@@ -122,34 +123,59 @@ class _FUpcomingState extends State<FUpcoming> {
   }
 
   Future<void> fetchTasksData() async {
-    final token = await Storage.getToken();
     try {
-      final response = await http.get(
-        Uri.parse(
-          'https://api.smartassistapp.in/api/favourites/follow-ups/all',
-        ),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+      final result = await LeadsSrv.fetchFavFollowups();
+      if (result['success'] == true) {
+        final data = result['data'];
         setState(() {
-          upcomingTasks = data['data']['allTasks']['rows'] ?? [];
-          // overdueTasks = data['data']['overdueTasks']['rows'] ?? [];
+          upcomingTasks = data['allTasks']['rows'] ?? [];
           isLoading = false;
         });
       } else {
-        print("Failed to load data: ${response.statusCode}");
         setState(() => isLoading = false);
+
+        final errorMessage = result['message'] ?? 'Failed to fetch tasks';
+        print('❌ Failed to fetch tasks: $errorMessage');
+
+        if (mounted) {
+          showErrorMessage(context, message: errorMessage);
+        }
       }
     } catch (e) {
       print("Error fetching data: $e");
       setState(() => isLoading = false);
     }
   }
+
+  // Future<void> fetchTasksData() async {
+  //   final token = await Storage.getToken();
+  //   try {
+  //     final response = await http.get(
+  //       Uri.parse(
+  //         'https://api.smartassistapps.in/api/favourites/follow-ups/all',
+  //       ),
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+
+  //     if (response.statusCode == 200) {
+  //       final data = json.decode(response.body);
+  //       setState(() {
+  //         upcomingTasks = data['data']['allTasks']['rows'] ?? [];
+  //         // overdueTasks = data['data']['overdueTasks']['rows'] ?? [];
+  //         isLoading = false;
+  //       });
+  //     } else {
+  //       print("Failed to load data: ${response.statusCode}");
+  //       setState(() => isLoading = false);
+  //     }
+  //   } catch (e) {
+  //     print("Error fetching data: $e");
+  //     setState(() => isLoading = false);
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -709,7 +735,7 @@ class ReusableSlidableAction extends StatelessWidget {
 //     try {
 //       final response = await http.get(
 //         Uri.parse(
-//             'https://api.smartassistapp.in/api/favourites/follow-ups/all'),
+//             'https://api.smartassistapps.in/api/favourites/follow-ups/all'),
 //         headers: {
 //           'Authorization': 'Bearer $token',
 //           'Content-Type': 'application/json'
@@ -840,7 +866,7 @@ class ReusableSlidableAction extends StatelessWidget {
 //     try {
 //       final response = await http.put(
 //         Uri.parse(
-//           'https://api.smartassistapp.in/api/favourites/mark-fav/task/${widget.taskId}',
+//           'https://api.smartassistapps.in/api/favourites/mark-fav/task/${widget.taskId}',
 //         ),
 //         headers: {
 //           'Authorization': 'Bearer $token',

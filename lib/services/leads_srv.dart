@@ -241,7 +241,7 @@ class LeadsSrv {
   }
 
   // static Future<Map<String, dynamic>> setPwd(Map body) async {
-  //   const url = 'https://api.smartassistapp.in/api/login/create-pwd';
+  //   const url = 'https://api.smartassistapps.in/api/login/create-pwd';
   //   final uri = Uri.parse(url);
 
   //   try {
@@ -601,7 +601,7 @@ class LeadsSrv {
   // static Future<List<Map<String, dynamic>>> singleTasksById(
   //     String leadId) async {
   //   const String apiUrl =
-  //       "https://api.smartassistapp.in/api/admin/leads/tasks/all/";
+  //       "https://api.smartassistapps.in/api/admin/leads/tasks/all/";
 
   //   final token = await Storage.getToken();
   //   if (token == null) {

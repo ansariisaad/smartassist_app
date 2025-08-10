@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
+import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
 
@@ -38,8 +39,8 @@ class _GlobalSearchState extends State<GlobalSearch> {
     super.dispose();
   }
 
-  Future<void> _fetchSearchResults(String query) async {
-    if (query.isEmpty) {
+  Future<void> _fetchSearchResults() async {
+    if (_query.isEmpty) {
       setState(() {
         _searchResults.clear();
       });
@@ -51,34 +52,25 @@ class _GlobalSearchState extends State<GlobalSearch> {
     });
 
     try {
-      final token = await Storage.getToken();
-      final response = await http.get(
-        Uri.parse(
-          'https://api.smartassistapp.in/api/search/global?query=$query',
-        ),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
+      // ✅ FIXED: Pass the actual query variable, not String? type
+      final data = await LeadsSrv.fetchGlobalSearch(_query);
 
-      final Map<String, dynamic> data = json.decode(response.body);
-
-      if (response.statusCode == 200) {
+      if (data != null) {
         setState(() {
-          _searchResults = data['data']['suggestions'] ?? [];
+          _searchResults =
+              data['suggestions'] ??
+              []; // ✅ FIXED: data is already the 'data' part
           _isErrorShowing = false;
         });
       } else {
-        // showErrorMessage(context, message: data['message']);
-        // Get.snackbar('Error', data['message'].toString());
+        // ✅ FIXED: Handle null data case properly
         if (!_isErrorShowing) {
           setState(() {
             _isErrorShowing = true;
           });
           Get.snackbar(
             'Error',
-            data['message'].toString(),
+            'No results found',
             duration: Duration(seconds: 3),
             onTap: (_) {
               setState(() {
@@ -90,6 +82,7 @@ class _GlobalSearchState extends State<GlobalSearch> {
         }
       }
     } catch (e) {
+      print('Search error: $e');
       showErrorMessage(context, message: 'Something went wrong..!');
     } finally {
       setState(() {
@@ -97,6 +90,66 @@ class _GlobalSearchState extends State<GlobalSearch> {
       });
     }
   }
+
+  // Future<void> _fetchSearchResults(String query) async {
+  //   if (query.isEmpty) {
+  //     setState(() {
+  //       _searchResults.clear();
+  //     });
+  //     return;
+  //   }
+
+  //   setState(() {
+  //     _isLoadingSearch = true;
+  //   });
+
+  //   try {
+  //     final token = await Storage.getToken();
+  //     final response = await http.get(
+  //       Uri.parse(
+  //         'https://api.smartassistapps.in/api/search/global?query=$query',
+  //       ),
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+
+  //     final Map<String, dynamic> data = json.decode(response.body);
+
+  //     if (response.statusCode == 200) {
+  //       setState(() {
+  //         _searchResults = data['data']['suggestions'] ?? [];
+  //         _isErrorShowing = false;
+  //       });
+  //     } else {
+  //       // showErrorMessage(context, message: data['message']);
+  //       // Get.snackbar('Error', data['message'].toString());
+  //       if (!_isErrorShowing) {
+  //         setState(() {
+  //           _isErrorShowing = true;
+  //         });
+  //         Get.snackbar(
+  //           'Error',
+  //           data['message'].toString(),
+  //           duration: Duration(seconds: 3),
+  //           onTap: (_) {
+  //             setState(() {
+  //               _isErrorShowing = false;
+  //             });
+  //           },
+  //           isDismissible: true,
+  //         );
+  //       }
+  //     }
+  //   } catch (e) {
+  //     showErrorMessage(context, message: 'Something went wrong..!');
+  //   } finally {
+  //     setState(() {
+  //       _isLoadingSearch = false;
+  //     });
+  //   }
+  // }
 
   void _onSearchChanged() {
     final newQuery = _searchController.text.trim();
@@ -113,7 +166,7 @@ class _GlobalSearchState extends State<GlobalSearch> {
 
     Future.delayed(const Duration(milliseconds: 1500), () {
       if (_query == _searchController.text.trim()) {
-        _fetchSearchResults(_query);
+        _fetchSearchResults();
       }
     });
   }

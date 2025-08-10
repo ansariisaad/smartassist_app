@@ -1,5 +1,9 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -7,6 +11,7 @@ import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
+import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/bottom_navigation.dart';
 import 'dart:convert';
 import 'package:smartassist/utils/storage.dart';
@@ -92,27 +97,25 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
   Future<void> _fetchTestDriveData() async {
     try {
       await Future.delayed(Duration(seconds: 1));
-      final token = await Storage.getToken();
-      final url = widget.isFromTestdrive
-          ? 'https://api.smartassistapp.in/api/events/${widget.eventId}'
-          : 'https://api.smartassistapp.in/api/events/${widget.isFromCompletedEventId}';
 
-      final response = await http.get(
-        Uri.parse(url),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
+      final result = await LeadsSrv.fetchTestDriveData(
+        eventId: widget.eventId,
+        completedEventId: widget.isFromCompletedEventId,
+        isFromTestdrive: widget.isFromTestdrive,
       );
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+      print('Test Drive Data Result: $result');
+
+      if (result['success'] == true) {
+        final data = result['data'];
         print('Decoded JSON:');
         print(const JsonEncoder.withIndent('  ').convert(data));
+
         setState(() {
-          startTime = data['data']['duration'] ?? '0';
-          if (data['data']['distance'] != null) {
-            String rawDistance = data['data']['distance'].toString();
+          startTime = data['duration'] ?? '0';
+
+          if (data['distance'] != null) {
+            String rawDistance = data['distance'].toString();
             double calculatedDistance = parseDistance(rawDistance);
             distanceCovered = formatDistance(calculatedDistance);
 
@@ -123,41 +126,137 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
           } else {
             distanceCovered = '0.0 km';
           }
-          mapImgUrl = data['data']['map_img'] ?? '';
-          potentialPurchase =
-              data['data']['purchase_potential'] ?? 'Not provided';
-          purchase_potential =
-              data['data']['purchase_potential'] ?? 'Not provided';
-          avg_rating = data['data']['avg_rating'] != null
+
+          mapImgUrl = data['map_img'] ?? '';
+          potentialPurchase = data['purchase_potential'] ?? 'Not provided';
+          purchase_potential = data['purchase_potential'] ?? 'Not provided';
+
+          avg_rating = data['avg_rating'] != null
               ? double.tryParse(
-                      data['data']['avg_rating'].toString(),
+                      data['avg_rating'].toString(),
                     )?.toStringAsFixed(1) ??
                     '0.0'
               : '0.0';
-          ratings = data['data']['drive_feedback'];
+
+          ratings = data['drive_feedback'];
           isLoading = false;
         });
 
-        print('this is sthe data');
-        print(data);
+        print('Test drive data loaded successfully');
       } else {
         setState(() {
-          isLoading =
-              false; // If there is an error, stop loading and show content
+          isLoading = false;
         });
-        print(
-          'Failed to fetch test drive data. Status code: ${response.statusCode}',
-        );
+
+        print('Failed to fetch test drive data: ${result['message']}');
+
+        // Show error message to user
+        if (mounted) {
+          Get.snackbar(
+            'Error',
+            result['message'] ?? 'Failed to load test drive data',
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+          );
+        }
       }
     } catch (e) {
       setState(() {
-        isLoading = false; // Stop loading if there is an error
+        isLoading = false;
       });
-      // Handle different types of errors (network, JSON, etc.)
+
       print('Error fetching test drive data: $e');
-      // Optionally, you can also show an error message to the user
+
+      // Show appropriate error message based on error type
+      String errorMessage = 'An unexpected error occurred';
+      if (e is SocketException) {
+        errorMessage = 'No internet connection. Please check your network.';
+      } else if (e is TimeoutException) {
+        errorMessage = 'Request timed out. Please try again later.';
+      } else if (e is FormatException) {
+        errorMessage = 'Error parsing server response';
+      }
+
+      if (mounted) {
+        Get.snackbar(
+          'Error',
+          errorMessage,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
     }
   }
+
+  // Future<void> _fetchTestDriveData() async {
+  //   try {
+  //     await Future.delayed(Duration(seconds: 1));
+  //     final token = await Storage.getToken();
+  //     final url = widget.isFromTestdrive
+  //         ? 'https://api.smartassistapps.in/api/events/${widget.eventId}'
+  //         : 'https://api.smartassistapps.in/api/events/${widget.isFromCompletedEventId}';
+
+  //     final response = await http.get(
+  //       Uri.parse(url),
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+
+  //     if (response.statusCode == 200) {
+  //       final data = json.decode(response.body);
+  //       print('Decoded JSON:');
+  //       print(const JsonEncoder.withIndent('  ').convert(data));
+  //       setState(() {
+  //         startTime = data['data']['duration'] ?? '0';
+  //         if (data['data']['distance'] != null) {
+  //           String rawDistance = data['data']['distance'].toString();
+  //           double calculatedDistance = parseDistance(rawDistance);
+  //           distanceCovered = formatDistance(calculatedDistance);
+
+  //           // Debug print to verify calculation
+  //           print('Raw distance: $rawDistance');
+  //           print('Calculated distance: $calculatedDistance km');
+  //           print('Formatted distance: $distanceCovered');
+  //         } else {
+  //           distanceCovered = '0.0 km';
+  //         }
+  //         mapImgUrl = data['data']['map_img'] ?? '';
+  //         potentialPurchase =
+  //             data['data']['purchase_potential'] ?? 'Not provided';
+  //         purchase_potential =
+  //             data['data']['purchase_potential'] ?? 'Not provided';
+  //         avg_rating = data['data']['avg_rating'] != null
+  //             ? double.tryParse(
+  //                     data['data']['avg_rating'].toString(),
+  //                   )?.toStringAsFixed(1) ??
+  //                   '0.0'
+  //             : '0.0';
+  //         ratings = data['data']['drive_feedback'];
+  //         isLoading = false;
+  //       });
+
+  //       print('this is sthe data');
+  //       print(data);
+  //     } else {
+  //       setState(() {
+  //         isLoading =
+  //             false; // If there is an error, stop loading and show content
+  //       });
+  //       print(
+  //         'Failed to fetch test drive data. Status code: ${response.statusCode}',
+  //       );
+  //     }
+  //   } catch (e) {
+  //     setState(() {
+  //       isLoading = false; // Stop loading if there is an error
+  //     });
+  //     // Handle different types of errors (network, JSON, etc.)
+  //     print('Error fetching test drive data: $e');
+  //     // Optionally, you can also show an error message to the user
+  //   }
+  // }
 
   String formatTime(String startTime) {
     try {

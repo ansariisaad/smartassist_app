@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
+import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
@@ -62,7 +63,7 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
   @override
   void initState() {
     super.initState();
-    _fetchDataId();
+    _fetchDataId(widget.taskId);
     _speech = stt.SpeechToText();
     _initSpeech();
     // Add listeners for real-time change detection
@@ -141,7 +142,7 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
     }
   }
 
-  Future<void> _fetchDataId() async {
+  Future<void> _fetchDataId(String taskId) async {
     setState(() {
       _isLoadingSearch = true;
     });
@@ -149,18 +150,11 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
     final token = await Storage.getToken();
 
     try {
-      final response = await http.get(
-        Uri.parse('https://api.smartassistapp.in/api/tasks/${widget.taskId}'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
+      // print('Fetch Response: ${response.body}');
+      final data = await LeadsSrv.getAppointmentById(taskId);
 
-      print('Fetch Response: ${response.body}');
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
+      setState(() {
+        // final Map<String, dynamic> data = json.decode(response.body);
         final String comment = data['data']['remarks'] ?? '';
         final String status = data['data']['status'] ?? '';
         final String dueDate = data['data']['due_date'] ?? '';
@@ -168,39 +162,37 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
         final String endTime = data['data']['end_time'] ?? '';
         final String deferredReason = data['data']['deferred_reason'] ?? '';
 
-        setState(() {
-          descriptionController.text = comment;
-          _initialRemarks = comment;
-          startDateController.text = dueDate.isNotEmpty
-              ? DateFormat(
-                  'dd MMM yyyy',
-                ).format(DateFormat('dd-MM-yyyy').parse(dueDate))
-              : '';
-          _initialStartDate = startDateController.text;
-          startTimeController.text = time;
-          _initialStartTime = time;
-          endDateController.text = dueDate.isNotEmpty
-              ? DateFormat(
-                  'dd MMM yyyy',
-                ).format(DateFormat('dd-MM-yyyy').parse(dueDate))
-              : '';
-          endTimeController.text = endTime;
+        descriptionController.text = comment;
+        _initialRemarks = comment;
+        startDateController.text = dueDate.isNotEmpty
+            ? DateFormat(
+                'dd MMM yyyy',
+              ).format(DateFormat('dd-MM-yyyy').parse(dueDate))
+            : '';
+        _initialStartDate = startDateController.text;
+        startTimeController.text = time;
+        _initialStartTime = time;
+        endDateController.text = dueDate.isNotEmpty
+            ? DateFormat(
+                'dd MMM yyyy',
+              ).format(DateFormat('dd-MM-yyyy').parse(dueDate))
+            : '';
+        endTimeController.text = endTime;
 
-          if (items.contains(status)) {
-            selectedValue = status;
-            _initialStatus = status;
-          }
+        if (items.contains(status)) {
+          selectedValue = status;
+          _initialStatus = status;
+        }
 
-          // Set deferred reason if status is deferred
-          if (status == 'Deferred' &&
-              deferredReasons.contains(deferredReason)) {
-            selectedDeferredReason = deferredReason;
-            _initialDeferredReason = deferredReason;
-          }
+        // Set deferred reason if status is deferred
+        if (status == 'Deferred' && deferredReasons.contains(deferredReason)) {
+          selectedDeferredReason = deferredReason;
+          _initialDeferredReason = deferredReason;
+        }
 
-          _checkIfFormIsComplete();
-        });
-      }
+        _checkIfFormIsComplete();
+      });
+      // }
     } catch (e) {
       showErrorMessage(context, message: 'Something went wrong..!');
     } finally {
@@ -209,6 +201,75 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
       });
     }
   }
+
+  // Future<void> _fetchDataId() async {
+  //   setState(() {
+  //     _isLoadingSearch = true;
+  //   });
+
+  //   final token = await Storage.getToken();
+
+  //   try {
+  //     final response = await http.get(
+  //       Uri.parse('https://api.smartassistapps.in/api/tasks/${widget.taskId}'),
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+
+  //     print('Fetch Response: ${response.body}');
+
+  //     if (response.statusCode == 200) {
+  //       final Map<String, dynamic> data = json.decode(response.body);
+  //       final String comment = data['data']['remarks'] ?? '';
+  //       final String status = data['data']['status'] ?? '';
+  //       final String dueDate = data['data']['due_date'] ?? '';
+  //       final String time = data['data']['time'] ?? '';
+  //       final String endTime = data['data']['end_time'] ?? '';
+  //       final String deferredReason = data['data']['deferred_reason'] ?? '';
+
+  //       setState(() {
+  //         descriptionController.text = comment;
+  //         _initialRemarks = comment;
+  //         startDateController.text = dueDate.isNotEmpty
+  //             ? DateFormat(
+  //                 'dd MMM yyyy',
+  //               ).format(DateFormat('dd-MM-yyyy').parse(dueDate))
+  //             : '';
+  //         _initialStartDate = startDateController.text;
+  //         startTimeController.text = time;
+  //         _initialStartTime = time;
+  //         endDateController.text = dueDate.isNotEmpty
+  //             ? DateFormat(
+  //                 'dd MMM yyyy',
+  //               ).format(DateFormat('dd-MM-yyyy').parse(dueDate))
+  //             : '';
+  //         endTimeController.text = endTime;
+
+  //         if (items.contains(status)) {
+  //           selectedValue = status;
+  //           _initialStatus = status;
+  //         }
+
+  //         // Set deferred reason if status is deferred
+  //         if (status == 'Deferred' &&
+  //             deferredReasons.contains(deferredReason)) {
+  //           selectedDeferredReason = deferredReason;
+  //           _initialDeferredReason = deferredReason;
+  //         }
+
+  //         _checkIfFormIsComplete();
+  //       });
+  //     }
+  //   } catch (e) {
+  //     showErrorMessage(context, message: 'Something went wrong..!');
+  //   } finally {
+  //     setState(() {
+  //       _isLoadingSearch = false;
+  //     });
+  //   }
+  // }
 
   bool get _hasRemarksError => descriptionController.text.trim().isEmpty;
   bool get _hasDeferredError =>
@@ -388,21 +449,27 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
     print('Sending PUT request body: ${jsonEncode(newTaskForLead)}');
 
     try {
-      final response = await http.put(
-        Uri.parse(
-          'https://api.smartassistapp.in/api/tasks/${widget.taskId}/update',
-        ),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(newTaskForLead),
+      // final response = await http.put(
+      //   Uri.parse(
+      //     'https://api.smartassistapps.in/api/tasks/${widget.taskId}/update',
+      //   ),
+      //   headers: {
+      //     'Authorization': 'Bearer $token',
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: jsonEncode(newTaskForLead),
+      // );
+
+      bool success = await LeadsSrv.updateAppointment(
+        newTaskForLead,
+        widget.taskId,
+        context,
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
+      print('Response status: ${success.toString()}');
+      // print('Response body: ${response.body}');
 
-      if (response.statusCode == 200) {
+      if (success != null) {
         Navigator.pop(context, true);
         showSuccessMessage(
           context,
@@ -410,7 +477,9 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
         );
         widget.onFormSubmit();
       } else {
-        final Map<String, dynamic> responseData = json.decode(response.body);
+        final Map<String, dynamic> responseData = json.decode(
+          success as String,
+        );
         String message =
             responseData['message'] ?? 'Submission failed. Try again.';
         showErrorMessage(context, message: message);
@@ -987,7 +1056,7 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
 
 //     try {
 //       final response = await http.get(
-//         Uri.parse('https://api.smartassistapp.in/api/tasks/${widget.taskId}'),
+//         Uri.parse('https://api.smartassistapps.in/api/tasks/${widget.taskId}'),
 //         headers: {
 //           'Authorization': 'Bearer $token',
 //           'Content-Type': 'application/json',
@@ -1176,7 +1245,7 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
 //     try {
 //       final response = await http.put(
 //         Uri.parse(
-//           'https://api.smartassistapp.in/api/tasks/${widget.taskId}/update',
+//           'https://api.smartassistapps.in/api/tasks/${widget.taskId}/update',
 //         ),
 //         headers: {
 //           'Authorization': 'Bearer $token',
@@ -1592,7 +1661,7 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
 
 // //     try {
 // //       final response = await http.get(
-// //         Uri.parse('https://api.smartassistapp.in/api/tasks/${widget.taskId}'),
+// //         Uri.parse('https://api.smartassistapps.in/api/tasks/${widget.taskId}'),
 // //         headers: {
 // //           'Authorization': 'Bearer $token',
 // //           'Content-Type': 'application/json',
@@ -1670,7 +1739,7 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
 // //     try {
 // //       final response = await http.put(
 // //         Uri.parse(
-// //           'https://api.smartassistapp.in/api/tasks/${widget.taskId}/update',
+// //           'https://api.smartassistapps.in/api/tasks/${widget.taskId}/update',
 // //         ),
 // //         headers: {
 // //           'Authorization': 'Bearer $token',

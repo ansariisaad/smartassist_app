@@ -8,6 +8,8 @@ import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:smartassist/services/api_srv.dart';
+import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/lead_update.dart';
 import 'package:smartassist/pages/Home/reassign_enq.dart';
@@ -41,7 +43,35 @@ class _AllLeadsState extends State<AllLeads> {
   // PATCH 1: Add these filter count variables
   Map<String, int> _filterCounts = {};
   bool _hasActiveFilters = false;
+  String _selectedLeadSource = 'All Sources';
+  String _selectedLeadSourceCategory = 'All Sources'; // Main category selection
 
+  // Update your filter options lists:
+  final List<String> _leadSourceCategoryOptions = [
+    'All Sources',
+    'Online Sources',
+    'Others',
+  ];
+
+  final List<String> _onlineSourceOptions = [
+    'All Online',
+    'Email',
+    'Social (Retailer)',
+    'SMS',
+    'Retailer Experience',
+    'Other', // if it's considered online
+  ];
+
+  final List<String> _otherSourceOptions = [
+    'All Others',
+    'Existing Customer',
+    'Field Visit',
+    'Phone-in',
+    'Phone-out',
+    'Purchased List',
+    'Referral',
+    'Walk-in',
+  ];
   // Filter options
   final List<String> _sortOptions = [
     'Date Created',
@@ -139,21 +169,15 @@ class _AllLeadsState extends State<AllLeads> {
   Future<void> _toggleFavorite(String leadId, int index) async {
     final token = await Storage.getToken();
     try {
+      // Get the current favorite status before toggling
       bool currentStatus = upcomingTasks[index]['favourite'] ?? false;
       bool newFavoriteStatus = !currentStatus;
 
-      final response = await http.put(
-        Uri.parse(
-          'https://api.smartassistapp.in/api/favourites/mark-fav/lead/$leadId',
-        ),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
+      final success = await LeadsSrv.leadFavorite(leadId: leadId);
 
-      if (response.statusCode == 200) {
+      if (success) {
         setState(() {
+          // upcomingTasks[index]['favourite'] = newFavoriteStatus;
           upcomingTasks[index]['favourite'] = newFavoriteStatus;
           int filteredIndex = _filteredTasks.indexWhere(
             (task) => task['lead_id'] == leadId,
@@ -162,13 +186,47 @@ class _AllLeadsState extends State<AllLeads> {
             _filteredTasks[filteredIndex]['favourite'] = newFavoriteStatus;
           }
         });
+        await fetchTasksData();
       } else {
-        print('Failed to toggle favorite: ${response.statusCode}');
+        print('Failed to toggle favorite: ${leadId}');
       }
     } catch (e) {
       print('Error toggling favorite: $e');
     }
   }
+  // Future<void> _toggleFavorite(String leadId, int index) async {
+  //   final token = await Storage.getToken();
+  //   try {
+  //     bool currentStatus = upcomingTasks[index]['favourite'] ?? false;
+  //     bool newFavoriteStatus = !currentStatus;
+
+  //     final response = await http.put(
+  //       Uri.parse(
+  //         'https://api.smartassistapps.in/api/favourites/mark-fav/lead/$leadId',
+  //       ),
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+
+  //     if (response.statusCode == 200) {
+  //       setState(() {
+  //         upcomingTasks[index]['favourite'] = newFavoriteStatus;
+  //         int filteredIndex = _filteredTasks.indexWhere(
+  //           (task) => task['lead_id'] == leadId,
+  //         );
+  //         if (filteredIndex != -1) {
+  //           _filteredTasks[filteredIndex]['favourite'] = newFavoriteStatus;
+  //         }
+  //       });
+  //     } else {
+  //       print('Failed to toggle favorite: ${response.statusCode}');
+  //     }
+  //   } catch (e) {
+  //     print('Error toggling favorite: $e');
+  //   }
+  // }
 
   void _handleCall(dynamic item) {
     print("Call action triggered for ${item['name']}");
@@ -190,33 +248,58 @@ class _AllLeadsState extends State<AllLeads> {
   }
 
   Future<void> fetchTasksData() async {
-    final token = await Storage.getToken();
     try {
-      final response = await http.get(
-        Uri.parse('https://api.smartassistapp.in/api/leads/fetch/all'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
+      final result = await LeadsSrv.fetchTasksData();
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+      if (result['success'] == true) {
+        final data = result['data'];
         setState(() {
-          upcomingTasks = data['data']['rows'] ?? [];
+          upcomingTasks = data['rows'] ?? [];
           _filteredTasks = List.from(upcomingTasks);
           _applyFilters();
           isLoading = false;
         });
       } else {
-        print("Failed to load data: ${response.statusCode}");
         setState(() => isLoading = false);
+        final errorMessage = result['message'] ?? 'Failed to fetch tasks';
+        if (mounted) {
+          showErrorMessage(context, message: errorMessage);
+        }
       }
     } catch (e) {
       print("Error fetching data: $e");
       setState(() => isLoading = false);
     }
   }
+
+  // Future<void> fetchTasksData() async {
+  //   final token = await Storage.getToken();
+  //   try {
+  //     final response = await http.get(
+  //       Uri.parse('https://api.smartassistapps.in/api/leads/fetch/all'),
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+
+  //     if (response.statusCode == 200) {
+  //       final data = json.decode(response.body);
+  //       setState(() {
+  //         upcomingTasks = data['data']['rows'] ?? [];
+  //         _filteredTasks = List.from(upcomingTasks);
+  //         _applyFilters();
+  //         isLoading = false;
+  //       });
+  //     } else {
+  //       print("Failed to load data: ${response.statusCode}");
+  //       setState(() => isLoading = false);
+  //     }
+  //   } catch (e) {
+  //     print("Error fetching data: $e");
+  //     setState(() => isLoading = false);
+  //   }
+  // }
 
   void _performLocalSearch(String query) {
     if (query.isEmpty) {
@@ -253,6 +336,34 @@ class _AllLeadsState extends State<AllLeads> {
     }
   }
 
+  // Method to get current dropdown options based on category
+  List<String> _getCurrentLeadSourceOptions() {
+    switch (_selectedLeadSourceCategory) {
+      case 'Online Sources':
+        return _onlineSourceOptions;
+      case 'Others':
+        return _otherSourceOptions;
+      default:
+        return _leadSourceCategoryOptions;
+    }
+  }
+
+  // Method to get current selected value
+  String _getCurrentLeadSourceValue() {
+    switch (_selectedLeadSourceCategory) {
+      case 'Online Sources':
+        return _onlineSourceOptions.contains(_selectedLeadSource)
+            ? _selectedLeadSource
+            : 'All Online';
+      case 'Others':
+        return _otherSourceOptions.contains(_selectedLeadSource)
+            ? _selectedLeadSource
+            : 'All Others';
+      default:
+        return _selectedLeadSourceCategory;
+    }
+  }
+
   void _onSearchChanged() {
     final newQuery = _searchController.text.trim();
     if (newQuery == _query) return;
@@ -268,7 +379,7 @@ class _AllLeadsState extends State<AllLeads> {
     // Calculate counts for each filter option
     _filterCounts.clear();
 
-    // Count status options
+    // Count status options (keep existing logic)
     for (String status in _statusOptions) {
       if (status == 'All') {
         _filterCounts[status] = filteredList.length;
@@ -280,48 +391,43 @@ class _AllLeadsState extends State<AllLeads> {
       }
     }
 
-    // Count time filter options
-    DateTime now = DateTime.now();
-    for (String timeFilter in _timeFilterOptions) {
-      if (timeFilter == 'All Time') {
-        _filterCounts[timeFilter] = filteredList.length;
-      } else {
-        _filterCounts[timeFilter] = filteredList.where((item) {
-          String dateStr = item['created_at'] ?? '';
-          if (dateStr.isEmpty) return false;
+    // Count lead source options (replace time filter counting)
+    for (String category in _leadSourceCategoryOptions) {
+      if (category == 'All Sources') {
+        _filterCounts[category] = filteredList.length;
+      } else if (category == 'Online Sources') {
+        _filterCounts[category] = filteredList.where((item) {
+          String leadSource = (item['lead_source'] ?? '').toString();
+          return _onlineSourceOptions
+              .skip(1)
+              .contains(leadSource); // skip 'All Online'
+        }).length;
+      } else if (category == 'Others') {
+        _filterCounts[category] = filteredList.where((item) {
+          String leadSource = (item['lead_source'] ?? '').toString();
+          return _otherSourceOptions
+              .skip(1)
+              .contains(leadSource); // skip 'All Others'
+        }).length;
+      }
+    }
 
-          try {
-            DateTime itemDate = DateTime.parse(dateStr);
+    // Count individual online source options
+    for (String source in _onlineSourceOptions) {
+      if (source != 'All Online') {
+        _filterCounts[source] = filteredList.where((item) {
+          String leadSource = (item['lead_source'] ?? '').toString();
+          return leadSource == source;
+        }).length;
+      }
+    }
 
-            switch (timeFilter) {
-              case 'Today':
-                return itemDate.year == now.year &&
-                    itemDate.month == now.month &&
-                    itemDate.day == now.day;
-              case 'This Week':
-                DateTime startOfWeek = now.subtract(
-                  Duration(days: now.weekday - 1),
-                );
-                return itemDate.isAfter(
-                  startOfWeek.subtract(Duration(days: 1)),
-                );
-              case 'This Month':
-                return itemDate.year == now.year && itemDate.month == now.month;
-              case 'Last 7 Days':
-                DateTime sevenDaysAgo = now.subtract(Duration(days: 7));
-                return itemDate.isAfter(sevenDaysAgo);
-              case 'Last 30 Days':
-                DateTime thirtyDaysAgo = now.subtract(Duration(days: 30));
-                return itemDate.isAfter(thirtyDaysAgo);
-              case 'Last 90 Days':
-                DateTime ninetyDaysAgo = now.subtract(Duration(days: 90));
-                return itemDate.isAfter(ninetyDaysAgo);
-              default:
-                return true;
-            }
-          } catch (e) {
-            return false;
-          }
+    // Count individual other source options
+    for (String source in _otherSourceOptions) {
+      if (source != 'All Others') {
+        _filterCounts[source] = filteredList.where((item) {
+          String leadSource = (item['lead_source'] ?? '').toString();
+          return leadSource == source;
         }).length;
       }
     }
@@ -334,45 +440,42 @@ class _AllLeadsState extends State<AllLeads> {
       }).toList();
     }
 
-    if (_selectedTimeFilter != 'All Time') {
-      filteredList = filteredList.where((item) {
-        String dateStr = item['created_at'] ?? '';
-        if (dateStr.isEmpty) return false;
-
-        try {
-          DateTime itemDate = DateTime.parse(dateStr);
-
-          switch (_selectedTimeFilter) {
-            case 'Today':
-              return itemDate.year == now.year &&
-                  itemDate.month == now.month &&
-                  itemDate.day == now.day;
-            case 'This Week':
-              DateTime startOfWeek = now.subtract(
-                Duration(days: now.weekday - 1),
-              );
-              return itemDate.isAfter(startOfWeek.subtract(Duration(days: 1)));
-            case 'This Month':
-              return itemDate.year == now.year && itemDate.month == now.month;
-            case 'Last 7 Days':
-              DateTime sevenDaysAgo = now.subtract(Duration(days: 7));
-              return itemDate.isAfter(sevenDaysAgo);
-            case 'Last 30 Days':
-              DateTime thirtyDaysAgo = now.subtract(Duration(days: 30));
-              return itemDate.isAfter(thirtyDaysAgo);
-            case 'Last 90 Days':
-              DateTime ninetyDaysAgo = now.subtract(Duration(days: 90));
-              return itemDate.isAfter(ninetyDaysAgo);
-            default:
-              return true;
-          }
-        } catch (e) {
-          return false;
+    // Apply lead source filter (replace time filter logic)
+    if (_selectedLeadSourceCategory != 'All Sources') {
+      if (_selectedLeadSourceCategory == 'Online Sources') {
+        if (_selectedLeadSource != 'All Online' &&
+            _onlineSourceOptions.contains(_selectedLeadSource)) {
+          // Filter by specific online source
+          filteredList = filteredList.where((item) {
+            String leadSource = (item['lead_source'] ?? '').toString();
+            return leadSource == _selectedLeadSource;
+          }).toList();
+        } else {
+          // Filter by all online sources
+          filteredList = filteredList.where((item) {
+            String leadSource = (item['lead_source'] ?? '').toString();
+            return _onlineSourceOptions.skip(1).contains(leadSource);
+          }).toList();
         }
-      }).toList();
+      } else if (_selectedLeadSourceCategory == 'Others') {
+        if (_selectedLeadSource != 'All Others' &&
+            _otherSourceOptions.contains(_selectedLeadSource)) {
+          // Filter by specific other source
+          filteredList = filteredList.where((item) {
+            String leadSource = (item['lead_source'] ?? '').toString();
+            return leadSource == _selectedLeadSource;
+          }).toList();
+        } else {
+          // Filter by all other sources
+          filteredList = filteredList.where((item) {
+            String leadSource = (item['lead_source'] ?? '').toString();
+            return _otherSourceOptions.skip(1).contains(leadSource);
+          }).toList();
+        }
+      }
     }
 
-    // Apply sorting
+    // Apply sorting (keep existing logic)
     switch (_selectedSortBy) {
       case 'Name (A-Z)':
         filteredList.sort((a, b) {
@@ -412,27 +515,196 @@ class _AllLeadsState extends State<AllLeads> {
         break;
     }
 
-    // PATCH 2: Update _hasActiveFilters
+    // Update _hasActiveFilters (replace time filter check with lead source check)
     _hasActiveFilters =
         _selectedSortBy != 'Date Created' ||
         _selectedStatus != 'All' ||
-        _selectedTimeFilter != 'All Time';
+        _selectedLeadSourceCategory != 'All Sources';
 
     setState(() {
       _filteredTasks = filteredList;
     });
   }
+  // void _applyFilters() {
+  //   List<dynamic> filteredList = List.from(_filteredTasks);
+
+  //   // Calculate counts for each filter option
+  //   _filterCounts.clear();
+
+  //   // Count status options
+  //   for (String status in _statusOptions) {
+  //     if (status == 'All') {
+  //       _filterCounts[status] = filteredList.length;
+  //     } else {
+  //       _filterCounts[status] = filteredList.where((item) {
+  //         String itemStatus = (item['status'] ?? 'New').toString();
+  //         return itemStatus.toLowerCase() == status.toLowerCase();
+  //       }).length;
+  //     }
+  //   }
+
+  //   // Count time filter options
+  //   DateTime now = DateTime.now();
+  //   for (String timeFilter in _timeFilterOptions) {
+  //     if (timeFilter == 'All Time') {
+  //       _filterCounts[timeFilter] = filteredList.length;
+  //     } else {
+  //       _filterCounts[timeFilter] = filteredList.where((item) {
+  //         String dateStr = item['created_at'] ?? '';
+  //         if (dateStr.isEmpty) return false;
+
+  //         try {
+  //           DateTime itemDate = DateTime.parse(dateStr);
+
+  //           switch (timeFilter) {
+  //             case 'Today':
+  //               return itemDate.year == now.year &&
+  //                   itemDate.month == now.month &&
+  //                   itemDate.day == now.day;
+  //             case 'This Week':
+  //               DateTime startOfWeek = now.subtract(
+  //                 Duration(days: now.weekday - 1),
+  //               );
+  //               return itemDate.isAfter(
+  //                 startOfWeek.subtract(Duration(days: 1)),
+  //               );
+  //             case 'This Month':
+  //               return itemDate.year == now.year && itemDate.month == now.month;
+  //             case 'Last 7 Days':
+  //               DateTime sevenDaysAgo = now.subtract(Duration(days: 7));
+  //               return itemDate.isAfter(sevenDaysAgo);
+  //             case 'Last 30 Days':
+  //               DateTime thirtyDaysAgo = now.subtract(Duration(days: 30));
+  //               return itemDate.isAfter(thirtyDaysAgo);
+  //             case 'Last 90 Days':
+  //               DateTime ninetyDaysAgo = now.subtract(Duration(days: 90));
+  //               return itemDate.isAfter(ninetyDaysAgo);
+  //             default:
+  //               return true;
+  //           }
+  //         } catch (e) {
+  //           return false;
+  //         }
+  //       }).length;
+  //     }
+  //   }
+
+  //   // Apply actual filters
+  //   if (_selectedStatus != 'All') {
+  //     filteredList = filteredList.where((item) {
+  //       String status = (item['status'] ?? 'New').toString();
+  //       return status.toLowerCase() == _selectedStatus.toLowerCase();
+  //     }).toList();
+  //   }
+
+  //   if (_selectedTimeFilter != 'All Time') {
+  //     filteredList = filteredList.where((item) {
+  //       String dateStr = item['created_at'] ?? '';
+  //       if (dateStr.isEmpty) return false;
+
+  //       try {
+  //         DateTime itemDate = DateTime.parse(dateStr);
+
+  //         switch (_selectedTimeFilter) {
+  //           case 'Today':
+  //             return itemDate.year == now.year &&
+  //                 itemDate.month == now.month &&
+  //                 itemDate.day == now.day;
+  //           case 'This Week':
+  //             DateTime startOfWeek = now.subtract(
+  //               Duration(days: now.weekday - 1),
+  //             );
+  //             return itemDate.isAfter(startOfWeek.subtract(Duration(days: 1)));
+  //           case 'This Month':
+  //             return itemDate.year == now.year && itemDate.month == now.month;
+  //           case 'Last 7 Days':
+  //             DateTime sevenDaysAgo = now.subtract(Duration(days: 7));
+  //             return itemDate.isAfter(sevenDaysAgo);
+  //           case 'Last 30 Days':
+  //             DateTime thirtyDaysAgo = now.subtract(Duration(days: 30));
+  //             return itemDate.isAfter(thirtyDaysAgo);
+  //           case 'Last 90 Days':
+  //             DateTime ninetyDaysAgo = now.subtract(Duration(days: 90));
+  //             return itemDate.isAfter(ninetyDaysAgo);
+  //           default:
+  //             return true;
+  //         }
+  //       } catch (e) {
+  //         return false;
+  //       }
+  //     }).toList();
+  //   }
+
+  //   // Apply sorting
+  //   switch (_selectedSortBy) {
+  //     case 'Name (A-Z)':
+  //       filteredList.sort((a, b) {
+  //         String nameA = (a['lead_name'] ?? '').toString().toLowerCase();
+  //         String nameB = (b['lead_name'] ?? '').toString().toLowerCase();
+  //         return nameA.compareTo(nameB);
+  //       });
+  //       break;
+  //     case 'Name (Z-A)':
+  //       filteredList.sort((a, b) {
+  //         String nameA = (a['lead_name'] ?? '').toString().toLowerCase();
+  //         String nameB = (b['lead_name'] ?? '').toString().toLowerCase();
+  //         return nameB.compareTo(nameA);
+  //       });
+  //       break;
+  //     case 'Recently Updated':
+  //       filteredList.sort((a, b) {
+  //         String dateA = a['updated_at'] ?? a['created_at'] ?? '';
+  //         String dateB = b['updated_at'] ?? b['created_at'] ?? '';
+  //         return dateB.compareTo(dateA);
+  //       });
+  //       break;
+  //     case 'Oldest First':
+  //       filteredList.sort((a, b) {
+  //         String dateA = a['created_at'] ?? '';
+  //         String dateB = b['created_at'] ?? '';
+  //         return dateA.compareTo(dateB);
+  //       });
+  //       break;
+  //     case 'Date Created':
+  //     default:
+  //       filteredList.sort((a, b) {
+  //         String dateA = a['created_at'] ?? '';
+  //         String dateB = b['created_at'] ?? '';
+  //         return dateB.compareTo(dateA);
+  //       });
+  //       break;
+  //   }
+
+  //   // PATCH 2: Update _hasActiveFilters
+  //   _hasActiveFilters =
+  //       _selectedSortBy != 'Date Created' ||
+  //       _selectedStatus != 'All' ||
+  //       _selectedTimeFilter != 'All Time';
+
+  //   setState(() {
+  //     _filteredTasks = filteredList;
+  //   });
+  // }
 
   void _onFilterChanged() {
     _updateFilteredResults();
   }
 
   // PATCH 3: Clear all filters
+  // void _clearAllFilters() {
+  //   setState(() {
+  //     _selectedSortBy = 'Date Created';
+  //     _selectedStatus = 'All';
+  //     _selectedTimeFilter = 'All Time';
+  //   });
+  //   _onFilterChanged();
+  // }
   void _clearAllFilters() {
     setState(() {
       _selectedSortBy = 'Date Created';
       _selectedStatus = 'All';
-      _selectedTimeFilter = 'All Time';
+      _selectedLeadSourceCategory = 'All Sources';
+      _selectedLeadSource = 'All Sources';
     });
     _onFilterChanged();
   }
@@ -564,13 +836,13 @@ class _AllLeadsState extends State<AllLeads> {
     required Function(String?) onChanged,
     required bool isTablet,
   }) {
-    // Decide which value is considered "not selected" (change logic as needed)
+    // Decide which value is considered "not selected"
     String defaultValue = label == 'Sort By'
         ? 'Date Created'
         : label == 'Status'
         ? 'All'
-        : label == 'Time'
-        ? 'All Time'
+        : label == 'Lead Source'
+        ? 'All Sources'
         : options.first;
 
     bool isSelected = value != defaultValue;
@@ -674,6 +946,123 @@ class _AllLeadsState extends State<AllLeads> {
       ),
     );
   }
+  // Widget _buildDropdownFilter({
+  //   required String label,
+  //   required String value,
+  //   required List<String> options,
+  //   required Function(String?) onChanged,
+  //   required bool isTablet,
+  // }) {
+  //   // Decide which value is considered "not selected" (change logic as needed)
+  //   String defaultValue = label == 'Sort By'
+  //       ? 'Date Created'
+  //       : label == 'Status'
+  //       ? 'All'
+  //       : label == 'Time'
+  //       ? 'All Time'
+  //       : options.first;
+
+  //   bool isSelected = value != defaultValue;
+
+  //   return Expanded(
+  //     child: Container(
+  //       margin: EdgeInsets.only(right: isTablet ? 12 : 8),
+  //       decoration: BoxDecoration(
+  //         color: isSelected
+  //             ? AppColors.colorsBlue.withOpacity(0.08)
+  //             : Colors.white,
+  //         borderRadius: BorderRadius.circular(25),
+  //         border: Border.all(
+  //           color: isSelected
+  //               ? AppColors.colorsBlue
+  //               : Colors.grey.withOpacity(0.2),
+  //           width: 2.0,
+  //         ),
+  //       ),
+  //       height: isTablet ? 35 : 31,
+  //       padding: EdgeInsets.symmetric(
+  //         horizontal: isTablet ? 12 : 8,
+  //         vertical: isTablet ? 3 : 2,
+  //       ),
+  //       child: DropdownButtonHideUnderline(
+  //         child: DropdownButton<String>(
+  //           value: value,
+  //           isExpanded: true,
+  //           icon: Icon(
+  //             Icons.keyboard_arrow_down_rounded,
+  //             size: isTablet ? 22 : 20,
+  //             color: isSelected ? AppColors.colorsBlue : Colors.grey[500],
+  //           ),
+  //           style: GoogleFonts.poppins(
+  //             fontSize: isTablet ? 13 : 11,
+  //             color: isSelected ? AppColors.colorsBlue : Colors.grey[700],
+  //             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+  //           ),
+  //           dropdownColor: Colors.white,
+  //           borderRadius: BorderRadius.circular(15),
+  //           elevation: 8,
+  //           menuMaxHeight: 250,
+  //           selectedItemBuilder: (BuildContext context) {
+  //             return options.map<Widget>((String item) {
+  //               bool itemIsSelected = item == value && isSelected;
+  //               return Row(
+  //                 children: [
+  //                   if (itemIsSelected)
+  //                     Container(
+  //                       width: isTablet ? 8 : 7,
+  //                       height: isTablet ? 8 : 7,
+  //                       margin: EdgeInsets.only(
+  //                         right: isTablet ? 6 : 5,
+  //                         left: 2,
+  //                       ),
+  //                       decoration: BoxDecoration(
+  //                         color: AppColors.colorsBlue,
+  //                         shape: BoxShape.circle,
+  //                       ),
+  //                     ),
+  //                   Flexible(
+  //                     child: Text(
+  //                       item,
+  //                       style: GoogleFonts.poppins(
+  //                         fontSize: isTablet ? 15 : 13,
+  //                         color: isSelected
+  //                             ? AppColors.colorsBlue
+  //                             : Colors.grey.shade700,
+  //                         fontWeight: isSelected
+  //                             ? FontWeight.w600
+  //                             : FontWeight.w400,
+  //                       ),
+  //                       overflow: TextOverflow.ellipsis,
+  //                     ),
+  //                   ),
+  //                 ],
+  //               );
+  //             }).toList();
+  //           },
+  //           items: options.map((String option) {
+  //             return DropdownMenuItem<String>(
+  //               value: option,
+  //               child: Text(
+  //                 option,
+  //                 style: GoogleFonts.poppins(
+  //                   fontSize: isTablet ? 15 : 13,
+  //                   color: option == value && isSelected
+  //                       ? AppColors.colorsBlue
+  //                       : Colors.grey.shade700,
+  //                   fontWeight: option == value && isSelected
+  //                       ? FontWeight.w500
+  //                       : FontWeight.w400,
+  //                 ),
+  //                 overflow: TextOverflow.ellipsis,
+  //               ),
+  //             );
+  //           }).toList(),
+  //           onChanged: onChanged,
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   // ---------------------- MAIN BUILD ----------------------
   @override
@@ -801,13 +1190,41 @@ class _AllLeadsState extends State<AllLeads> {
                         isTablet: isTablet,
                       ),
                       SizedBox(width: isTablet ? 12 : 8),
+
+                      // here i want to show them two option online sources and others onclick on the online will show onlineoption and others click show them leadsoruces and now timefile remove no need to use comment the logic
+                      // _buildDropdownFilter(
+                      //   label: 'Time',
+                      //   value: _selectedTimeFilter,
+                      //   options: _timeFilterOptions,
+                      //   onChanged: (value) {
+                      //     setState(() {
+                      //       _selectedTimeFilter = value!;
+                      //     });
+                      //     _onFilterChanged();
+                      //   },
+                      //   isTablet: isTablet,
+                      // ),
                       _buildDropdownFilter(
-                        label: 'Time',
-                        value: _selectedTimeFilter,
-                        options: _timeFilterOptions,
+                        label: 'Lead Source',
+                        value: _getCurrentLeadSourceValue(),
+                        options: _getCurrentLeadSourceOptions(),
                         onChanged: (value) {
                           setState(() {
-                            _selectedTimeFilter = value!;
+                            if (_leadSourceCategoryOptions.contains(value)) {
+                              // Main category selected
+                              _selectedLeadSourceCategory = value!;
+                              _selectedLeadSource = value;
+
+                              // Reset to default subcategory when switching main categories
+                              if (value == 'Online Sources') {
+                                _selectedLeadSource = 'All Online';
+                              } else if (value == 'Others') {
+                                _selectedLeadSource = 'All Others';
+                              }
+                            } else {
+                              // Subcategory selected
+                              _selectedLeadSource = value!;
+                            }
                           });
                           _onFilterChanged();
                         },
@@ -933,7 +1350,7 @@ class _AllLeadsState extends State<AllLeads> {
             brand: item['brand'] ?? '',
             number: item['mobile'] ?? '',
             isFavorite: item['favourite'] ?? false,
-
+            leadSource: item['lead_source'],
             status: item['status'] ?? 'New',
             swipeOffset: swipeOffset,
             fetchDashboardData: () {},
@@ -971,7 +1388,7 @@ class _AllLeadsState extends State<AllLeads> {
 }
 
 class TaskItem extends StatefulWidget {
-  final String name, subject, number, status;
+  final String name, subject, number, status, leadSource;
   final String date;
   final String vehicle;
   final String leadId;
@@ -1005,6 +1422,7 @@ class TaskItem extends StatefulWidget {
     required this.onTap,
     this.fetchTasksData,
     required this.status,
+    required this.leadSource,
   });
 
   @override

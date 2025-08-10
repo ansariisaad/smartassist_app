@@ -297,27 +297,12 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
   }
 
   static Future<Map<String, int>> fetchCallLogs(String mobile) async {
-    const String apiUrl =
-        "https://api.smartassistapp.in/api/leads/call-logs/all";
-    final token = await Storage.getToken();
-
     try {
       final encodedMobile = Uri.encodeComponent(mobile);
+      final result = await LeadsSrv.fetchCalllogs(encodedMobile);
 
-      final response = await http.get(
-        Uri.parse(
-          '$apiUrl?mobile=$encodedMobile',
-        ), // Correct query parameter format
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> jsonResponse = json.decode(response.body);
-        final Map<String, dynamic> data = jsonResponse['data'];
-        print('$apiUrl?mobile=$encodedMobile');
+      if (result['success'] == true) {
+        final Map<String, dynamic> data = result['data'];
         final Map<String, dynamic> categoryCounts = data['category_counts'];
 
         // Update the class variable with the category counts
@@ -326,20 +311,66 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
           'outgoing': categoryCounts['outgoing'] ?? 0,
           'incoming': categoryCounts['incoming'] ?? 0,
           'missed': categoryCounts['missed'] ?? 0,
-          'rejected':
-              categoryCounts['rejected'] ??
-              0, // Added this as it's in your API response
+          'rejected': categoryCounts['rejected'] ?? 0,
         };
+
+        print('Call logs fetched successfully: $_callLogs');
         return _callLogs;
       } else {
-        print('Error: ${response.statusCode}');
-        print('Response body: ${response.body}');
-        throw Exception('Failed to load data: ${response.statusCode}');
+        final errorMessage = result['message'] ?? 'Failed to load call logs';
+        print('Error fetching call logs: $errorMessage');
+        throw Exception('Failed to load call logs: $errorMessage');
       }
     } catch (e) {
-      throw Exception('Error fetching data: $e');
+      print('Error in fetchCallLogs: $e');
+      throw Exception('Error fetching call logs: $e');
     }
   }
+
+  // static Future<Map<String, int>> fetchCallLogs(String mobile) async {
+  //   const String apiUrl =
+  //       "https://api.smartassistapps.in/api/leads/call-logs/all";
+  //   final token = await Storage.getToken();
+
+  //   try {
+  //     final encodedMobile = Uri.encodeComponent(mobile);
+
+  //     final response = await http.get(
+  //       Uri.parse(
+  //         '$apiUrl?mobile=$encodedMobile',
+  //       ), // Correct query parameter format
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+
+  //     if (response.statusCode == 200) {
+  //       final Map<String, dynamic> jsonResponse = json.decode(response.body);
+  //       final Map<String, dynamic> data = jsonResponse['data'];
+  //       print('$apiUrl?mobile=$encodedMobile');
+  //       final Map<String, dynamic> categoryCounts = data['category_counts'];
+
+  //       // Update the class variable with the category counts
+  //       _callLogs = {
+  //         'all': categoryCounts['all'] ?? 0,
+  //         'outgoing': categoryCounts['outgoing'] ?? 0,
+  //         'incoming': categoryCounts['incoming'] ?? 0,
+  //         'missed': categoryCounts['missed'] ?? 0,
+  //         'rejected':
+  //             categoryCounts['rejected'] ??
+  //             0, // Added this as it's in your API response
+  //       };
+  //       return _callLogs;
+  //     } else {
+  //       print('Error: ${response.statusCode}');
+  //       print('Response body: ${response.body}');
+  //       throw Exception('Failed to load data: ${response.statusCode}');
+  //     }
+  //   } catch (e) {
+  //     throw Exception('Error fetching data: $e');
+  //   }
+  // }
 
   List<Map<String, dynamic>> allEvents = [];
   List<Map<String, dynamic>> allTasks = [];
@@ -870,10 +901,6 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? spId = prefs.getString('user_id');
-      final url = Uri.parse(
-        'https://api.smartassistapp.in/api/leads/mark-lost/${widget.leadId}',
-      );
-      final token = await Storage.getToken();
 
       // Create the request body with the selected reason
       final requestBody = {
@@ -887,28 +914,17 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
       print('Submitting lost lead data:');
       print(requestBody);
 
-      final response = await http.put(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: json.encode(requestBody),
+      bool success = await LeadsSrv.updateLost(
+        requestBody,
+        widget.leadId,
+        context,
       );
 
-      // Print the response
-      print('API Response status: ${response.statusCode}');
-      print('API Response body: ${response.body}');
-
-      if (response.statusCode == 200) {
-        final successMessage =
-            json.decode(response.body)['message'] ??
-            'Lead marked as lost successfully';
-
+      if (success) {
         print('Lead marked as lost successfully');
         Get.snackbar(
           'Success',
-          successMessage,
+          'Lead marked as lost successfully',
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );
@@ -916,18 +932,8 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
 
         // Refresh the data after successful submission
         await fetchSingleIdData(widget.leadId);
-      } else {
-        final errorMessage =
-            json.decode(response.body)['message'] ?? 'Unknown error';
-        print('Failed to mark lead as lost');
-        Get.snackbar(
-          'Error',
-          errorMessage,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
-        Navigator.pop(context);
       }
+      // Error handling is already done in the service method
     } catch (e) {
       print('Exception occurred: ${e.toString()}');
       Get.snackbar(
@@ -943,6 +949,88 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
       });
     }
   }
+
+  // Future<void> submitLost(BuildContext context) async {
+  //   setState(() {
+  //     // _isUploading = true;
+  //   });
+
+  //   try {
+  //     SharedPreferences prefs = await SharedPreferences.getInstance();
+  //     String? spId = prefs.getString('user_id');
+  //     final url = Uri.parse(
+  //       'https://api.smartassistapps.in/api/leads/mark-lost/${widget.leadId}',
+  //     );
+  //     final token = await Storage.getToken();
+
+  //     // Create the request body with the selected reason
+  //     final requestBody = {
+  //       'sp_id': spId,
+  //       'lost_remarks': descriptionController.text,
+  //       'lost_reason':
+  //           widget.selectedLostReason, // Use the selected dropdown value
+  //     };
+
+  //     // Print the data to console for debugging
+  //     print('Submitting lost lead data:');
+  //     print(requestBody);
+
+  //     final response = await http.put(
+  //       url,
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'Authorization': 'Bearer $token',
+  //       },
+  //       body: json.encode(requestBody),
+  //     );
+
+  //     // Print the response
+  //     print('API Response status: ${response.statusCode}');
+  //     print('API Response body: ${response.body}');
+
+  //     if (response.statusCode == 200) {
+  //       final successMessage =
+  //           json.decode(response.body)['message'] ??
+  //           'Lead marked as lost successfully';
+
+  //       print('Lead marked as lost successfully');
+  //       Get.snackbar(
+  //         'Success',
+  //         successMessage,
+  //         backgroundColor: Colors.green,
+  //         colorText: Colors.white,
+  //       );
+  //       Navigator.pop(context);
+
+  //       // Refresh the data after successful submission
+  //       await fetchSingleIdData(widget.leadId);
+  //     } else {
+  //       final errorMessage =
+  //           json.decode(response.body)['message'] ?? 'Unknown error';
+  //       print('Failed to mark lead as lost');
+  //       Get.snackbar(
+  //         'Error',
+  //         errorMessage,
+  //         backgroundColor: Colors.red,
+  //         colorText: Colors.white,
+  //       );
+  //       Navigator.pop(context);
+  //     }
+  //   } catch (e) {
+  //     print('Exception occurred: ${e.toString()}');
+  //     Get.snackbar(
+  //       'Error',
+  //       'An error occurred: ${e.toString()}',
+  //       backgroundColor: Colors.red,
+  //       colorText: Colors.white,
+  //     );
+  //     Navigator.pop(context);
+  //   } finally {
+  //     setState(() {
+  //       // _isUploading = false;
+  //     });
+  //   }
+  // }
 
   void toggleFab() {
     setState(() {
@@ -1007,57 +1095,29 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? spId = prefs.getString('user_id');
-      final url = Uri.parse(
-        'https://api.smartassistapp.in/api/leads/convert-to-opp/${widget.leadId}',
-      );
-      final token = await Storage.getToken();
 
       // Create the request body
       final requestBody = {'sp_id': spId};
 
       // Print the data to console for debugging
-      print('Submitting feedback data:');
+      print('Submitting qualify data:');
       print(requestBody);
 
-      final response = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: json.encode(requestBody),
-      );
+      bool success = await LeadsSrv.submitQualify(requestBody, widget.leadId);
 
-      // Print the response
-      print('API Response status: ${response.statusCode}');
-      print('API Response body: ${response.body}');
-
-      if (response.statusCode == 201) {
-        final errorMessage =
-            json.decode(response.body)['message'] ?? 'Unknown error';
+      if (success) {
         // Success handling
-        print('Feedback submitted successfully');
+        print('Lead qualified successfully');
         Get.snackbar(
           'Success',
-          errorMessage,
+          'Lead converted to opportunity successfully',
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );
         Navigator.pop(context); // Dismiss the dialog after success
         await fetchSingleIdData(widget.leadId);
-      } else {
-        // Error handling
-        final errorMessage =
-            json.decode(response.body)['message'] ?? 'Unknown error';
-        print('Failed to submit feedback');
-        Get.snackbar(
-          'Error',
-          errorMessage, // Show the backend error message
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
-        Navigator.pop(context); // Dismiss the dialog on error
       }
+      // Error handling is already done in the service method
     } catch (e) {
       // Exception handling
       print('Exception occurred: ${e.toString()}');
@@ -1074,6 +1134,82 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
       });
     }
   }
+
+  // Future<void> submitQualify(BuildContext context) async {
+  //   setState(() {
+  //     // _isUploading = true; // If you are showing any loading indicator
+  //   });
+
+  //   try {
+  //     SharedPreferences prefs = await SharedPreferences.getInstance();
+  //     String? spId = prefs.getString('user_id');
+  //     final url = Uri.parse(
+  //       'https://api.smartassistapps.in/api/leads/convert-to-opp/${widget.leadId}',
+  //     );
+  //     final token = await Storage.getToken();
+
+  //     // Create the request body
+  //     final requestBody = {'sp_id': spId};
+
+  //     // Print the data to console for debugging
+  //     print('Submitting feedback data:');
+  //     print(requestBody);
+
+  //     final response = await http.post(
+  //       url,
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'Authorization': 'Bearer $token',
+  //       },
+  //       body: json.encode(requestBody),
+  //     );
+
+  //     // Print the response
+  //     print('API Response status: ${response.statusCode}');
+  //     print('API Response body: ${response.body}');
+
+  //     if (response.statusCode == 201) {
+  //       final errorMessage =
+  //           json.decode(response.body)['message'] ?? 'Unknown error';
+  //       // Success handling
+  //       print('Feedback submitted successfully');
+  //       Get.snackbar(
+  //         'Success',
+  //         errorMessage,
+  //         backgroundColor: Colors.green,
+  //         colorText: Colors.white,
+  //       );
+  //       Navigator.pop(context); // Dismiss the dialog after success
+  //       await fetchSingleIdData(widget.leadId);
+  //     } else {
+  //       // Error handling
+  //       final errorMessage =
+  //           json.decode(response.body)['message'] ?? 'Unknown error';
+  //       print('Failed to submit feedback');
+  //       Get.snackbar(
+  //         'Error',
+  //         errorMessage, // Show the backend error message
+  //         backgroundColor: Colors.red,
+  //         colorText: Colors.white,
+  //       );
+  //       Navigator.pop(context); // Dismiss the dialog on error
+  //     }
+  //   } catch (e) {
+  //     // Exception handling
+  //     print('Exception occurred: ${e.toString()}');
+  //     Get.snackbar(
+  //       'Error',
+  //       'An error occurred: ${e.toString()}',
+  //       backgroundColor: Colors.red,
+  //       colorText: Colors.white,
+  //     );
+  //     Navigator.pop(context); // Dismiss the dialog on exception
+  //   } finally {
+  //     setState(() {
+  //       // _isUploading = false; // Reset loading state
+  //     });
+  //   }
+  // }
 
   void handleQualifyAction() {
     _showSkipDialog();

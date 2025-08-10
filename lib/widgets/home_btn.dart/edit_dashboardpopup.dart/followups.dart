@@ -136,15 +136,15 @@ class _FollowupsEditState extends State<FollowupsEdit> {
       _isLoadingSearch = true;
     });
 
-    final token = await Storage.getToken();
+    // final token = await Storage.getToken();
 
     try {
       final taskData = await LeadsSrv.getFollowupsById(taskId);
+      final String comment = taskData['data']['remarks'] ?? '';
+      final String status = taskData['data']['status'] ?? '';
+      final String deferredReason = taskData['data']['deferred_reason'] ?? '';
 
       setState(() {
-        final String comment = taskData['data']['remarks'] ?? '';
-        final String status = taskData['data']['status'] ?? '';
-        final String deferredReason = taskData['data']['deferred_reason'] ?? '';
         descriptionController.text = comment;
         _initialRemarks = comment;
 
@@ -179,7 +179,7 @@ class _FollowupsEditState extends State<FollowupsEdit> {
 
   //   try {
   //     final response = await http.get(
-  //       Uri.parse('https://api.smartassistapp.in/api/tasks/${widget.taskId}'),
+  //       Uri.parse('https://api.smartassistapps.in/api/tasks/${widget.taskId}'),
   //       headers: {
   //         'Authorization': 'Bearer $token',
   //         'Content-Type': 'application/json',

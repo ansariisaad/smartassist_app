@@ -7,6 +7,7 @@ import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Calendar/tasks/task_appointment_pop.dart';
 import 'package:smartassist/pages/Calendar/tasks/task_followups_pop.dart';
 import 'package:smartassist/pages/navbar_page/lead_list.dart';
+import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/storage.dart';
 
 class AddTaskPopup extends StatefulWidget {
@@ -58,26 +59,28 @@ class _AddTaskPopupState extends State<AddTaskPopup> {
   }
 
   Future<void> fetchLeadsData() async {
-    const String apiUrl = "https://api.smartassistapp.in/api/leads/all";
+    // const String apiUrl = "https://api.smartassistapps.in/api/leads/all";
 
-    final token = await Storage.getToken();
-    if (token == null) {
-      print("No token found. Please login.");
-      return;
-    }
+    // final token = await Storage.getToken();
+    // if (token == null) {
+    //   print("No token found. Please login.");
+    //   return;
+    // }
 
     try {
       setState(() {
         isLoading = true;
       });
 
-      final response = await http.get(
-        Uri.parse(apiUrl),
-        headers: {'Authorization': 'Bearer $token'},
-      );
+      // final response = await http.get(
+      //   Uri.parse(apiUrl),
+      //   headers: {'Authorization': 'Bearer $token'},
+      // );
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+      final data = await LeadsSrv.fetchLead();
+
+      if (data != null) {
+        // final data = json.decode(data );
         final rows = data['data']['rows'] as List;
 
         print("Extracted Rows: $rows"); // Debug: Ensure rows are extracted
@@ -104,8 +107,8 @@ class _AddTaskPopupState extends State<AddTaskPopup> {
           "Dropdown Items: $dropdownItems",
         ); // Debug: Ensure dropdown is populated
       } else {
-        print("Failed with status code: ${response.statusCode}");
-        print("Response body: ${response.body}");
+        // print("Failed with status code: ${response.statusCode}");
+        // print("Response body: ${response.body}");
       }
     } catch (e) {
       print("Error fetching dropdown data: $e");

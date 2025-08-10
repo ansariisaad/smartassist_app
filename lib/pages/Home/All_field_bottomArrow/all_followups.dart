@@ -1,10 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:smartassist/config/component/color/colors.dart';
+import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
-import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/followups/all_followups.dart';
 import 'package:smartassist/widgets/followups/overdue_followup.dart';
 import 'package:smartassist/widgets/followups/upcoming_row.dart';
@@ -14,7 +12,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smartassist/widgets/reusable/globle_speechtotext.dart';
 import 'package:smartassist/widgets/reusable/skeleton_card.dart';
-import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class AddFollowups extends StatefulWidget {
   final Future<void> Function() refreshDashboard;
@@ -62,52 +59,6 @@ class _AddFollowupsState extends State<AddFollowups>
     _searchController.dispose();
     super.dispose();
   }
-
-  // Initialize speech recognition
-  // void _initSpeech() async {
-  //   bool available = await _speech.initialize(
-  //     onStatus: (status) {
-  //       if (status == 'done') {
-  //         setState(() {
-  //           _isListening = false;
-  //         });
-  //       }
-  //     },
-  //     onError: (errorNotification) {
-  //       setState(() {
-  //         _isListening = false;
-  //       });
-  //       print('Speech recognition error: ${errorNotification.errorMsg}');
-  //     },
-  //   );
-  // }
-
-  // // Toggle listening
-  // void _toggleListening(TextEditingController controller) async {
-  //   if (_isListening) {
-  //     _speech.stop();
-  //     setState(() {
-  //       _isListening = false;
-  //     });
-  //   } else {
-  //     setState(() {
-  //       _isListening = true;
-  //     });
-  //     await _speech.listen(
-  //       onResult: (result) {
-  //         setState(() {
-  //           controller.text = result.recognizedWords;
-  //           _onSearchChanged(); // Trigger search filtering
-  //         });
-  //       },
-  //       listenFor: Duration(seconds: 30),
-  //       pauseFor: Duration(seconds: 5),
-  //       partialResults: true,
-  //       cancelOnError: true,
-  //       listenMode: stt.ListenMode.confirmation,
-  //     );
-  //   }
-  // }
 
   // Responsive methods
   bool get _isTablet => MediaQuery.of(context).size.width > 768;
@@ -198,42 +149,53 @@ class _AddFollowupsState extends State<AddFollowups>
 
   Future<void> fetchTasks() async {
     setState(() => _isLoading = true);
+
     try {
-      final token = await Storage.getToken();
-      const String apiUrl = "https://api.smartassistapp.in/api/tasks/all-tasks";
+      final result = await LeadsSrv.fetchAllTasks();
 
-      final response = await http.get(
-        Uri.parse(apiUrl),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
+      // ✅ FIXED: Check for success and handle errors properly
+      if (result['success'] == true) {
+        final data = result['data'];
 
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
         setState(() {
-          count = data['data']['overdueWeekTasks']?['count'] ?? 0;
-          upComingCount = data['data']['upcomingWeekTasks']?['count'] ?? 0;
-          allCount = data['data']['allTasks']?['count'] ?? 0;
-          _originalAllTasks = data['data']['allTasks']?['rows'] ?? [];
-          _originalUpcomingTasks =
-              data['data']['upcomingWeekTasks']?['rows'] ?? [];
-          _originalOverdueTasks =
-              data['data']['overdueWeekTasks']?['rows'] ?? [];
+          count = data['overdueWeekTasks']?['count'] ?? 0;
+          upComingCount = data['upcomingWeekTasks']?['count'] ?? 0;
+          allCount = data['allTasks']?['count'] ?? 0;
+
+          _originalAllTasks = data['allTasks']?['rows'] ?? [];
+          _originalUpcomingTasks = data['upcomingWeekTasks']?['rows'] ?? [];
+          _originalOverdueTasks = data['overdueWeekTasks']?['rows'] ?? [];
+
           _filteredAllTasks = List.from(_originalAllTasks);
           _filteredUpcomingTasks = List.from(_originalUpcomingTasks);
           _filteredOverdueTasks = List.from(_originalOverdueTasks);
+
           _isLoading = false;
         });
+
+        print('✅ Tasks loaded successfully');
+        print('📊 All: $allCount, Upcoming: $upComingCount, Overdue: $count');
       } else {
+        // Handle API error
         setState(() => _isLoading = false);
-        showErrorMessage(context, message: 'Failed to fetch follow-ups.');
+
+        final errorMessage = result['message'] ?? 'Failed to fetch tasks';
+        print('❌ Failed to fetch tasks: $errorMessage');
+
+        if (mounted) {
+          showErrorMessage(context, message: errorMessage);
+        }
       }
     } catch (e) {
+      // Handle unexpected errors
+      print('❌ Error in fetchTasks: $e');
+
       if (mounted) {
         setState(() => _isLoading = false);
-        showErrorMessage(context, message: 'Error fetching follow-ups.');
+        showErrorMessage(
+          context,
+          message: 'Error fetching tasks. Please try again.',
+        );
       }
     }
   }
@@ -263,20 +225,6 @@ class _AddFollowupsState extends State<AddFollowups>
     });
   }
 
-  // bool _matchesSearchCriteria(dynamic item, String searchQuery) {
-  //   String name = (item['lead_name'] ?? item['name'] ?? '')
-  //       .toString()
-  //       .toLowerCase();
-  //   String email = (item['email'] ?? '').toString().toLowerCase();
-  //   String phone = (item['mobile'] ?? '').toString().toLowerCase();
-  //   String subject = (item['subject'] ?? '').toString().toLowerCase();
-
-  //   return name.contains(searchQuery) ||
-  //       email.contains(searchQuery) ||
-  //       phone.contains(searchQuery) ||
-  //       subject.contains(searchQuery);
-  // }
-
   bool _matchesSearchCriteria(dynamic item, String searchQuery) {
     String name = (item['lead_name'] ?? item['name'] ?? '')
         .toString()
@@ -302,26 +250,6 @@ class _AddFollowupsState extends State<AddFollowups>
       }
     });
   }
-
-  // void _onSearchChanged() {
-  //   final newQuery = _searchController.text.trim();
-  //   if (newQuery == _query) return;
-
-  //   _query = newQuery;
-
-  //   // Cancel previous timer
-  //   _searchDebounceTimer?.cancel();
-
-  //   // Perform local search immediately
-  //   _performLocalSearch(_query);
-
-  //   // Debounce for consistency
-  //   _searchDebounceTimer = Timer(const Duration(milliseconds: 500), () {
-  //     if (_query == _searchController.text.trim() && mounted) {
-  //       _performLocalSearch(_query);
-  //     }
-  //   });
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -520,7 +448,7 @@ class _AddFollowupsState extends State<AddFollowups>
         return _filteredAllTasks.isEmpty
             ? Center(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  padding: const EdgeInsets.only(top: 0),
                   child: Text(
                     _isSearching
                         ? "No matching follow-ups found"

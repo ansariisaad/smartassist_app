@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
+import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'dart:convert';
 import 'package:table_calendar/table_calendar.dart';
@@ -53,7 +54,7 @@ class _SlotCalendarState extends State<SlotCalendar> {
     _internalController = widget.controller ?? TextEditingController();
     // Only fetch if vehicleId is valid
     if (_isValidVehicleId(widget.vehicleId)) {
-      _fetchBookedSlots();
+      _fetchBookedSlots(widget.vehicleId);
     }
     print('Initial vehicleId: ${widget.vehicleId}');
   }
@@ -68,7 +69,7 @@ class _SlotCalendarState extends State<SlotCalendar> {
       );
 
       if (_isValidVehicleId(widget.vehicleId)) {
-        _fetchBookedSlots();
+        _fetchBookedSlots(widget.vehicleId);
       } else {
         // Clear booked slots if vehicleId becomes invalid
         setState(() {
@@ -98,7 +99,7 @@ class _SlotCalendarState extends State<SlotCalendar> {
         vehicleId.toLowerCase() != "null";
   }
 
-  Future<void> _fetchBookedSlots() async {
+  Future<void> _fetchBookedSlots(String vehicleId) async {
     if (!_isValidVehicleId(widget.vehicleId)) {
       print('Invalid vehicleId, skipping API call: ${widget.vehicleId}');
       return;
@@ -112,60 +113,40 @@ class _SlotCalendarState extends State<SlotCalendar> {
     final token = await Storage.getToken();
 
     try {
-      final url =
-          'https://api.smartassistapp.in/api/slots/${widget.vehicleId}/slots/all';
-      print('Fetching booked slots from: $url');
+      // final url =
+      //     'https://api.smartassistapps.in/api/slots/${widget.vehicleId}/slots/all';
+      // print('Fetching booked slots from: $url');
 
-      final response = await http.get(
-        Uri.parse(url),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
+      // final response = await http.get(
+      //   Uri.parse(url),
+      //   headers: {
+      //     'Authorization': 'Bearer $token',
+      //     'Content-Type': 'application/json',
+      //   },
+      // );
 
-      print('Response status code: ${response.statusCode}');
-      print('Response body: ${response.body}');
+      // print('Response status code: ${response.statusCode}');
+      // print('Response body: ${response.body}');
+      final data = await LeadsSrv.fetchSlot(vehicleId);
+      // final data = jsonDecode(data);
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-
-        // Check if data structure is as expected
-        if (data != null && data['data'] != null) {
-          setState(() {
-            bookedSlots = List<Map<String, String>>.from(
-              data['data'].map(
-                (slot) => {
-                  'start_time': slot['start_time_slot']?.toString() ?? '',
-                  'end_time': slot['end_time_slot']?.toString() ?? '',
-                  'date': slot['date_of_booking']?.toString() ?? '',
-                },
-              ),
-            );
-            _isLoadingSlots = false;
-          });
-          print('Successfully loaded ${bookedSlots.length} booked slots');
-        } else {
-          throw Exception('Invalid response structure');
-        }
+      // Check if data structure is as expected
+      if (data != null && data['data'] != null) {
+        setState(() {
+          bookedSlots = List<Map<String, String>>.from(
+            data['data'].map(
+              (slot) => {
+                'start_time': slot['start_time_slot']?.toString() ?? '',
+                'end_time': slot['end_time_slot']?.toString() ?? '',
+                'date': slot['date_of_booking']?.toString() ?? '',
+              },
+            ),
+          );
+          _isLoadingSlots = false;
+        });
+        print('Successfully loaded ${bookedSlots.length} booked slots');
       } else {
-        // Handle different HTTP status codes
-        String errorMessage;
-        switch (response.statusCode) {
-          case 404:
-            errorMessage = 'Vehicle not found';
-            break;
-          case 401:
-            errorMessage = 'Unauthorized access';
-            break;
-          case 500:
-            errorMessage = 'Server error';
-            break;
-          default:
-            errorMessage =
-                'Failed to load booked slots (${response.statusCode})';
-        }
-        throw Exception(errorMessage);
+        throw Exception('Invalid response structure');
       }
     } catch (e) {
       print('Error fetching booked slots: $e');
@@ -1055,7 +1036,7 @@ class _CalenderWidgetState extends State<CalenderWidget> {
 
 //     try {
 //       final url =
-//           'https://api.smartassistapp.in/api/slots/${widget.vehicleId}/slots/all';
+//           'https://api.smartassistapps.in/api/slots/${widget.vehicleId}/slots/all';
 //       print('Fetching booked slots from: $url');
 
 //       final response = await http.get(

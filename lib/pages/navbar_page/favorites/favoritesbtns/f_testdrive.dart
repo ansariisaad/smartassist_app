@@ -8,6 +8,7 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
 import 'package:smartassist/services/api_srv.dart';
+import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/testdrive.dart';
 import 'package:smartassist/widgets/reusable/skeleton_card.dart';
@@ -51,7 +52,6 @@ class _FTestdriveState extends State<FTestdrive> {
   }
 
   // Alternative simpler approach - replace your _toggleFavorite method:
-
   Future<void> _toggleFavorite(String eventId, int index) async {
     final token = await Storage.getToken();
     try {
@@ -68,20 +68,9 @@ class _FTestdriveState extends State<FTestdrive> {
 
       bool newFavoriteStatus = !currentStatus;
 
-      final response = await http.put(
-        Uri.parse(
-          'https://api.smartassistapp.in/api/favourites/mark-fav/event/$eventId',
-        ),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
+      final success = await LeadsSrv.favoriteTestdrive(eventId: eventId);
 
-      if (response.statusCode == 200) {
-        // Parse the response to get the updated favorite status
-        final responseData = json.decode(response.body);
-
+      if (success) {
         // Update the task in both lists if it exists
         setState(() {
           // Update in upcoming tasks
@@ -106,12 +95,73 @@ class _FTestdriveState extends State<FTestdrive> {
         print('overdueTasks length: ${overdueTasks.length}');
         await fetchTasksData();
       } else {
-        print('❌ Failed to toggle favorite: ${response.statusCode}');
+        print('❌ Failed to toggle favorite: ${eventId}');
       }
     } catch (e) {
       print('❌ Error toggling favorite: $e');
     }
   }
+
+  // Future<void> _toggleFavorite(String eventId, int index) async {
+  //   final token = await Storage.getToken();
+  //   try {
+  //     // Find the current favorite status by searching for the event
+  //     bool currentStatus = false;
+
+  //     // Search in both lists to find the current status
+  //     for (var task in [...upcomingTasks, ...overdueTasks]) {
+  //       if (task['event_id'] == eventId) {
+  //         currentStatus = task['favourite'] ?? false;
+  //         break;
+  //       }
+  //     }
+
+  //     bool newFavoriteStatus = !currentStatus;
+
+  //     final response = await http.put(
+  //       Uri.parse(
+  //         'https://api.smartassistapps.in/api/favourites/mark-fav/event/$eventId',
+  //       ),
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+
+  //     if (response.statusCode == 200) {
+  //       // Parse the response to get the updated favorite status
+  //       final responseData = json.decode(response.body);
+
+  //       // Update the task in both lists if it exists
+  //       setState(() {
+  //         // Update in upcoming tasks
+  //         for (int i = 0; i < upcomingTasks.length; i++) {
+  //           if (upcomingTasks[i]['event_id'] == eventId) {
+  //             upcomingTasks[i]['favourite'] = newFavoriteStatus;
+  //             break;
+  //           }
+  //         }
+
+  //         // Update in overdue tasks
+  //         for (int i = 0; i < overdueTasks.length; i++) {
+  //           if (overdueTasks[i]['event_id'] == eventId) {
+  //             overdueTasks[i]['favourite'] = newFavoriteStatus;
+  //             break;
+  //           }
+  //         }
+  //       });
+
+  //       print('✅ Favorite toggled successfully');
+  //       print('upcomingTasks length: ${upcomingTasks.length}');
+  //       print('overdueTasks length: ${overdueTasks.length}');
+  //       await fetchTasksData();
+  //     } else {
+  //       print('❌ Failed to toggle favorite: ${response.statusCode}');
+  //     }
+  //   } catch (e) {
+  //     print('❌ Error toggling favorite: $e');
+  //   }
+  // }
 
   void _handleCall(dynamic item) {
     print("Call action triggered for ${item['name']}");
@@ -125,36 +175,77 @@ class _FTestdriveState extends State<FTestdrive> {
   }
 
   Future<void> fetchTasksData() async {
-    final token = await Storage.getToken();
+    // final token = await Storage.getToken();
     try {
-      final response = await http.get(
-        Uri.parse(
-          'https://api.smartassistapp.in/api/favourites/events/test-drives/all',
-        ),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
+      // final response = await http.get(
+      //   Uri.parse(
+      //     'https://api.smartassistapps.in/api/favourites/events/test-drives/all',
+      //   ),
+      //   headers: {
+      //     'Authorization': 'Bearer $token',
+      //     'Content-Type': 'application/json',
+      //   },
+      // );
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+      final result = await LeadsSrv.fetchFavTestdrive();
+
+      if (result['success'] == true) {
+        // final data = json.decode(response.body);
+        final data = result['data'];
         setState(() {
-          upcomingTasks = data['data']['upcomingDrives']['rows'] ?? [];
-          overdueTasks = data['data']['overdueDrives']['rows'] ?? [];
+          upcomingTasks = data['upcomingDrives']['rows'] ?? [];
+          overdueTasks = data['overdueDrives']['rows'] ?? [];
           isLoading = false;
           print('this is from FOppointment ${Uri.parse}');
         });
       } else {
-        print("Failed to load data: ${response.statusCode}");
-        print('this is the api appoinment${Uri}');
+        // print("Failed to load data: ${response.statusCode}");
+        // print('this is the api appoinment${Uri}');
         setState(() => isLoading = false);
+        final errorMessage = result['message'] ?? 'Failed to fetch tasks';
+        print('❌ Failed to fetch tasks: $errorMessage');
+
+        if (mounted) {
+          showErrorMessage(context, message: errorMessage);
+        }
       }
     } catch (e) {
       print("Error fetching data: $e");
       setState(() => isLoading = false);
     }
   }
+
+  // Future<void> fetchTasksData() async {
+  //   final token = await Storage.getToken();
+  //   try {
+  //     final response = await http.get(
+  //       Uri.parse(
+  //         'https://api.smartassistapps.in/api/favourites/events/test-drives/all',
+  //       ),
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+
+  //     if (response.statusCode == 200) {
+  //       final data = json.decode(response.body);
+  //       setState(() {
+  //         upcomingTasks = data['data']['upcomingDrives']['rows'] ?? [];
+  //         overdueTasks = data['data']['overdueDrives']['rows'] ?? [];
+  //         isLoading = false;
+  //         print('this is from FOppointment ${Uri.parse}');
+  //       });
+  //     } else {
+  //       print("Failed to load data: ${response.statusCode}");
+  //       print('this is the api appoinment${Uri}');
+  //       setState(() => isLoading = false);
+  //     }
+  //   } catch (e) {
+  //     print("Error fetching data: $e");
+  //     setState(() => isLoading = false);
+  //   }
+  // }
 
   Future<void> _getOtp(String eventId) async {
     final success = await LeadsSrv.getOtp(eventId: eventId);

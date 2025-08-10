@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
+import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
@@ -68,7 +69,7 @@ class _TestdriveState extends State<Testdrive> {
   @override
   void initState() {
     super.initState();
-    _fetchDataId();
+    _fetchDataId(widget.eventId);
     _speech = stt.SpeechToText();
     _initSpeech();
     // Add listeners for real-time change detection
@@ -142,52 +143,40 @@ class _TestdriveState extends State<Testdrive> {
     }
   }
 
-  Future<void> _fetchDataId() async {
+  Future<void> _fetchDataId(String eventId) async {
     setState(() {
       _isLoadingSearch = true;
     });
 
-    final token = await Storage.getToken();
-
     try {
-      final response = await http.get(
-        Uri.parse('https://api.smartassistapp.in/api/events/${widget.eventId}'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
+      final data = await LeadsSrv.getTestdriveById(eventId);
 
-      print(response.body);
+      // final Map<String, dynamic> data = json.decode(data.toString());
+      final String comment = data['data']['remarks'] ?? '';
+      final String status = data['data']['status'] ?? '';
+      final String location = data['data']['location'] ?? '';
+      final String noShowReason = data['data']['no_show_reason'] ?? '';
 
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
-        final String comment = data['data']['remarks'] ?? '';
-        final String status = data['data']['status'] ?? '';
-        final String location = data['data']['location'] ?? '';
-        final String noShowReason = data['data']['no_show_reason'] ?? '';
+      setState(() {
+        descriptionController.text = comment;
+        _initialRemarks = comment;
+        _locationController.text = location;
+        _initialLocation = location;
 
-        setState(() {
-          descriptionController.text = comment;
-          _initialRemarks = comment;
-          _locationController.text = location;
-          _initialLocation = location;
+        // Set dropdown selected value if it matches one of the items
+        if (items.contains(status)) {
+          selectedValue = status;
+          _initialStatus = status;
+        }
 
-          // Set dropdown selected value if it matches one of the items
-          if (items.contains(status)) {
-            selectedValue = status;
-            _initialStatus = status;
-          }
+        // Set no show reason if status is No Show
+        if (status == 'No Show' && noShowReasons.contains(noShowReason)) {
+          selectedNoShowReason = noShowReason;
+          _initialNoShowReason = noShowReason;
+        }
 
-          // Set no show reason if status is No Show
-          if (status == 'No Show' && noShowReasons.contains(noShowReason)) {
-            selectedNoShowReason = noShowReason;
-            _initialNoShowReason = noShowReason;
-          }
-
-          _checkIfFormIsComplete();
-        });
-      }
+        _checkIfFormIsComplete();
+      });
     } catch (e) {
       showErrorMessage(context, message: 'Something went wrong..!');
     } finally {
@@ -196,6 +185,61 @@ class _TestdriveState extends State<Testdrive> {
       });
     }
   }
+
+  // Future<void> _fetchDataId() async {
+  //   setState(() {
+  //     _isLoadingSearch = true;
+  //   });
+
+  //   final token = await Storage.getToken();
+
+  //   try {
+  //     final response = await http.get(
+  //       Uri.parse('https://api.smartassistapps.in/api/events/${widget.eventId}'),
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+
+  //     print(response.body);
+
+  //     if (response.statusCode == 200) {
+  //       final Map<String, dynamic> data = json.decode(response.body);
+  //       final String comment = data['data']['remarks'] ?? '';
+  //       final String status = data['data']['status'] ?? '';
+  //       final String location = data['data']['location'] ?? '';
+  //       final String noShowReason = data['data']['no_show_reason'] ?? '';
+
+  //       setState(() {
+  //         descriptionController.text = comment;
+  //         _initialRemarks = comment;
+  //         _locationController.text = location;
+  //         _initialLocation = location;
+
+  //         // Set dropdown selected value if it matches one of the items
+  //         if (items.contains(status)) {
+  //           selectedValue = status;
+  //           _initialStatus = status;
+  //         }
+
+  //         // Set no show reason if status is No Show
+  //         if (status == 'No Show' && noShowReasons.contains(noShowReason)) {
+  //           selectedNoShowReason = noShowReason;
+  //           _initialNoShowReason = noShowReason;
+  //         }
+
+  //         _checkIfFormIsComplete();
+  //       });
+  //     }
+  //   } catch (e) {
+  //     showErrorMessage(context, message: 'Something went wrong..!');
+  //   } finally {
+  //     setState(() {
+  //       _isLoadingSearch = false;
+  //     });
+  //   }
+  // }
 
   bool get _hasRemarksError => descriptionController.text.trim().isEmpty;
   bool get _hasLocationError => _locationController.text.trim().isEmpty;
@@ -298,32 +342,40 @@ class _TestdriveState extends State<Testdrive> {
     print('Sending PUT request body: ${jsonEncode(newTaskForLead)}');
 
     try {
-      final response = await http.put(
-        Uri.parse(
-          'https://api.smartassistapp.in/api/events/update/${widget.eventId}',
-        ),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(newTaskForLead),
+      // final response = await http.put(
+      //   Uri.parse(
+      //     'https://api.smartassistapps.in/api/events/update/${widget.eventId}',
+      //   ),
+      //   headers: {
+      //     'Authorization': 'Bearer $token',
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: jsonEncode(newTaskForLead),
+      // );
+
+      bool success = await LeadsSrv.updateTestdrive(
+        newTaskForLead,
+        widget.eventId,
+        context,
       );
 
       // 👇 Log response status and body
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
+      print('Response body: ${success.toString()}');
+      // print('Response body: ${response.body}');
 
-      if (response.statusCode == 200) {
-        print(response.body);
+      if (success != null) {
+        // print(response.body);
         Navigator.pop(context, true);
         showSuccessMessage(context, message: 'Test drive updated successfully');
         widget.onFormSubmit();
       } else {
-        final Map<String, dynamic> responseData = json.decode(response.body);
+        final Map<String, dynamic> responseData = json.decode(
+          success.toString(),
+        );
         String message =
             responseData['message'] ?? 'Submission failed. Try again.';
         showErrorMessage(context, message: message);
-        print(response.body);
+        // print(response.body);
       }
     } catch (e) {
       showErrorMessage(
@@ -333,6 +385,68 @@ class _TestdriveState extends State<Testdrive> {
       print('Error during PUT request: $e');
     }
   }
+
+  // Future<void> submitForm() async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   String? spId = prefs.getString('user_id');
+  //   final token = await Storage.getToken();
+
+  //   if (spId == null) {
+  //     showErrorMessage(
+  //       context,
+  //       message: 'User ID not found. Please log in again.',
+  //     );
+  //     return;
+  //   }
+
+  //   final newTaskForLead = {
+  //     'remarks': descriptionController.text,
+  //     'status': selectedValue,
+  //     'location': _locationController.text,
+  //     'sp_id': spId,
+  //     if (selectedValue == 'No Show' && selectedNoShowReason != null)
+  //       'no_show_reason': selectedNoShowReason,
+  //   };
+
+  //   // 👇 Print the body you're about to send
+  //   print('Sending PUT request body: ${jsonEncode(newTaskForLead)}');
+
+  //   try {
+  //     final response = await http.put(
+  //       Uri.parse(
+  //         'https://api.smartassistapps.in/api/events/update/${widget.eventId}',
+  //       ),
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: jsonEncode(newTaskForLead),
+  //     );
+
+  //     // 👇 Log response status and body
+  //     print('Response status: ${response.statusCode}');
+  //     print('Response body: ${response.body}');
+
+  //     if (response.statusCode == 200) {
+  //       print(response.body);
+  //       Navigator.pop(context, true);
+  //       showSuccessMessage(context, message: 'Test drive updated successfully');
+  //       widget.onFormSubmit();
+  //     } else {
+  //       final Map<String, dynamic> responseData = json.decode(response.body);
+  //       String message =
+  //           responseData['message'] ?? 'Submission failed. Try again.';
+  //       showErrorMessage(context, message: message);
+  //       print(response.body);
+  //     }
+  //   } catch (e) {
+  //     showErrorMessage(
+  //       context,
+  //       message: 'Something went wrong. Please try again.',
+  //     );
+  //     print('Error during PUT request: $e');
+  //   }
+  // }
 
   Widget _buildTextField({
     required TextEditingController controller,
@@ -957,7 +1071,7 @@ class _TestdriveState extends State<Testdrive> {
 
 //     try {
 //       final response = await http.get(
-//         Uri.parse('https://api.smartassistapp.in/api/events/${widget.eventId}'),
+//         Uri.parse('https://api.smartassistapps.in/api/events/${widget.eventId}'),
 //         headers: {
 //           'Authorization': 'Bearer $token',
 //           'Content-Type': 'application/json',
@@ -1053,7 +1167,7 @@ class _TestdriveState extends State<Testdrive> {
 //     try {
 //       final response = await http.put(
 //         Uri.parse(
-//           'https://api.smartassistapp.in/api/events/update/${widget.eventId}',
+//           'https://api.smartassistapps.in/api/events/update/${widget.eventId}',
 //         ),
 //         headers: {
 //           'Authorization': 'Bearer $token',

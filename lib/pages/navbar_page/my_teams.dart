@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math' as math;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -14,6 +16,8 @@ import 'package:smartassist/config/getX/fab.controller.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
 import 'package:smartassist/pages/Home/single_details_pages/teams_enquiryIds.dart';
 import 'package:smartassist/pages/navbar_page/call_analytics.dart';
+import 'package:smartassist/services/api_srv.dart';
+import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/team_calllog_userid.dart';
 
@@ -268,82 +272,141 @@ class _MyTeamsState extends State<MyTeams> {
         isLoading = true;
       });
 
-      final token = await Storage.getToken();
-
-      String periodParam = '';
-      switch (selectedTimeRange) {
-        case '1D':
-          periodParam = 'DAY'; // REMOVE the '?type=' part
-          break;
-        case '1W':
-          periodParam = 'WEEK';
-          break;
-        case '1M':
-          periodParam = 'MTD';
-          break;
-        case '1Q':
-          periodParam = 'QTD';
-          break;
-        case '1Y':
-          periodParam = 'YTD';
-          break;
-        default:
-          periodParam = 'DAY';
-      }
-
-      final Map<String, String> queryParams = {
-        'type': periodParam, // CHANGE THIS LINE
-      };
-
-      // Add userId to query parameters if it's available
-      if (_selectedUserId.isNotEmpty) {
-        queryParams['user_id'] = _selectedUserId;
-      }
-
-      final baseUri = Uri.parse(
-        'https://api.smartassistapp.in/api/users/ps/dashboard/call-analytics',
+      final result = await LeadsSrv.fetchSingleCalllogTeams(
+        timeRange: selectedTimeRange,
+        userId:
+            _selectedUserId, // Make sure this variable exists in your widget
       );
 
-      final uri = baseUri.replace(queryParameters: queryParams);
+      print('Dashboard API Result: $result'); // Debug print
 
-      print('📤 Fetching call analytics from: $uri');
-
-      final response = await http.get(
-        uri,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
-
-      print('📥 Call Analytics Status Code: ${response.statusCode}');
-      print('📥 Call Analytics Response: ${response.body}');
-
-      if (response.statusCode == 200) {
-        final jsonData = json.decode(response.body);
-
+      if (result['success'] == true) {
+        final data = result['data'];
         if (mounted) {
           setState(() {
-            _dashboardData = jsonData['data'];
-            _enquiryData = jsonData['data']['summaryEnquiry'];
-            _coldCallData = jsonData['data']['summaryColdCalls'];
-            isLoading = false;
+            _dashboardData = data['data'];
+            _enquiryData = data['data']['summaryEnquiry'];
+            _coldCallData = data['data']['summaryColdCalls'];
+            isLoading =
+                false; // Fixed: Should be false when loading is complete
           });
         }
       } else {
-        throw Exception(
-          'Failed to load dashboard data. Status code: ${response.statusCode}',
-        );
+        final errorMessage =
+            result['message'] ?? 'Failed to fetch dashboard data';
+        print('❌ Failed to fetch dashboard data: $errorMessage');
+
+        if (mounted) {
+          setState(() {
+            isLoading = false; // Fixed: Should be false when there's an error
+          });
+          showErrorMessage(context, message: errorMessage);
+        }
       }
     } catch (e) {
+      print('Exception in _fetchSingleCalllog: $e');
+
       if (mounted) {
         setState(() {
-          isLoading = false;
+          isLoading = false; // Fixed: Should be false when there's an exception
         });
+
+        // Show appropriate error message based on error type
+        String errorMessage = 'An unexpected error occurred';
+        if (e is SocketException) {
+          errorMessage = 'No internet connection. Please check your network.';
+        } else if (e is TimeoutException) {
+          errorMessage = 'Request timed out. Please try again later.';
+        } else if (e is FormatException) {
+          errorMessage = 'Error parsing server response';
+        }
+
+        showErrorMessage(context, message: errorMessage);
       }
-      debugPrint('Error fetching data: $e');
     }
   }
+  // Future<void> _fetchSingleCalllog() async {
+  //   try {
+  //     setState(() {
+  //       isLoading = true;
+  //     });
+
+  //     final token = await Storage.getToken();
+
+  //     String periodParam = '';
+  //     switch (selectedTimeRange) {
+  //       case '1D':
+  //         periodParam = 'DAY'; // REMOVE the '?type=' part
+  //         break;
+  //       case '1W':
+  //         periodParam = 'WEEK';
+  //         break;
+  //       case '1M':
+  //         periodParam = 'MTD';
+  //         break;
+  //       case '1Q':
+  //         periodParam = 'QTD';
+  //         break;
+  //       case '1Y':
+  //         periodParam = 'YTD';
+  //         break;
+  //       default:
+  //         periodParam = 'DAY';
+  //     }
+
+  //     final Map<String, String> queryParams = {
+  //       'type': periodParam, // CHANGE THIS LINE
+  //     };
+
+  //     // Add userId to query parameters if it's available
+  //     if (_selectedUserId.isNotEmpty) {
+  //       queryParams['user_id'] = _selectedUserId;
+  //     }
+
+  //     final baseUri = Uri.parse(
+  //       'https://api.smartassistapps.in/api/users/ps/dashboard/call-analytics',
+  //     );
+
+  //     final uri = baseUri.replace(queryParameters: queryParams);
+
+  //     print('📤 Fetching call analytics from: $uri');
+
+  //     final response = await http.get(
+  //       uri,
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+
+  //     print('📥 Call Analytics Status Code: ${response.statusCode}');
+  //     print('📥 Call Analytics Response: ${response.body}');
+
+  //     if (response.statusCode == 200) {
+  //       final jsonData = json.decode(response.body);
+
+  //       if (mounted) {
+  //         setState(() {
+  //           _dashboardData = jsonData['data'];
+  //           _enquiryData = jsonData['data']['summaryEnquiry'];
+  //           _coldCallData = jsonData['data']['summaryColdCalls'];
+  //           isLoading = false;
+  //         });
+  //       }
+  //     } else {
+  //       throw Exception(
+  //         'Failed to load dashboard data. Status code: ${response.statusCode}',
+  //       );
+  //     }
+  //   } catch (e) {
+  //     if (mounted) {
+  //       setState(() {
+  //         isLoading = false;
+  //       });
+  //     }
+  //     debugPrint('Error fetching data: $e');
+  //   }
+  // }
 
   Future<void> _fetchAllCalllog() async {
     setState(() {
@@ -351,63 +414,133 @@ class _MyTeamsState extends State<MyTeams> {
     });
 
     try {
-      final token = await Storage.getToken();
-      // Build period parameter
-      String? periodParam;
-      switch (_periodIndex) {
-        case 1:
-          periodParam = 'MTD';
-          break;
-        case 0:
-          periodParam = 'QTD';
-          break;
-        case 2:
-          periodParam = 'YTD';
-          break;
-        default:
-          periodParam = 'QTD';
-      }
+      print('Fetching call analytics with period index: $_periodIndex');
 
-      final Map<String, String> queryParams = {};
-      if (periodParam != null) {
-        queryParams['type'] = periodParam;
-      }
-
-      final baseUri = Uri.parse(
-        'https://api.smartassistapp.in/api/users/sm/dashboard/call-analytics',
+      final result = await LeadsSrv.fetchAllCalllogTeams(
+        periodIndex: _periodIndex,
       );
 
-      final uri = baseUri.replace(queryParameters: queryParams);
-      final response = await http.get(
-        uri,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
+      print('Call Analytics API Result: $result');
 
-      if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
+      if (result['success'] == true) {
+        final data = result['data'];
 
         setState(() {
-          _analyticsData = responseData['data'];
-          _membersData = List<Map<String, dynamic>>.from(
-            responseData['data']['members'],
-          );
+          _analyticsData = data;
+          _membersData = List<Map<String, dynamic>>.from(data['members'] ?? []);
           isLoading = false;
         });
+
+        print('Call analytics loaded successfully');
       } else {
-        throw Exception(
-          'Failed to fetch call analytics: ${response.statusCode}',
-        );
+        final errorMessage =
+            result['message'] ?? 'Failed to fetch call analytics';
+        print('❌ Failed to fetch call analytics: $errorMessage');
+
+        setState(() {
+          isLoading = false;
+        });
+
+        if (mounted) {
+          Get.snackbar(
+            'Error',
+            errorMessage,
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+          );
+        }
       }
     } catch (e) {
       print('Error fetching call analytics: $e');
+
       setState(() {
         isLoading = false;
       });
+
+      if (mounted) {
+        // Show appropriate error message based on error type
+        String errorMessage = 'An unexpected error occurred';
+        if (e is SocketException) {
+          errorMessage = 'No internet connection. Please check your network.';
+        } else if (e is TimeoutException) {
+          errorMessage = 'Request timed out. Please try again later.';
+        } else if (e is FormatException) {
+          errorMessage = 'Error parsing server response';
+        }
+
+        Get.snackbar(
+          'Error',
+          errorMessage,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
     }
   }
+
+  // Future<void> _fetchAllCalllog() async {
+  //   setState(() {
+  //     isLoading = true;
+  //   });
+
+  //   try {
+  //     final token = await Storage.getToken();
+  //     // Build period parameter
+  //     String? periodParam;
+  //     switch (_periodIndex) {
+  //       case 1:
+  //         periodParam = 'MTD';
+  //         break;
+  //       case 0:
+  //         periodParam = 'QTD';
+  //         break;
+  //       case 2:
+  //         periodParam = 'YTD';
+  //         break;
+  //       default:
+  //         periodParam = 'QTD';
+  //     }
+
+  //     final Map<String, String> queryParams = {};
+  //     if (periodParam != null) {
+  //       queryParams['type'] = periodParam;
+  //     }
+
+  //     final baseUri = Uri.parse(
+  //       'https://api.smartassistapps.in/api/users/sm/dashboard/call-analytics',
+  //     );
+
+  //     final uri = baseUri.replace(queryParameters: queryParams);
+  //     final response = await http.get(
+  //       uri,
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+
+  //     if (response.statusCode == 200) {
+  //       final responseData = json.decode(response.body);
+
+  //       setState(() {
+  //         _analyticsData = responseData['data'];
+  //         _membersData = List<Map<String, dynamic>>.from(
+  //           responseData['data']['members'],
+  //         );
+  //         isLoading = false;
+  //       });
+  //     } else {
+  //       throw Exception(
+  //         'Failed to fetch call analytics: ${response.statusCode}',
+  //       );
+  //     }
+  //   } catch (e) {
+  //     print('Error fetching call analytics: $e');
+  //     setState(() {
+  //       isLoading = false;
+  //     });
+  //   }
+  // }
 
   void _clearUsersFromLetter(String letter) {
     // Remove all users from selectedUserIds that belong to this letter
@@ -469,90 +602,32 @@ class _MyTeamsState extends State<MyTeams> {
         return; // Exit early
       }
 
-      // if(_isFabVisible)
+      print('📤 Fetching team details with parameters:');
+      print('Period Index: $_periodIndex');
+      print('Is Comparing: $_isComparing');
+      print('Selected User IDs: $selectedUserIds');
+      print('Selected User ID: $_selectedUserId');
+      print('Selected Profile Index: $_selectedProfileIndex');
 
-      final token = await Storage.getToken();
-      // Build period parameter
-      String? periodParam;
-      switch (_periodIndex) {
-        case 1:
-          periodParam = 'MTD';
-          break;
-        case 0:
-          periodParam = 'QTD';
-          break;
-        case 2:
-          periodParam = 'YTD';
-          break;
-        default:
-          periodParam = 'QTD';
-      }
-
-      final Map<String, String> queryParams = {};
-
-      if (periodParam != null) {
-        queryParams['type'] = periodParam;
-      }
-
-      // 🔥 MODIFIED LOGIC: Handle user selection based on comparison mode
-      if (_isComparing && selectedUserIds.isNotEmpty) {
-        // ✅ If comparison mode is ON, ONLY pass userIds (NO user_id)
-        queryParams['userIds'] = selectedUserIds.join(',');
-      } else if (!_isComparing &&
-          _selectedProfileIndex != 0 &&
-          _selectedUserId.isNotEmpty) {
-        // ✅ If comparison mode is OFF and specific user is selected, pass user_id
-        queryParams['user_id'] = _selectedUserId;
-      }
-
-      if (_avatarAll && totalPerformanceIds.isNotEmpty) {
-        queryParams['total_performance'] = totalPerformanceIds.join(',');
-      }
-
-      // if (_avatarAll && logStatusAlphabet.isNotEmpty) {
-      //   queryParams['logs_userIds'] = logStatusAlphabet.join(',');
-      // }
-      if (_isAlphabetLogsMode && logStatusAlphabet.isNotEmpty) {
-        queryParams['logs_userIds'] = logStatusAlphabet.join(',');
-        print('📤 Sending logs_userIds: ${logStatusAlphabet.join(',')}');
-      }
-
-      if (_isAlphabetLogsMode && logStatusAlphabet.isNotEmpty) {
-        queryParams['total_performance'] = logStatusAlphabet.join(',');
-        print('📤 Sending logs_userIds: ${logStatusAlphabet.join(',')}');
-      }
-
-      if (_isComparing && selectedUserIds.isEmpty) {
-        setState(() {
-          _isComparing = false;
-          _teamComparisonData = [];
-          _membersData = [];
-        });
-        return;
-      }
-
-      final baseUri = Uri.parse(
-        'https://api.smartassistapp.in/api/users/sm/analytics/team-dashboard',
+      final result = await LeadsSrv.fetchDetailsTeams(
+        periodIndex: _periodIndex,
+        isComparing: _isComparing,
+        selectedUserIds: selectedUserIds.toList(),
+        selectedUserId: _selectedUserId,
+        selectedProfileIndex: _selectedProfileIndex,
+        avatarAll: _avatarAll,
+        totalPerformanceIds: totalPerformanceIds.toList(),
+        isAlphabetLogsMode: _isAlphabetLogsMode,
+        logStatusAlphabet: logStatusAlphabet,
       );
 
-      final uri = baseUri.replace(queryParameters: queryParams);
+      print('📥 Team Details API Result: $result');
 
-      print('📤 Fetching from: $uri');
-
-      final response = await http.get(
-        uri,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
-      print('📥 Status Code: ${response.statusCode}');
-      print('📥 Response: ${response.body}');
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+      if (result['success'] == true) {
+        final data = result['data'] ?? {};
 
         setState(() {
-          _teamData = data['data'] ?? {};
+          _teamData = data;
 
           // Team comparison data
           if (_isComparing) {
@@ -566,7 +641,7 @@ class _MyTeamsState extends State<MyTeams> {
             );
             print('📊 Team Comparison Data Updated: $_teamComparisonData');
 
-            // 🔥 FIX: Reset display count to show all comparison data
+            // Reset display count to show all comparison data
             if (_isComparing && _teamComparisonData.isNotEmpty) {
               _currentDisplayCount = math.max(
                 _teamComparisonData.length,
@@ -584,8 +659,7 @@ class _MyTeamsState extends State<MyTeams> {
             _initialAlphabetData?['logs_status'] = _teamData['logs_status'];
           }
 
-          // added this one also for new logic
-
+          // Added this one also for new logic
           if (_teamData.containsKey('total_performance')) {
             _initialAlphabetData?['total_performance'] =
                 _teamData['total_performance'];
@@ -657,16 +731,267 @@ class _MyTeamsState extends State<MyTeams> {
 
           isLoading = false; // Clear loading state
         });
+
+        print('✅ Team details loaded successfully');
       } else {
-        throw Exception('Failed to fetch team details: ${response.statusCode}');
+        final errorMessage =
+            result['message'] ?? 'Failed to fetch team details';
+        print('❌ Failed to fetch team details: $errorMessage');
+
+        setState(() {
+          isLoading = false;
+        });
+
+        if (mounted) {
+          Get.snackbar(
+            'Error',
+            errorMessage,
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+          );
+        }
       }
     } catch (e) {
       print('Error fetching team details: $e');
+
       setState(() {
         isLoading = false; // Clear loading state on error
       });
+
+      if (mounted) {
+        // Show appropriate error message based on error type
+        String errorMessage = 'An unexpected error occurred';
+        if (e is SocketException) {
+          errorMessage = 'No internet connection. Please check your network.';
+        } else if (e is TimeoutException) {
+          errorMessage = 'Request timed out. Please try again later.';
+        } else if (e is FormatException) {
+          errorMessage = 'Error parsing server response';
+        }
+
+        Get.snackbar(
+          'Error',
+          errorMessage,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
     }
   }
+
+  // Future<void> _fetchTeamDetails() async {
+  //   try {
+  //     setState(() {
+  //       isLoading = true;
+  //     });
+
+  //     if (_isComparing && selectedUserIds.isEmpty) {
+  //       setState(() {
+  //         _isComparing = false;
+  //         _teamComparisonData = [];
+  //         isLoading = false;
+  //       });
+  //       return; // Exit early
+  //     }
+
+  //     // if(_isFabVisible)
+
+  //     final token = await Storage.getToken();
+  //     // Build period parameter
+  //     String? periodParam;
+  //     switch (_periodIndex) {
+  //       case 1:
+  //         periodParam = 'MTD';
+  //         break;
+  //       case 0:
+  //         periodParam = 'QTD';
+  //         break;
+  //       case 2:
+  //         periodParam = 'YTD';
+  //         break;
+  //       default:
+  //         periodParam = 'QTD';
+  //     }
+
+  //     final Map<String, String> queryParams = {};
+
+  //     if (periodParam != null) {
+  //       queryParams['type'] = periodParam;
+  //     }
+
+  //     // 🔥 MODIFIED LOGIC: Handle user selection based on comparison mode
+  //     if (_isComparing && selectedUserIds.isNotEmpty) {
+  //       // ✅ If comparison mode is ON, ONLY pass userIds (NO user_id)
+  //       queryParams['userIds'] = selectedUserIds.join(',');
+  //     } else if (!_isComparing &&
+  //         _selectedProfileIndex != 0 &&
+  //         _selectedUserId.isNotEmpty) {
+  //       // ✅ If comparison mode is OFF and specific user is selected, pass user_id
+  //       queryParams['user_id'] = _selectedUserId;
+  //     }
+
+  //     if (_avatarAll && totalPerformanceIds.isNotEmpty) {
+  //       queryParams['total_performance'] = totalPerformanceIds.join(',');
+  //     }
+
+  //     // if (_avatarAll && logStatusAlphabet.isNotEmpty) {
+  //     //   queryParams['logs_userIds'] = logStatusAlphabet.join(',');
+  //     // }
+  //     if (_isAlphabetLogsMode && logStatusAlphabet.isNotEmpty) {
+  //       queryParams['logs_userIds'] = logStatusAlphabet.join(',');
+  //       print('📤 Sending logs_userIds: ${logStatusAlphabet.join(',')}');
+  //     }
+
+  //     if (_isAlphabetLogsMode && logStatusAlphabet.isNotEmpty) {
+  //       queryParams['total_performance'] = logStatusAlphabet.join(',');
+  //       print('📤 Sending logs_userIds: ${logStatusAlphabet.join(',')}');
+  //     }
+
+  //     if (_isComparing && selectedUserIds.isEmpty) {
+  //       setState(() {
+  //         _isComparing = false;
+  //         _teamComparisonData = [];
+  //         _membersData = [];
+  //       });
+  //       return;
+  //     }
+
+  //     final baseUri = Uri.parse(
+  //       'https://api.smartassistapps.in/api/users/sm/analytics/team-dashboard',
+  //     );
+
+  //     final uri = baseUri.replace(queryParameters: queryParams);
+
+  //     print('📤 Fetching from: $uri');
+
+  //     final response = await http.get(
+  //       uri,
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+  //     print('📥 Status Code: ${response.statusCode}');
+  //     print('📥 Response: ${response.body}');
+  //     if (response.statusCode == 200) {
+  //       final data = json.decode(response.body);
+
+  //       setState(() {
+  //         _teamData = data['data'] ?? {};
+
+  //         // Team comparison data
+  //         if (_isComparing) {
+  //           _teamComparisonData = [];
+  //         }
+
+  //         // Team comparison data
+  //         if (_teamData.containsKey('teamComparsion')) {
+  //           _teamComparisonData = List<dynamic>.from(
+  //             _teamData['teamComparsion'] ?? [],
+  //           );
+  //           print('📊 Team Comparison Data Updated: $_teamComparisonData');
+
+  //           // 🔥 FIX: Reset display count to show all comparison data
+  //           if (_isComparing && _teamComparisonData.isNotEmpty) {
+  //             _currentDisplayCount = math.max(
+  //               _teamComparisonData.length,
+  //               _incrementCount,
+  //             );
+  //             print(
+  //               '📊 Reset display count for comparison: $_currentDisplayCount',
+  //             );
+  //           }
+  //         } else {
+  //           _teamComparisonData = [];
+  //         }
+
+  //         if (_teamData.containsKey('logs_status')) {
+  //           _initialAlphabetData?['logs_status'] = _teamData['logs_status'];
+  //         }
+
+  //         // added this one also for new logic
+
+  //         if (_teamData.containsKey('total_performance')) {
+  //           _initialAlphabetData?['total_performance'] =
+  //               _teamData['total_performance'];
+  //         }
+
+  //         // Save total performance
+  //         if (_teamData.containsKey('totalPerformance')) {
+  //           _selectedUserData?['totalPerformance'] =
+  //               _teamData['totalPerformance'];
+  //         }
+
+  //         if (_teamData.containsKey('allMember') &&
+  //             _teamData['allMember'].isNotEmpty) {
+  //           _teamMembers = [];
+
+  //           for (var member in _teamData['allMember']) {
+  //             _teamMembers.add({
+  //               'fname': member['fname'] ?? '',
+  //               'lname': member['lname'] ?? '',
+  //               'user_id': member['user_id'] ?? '',
+  //               'profile': member['profile'],
+  //               'initials': member['initials'] ?? '',
+  //             });
+  //           }
+  //         }
+
+  //         if (_selectedProfileIndex == 0) {
+  //           // Summary data
+  //           _selectedUserData = _teamData['summary'] ?? {};
+  //           _selectedUserData?['totalPerformance'] =
+  //               _teamData['totalPerformance'] ?? {};
+  //         } else if (_selectedProfileIndex - 1 < _teamMembers.length) {
+  //           // Specific user selected
+  //           final selectedMember = _teamMembers[_selectedProfileIndex - 1];
+  //           _selectedUserData = selectedMember;
+
+  //           final selectedUserPerformance =
+  //               _teamData['selectedUserPerformance'] ?? {};
+  //           final upcoming = selectedUserPerformance['Upcoming'] ?? {};
+  //           final overdue = selectedUserPerformance['Overdue'] ?? {};
+
+  //           if (_upcommingButtonIndex == 0) {
+  //             _upcomingFollowups = List<Map<String, dynamic>>.from(
+  //               upcoming['upComingFollowups'] ?? [],
+  //             );
+  //             _upcomingAppointments = List<Map<String, dynamic>>.from(
+  //               upcoming['upComingAppointment'] ?? [],
+  //             );
+  //             _upcomingTestDrives = List<Map<String, dynamic>>.from(
+  //               upcoming['upComingTestDrive'] ?? [],
+  //             );
+  //           } else {
+  //             _upcomingFollowups = List<Map<String, dynamic>>.from(
+  //               overdue['overdueFollowups'] ?? [],
+  //             );
+  //             _upcomingAppointments = List<Map<String, dynamic>>.from(
+  //               overdue['overdueAppointments'] ?? [],
+  //             );
+  //             _upcomingTestDrives = List<Map<String, dynamic>>.from(
+  //               overdue['overdueTestDrives'] ?? [],
+  //             );
+
+  //             overdueCount =
+  //                 _upcomingFollowups.length +
+  //                 _upcomingAppointments.length +
+  //                 _upcomingTestDrives.length;
+  //           }
+  //         }
+
+  //         isLoading = false; // Clear loading state
+  //       });
+  //     } else {
+  //       throw Exception('Failed to fetch team details: ${response.statusCode}');
+  //     }
+  //   } catch (e) {
+  //     print('Error fetching team details: $e');
+  //     setState(() {
+  //       isLoading = false; // Clear loading state on error
+  //     });
+  //   }
+  // }
 
   // Process team data for team comparison display
   List<Map<String, dynamic>> _processTeamComparisonData() {

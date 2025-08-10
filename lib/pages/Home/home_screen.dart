@@ -146,6 +146,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // call log after login
+
   Future<void> uploadCallLogsAfterLogin() async {
     // Request permission
     if (!await Permission.phone.isGranted) {
@@ -178,34 +179,84 @@ class _HomeScreenState extends State<HomeScreen> {
       };
     }).toList();
 
-    print(jsonEncode(formattedLogs));
-
-    // Send to API
-    final token = await Storage.getToken();
-    const apiUrl = 'https://api.smartassistapp.in/api/leads/create-call-logs';
+    print('Formatted logs: ${jsonEncode(formattedLogs)}');
 
     try {
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(formattedLogs),
+      // ✅ FIXED: Pass List instead of casting to Map
+      Map<String, dynamic>? response = await LeadsSrv.submitCalllogs(
+        formattedLogs,
       );
-      print('hello');
-      if (response.statusCode == 201) {
-        print('Call logs uploaded successfully');
 
-        print('this is the response call log ${response.body}');
+      if (response != null) {
+        print('Call logs uploaded successfully');
+        print('Response: ${response.toString()}');
       } else {
-        print('Failed: ${response.statusCode}');
-        print('Response: ${response.body}');
+        print('Failed to upload call logs');
       }
     } catch (e) {
       print('Upload error: $e');
     }
   }
+  // Future<void> uploadCallLogsAfterLogin() async {
+  //   // Request permission
+  //   if (!await Permission.phone.isGranted) {
+  //     var status = await Permission.phone.request();
+  //     if (!status.isGranted) {
+  //       print('Permission denied');
+  //       return;
+  //     }
+  //   }
+
+  //   // Fetch call logs
+  //   Iterable<CallLogEntry> entries = await CallLog.get();
+  //   List<CallLogEntry> callLogs = entries.toList();
+
+  //   if (callLogs.isEmpty) {
+  //     print('No call logs to send');
+  //     return;
+  //   }
+
+  //   // Format logs
+  //   List<Map<String, dynamic>> formattedLogs = callLogs.map((log) {
+  //     return {
+  //       'name': log.name ?? 'Unknown',
+  //       'start_time': log.timestamp?.toString() ?? '',
+  //       'mobile': log.number ?? '',
+  //       'call_type': log.callType?.toString().split('.').last ?? '',
+  //       'call_duration': log.duration?.toString() ?? '',
+  //       'unique_key':
+  //           '${log.timestamp?.toString() ?? ''}${log.number ?? ''}${log.callType?.toString()}${log.duration?.toString()}',
+  //     };
+  //   }).toList();
+
+  //   print(jsonEncode(formattedLogs));
+
+  //   // Send to API
+  //   final token = await Storage.getToken();
+  //   const apiUrl = 'https://api.smartassistapps.in/api/leads/create-call-logs';
+
+  //   try {
+  //     final response = await http.post(
+  //       Uri.parse(apiUrl),
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: jsonEncode(formattedLogs),
+  //     );
+  //     print('hello');
+  //     if (response.statusCode == 201) {
+  //       print('Call logs uploaded successfully');
+
+  //       print('this is the response call log ${response.body}');
+  //     } else {
+  //       print('Failed: ${response.statusCode}');
+  //       print('Response: ${response.body}');
+  //     }
+  //   } catch (e) {
+  //     print('Upload error: $e');
+  //   }
+  // }
 
   // Handle form submission from popups
   // Future<void> _handleFormSubmit() async {
@@ -349,45 +400,45 @@ class _HomeScreenState extends State<HomeScreen> {
     await uploadCallLogsAfterLogin();
   }
 
-  Future<void> _fetchSearchResults(String query) async {
-    if (query.isEmpty) {
-      setState(() {
-        _searchResults.clear();
-      });
-      return;
-    }
+  // Future<void> _fetchSearchResults(String query) async {
+  //   if (query.isEmpty) {
+  //     setState(() {
+  //       _searchResults.clear();
+  //     });
+  //     return;
+  //   }
 
-    setState(() {
-      _isLoadingSearch = true;
-    });
+  //   setState(() {
+  //     _isLoadingSearch = true;
+  //   });
 
-    final token = await Storage.getToken();
+  //   final token = await Storage.getToken();
 
-    try {
-      final response = await http.get(
-        Uri.parse(
-          'https://api.smartassistapp.in/api/search/global?query=$query',
-        ),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
-        setState(() {
-          _searchResults = data['suggestions'] ?? [];
-        });
-      }
-    } catch (e) {
-      // showErrorMessage(context, message: 'Something went wrong..!');
-      print(e);
-    } finally {
-      setState(() {
-        _isLoadingSearch = false;
-      });
-    }
-  }
+  //   try {
+  //     final response = await http.get(
+  //       Uri.parse(
+  //         'https://api.smartassistapps.in/api/search/global?query=$query',
+  //       ),
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+  //     if (response.statusCode == 200) {
+  //       final Map<String, dynamic> data = json.decode(response.body);
+  //       setState(() {
+  //         _searchResults = data['suggestions'] ?? [];
+  //       });
+  //     }
+  //   } catch (e) {
+  //     // showErrorMessage(context, message: 'Something went wrong..!');
+  //     print(e);
+  //   } finally {
+  //     setState(() {
+  //       _isLoadingSearch = false;
+  //     });
+  //   }
+  // }
 
   void _onSearchChanged() {
     final newQuery = _searchController.text.trim();
@@ -396,7 +447,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _query = newQuery;
     Future.delayed(const Duration(milliseconds: 500), () {
       if (_query == _searchController.text.trim()) {
-        _fetchSearchResults(_query);
+        // _fetchSearchResults(_query);
       }
     });
   }

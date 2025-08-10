@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/services.dart';
@@ -8,6 +11,8 @@ import 'package:smartassist/config/component/font/font.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:smartassist/pages/navbar_page/call_logs.dart';
+import 'package:smartassist/services/api_srv.dart';
+import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
 
 class CallAnalytics extends StatefulWidget {
@@ -67,83 +72,143 @@ class _CallAnalyticsState extends State<CallAnalytics>
         _isLoading = true;
       });
 
-      final token = await Storage.getToken();
-
-      String periodParam = '';
-      switch (selectedTimeRange) {
-        case '1D':
-          periodParam = '?type=DAY';
-          break;
-        case '1W':
-          periodParam = '?type=WEEK';
-          break;
-        case '1M':
-          periodParam = '?type=MTD';
-          break;
-        case '1Q':
-          periodParam = '?type=QTD';
-          break;
-        case '1Y':
-          periodParam = '?type=YTD';
-          break;
-        default:
-          periodParam = '?type=DAY';
-      }
-
-      late Uri uri;
-
-      if (widget.isFromSM) {
-        uri = Uri.parse(
-          'https://api.smartassistapp.in/api/users/ps/dashboard/call-analytics$periodParam&user_id=${widget.userId}',
-        );
-      } else {
-        uri = Uri.parse(
-          'https://api.smartassistapp.in/api/users/ps/dashboard/call-analytics$periodParam',
-        );
-      }
-
-      final response = await http.get(
-        uri,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
+      final result = await LeadsSrv.fetchDashboardDataAn(
+        timeRange: selectedTimeRange,
+        userId: widget.isFromSM ? widget.userId : null,
+        isFromSM: widget.isFromSM,
       );
 
-      print(uri);
-      print(response.body);
+      print('Dashboard API Result: $result'); // Debug print
 
-      if (response.statusCode == 200) {
-        final jsonData = json.decode(response.body);
+      if (result['success'] == true) {
+        final data = result['data'];
         if (mounted) {
           setState(() {
-            _dashboardData = jsonData['data'];
-            _enquiryData = jsonData['data']['summaryEnquiry'];
-            _coldCallData = jsonData['data']['summaryColdCalls'];
+            _dashboardData = data['data'];
+            _enquiryData = data['data']['summaryEnquiry'];
+            _coldCallData = data['data']['summaryColdCalls'];
             _isLoading = false;
           });
         }
       } else {
-        throw Exception(
-          'Failed to load dashboard data. Status code: ${response.statusCode}',
-        );
+        final errorMessage =
+            result['message'] ?? 'Failed to fetch dashboard data';
+        print('❌ Failed to fetch dashboard data: $errorMessage');
+
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+          showErrorMessage(context, message: errorMessage);
+        }
       }
     } catch (e) {
+      print('Exception in _fetchDashboardData: $e');
+
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
-      }
 
-      if (e is http.ClientException) {
-        debugPrint('Network error: $e');
-      } else if (e is FormatException) {
-        debugPrint('Error parsing data: $e');
-      } else {
-        debugPrint('Unexpected error: $e');
+        // Show appropriate error message based on error type
+        String errorMessage = 'An unexpected error occurred';
+        if (e is SocketException) {
+          errorMessage = 'No internet connection. Please check your network.';
+        } else if (e is TimeoutException) {
+          errorMessage = 'Request timed out. Please try again later.';
+        } else if (e is FormatException) {
+          errorMessage = 'Error parsing server response';
+        }
+
+        showErrorMessage(context, message: errorMessage);
       }
     }
   }
+
+  
+  // Future<void> _fetchDashboardData() async {
+  //   try {
+  //     setState(() {
+  //       _isLoading = true;
+  //     });
+
+  //     final token = await Storage.getToken();
+
+  //     String periodParam = '';
+  //     switch (selectedTimeRange) {
+  //       case '1D':
+  //         periodParam = '?type=DAY';
+  //         break;
+  //       case '1W':
+  //         periodParam = '?type=WEEK';
+  //         break;
+  //       case '1M':
+  //         periodParam = '?type=MTD';
+  //         break;
+  //       case '1Q':
+  //         periodParam = '?type=QTD';
+  //         break;
+  //       case '1Y':
+  //         periodParam = '?type=YTD';
+  //         break;
+  //       default:
+  //         periodParam = '?type=DAY';
+  //     }
+
+  //     late Uri uri;
+
+  //     if (widget.isFromSM) {
+  //       uri = Uri.parse(
+  //         'https://api.smartassistapps.in/api/users/ps/dashboard/call-analytics$periodParam&user_id=${widget.userId}',
+  //       );
+  //     } else {
+  //       uri = Uri.parse(
+  //         'https://api.smartassistapps.in/api/users/ps/dashboard/call-analytics$periodParam',
+  //       );
+  //     }
+
+  //     final response = await http.get(
+  //       uri,
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+
+  //     print(uri);
+  //     print(response.body);
+
+  //     if (response.statusCode == 200) {
+  //       final jsonData = json.decode(response.body);
+  //       if (mounted) {
+  //         setState(() {
+  //           _dashboardData = jsonData['data'];
+  //           _enquiryData = jsonData['data']['summaryEnquiry'];
+  //           _coldCallData = jsonData['data']['summaryColdCalls'];
+  //           _isLoading = false;
+  //         });
+  //       }
+  //     } else {
+  //       throw Exception(
+  //         'Failed to load dashboard data. Status code: ${response.statusCode}',
+  //       );
+  //     }
+  //   } catch (e) {
+  //     if (mounted) {
+  //       setState(() {
+  //         _isLoading = false;
+  //       });
+  //     }
+
+  //     if (e is http.ClientException) {
+  //       debugPrint('Network error: $e');
+  //     } else if (e is FormatException) {
+  //       debugPrint('Error parsing data: $e');
+  //     } else {
+  //       debugPrint('Unexpected error: $e');
+  //     }
+  //   }
+  // }
 
   void _updateSelectedTimeRange(String range) {
     setState(() {

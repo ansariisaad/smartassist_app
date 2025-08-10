@@ -4,15 +4,14 @@ import 'dart:ui';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:http/http.dart' as http;
+import 'package:google_fonts/google_fonts.dart'; 
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
-import 'package:smartassist/utils/bottom_navigation.dart';
-import 'package:smartassist/utils/storage.dart';
+import 'package:smartassist/services/api_srv.dart';
+import 'package:smartassist/utils/bottom_navigation.dart'; 
 import 'package:smartassist/widgets/license_preview.dart';
 import 'package:smartassist/widgets/start_drive.dart';
 import 'package:image/image.dart' as img;
@@ -484,36 +483,36 @@ class _LicenseVarificationState extends State<LicenseVarification>
     setState(() {
       _isUploading = true;
     });
+
     try {
       print('Event ID: ${widget.eventId}');
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? spId = prefs.getString('user_id');
-      final url = Uri.parse(
-        'https://api.smartassistapp.in/api/events/update/${widget.eventId}',
-      );
-      final token = await Storage.getToken();
+
       skip['Overall Ambience'] = skipReason;
       final requestBody = {
         'sp_id': spId,
         'skip_license': skip['Overall Ambience'],
       };
-      print(requestBody);
-      final response = await http.put(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: json.encode(requestBody),
+
+      print('Request Body: $requestBody');
+
+      final result = await LeadsSrv.submitFeedbackTestdrive(
+        requestBody,
+        widget.eventId,
       );
-      final responseData = jsonDecode(response.body);
-      print('API Response status: ${response.statusCode}');
-      print('API Response body: ${response.body}');
-      print(url.toString());
-      if (response.statusCode == 200) {
+
+      print('API Response: $result');
+
+      if (result['success'] == true) {
         print('Feedback submitted successfully');
         if (!_isDisposed && mounted) {
-          Get.snackbar('Success', 'License verification skipped successfully');
+          Get.snackbar(
+            'Success',
+            result['message'] ?? 'License verification skipped successfully',
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+          );
 
           // Dispose camera before navigation
           await _disposeCamera();
@@ -527,17 +526,25 @@ class _LicenseVarificationState extends State<LicenseVarification>
           );
         }
       } else {
-        print(
-          'Failed to submit feedback : ${responseData['message'].toString()}',
-        );
+        print('Failed to submit feedback: ${result['message']}');
         if (!_isDisposed && mounted) {
-          Get.snackbar('Error', 'error due to ${responseData['message']}');
+          Get.snackbar(
+            'Error',
+            result['message'] ?? 'Failed to submit feedback',
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+          );
         }
       }
     } catch (e) {
       print('Exception occurred: ${e.toString()}');
       if (!_isDisposed && mounted) {
-        Get.snackbar('Error', 'An error occurred: ${e.toString()}');
+        Get.snackbar(
+          'Error',
+          'An error occurred: ${e.toString()}',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
       }
     } finally {
       if (!_isDisposed && mounted) {
@@ -547,6 +554,76 @@ class _LicenseVarificationState extends State<LicenseVarification>
       }
     }
   }
+
+  // Future<void> submitFeedback(String skipReason) async {
+  //   if (_isDisposed) return;
+
+  //   setState(() {
+  //     _isUploading = true;
+  //   });
+  //   try {
+  //     print('Event ID: ${widget.eventId}');
+  //     SharedPreferences prefs = await SharedPreferences.getInstance();
+  //     String? spId = prefs.getString('user_id');
+  //     final url = Uri.parse(
+  //       'https://api.smartassistapp.in/api/events/update/${widget.eventId}',
+  //     );
+  //     final token = await Storage.getToken();
+  //     skip['Overall Ambience'] = skipReason;
+  //     final requestBody = {
+  //       'sp_id': spId,
+  //       'skip_license': skip['Overall Ambience'],
+  //     };
+  //     print(requestBody);
+  //     final response = await http.put(
+  //       url,
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'Authorization': 'Bearer $token',
+  //       },
+  //       body: json.encode(requestBody),
+  //     );
+  //     final responseData = jsonDecode(response.body);
+  //     print('API Response status: ${response.statusCode}');
+  //     print('API Response body: ${response.body}');
+  //     print(url.toString());
+  //     if (response.statusCode == 200) {
+  //       print('Feedback submitted successfully');
+  //       if (!_isDisposed && mounted) {
+  //         Get.snackbar('Success', 'License verification skipped successfully');
+
+  //         // Dispose camera before navigation
+  //         await _disposeCamera();
+
+  //         Navigator.push(
+  //           context,
+  //           MaterialPageRoute(
+  //             builder: (context) =>
+  //                 StartDriveMap(leadId: widget.leadId, eventId: widget.eventId),
+  //           ),
+  //         );
+  //       }
+  //     } else {
+  //       print(
+  //         'Failed to submit feedback : ${responseData['message'].toString()}',
+  //       );
+  //       if (!_isDisposed && mounted) {
+  //         Get.snackbar('Error', 'error due to ${responseData['message']}');
+  //       }
+  //     }
+  //   } catch (e) {
+  //     print('Exception occurred: ${e.toString()}');
+  //     if (!_isDisposed && mounted) {
+  //       Get.snackbar('Error', 'An error occurred: ${e.toString()}');
+  //     }
+  //   } finally {
+  //     if (!_isDisposed && mounted) {
+  //       setState(() {
+  //         _isUploading = false;
+  //       });
+  //     }
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {

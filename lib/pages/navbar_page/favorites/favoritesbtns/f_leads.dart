@@ -9,6 +9,8 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Home/reassign_enq.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
+import 'package:smartassist/services/api_srv.dart';
+import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/lead_update.dart';
 import 'package:smartassist/widgets/reusable/skeleton_card.dart';
@@ -78,32 +80,53 @@ class _FLeadsState extends State<FLeads> {
       bool currentStatus = upcomingTasks[index]['favourite'] ?? false;
       bool newFavoriteStatus = !currentStatus;
 
-      final response = await http.put(
-        Uri.parse(
-          'https://api.smartassistapp.in/api/favourites/mark-fav/lead/$leadId',
-        ),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
+      final success = await LeadsSrv.leadFavorite(leadId: leadId);
 
-      if (response.statusCode == 200) {
-        // Parse the response to get the updated favorite status
-        final responseData = json.decode(response.body);
-
-        // Update only the specific item in the list
+      if (success) {
         setState(() {
           upcomingTasks[index]['favourite'] = newFavoriteStatus;
         });
         await fetchTasksData();
       } else {
-        print('Failed to toggle favorite: ${response.statusCode}');
+        print('Failed to toggle favorite: ${leadId}');
       }
     } catch (e) {
       print('Error toggling favorite: $e');
     }
   }
+
+  // Future<void> _toggleFavorite(String leadId, int index) async {
+  //   final token = await Storage.getToken();
+  //   try {
+  //     // Get the current favorite status before toggling
+  //     bool currentStatus = upcomingTasks[index]['favourite'] ?? false;
+  //     bool newFavoriteStatus = !currentStatus;
+
+  //     final response = await http.put(
+  //       Uri.parse(
+  //         'https://api.smartassistapps.in/api/favourites/mark-fav/lead/$leadId',
+  //       ),
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+
+  //     if (response.statusCode == 200) {
+  //       final responseData = json.decode(response.body);
+
+  //       // Update only the specific item in the list
+  //       setState(() {
+  //         upcomingTasks[index]['favourite'] = newFavoriteStatus;
+  //       });
+  //       await fetchTasksData();
+  //     } else {
+  //       print('Failed to toggle favorite: ${response.statusCode}');
+  //     }
+  //   } catch (e) {
+  //     print('Error toggling favorite: $e');
+  //   }
+  // }
 
   void _handleCall(dynamic item) {
     print("Call action triggered for ${item['name']}");
@@ -117,32 +140,55 @@ class _FLeadsState extends State<FLeads> {
   }
 
   Future<void> fetchTasksData() async {
-    final token = await Storage.getToken();
     try {
-      final response = await http.get(
-        Uri.parse('https://api.smartassistapp.in/api/favourites/leads/all'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
+      final result = await LeadsSrv.fetchFavFollowups();
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+      if (result['success'] == true) {
+        final data = result['data'];
         setState(() {
-          upcomingTasks =
-              data['data']['rows'] ?? []; // Store only upcoming tasks
+          upcomingTasks = data['rows'] ?? [];
           isLoading = false;
         });
       } else {
-        print("Failed to load data: ${response.statusCode}");
         setState(() => isLoading = false);
+        final errorMessage = result['message'] ?? 'Failed to fetch tasks';
+        if (mounted) {
+          showErrorMessage(context, message: errorMessage);
+        }
       }
     } catch (e) {
       print("Error fetching data: $e");
       setState(() => isLoading = false);
     }
   }
+
+  // Future<void> fetchTasksData() async {
+  //   final token = await Storage.getToken();
+  //   try {
+  //     final response = await http.get(
+  //       Uri.parse('https://api.smartassistapps.in/api/favourites/leads/all'),
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+
+  //     if (response.statusCode == 200) {
+  //       final data = json.decode(response.body);
+  //       setState(() {
+  //         upcomingTasks =
+  //             data['data']['rows'] ?? []; // Store only upcoming tasks
+  //         isLoading = false;
+  //       });
+  //     } else {
+  //       print("Failed to load data: ${response.statusCode}");
+  //       setState(() => isLoading = false);
+  //     }
+  //   } catch (e) {
+  //     print("Error fetching data: $e");
+  //     setState(() => isLoading = false);
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {

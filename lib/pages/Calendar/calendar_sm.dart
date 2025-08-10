@@ -73,7 +73,7 @@
 //     try {
 //       final token = await Storage.getToken();
 //       final baseUri = Uri.parse(
-//         'https://api.smartassistapp.in/api/users/sm/analytics/team-dashboard',
+//         'https://api.smartassistapps.in/api/users/sm/analytics/team-dashboard',
 //       );
 //       final response = await http.get(
 //         baseUri,
@@ -128,7 +128,7 @@
 //         queryParams['user_id'] = _selectedUserId;
 //       }
 //       final baseUrl = Uri.parse(
-//         "https://api.smartassistapp.in/api/calendar/activities/all/asondate",
+//         "https://api.smartassistapps.in/api/calendar/activities/all/asondate",
 //       );
 //       final uri = baseUrl.replace(queryParameters: queryParams);
 //       final response = await http.get(
@@ -1001,6 +1001,7 @@ import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/getX/fab.controller.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
+import 'package:smartassist/services/api_srv.dart' show LeadsSrv;
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/calender/calender.dart';
 import 'package:smartassist/widgets/reusable/skeleton_calendar_card.dart';
@@ -1110,40 +1111,78 @@ class _CalendarSmState extends State<CalendarSm> {
 
   Future<void> _fetchTeamDetails() async {
     try {
-      final token = await Storage.getToken();
-      final baseUri = Uri.parse(
-        'https://api.smartassistapp.in/api/users/sm/analytics/team-dashboard',
-      );
-      final response = await http.get(
-        baseUri,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        setState(() {
-          _teamData = data['data'] ?? {};
-          if (_teamData.containsKey('allMember') &&
-              _teamData['allMember'].isNotEmpty) {
-            _teamMembers = [];
-            for (var member in _teamData['allMember']) {
-              _teamMembers.add({
-                'fname': member['fname'] ?? '',
-                'lname': member['lname'] ?? '',
-                'user_id': member['user_id'] ?? '',
-                'profile': member['profile'],
-                'initials': member['initials'] ?? '',
-              });
-            }
+      // final token = await Storage.getToken();
+      // final baseUri = Uri.parse(
+      //   'https://api.smartassistapps.in/api/users/sm/analytics/team-dashboard',
+      // );
+      // final response = await http.get(
+      //   baseUri,
+      //   headers: {
+      //     'Authorization': 'Bearer $token',
+      //     'Content-Type': 'application/json',
+      //   },
+      // );
+
+      final data = await LeadsSrv.fetchTeamData();
+      // if (data) {
+      setState(() {
+        _teamData = data['data'] ?? {};
+        if (_teamData.containsKey('allMember') &&
+            _teamData['allMember'].isNotEmpty) {
+          _teamMembers = [];
+          for (var member in _teamData['allMember']) {
+            _teamMembers.add({
+              'fname': member['fname'] ?? '',
+              'lname': member['lname'] ?? '',
+              'user_id': member['user_id'] ?? '',
+              'profile': member['profile'],
+              'initials': member['initials'] ?? '',
+            });
           }
-        });
-      }
+        }
+      });
+      // }
     } catch (e) {
       print('Error fetching team details: $e');
     }
   }
+
+  // Future<void> _fetchTeamDetails() async {
+  //   try {
+  //     final token = await Storage.getToken();
+  //     final baseUri = Uri.parse(
+  //       'https://api.smartassistapps.in/api/users/sm/analytics/team-dashboard',
+  //     );
+  //     final response = await http.get(
+  //       baseUri,
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+  //     if (response.statusCode == 200) {
+  //       final data = json.decode(response.body);
+  //       setState(() {
+  //         _teamData = data['data'] ?? {};
+  //         if (_teamData.containsKey('allMember') &&
+  //             _teamData['allMember'].isNotEmpty) {
+  //           _teamMembers = [];
+  //           for (var member in _teamData['allMember']) {
+  //             _teamMembers.add({
+  //               'fname': member['fname'] ?? '',
+  //               'lname': member['lname'] ?? '',
+  //               'user_id': member['user_id'] ?? '',
+  //               'profile': member['profile'],
+  //               'initials': member['initials'] ?? '',
+  //             });
+  //           }
+  //         }
+  //       });
+  //     }
+  //   } catch (e) {
+  //     print('Error fetching team details: $e');
+  //   }
+  // }
 
   Future<void> _fetchActivitiesData() async {
     if (_selectedType == 'team' && _selectedUserId.isEmpty) {
@@ -1154,9 +1193,10 @@ class _CalendarSmState extends State<CalendarSm> {
       });
       return;
     }
+
     if (mounted) setState(() => _isLoading = true);
+
     try {
-      final token = await Storage.getToken();
       String formattedDate = DateFormat(
         'dd-MM-yyyy',
       ).format(_selectedDay ?? _focusedDay);
@@ -1165,34 +1205,70 @@ class _CalendarSmState extends State<CalendarSm> {
       if (_selectedType == 'team' && _selectedUserId.isNotEmpty) {
         queryParams['user_id'] = _selectedUserId;
       }
-      final baseUrl = Uri.parse(
-        "https://api.smartassistapp.in/api/calendar/activities/all/asondate",
-      );
-      final uri = baseUrl.replace(queryParameters: queryParams);
-      final response = await http.get(
-        uri,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
 
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
-        setState(() {
-          tasks = data['data']['tasks'] ?? [];
-          events = data['data']['events'] ?? [];
-          _isLoading = false;
-        });
-        _processTimeSlots();
-      } else {
-        setState(() => _isLoading = false);
-      }
+      // ✅ FIXED: Pass the queryParams Map instead of String
+      final data = await LeadsSrv.smCalendarAsondate(queryParams);
+
+      // ✅ FIXED: data is already a Map, no need to decode again
+      setState(() {
+        tasks = data['data']['tasks'] ?? [];
+        events = data['data']['events'] ?? [];
+        _isLoading = false;
+      });
+      _processTimeSlots();
     } catch (e) {
       print("Error fetching activities data: $e");
       if (mounted) setState(() => _isLoading = false);
     }
   }
+  // Future<void> _fetchActivitiesData() async {
+  //   if (_selectedType == 'team' && _selectedUserId.isEmpty) {
+  //     setState(() {
+  //       tasks = [];
+  //       events = [];
+  //       _isLoading = false;
+  //     });
+  //     return;
+  //   }
+  //   if (mounted) setState(() => _isLoading = true);
+  //   try {
+  //     final token = await Storage.getToken();
+  //     String formattedDate = DateFormat(
+  //       'dd-MM-yyyy',
+  //     ).format(_selectedDay ?? _focusedDay);
+
+  //     final Map<String, String> queryParams = {'date': formattedDate};
+  //     if (_selectedType == 'team' && _selectedUserId.isNotEmpty) {
+  //       queryParams['user_id'] = _selectedUserId;
+  //     }
+  //     final baseUrl = Uri.parse(
+  //       "https://api.smartassistapps.in/api/calendar/activities/all/asondate",
+  //     );
+  //     final uri = baseUrl.replace(queryParameters: queryParams);
+  //     final response = await http.get(
+  //       uri,
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+
+  //     if (response.statusCode == 200) {
+  //       final Map<String, dynamic> data = json.decode(response.body);
+  //       setState(() {
+  //         tasks = data['data']['tasks'] ?? [];
+  //         events = data['data']['events'] ?? [];
+  //         _isLoading = false;
+  //       });
+  //       _processTimeSlots();
+  //     } else {
+  //       setState(() => _isLoading = false);
+  //     }
+  //   } catch (e) {
+  //     print("Error fetching activities data: $e");
+  //     if (mounted) setState(() => _isLoading = false);
+  //   }
+  // }
 
   void _processTimeSlots() {
     _activeHours.clear();

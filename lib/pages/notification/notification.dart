@@ -46,7 +46,7 @@
 
 //   Future<void> _fetchNotifications({String? category}) async {
 //     final token = await Storage.getToken();
-//     String url = 'https://api.smartassistapp.in/api/users/notifications/all';
+//     String url = 'https://api.smartassistapps.in/api/users/notifications/all';
 //     if (category != null && category != 'All') {
 //       final mapped = categoryMap[category];
 //       if (mapped != null && mapped != 'All') {
@@ -119,7 +119,7 @@
 
 //   Future<void> markAsRead(String id) async {
 //     final token = await Storage.getToken();
-//     final url = 'https://api.smartassistapp.in/api/users/notifications/$id';
+//     final url = 'https://api.smartassistapps.in/api/users/notifications/$id';
 //     try {
 //       final resp = await http.put(
 //         Uri.parse(url),
@@ -144,7 +144,7 @@
 //   Future<void> markAllAsRead() async {
 //     final token = await Storage.getToken();
 //     final url =
-//         'https://api.smartassistapp.in/api/users/notifications/read/all';
+//         'https://api.smartassistapps.in/api/users/notifications/read/all';
 //     try {
 //       final resp = await http.put(
 //         Uri.parse(url),
@@ -456,6 +456,7 @@ class _NotificationPageState extends State<NotificationPage> {
   int _selectedButtonIndex = 0;
   List<dynamic> notifications = [];
   Map<String, DateTime> arrivalTimes = {};
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -480,32 +481,18 @@ class _NotificationPageState extends State<NotificationPage> {
   ];
 
   Future<void> _fetchNotifications({String? category}) async {
-    final token = await Storage.getToken();
-    String url = 'https://api.smartassistapp.in/api/users/notifications/all';
-    if (category != null && category != 'All') {
-      final mapped = categoryMap[category];
-      if (mapped != null && mapped != 'All') {
-        url += '?category=$mapped';
-      }
-    }
-
     try {
-      final resp = await http.get(
-        Uri.parse(url),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
-      if (resp.statusCode == 200) {
-        final data = json.decode(resp.body) as Map<String, dynamic>;
-        List<dynamic> list = [];
-        if (data['data']['unread']?['rows'] != null) {
-          list.addAll(data['data']['unread']['rows']);
-        }
-        if (data['data']['read']?['rows'] != null) {
-          list.addAll(data['data']['read']['rows']);
-        }
+      setState(() {
+        _isLoading = true; // Add loading state if you have it
+      });
+
+      // ✅ FIXED: Use the service method instead of manual HTTP
+      final result = await LeadsSrv.fetchNotifications(category: category);
+
+      if (result['success'] == true) {
+        List<dynamic> list = result['data'];
+
+        // Initialize arrival times
         await _initArrivalTimes(list);
 
         // Sort by arrival time descending (latest first)
@@ -517,14 +504,92 @@ class _NotificationPageState extends State<NotificationPage> {
           return dtB.compareTo(dtA); // Descending order
         });
 
-        setState(() => notifications = list);
+        setState(() {
+          notifications = list;
+          _isLoading = false;
+        });
+
+        print('✅ Loaded ${list.length} notifications');
+        print(
+          '📊 Unread: ${result['unread_count']}, Read: ${result['read_count']}',
+        );
       } else {
-        print('Fetch failed ${resp.statusCode}');
+        setState(() {
+          notifications = [];
+          _isLoading = false;
+        });
+        print('❌ Failed to fetch notifications: ${result['message']}');
+
+        // Show error message to user
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Failed to load notifications'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } catch (e) {
-      print('Error fetch: $e');
+      setState(() {
+        notifications = [];
+        _isLoading = false;
+      });
+      print('❌ Error in _fetchNotifications: $e');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Something went wrong. Please try again.'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
+
+  // Future<void> _fetchNotifications({String? category}) async {
+  //   final token = await Storage.getToken();
+  //   String url = 'https://api.smartassistapps.in/api/users/notifications/all';
+  //   if (category != null && category != 'All') {
+  //     final mapped = categoryMap[category];
+  //     if (mapped != null && mapped != 'All') {
+  //       url += '?category=$mapped';
+  //     }
+  //   }
+
+  //   try {
+  //     final resp = await http.get(
+  //       Uri.parse(url),
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+  //     if (resp.statusCode == 200) {
+  //       final data = json.decode(resp.body) as Map<String, dynamic>;
+  //       List<dynamic> list = [];
+  //       if (data['data']['unread']?['rows'] != null) {
+  //         list.addAll(data['data']['unread']['rows']);
+  //       }
+  //       if (data['data']['read']?['rows'] != null) {
+  //         list.addAll(data['data']['read']['rows']);
+  //       }
+  //       await _initArrivalTimes(list);
+
+  //       // Sort by arrival time descending (latest first)
+  //       list.sort((a, b) {
+  //         final idA = a['notification_id'];
+  //         final idB = b['notification_id'];
+  //         final dtA = arrivalTimes[idA] ?? DateTime.now();
+  //         final dtB = arrivalTimes[idB] ?? DateTime.now();
+  //         return dtB.compareTo(dtA); // Descending order
+  //       });
+
+  //       setState(() => notifications = list);
+  //     } else {
+  //       print('Fetch failed ${resp.statusCode}');
+  //     }
+  //   } catch (e) {
+  //     print('Error fetch: $e');
+  //   }
+  // }
 
   Future<void> _initArrivalTimes(List<dynamic> notifs) async {
     final prefs = await SharedPreferences.getInstance();
@@ -538,50 +603,51 @@ class _NotificationPageState extends State<NotificationPage> {
     }
   }
 
-  Future<void> markAsRead(String id) async {
-    final token = await Storage.getToken();
-    final url = 'https://api.smartassistapp.in/api/users/notifications/$id';
+  Future<void> markNotificationAsRead(String notificationId) async {
     try {
-      final resp = await http.put(
-        Uri.parse(url),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-        body: json.encode({'read': true}),
-      );
-      if (resp.statusCode == 200) {
+      final result = await LeadsSrv.markAsRead(notificationId);
+
+      if (result['success'] == true) {
+        // Update local state - mark the notification as read
         setState(() {
-          notifications.removeWhere((n) => n['notification_id'] == id);
+          final index = notifications.indexWhere(
+            (notification) => notification['notification_id'] == notificationId,
+          );
+          if (index != -1) {
+            notifications[index]['isRead'] = true;
+            // Or you might want to remove it from unread list
+            // notifications[index]['read'] = true;
+          }
         });
+
+        print('✅ Notification marked as read: $notificationId');
       } else {
-        print('Mark read failed ${resp.statusCode}');
+        print('❌ Failed to mark notification as read: ${result['message']}');
+        _showErrorMessage(result['message'] ?? 'Failed to mark as read');
       }
     } catch (e) {
-      print('Error mark read: $e');
+      print('❌ Error marking notification as read: $e');
+      _showErrorMessage('Something went wrong. Please try again.');
     }
   }
 
+  // Mark all notifications as read - FIXED to use service method
   Future<void> markAllAsRead() async {
-    final token = await Storage.getToken();
-    final url =
-        'https://api.smartassistapp.in/api/users/notifications/read/all';
     try {
-      final resp = await http.put(
-        Uri.parse(url),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-        body: json.encode({'read': true}),
-      );
-      if (resp.statusCode == 200) {
+      // Show loading indicator if needed
+      // _showLoadingDialog();
+
+      final result = await LeadsSrv.markAllAsRead();
+
+      if (result['success'] == true) {
+        // Refresh the notifications list
         await _fetchNotifications(category: categories[_selectedButtonIndex]);
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'All notifications marked as read',
+                result['message'] ?? 'All notifications marked as read',
                 style: GoogleFonts.poppins(),
               ),
               backgroundColor: Colors.green,
@@ -590,38 +656,139 @@ class _NotificationPageState extends State<NotificationPage> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
+              action: SnackBarAction(
+                label: 'Dismiss',
+                textColor: Colors.white,
+                onPressed: () {
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                },
+              ),
             ),
           );
+        }
+
+        print('✅ All notifications marked as read');
+        if (result['affected_count'] != null) {
+          print('📊 Affected notifications: ${result['affected_count']}');
         }
       } else {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Failed to mark all as read',
-                style: GoogleFonts.poppins(),
-              ),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 2),
-            ),
-          );
+          _showErrorMessage(result['message'] ?? 'Failed to mark all as read');
         }
       }
     } catch (e) {
+      print('❌ Error in markAllAsRead: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Error occurred while marking notifications as read',
-              style: GoogleFonts.poppins(),
-            ),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 2),
-          ),
-        );
+        _showErrorMessage('Error occurred while marking notifications as read');
       }
     }
   }
+
+  void _showErrorMessage(String message) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: GoogleFonts.poppins()),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        action: SnackBarAction(
+          label: 'Dismiss',
+          textColor: Colors.white,
+          onPressed: () {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          },
+        ),
+      ),
+    );
+  }
+
+  // Future<void> markAsRead(String id) async {
+  //   final token = await Storage.getToken();
+  //   final url = 'https://api.smartassistapps.in/api/users/notifications/$id';
+  //   try {
+  //     final resp = await http.put(
+  //       Uri.parse(url),
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: json.encode({'read': true}),
+  //     );
+  //     if (resp.statusCode == 200) {
+  //       setState(() {
+  //         notifications.removeWhere((n) => n['notification_id'] == id);
+  //       });
+  //     } else {
+  //       print('Mark read failed ${resp.statusCode}');
+  //     }
+  //   } catch (e) {
+  //     print('Error mark read: $e');
+  //   }
+  // }
+
+  // Future<void> markAllAsRead() async {
+  //   final token = await Storage.getToken();
+  //   final url =
+  //       'https://api.smartassistapps.in/api/users/notifications/read/all';
+  //   try {
+  //     final resp = await http.put(
+  //       Uri.parse(url),
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: json.encode({'read': true}),
+  //     );
+  //     if (resp.statusCode == 200) {
+  //       await _fetchNotifications(category: categories[_selectedButtonIndex]);
+  //       if (mounted) {
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           SnackBar(
+  //             content: Text(
+  //               'All notifications marked as read',
+  //               style: GoogleFonts.poppins(),
+  //             ),
+  //             backgroundColor: Colors.green,
+  //             duration: const Duration(seconds: 2),
+  //             behavior: SnackBarBehavior.floating,
+  //             shape: RoundedRectangleBorder(
+  //               borderRadius: BorderRadius.circular(10),
+  //             ),
+  //           ),
+  //         );
+  //       }
+  //     } else {
+  //       if (mounted) {
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           SnackBar(
+  //             content: Text(
+  //               'Failed to mark all as read',
+  //               style: GoogleFonts.poppins(),
+  //             ),
+  //             backgroundColor: Colors.red,
+  //             duration: const Duration(seconds: 2),
+  //           ),
+  //         );
+  //       }
+  //     }
+  //   } catch (e) {
+  //     if (mounted) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(
+  //           content: Text(
+  //             'Error occurred while marking notifications as read',
+  //             style: GoogleFonts.poppins(),
+  //           ),
+  //           backgroundColor: Colors.red,
+  //           duration: const Duration(seconds: 2),
+  //         ),
+  //       );
+  //     }
+  //   }
+  // }
 
   Widget _buildButton(String name, int idx) {
     return Container(
@@ -774,7 +941,7 @@ class _NotificationPageState extends State<NotificationPage> {
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       child: GestureDetector(
                         onTap: () async {
-                          if (!isRead) await markAsRead(id);
+                          if (!isRead) await markNotificationAsRead(id);
                           final res = await Navigator.push(
                             context,
                             MaterialPageRoute(

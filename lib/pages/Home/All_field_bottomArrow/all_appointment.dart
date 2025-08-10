@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:smartassist/config/component/color/colors.dart';
+import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/buttons/add_btn.dart';
@@ -209,46 +210,93 @@ class _AllAppointmentState extends State<AllAppointment>
 
   Future<void> fetchTasks() async {
     setState(() => _isLoading = true);
+
     try {
-      final token = await Storage.getToken();
-      const String apiUrl =
-          "https://api.smartassistapp.in/api/tasks/all-appointments";
+      final result = await LeadsSrv.fetchAppointment();
 
-      final response = await http.get(
-        Uri.parse(apiUrl),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
+      if (result['success'] == true) {
+        final data =
+            result['data']; // This is already the inner 'data' from API response
 
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
         setState(() {
-          count = data['data']['overdueWeekTasks']?['count'] ?? 0;
-          upcomingCount = data['data']['upcomingWeekTasks']?['count'] ?? 0;
-          allCount = data['data']['allTasks']?['count'] ?? 0;
-          _originalAllTasks = data['data']['allTasks']?['rows'] ?? [];
-          _originalUpcomingTasks =
-              data['data']['upcomingWeekTasks']?['rows'] ?? [];
-          _originalOverdueTasks =
-              data['data']['overdueWeekTasks']?['rows'] ?? [];
+          count = data['overdueWeekTasks']?['count'] ?? 0;
+          upcomingCount = data['upcomingWeekTasks']?['count'] ?? 0;
+          allCount = data['allTasks']?['count'] ?? 0;
+
+          _originalAllTasks = data['allTasks']?['rows'] ?? [];
+          _originalUpcomingTasks = data['upcomingWeekTasks']?['rows'] ?? [];
+          _originalOverdueTasks = data['overdueWeekTasks']?['rows'] ?? [];
+
           _filteredAllTasks = List.from(_originalAllTasks);
           _filteredUpcomingTasks = List.from(_originalUpcomingTasks);
           _filteredOverdueTasks = List.from(_originalOverdueTasks);
+
           _isLoading = false;
         });
+
+        print('✅ Appointments loaded successfully');
+        print('📊 All: $allCount, Upcoming: $upcomingCount, Overdue: $count');
       } else {
         setState(() => _isLoading = false);
-        showErrorMessage(context, message: 'Failed to fetch appointments.');
+        final errorMessage =
+            result['message'] ?? 'Failed to fetch appointments.';
+        print('❌ Failed to fetch appointments: $errorMessage');
+
+        if (mounted) {
+          showErrorMessage(context, message: errorMessage);
+        }
       }
     } catch (e) {
+      print('❌ Error in fetchTasks: $e');
+
       if (mounted) {
         setState(() => _isLoading = false);
         showErrorMessage(context, message: 'Error fetching appointments.');
       }
     }
   }
+  // Future<void> fetchTasks() async {
+  //   setState(() => _isLoading = true);
+  //   try {
+  //     final token = await Storage.getToken();
+  //     const String apiUrl =
+  //         "https://api.smartassistapps.in/api/tasks/all-appointments";
+
+  //     final response = await http.get(
+  //       Uri.parse(apiUrl),
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+
+  //     if (response.statusCode == 200) {
+  //       final Map<String, dynamic> data = json.decode(response.body);
+  //       setState(() {
+  //         count = data['data']['overdueWeekTasks']?['count'] ?? 0;
+  //         upcomingCount = data['data']['upcomingWeekTasks']?['count'] ?? 0;
+  //         allCount = data['data']['allTasks']?['count'] ?? 0;
+  //         _originalAllTasks = data['data']['allTasks']?['rows'] ?? [];
+  //         _originalUpcomingTasks =
+  //             data['data']['upcomingWeekTasks']?['rows'] ?? [];
+  //         _originalOverdueTasks =
+  //             data['data']['overdueWeekTasks']?['rows'] ?? [];
+  //         _filteredAllTasks = List.from(_originalAllTasks);
+  //         _filteredUpcomingTasks = List.from(_originalUpcomingTasks);
+  //         _filteredOverdueTasks = List.from(_originalOverdueTasks);
+  //         _isLoading = false;
+  //       });
+  //     } else {
+  //       setState(() => _isLoading = false);
+  //       showErrorMessage(context, message: 'Failed to fetch appointments.');
+  //     }
+  //   } catch (e) {
+  //     if (mounted) {
+  //       setState(() => _isLoading = false);
+  //       showErrorMessage(context, message: 'Error fetching appointments.');
+  //     }
+  //   }
+  // }
 
   void _performLocalSearch(String query) {
     setState(() {
@@ -1187,7 +1235,7 @@ class _AllAppointmentState extends State<AllAppointment>
 //     try {
 //       final token = await Storage.getToken();
 //       const String apiUrl =
-//           "https://api.smartassistapp.in/api/tasks/all-appointments";
+//           "https://api.smartassistapps.in/api/tasks/all-appointments";
 
 //       final response = await http.get(
 //         Uri.parse(apiUrl),
@@ -1259,7 +1307,7 @@ class _AllAppointmentState extends State<AllAppointment>
 //       final token = await Storage.getToken();
 //       final response = await http.get(
 //         Uri.parse(
-//           'https://api.smartassistapp.in/api/search/global?query=$query',
+//           'https://api.smartassistapps.in/api/search/global?query=$query',
 //         ),
 //         headers: {
 //           'Authorization': 'Bearer $token',

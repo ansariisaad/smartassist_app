@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
+import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/buttons/add_btn.dart';
@@ -211,45 +212,94 @@ class _AllTestdriveState extends State<AllTestdrive>
 
   Future<void> fetchTasks() async {
     setState(() => _isLoading = true);
+
     try {
-      final token = await Storage.getToken();
-      const String apiUrl =
-          "https://api.smartassistapp.in/api/events/all-events";
+      final result = await LeadsSrv.fetchTestdrive();
 
-      final response = await http.get(
-        Uri.parse(apiUrl),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
+      if (result['success'] == true) {
+        final data =
+            result['data']; // This is already the inner 'data' from API response
 
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
         setState(() {
-          count = data['data']['overdueEvents']?['count'] ?? 0;
-          upComingCount = data['data']['upcomingEvents']?['count'] ?? 0;
-          allCount = data['data']['allEvents']?['count'] ?? 0;
-          _originalAllTasks = data['data']['allEvents']?['rows'] ?? [];
-          _originalUpcomingTasks =
-              data['data']['upcomingEvents']?['rows'] ?? [];
-          _originalOverdueTasks = data['data']['overdueEvents']?['rows'] ?? [];
+          // ✅ FIXED: Remove extra ['data'] since data is already the inner data
+          count = data['overdueEvents']?['count'] ?? 0;
+          upComingCount = data['upcomingEvents']?['count'] ?? 0;
+          allCount = data['allEvents']?['count'] ?? 0;
+
+          _originalAllTasks = data['allEvents']?['rows'] ?? [];
+          _originalUpcomingTasks = data['upcomingEvents']?['rows'] ?? [];
+          _originalOverdueTasks = data['overdueEvents']?['rows'] ?? [];
+
           _filteredAllTasks = List.from(_originalAllTasks);
           _filteredUpcomingTasks = List.from(_originalUpcomingTasks);
           _filteredOverdueTasks = List.from(_originalOverdueTasks);
+
           _isLoading = false;
         });
+
+        print('✅ Test drives loaded successfully');
+        print('📊 All: $allCount, Upcoming: $upComingCount, Overdue: $count');
       } else {
         setState(() => _isLoading = false);
-        showErrorMessage(context, message: 'Failed to fetch test drives.');
+        final errorMessage =
+            result['message'] ?? 'Failed to fetch test drives.';
+        print('❌ Failed to fetch test drives: $errorMessage');
+
+        if (mounted) {
+          showErrorMessage(context, message: errorMessage);
+        }
       }
     } catch (e) {
+      print('❌ Error in fetchTasks: $e');
+
       if (mounted) {
         setState(() => _isLoading = false);
         showErrorMessage(context, message: 'Error fetching test drives.');
       }
     }
   }
+
+  // Future<void> fetchTasks() async {
+  //   setState(() => _isLoading = true);
+  //   try {
+  //     final token = await Storage.getToken();
+  //     const String apiUrl =
+  //         "https://api.smartassistapps.in/api/events/all-events";
+
+  //     final response = await http.get(
+  //       Uri.parse(apiUrl),
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+
+  //     if (response.statusCode == 200) {
+  //       final Map<String, dynamic> data = json.decode(response.body);
+  //       setState(() {
+  //         count = data['data']['overdueEvents']?['count'] ?? 0;
+  //         upComingCount = data['data']['upcomingEvents']?['count'] ?? 0;
+  //         allCount = data['data']['allEvents']?['count'] ?? 0;
+  //         _originalAllTasks = data['data']['allEvents']?['rows'] ?? [];
+  //         _originalUpcomingTasks =
+  //             data['data']['upcomingEvents']?['rows'] ?? [];
+  //         _originalOverdueTasks = data['data']['overdueEvents']?['rows'] ?? [];
+  //         _filteredAllTasks = List.from(_originalAllTasks);
+  //         _filteredUpcomingTasks = List.from(_originalUpcomingTasks);
+  //         _filteredOverdueTasks = List.from(_originalOverdueTasks);
+  //         _isLoading = false;
+  //       });
+  //     } else {
+  //       setState(() => _isLoading = false);
+  //       showErrorMessage(context, message: 'Failed to fetch test drives.');
+  //     }
+  //   } catch (e) {
+  //     if (mounted) {
+  //       setState(() => _isLoading = false);
+  //       showErrorMessage(context, message: 'Error fetching test drives.');
+  //     }
+  //   }
+  // }
 
   void _performLocalSearch(String query) {
     setState(() {

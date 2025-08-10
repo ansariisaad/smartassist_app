@@ -15,6 +15,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
+import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/bottom_navigation.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/feedback.dart';
@@ -1393,35 +1394,33 @@ class _StartDriveMapState extends State<StartDriveMap>
 
   Future<void> _startTestDrive(LatLng currentLocation) async {
     try {
-      final url = Uri.parse(
-        'https://api.smartassistapp.in/api/events/${widget.eventId}/start-drive',
-      );
-      final token = await Storage.getToken();
-
-      final response = await http
-          .post(
-            url,
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-            body: json.encode({
-              'startCoordinates': {
-                'latitude': currentLocation.latitude,
-                'longitude': currentLocation.longitude,
-              },
-              'timestamp': DateTime.now().toIso8601String(),
-            }),
-          )
-          .timeout(Duration(seconds: 15));
-
       print('Starting test drive for event: ${widget.eventId}');
 
-      if (response.statusCode == 200) {
+      final testdriveData = {
+        'startCoordinates': {
+          'latitude': currentLocation.latitude,
+          'longitude': currentLocation.longitude,
+        },
+        'timestamp': DateTime.now().toIso8601String(),
+      };
+
+      print('Test drive data: $testdriveData');
+
+      bool success = await LeadsSrv.startTestDrive(
+        testdriveData,
+        widget.eventId,
+      );
+
+      if (success) {
         print('Test drive started successfully');
         _startLocationTracking();
       } else {
-        throw Exception('Failed to start test drive: ${response.statusCode}');
+        // Error handling is already done in the service method
+        if (mounted) {
+          setState(() {
+            error = 'Failed to start test drive. Please try again.';
+          });
+        }
       }
     } catch (e) {
       print('Error starting test drive: $e');
@@ -1432,6 +1431,48 @@ class _StartDriveMapState extends State<StartDriveMap>
       }
     }
   }
+
+  // Future<void> _startTestDrive(LatLng currentLocation) async {
+  //   try {
+  //     final url = Uri.parse(
+  //       'https://api.smartassistapp.in/api/events/${widget.eventId}/start-drive',
+  //     );
+  //     final token = await Storage.getToken();
+
+  //     final response = await http
+  //         .post(
+  //           url,
+  //           headers: {
+  //             'Content-Type': 'application/json',
+  //             'Authorization': 'Bearer $token',
+  //           },
+  //           body: json.encode({
+  //             'startCoordinates': {
+  //               'latitude': currentLocation.latitude,
+  //               'longitude': currentLocation.longitude,
+  //             },
+  //             'timestamp': DateTime.now().toIso8601String(),
+  //           }),
+  //         )
+  //         .timeout(Duration(seconds: 15));
+
+  //     print('Starting test drive for event: ${widget.eventId}');
+
+  //     if (response.statusCode == 200) {
+  //       print('Test drive started successfully');
+  //       _startLocationTracking();
+  //     } else {
+  //       throw Exception('Failed to start test drive: ${response.statusCode}');
+  //     }
+  //   } catch (e) {
+  //     print('Error starting test drive: $e');
+  //     if (mounted) {
+  //       setState(() {
+  //         error = 'Error starting test drive: $e';
+  //       });
+  //     }
+  //   }
+  // }
 
   // void _startLocationTracking() {
   //   try {
@@ -2464,57 +2505,103 @@ class _StartDriveMapState extends State<StartDriveMap>
 
   Future<void> _endTestDrive({bool sendFeedback = false}) async {
     try {
-      final uri = Uri.parse(
-        'https://api.smartassistapp.in/api/events/${widget.eventId}/end-drive',
-      );
-      final url = uri.replace(
-        queryParameters: {'send_feedback': sendFeedback.toString()},
-      );
-
-      final token = await Storage.getToken();
-
       // Calculate final duration ensuring pauses are accounted for
       int finalDuration = _calculateDuration();
 
-      final response = await http
-          .post(
-            url,
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-            body: json.encode({
-              'totalDistance': totalDistance,
-              'duration': finalDuration,
-              'startTime': driveStartTime?.toIso8601String(),
-              'endTime': DateTime.now().toIso8601String(),
-              'totalPausedDuration': totalPausedDuration,
-              'routePoints': routePoints
-                  .map(
-                    (point) => {
-                      'latitude': point.latitude,
-                      'longitude': point.longitude,
-                    },
-                  )
-                  .toList(),
-            }),
-          )
-          .timeout(const Duration(seconds: 15));
+      final testdriveData = {
+        'totalDistance': totalDistance,
+        'duration': finalDuration,
+        'startTime': driveStartTime?.toIso8601String(),
+        'endTime': DateTime.now().toIso8601String(),
+        'totalPausedDuration': totalPausedDuration,
+        'routePoints': routePoints
+            .map(
+              (point) => {
+                'latitude': point.latitude,
+                'longitude': point.longitude,
+              },
+            )
+            .toList(),
+      };
 
-      if (response.statusCode == 200) {
+      print('Ending test drive for event: ${widget.eventId}');
+      print('Test drive data: $testdriveData');
+      print('Send feedback: $sendFeedback');
+
+      bool success = await LeadsSrv.endTestDrive(
+        testdriveData,
+        widget.eventId,
+        sendFeedback: sendFeedback,
+      );
+
+      if (success) {
         print('Test drive ended successfully');
         print('Duration: $finalDuration minutes');
         print('Total paused time: ${totalPausedDuration}s');
-        print('Send feedback: $sendFeedback');
         _handleDriveEnded(totalDistance, finalDuration);
       } else {
-        throw Exception('Failed to end drive: ${response.statusCode}');
+        // Error handling is already done in the service method
+        throw Exception('Failed to end test drive');
       }
     } catch (e) {
       print('Error ending drive: $e');
       throw e;
     }
   }
+
+  // Future<void> _endTestDrive({bool sendFeedback = false}) async {
+  //   try {
+  //     final uri = Uri.parse(
+  //       'https://api.smartassistapp.in/api/events/${widget.eventId}/end-drive',
+  //     );
+  //     final url = uri.replace(
+  //       queryParameters: {'send_feedback': sendFeedback.toString()},
+  //     );
+
+  //     final token = await Storage.getToken();
+
+  //     // Calculate final duration ensuring pauses are accounted for
+  //     int finalDuration = _calculateDuration();
+
+  //     final response = await http
+  //         .post(
+  //           url,
+  //           headers: {
+  //             'Content-Type': 'application/json',
+  //             'Authorization': 'Bearer $token',
+  //           },
+  //           body: json.encode({
+  //             'totalDistance': totalDistance,
+  //             'duration': finalDuration,
+  //             'startTime': driveStartTime?.toIso8601String(),
+  //             'endTime': DateTime.now().toIso8601String(),
+  //             'totalPausedDuration': totalPausedDuration,
+  //             'routePoints': routePoints
+  //                 .map(
+  //                   (point) => {
+  //                     'latitude': point.latitude,
+  //                     'longitude': point.longitude,
+  //                   },
+  //                 )
+  //                 .toList(),
+  //           }),
+  //         )
+  //         .timeout(const Duration(seconds: 15));
+
+  //     if (response.statusCode == 200) {
+  //       print('Test drive ended successfully');
+  //       print('Duration: $finalDuration minutes');
+  //       print('Total paused time: ${totalPausedDuration}s');
+  //       print('Send feedback: $sendFeedback');
+  //       _handleDriveEnded(totalDistance, finalDuration);
+  //     } else {
+  //       throw Exception('Failed to end drive: ${response.statusCode}');
+  //     }
+  //   } catch (e) {
+  //     print('Error ending drive: $e');
+  //     throw e;
+  //   }
+  // }
 
   Future<void> _captureAndUploadImage() async {
     try {
@@ -2562,60 +2649,116 @@ class _StartDriveMapState extends State<StartDriveMap>
   }
 
   Future<bool> _uploadImage(File file) async {
-    final url = Uri.parse(
-      'https://api.smartassistapp.in/api/events/${widget.eventId}/upload-map',
-    );
-    final token = await Storage.getToken();
-
     try {
-      var request = http.MultipartRequest('POST', url)
-        ..headers['Authorization'] = 'Bearer $token'
-        ..files.add(
-          await http.MultipartFile.fromPath(
-            'file',
-            file.path,
-            contentType: MediaType('image', 'png'),
-          ),
+      print('Starting image upload for event: ${widget.eventId}');
+
+      final result = await LeadsSrv.uploadImageTestdrive(file, widget.eventId);
+
+      print('Upload Result: $result');
+
+      if (result['success']) {
+        final uploadedUrl = result['uploadedUrl'];
+        print('Uploaded Map Image URL: $uploadedUrl');
+
+        Get.snackbar(
+          'Success',
+          result['message'],
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
         );
 
-      var streamedResponse = await request.send().timeout(
-        const Duration(seconds: 15),
-        onTimeout: () {
-          throw TimeoutException("Image upload timed out");
-        },
-      );
-
-      final response = await http.Response.fromStream(streamedResponse);
-      print('Upload Response: ${response.body}');
-
-      if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
-        String? uploadedUrl;
-        if (responseData['data'] is String) {
-          uploadedUrl = responseData['data'];
-        } else {
-          uploadedUrl =
-              responseData['data']?['map_img'] ?? responseData['map_img'];
-        }
-        print('Uploaded Map Image URL: $uploadedUrl');
         return true;
       } else {
-        print('Failed to upload image: ${response.statusCode}');
+        print('Failed to upload image: ${result['message']}');
+
+        Get.snackbar(
+          'Error',
+          result['message'],
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+
         return false;
       }
     } catch (e) {
       print('Error uploading image: $e');
+
+      Get.snackbar(
+        'Error',
+        'Error uploading image: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+
       return false;
     } finally {
+      // Clean up the temporary file
       try {
         if (await file.exists()) {
           await file.delete();
+          print('Temporary file deleted successfully');
         }
       } catch (e) {
         print('Error deleting temporary file: $e');
       }
     }
   }
+
+  // Future<bool> _uploadImage(File file) async {
+  //   final url = Uri.parse(
+  //     'https://api.smartassistapp.in/api/events/${widget.eventId}/upload-map',
+  //   );
+  //   final token = await Storage.getToken();
+
+  //   try {
+  //     var request = http.MultipartRequest('POST', url)
+  //       ..headers['Authorization'] = 'Bearer $token'
+  //       ..files.add(
+  //         await http.MultipartFile.fromPath(
+  //           'file',
+  //           file.path,
+  //           contentType: MediaType('image', 'png'),
+  //         ),
+  //       );
+
+  //     var streamedResponse = await request.send().timeout(
+  //       const Duration(seconds: 15),
+  //       onTimeout: () {
+  //         throw TimeoutException("Image upload timed out");
+  //       },
+  //     );
+
+  //     final response = await http.Response.fromStream(streamedResponse);
+  //     print('Upload Response: ${response.body}');
+
+  //     if (response.statusCode == 200) {
+  //       final responseData = json.decode(response.body);
+  //       String? uploadedUrl;
+  //       if (responseData['data'] is String) {
+  //         uploadedUrl = responseData['data'];
+  //       } else {
+  //         uploadedUrl =
+  //             responseData['data']?['map_img'] ?? responseData['map_img'];
+  //       }
+  //       print('Uploaded Map Image URL: $uploadedUrl');
+  //       return true;
+  //     } else {
+  //       print('Failed to upload image: ${response.statusCode}');
+  //       return false;
+  //     }
+  //   } catch (e) {
+  //     print('Error uploading image: $e');
+  //     return false;
+  //   } finally {
+  //     try {
+  //       if (await file.exists()) {
+  //         await file.delete();
+  //       }
+  //     } catch (e) {
+  //       print('Error deleting temporary file: $e');
+  //     }
+  //   }
+  // }
 
   Future<bool> _onWillPop() async {
     final now = DateTime.now();

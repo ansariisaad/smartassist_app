@@ -960,6 +960,1077 @@ class LeadsSrv {
     }
   }
 
+  static Future<Map<String, dynamic>> fetchTeamData() async {
+    try {
+      final response = await authenticatedRequest(
+        method: 'GET',
+        endpoint: 'users/sm/analytics/team-dashboard',
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data;
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+        print("Failed to load data: $errorMessage");
+
+        throw Exception('Failed to load data: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching data: $e');
+      throw Exception('Error fetching data: $e');
+    }
+  }
+
+  static Future<Map<String, dynamic>> fetchSlot(String vehicleId) async {
+    try {
+      final response = await authenticatedRequest(
+        method: 'GET',
+        endpoint: 'slots/$vehicleId/slots/all',
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data;
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+        print("Failed to load data: $errorMessage");
+
+        throw Exception('Failed to load data: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching data: $e');
+      throw Exception('Error fetching data: $e');
+    }
+  }
+
+  static Future<Map<String, dynamic>> fetchLead() async {
+    try {
+      final response = await authenticatedRequest(
+        method: 'GET',
+        endpoint: 'leads/all',
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data;
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+        print("Failed to load data: $errorMessage");
+
+        throw Exception('Failed to load data: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching data: $e');
+      throw Exception('Error fetching data: $e');
+    }
+  }
+
+  static Future<Map<String, dynamic>> fetchAllTasks() async {
+    try {
+      final response = await authenticatedRequest(
+        method: 'GET',
+        endpoint: 'tasks/all-tasks',
+        additionalHeaders: {
+          'X-Request-Type': 'all-tasks',
+          'X-Include-Counts': 'true',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = json.decode(response.body);
+
+        // ✅ ENHANCED: Return the full response with success indicator
+        return {
+          'success': true,
+          'data': jsonResponse['data'],
+          'message': 'Tasks fetched successfully',
+          'timestamp': DateTime.now().toIso8601String(),
+        };
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load tasks';
+
+        print("Failed to load tasks: $errorMessage");
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+
+        // ✅ FIXED: Return error response instead of throwing
+        return {
+          'success': false,
+          'data': {},
+          'message': errorMessage,
+          'status_code': response.statusCode,
+        };
+      }
+    } catch (e) {
+      print('Error fetching tasks: $e');
+      // ✅ FIXED: Return error response instead of throwing
+      return {
+        'success': false,
+        'data': {},
+        'message': 'Network error: ${e.toString()}',
+      };
+    }
+  }
+
+  static Future<Map<String, dynamic>> fetchAppointment() async {
+    try {
+      final response = await authenticatedRequest(
+        method: 'GET',
+        endpoint: 'tasks/all-appointments',
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = json.decode(response.body);
+
+        // ✅ ENHANCED: Return the full response with success indicator
+        return {
+          'success': true,
+          'data': jsonResponse['data'],
+          'message': 'Tasks fetched successfully',
+          'timestamp': DateTime.now().toIso8601String(),
+        };
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load tasks';
+
+        print("Failed to load tasks: $errorMessage");
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+
+        // ✅ FIXED: Return error response instead of throwing
+        return {
+          'success': false,
+          'data': {},
+          'message': errorMessage,
+          'status_code': response.statusCode,
+        };
+      }
+    } catch (e) {
+      print('Error fetching tasks: $e');
+      // ✅ FIXED: Return error response instead of throwing
+      return {
+        'success': false,
+        'data': {},
+        'message': 'Network error: ${e.toString()}',
+      };
+    }
+  }
+
+  static Future<Map<String, dynamic>> fetchTestdrive() async {
+    try {
+      final response = await authenticatedRequest(
+        method: 'GET',
+        endpoint: 'events/all-events',
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = json.decode(response.body);
+
+        // ✅ ENHANCED: Return the full response with success indicator
+        return {
+          'success': true,
+          'data': jsonResponse['data'],
+          'message': 'Tasks fetched successfully',
+          'timestamp': DateTime.now().toIso8601String(),
+        };
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load tasks';
+
+        print("Failed to load tasks: $errorMessage");
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+
+        // ✅ FIXED: Return error response instead of throwing
+        return {
+          'success': false,
+          'data': {},
+          'message': errorMessage,
+          'status_code': response.statusCode,
+        };
+      }
+    } catch (e) {
+      print('Error fetching tasks: $e');
+      // ✅ FIXED: Return error response instead of throwing
+      return {
+        'success': false,
+        'data': {},
+        'message': 'Network error: ${e.toString()}',
+      };
+    }
+  }
+
+  static Future<Map<String, dynamic>> fetchFavFollowups() async {
+    try {
+      final response = await authenticatedRequest(
+        method: 'GET',
+        endpoint: 'favourites/follow-ups/all',
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = json.decode(response.body);
+
+        return {
+          'success': true,
+          'data': jsonResponse['data'],
+          'message': 'Tasks fetched successfully',
+          'timestamp': DateTime.now().toIso8601String(),
+        };
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load tasks';
+
+        print("Failed to load tasks: $errorMessage");
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+
+        // ✅ FIXED: Return error response instead of throwing
+        return {
+          'success': false,
+          'data': {},
+          'message': errorMessage,
+          'status_code': response.statusCode,
+        };
+      }
+    } catch (e) {
+      print('Error fetching tasks: $e');
+      // ✅ FIXED: Return error response instead of throwing
+      return {
+        'success': false,
+        'data': {},
+        'message': 'Network error: ${e.toString()}',
+      };
+    }
+  }
+
+  static Future<Map<String, dynamic>> fetchTasksData() async {
+    try {
+      final response = await authenticatedRequest(
+        method: 'GET',
+        endpoint: 'leads/fetch/all',
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = json.decode(response.body);
+
+        return {
+          'success': true,
+          'data': jsonResponse['data'],
+          'message': 'Tasks fetched successfully',
+          'timestamp': DateTime.now().toIso8601String(),
+        };
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load tasks';
+
+        print("Failed to load tasks: $errorMessage");
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+
+        // ✅ FIXED: Return error response instead of throwing
+        return {
+          'success': false,
+          'data': {},
+          'message': errorMessage,
+          'status_code': response.statusCode,
+        };
+      }
+    } catch (e) {
+      print('Error fetching tasks: $e');
+      // ✅ FIXED: Return error response instead of throwing
+      return {
+        'success': false,
+        'data': {},
+        'message': 'Network error: ${e.toString()}',
+      };
+    }
+  }
+
+  static Future<Map<String, dynamic>> fetchTestDriveData({
+    String? eventId,
+    String? completedEventId,
+    bool isFromTestdrive = true,
+  }) async {
+    try {
+      // Determine which eventId to use
+      String targetEventId = isFromTestdrive
+          ? (eventId ?? '')
+          : (completedEventId ?? '');
+
+      if (targetEventId.isEmpty) {
+        return {
+          'success': false,
+          'data': {},
+          'message': 'Event ID is required',
+        };
+      }
+
+      String endpoint = 'events/$targetEventId';
+
+      print('Fetching test drive data from endpoint: $endpoint');
+
+      final response = await authenticatedRequest(
+        method: 'GET',
+        endpoint: endpoint,
+      );
+
+      print('API Response Status: ${response.statusCode}');
+      print('API Response Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = json.decode(response.body);
+
+        return {
+          'success': true,
+          'data': jsonResponse['data'],
+          'message': 'Test drive data fetched successfully',
+          'timestamp': DateTime.now().toIso8601String(),
+        };
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load test drive data';
+
+        print("Failed to load test drive data: $errorMessage");
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+
+        return {
+          'success': false,
+          'data': {},
+          'message': errorMessage,
+          'status_code': response.statusCode,
+        };
+      }
+    } catch (e) {
+      print('Error fetching test drive data: $e');
+      return {
+        'success': false,
+        'data': {},
+        'message': 'Network error: ${e.toString()}',
+      };
+    }
+  }
+
+  static Future<Map<String, dynamic>> fetchDashboardDataAn({
+    String? timeRange,
+    String? userId,
+    bool isFromSM = false,
+  }) async {
+    try {
+      // Build the endpoint with parameters
+      String endpoint = 'users/ps/dashboard/call-analytics';
+
+      // Add time range parameter
+      String periodParam = '';
+      switch (timeRange) {
+        case '1D':
+          periodParam = '?type=DAY';
+          break;
+        case '1W':
+          periodParam = '?type=WEEK';
+          break;
+        case '1M':
+          periodParam = '?type=MTD';
+          break;
+        case '1Q':
+          periodParam = '?type=QTD';
+          break;
+        case '1Y':
+          periodParam = '?type=YTD';
+          break;
+        default:
+          periodParam = '?type=DAY';
+      }
+
+      // Add user_id parameter if needed
+      if (isFromSM && userId != null) {
+        periodParam += '&user_id=$userId';
+      }
+
+      endpoint += periodParam;
+
+      print('API Endpoint: $endpoint'); // Debug print
+
+      final response = await authenticatedRequest(
+        method: 'GET',
+        endpoint: endpoint,
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = json.decode(response.body);
+
+        return {
+          'success': true,
+          'data': jsonResponse,
+          'message': 'Dashboard data fetched successfully',
+          'timestamp': DateTime.now().toIso8601String(),
+        };
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+
+        print("Failed to load dashboard data: $errorMessage");
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+
+        return {
+          'success': false,
+          'data': {},
+          'message': errorMessage,
+          'status_code': response.statusCode,
+        };
+      }
+    } catch (e) {
+      print('Error fetching dashboard data: $e');
+      return {
+        'success': false,
+        'data': {},
+        'message': 'Network error: ${e.toString()}',
+      };
+    }
+  }
+
+  static Future<Map<String, dynamic>> fetchSingleCalllogTeams({
+    String? timeRange,
+    String? userId,
+    bool isFromSM = false, // Add this parameter
+  }) async {
+    try {
+      // Build the endpoint with parameters
+      String endpoint = 'users/ps/dashboard/call-analytics';
+
+      // Add time range parameter
+      String periodParam = '';
+      switch (timeRange) {
+        case '1D':
+          periodParam = '?type=DAY';
+          break;
+        case '1W':
+          periodParam = '?type=WEEK';
+          break;
+        case '1M':
+          periodParam = '?type=MTD';
+          break;
+        case '1Q':
+          periodParam = '?type=QTD';
+          break;
+        case '1Y':
+          periodParam = '?type=YTD';
+          break;
+        default:
+          periodParam = '?type=DAY';
+      }
+
+      // Add user_id parameter if needed
+      if (isFromSM && userId != null && userId.isNotEmpty) {
+        periodParam += '&user_id=$userId';
+      }
+
+      endpoint += periodParam;
+
+      print('API Endpoint: $endpoint'); // Debug print
+
+      final response = await authenticatedRequest(
+        method: 'GET',
+        endpoint: endpoint,
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = json.decode(response.body);
+
+        return {
+          'success': true,
+          'data': jsonResponse,
+          'message': 'Dashboard data fetched successfully',
+          'timestamp': DateTime.now().toIso8601String(),
+        };
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+
+        print("Failed to load dashboard data: $errorMessage");
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+
+        return {
+          'success': false,
+          'data': {},
+          'message': errorMessage,
+          'status_code': response.statusCode,
+        };
+      }
+    } catch (e) {
+      print('Error fetching dashboard data: $e');
+      return {
+        'success': false,
+        'data': {},
+        'message': 'Network error: ${e.toString()}',
+      };
+    }
+  }
+
+  static Future<Map<String, dynamic>> fetchAllCalllogTeams({
+    String? timeRange,
+    int? periodIndex, // Add this to handle the index-based system
+  }) async {
+    try {
+      // Build the endpoint with parameters
+      String endpoint = 'users/sm/dashboard/call-analytics';
+
+      // Add time range parameter
+      String periodParam = '';
+
+      // Handle both timeRange string and periodIndex int
+      if (periodIndex != null) {
+        switch (periodIndex) {
+          case 1:
+            periodParam = '?type=MTD';
+            break;
+          case 0:
+            periodParam = '?type=QTD';
+            break;
+          case 2:
+            periodParam = '?type=YTD';
+            break;
+          default:
+            periodParam = '?type=QTD';
+        }
+      } else if (timeRange != null) {
+        switch (timeRange) {
+          case '1D':
+            periodParam = '?type=DAY';
+            break;
+          case '1W':
+            periodParam = '?type=WEEK';
+            break;
+          case '1M':
+            periodParam = '?type=MTD';
+            break;
+          case '1Q':
+            periodParam = '?type=QTD';
+            break;
+          case '1Y':
+            periodParam = '?type=YTD';
+            break;
+          default:
+            periodParam = '?type=QTD';
+        }
+      } else {
+        periodParam = '?type=QTD'; // Default
+      }
+
+      endpoint += periodParam;
+
+      print('API Endpoint: $endpoint'); // Debug print
+
+      final response = await authenticatedRequest(
+        method: 'GET',
+        endpoint: endpoint,
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = json.decode(response.body);
+
+        return {
+          'success': true,
+          'data': jsonResponse['data'], // Return the data directly
+          'message': 'Call analytics fetched successfully',
+          'timestamp': DateTime.now().toIso8601String(),
+        };
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load call analytics';
+
+        print("Failed to load call analytics: $errorMessage");
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+
+        return {
+          'success': false,
+          'data': {},
+          'message': errorMessage,
+          'status_code': response.statusCode,
+        };
+      }
+    } catch (e) {
+      print('Error fetching call analytics: $e');
+      return {
+        'success': false,
+        'data': {},
+        'message': 'Network error: ${e.toString()}',
+      };
+    }
+  }
+
+  static Future<Map<String, dynamic>> fetchDetailsTeams({
+    int? periodIndex,
+    String? timeRange,
+    bool isComparing = false,
+    List<String>? selectedUserIds,
+    String? selectedUserId,
+    int selectedProfileIndex = 0,
+    bool avatarAll = false,
+    List<String>? totalPerformanceIds,
+    bool isAlphabetLogsMode = false,
+    List<String>? logStatusAlphabet,
+  }) async {
+    try {
+      // Build the endpoint with parameters
+      String endpoint = 'users/sm/analytics/team-dashboard';
+
+      // Build query parameters map
+      final Map<String, String> queryParams = {};
+
+      // Add time range parameter based on periodIndex or timeRange
+      String? periodParam;
+      if (periodIndex != null) {
+        switch (periodIndex) {
+          case 1:
+            periodParam = 'MTD';
+            break;
+          case 0:
+            periodParam = 'QTD';
+            break;
+          case 2:
+            periodParam = 'YTD';
+            break;
+          default:
+            periodParam = 'QTD';
+        }
+      } else if (timeRange != null) {
+        switch (timeRange) {
+          case '1D':
+            periodParam = 'DAY';
+            break;
+          case '1W':
+            periodParam = 'WEEK';
+            break;
+          case '1M':
+            periodParam = 'MTD';
+            break;
+          case '1Q':
+            periodParam = 'QTD';
+            break;
+          case '1Y':
+            periodParam = 'YTD';
+            break;
+          default:
+            periodParam = 'QTD';
+        }
+      } else {
+        periodParam = 'QTD'; // Default
+      }
+
+      if (periodParam != null) {
+        queryParams['type'] = periodParam;
+      }
+
+      // Handle user selection based on comparison mode
+      if (isComparing &&
+          selectedUserIds != null &&
+          selectedUserIds.isNotEmpty) {
+        // If comparison mode is ON, ONLY pass userIds (NO user_id)
+        queryParams['userIds'] = selectedUserIds.join(',');
+      } else if (!isComparing &&
+          selectedProfileIndex != 0 &&
+          selectedUserId != null &&
+          selectedUserId.isNotEmpty) {
+        // If comparison mode is OFF and specific user is selected, pass user_id
+        queryParams['user_id'] = selectedUserId;
+      }
+
+      if (avatarAll &&
+          totalPerformanceIds != null &&
+          totalPerformanceIds.isNotEmpty) {
+        queryParams['total_performance'] = totalPerformanceIds.join(',');
+      }
+
+      if (isAlphabetLogsMode &&
+          logStatusAlphabet != null &&
+          logStatusAlphabet.isNotEmpty) {
+        queryParams['logs_userIds'] = logStatusAlphabet.join(',');
+        queryParams['total_performance'] = logStatusAlphabet.join(',');
+        print('📤 Sending logs_userIds: ${logStatusAlphabet.join(',')}');
+      }
+
+      // Build the final endpoint with query parameters
+      if (queryParams.isNotEmpty) {
+        final uri = Uri.parse('dummy').replace(queryParameters: queryParams);
+        endpoint += uri.query.isNotEmpty ? '?${uri.query}' : '';
+      }
+
+      print('📤 API Endpoint: $endpoint'); // Debug print
+
+      final response = await authenticatedRequest(
+        method: 'GET',
+        endpoint: endpoint,
+      );
+
+      print('📥 Status Code: ${response.statusCode}');
+      print('📥 Response: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = json.decode(response.body);
+
+        return {
+          'success': true,
+          'data': jsonResponse['data'],
+          'message': 'Team details fetched successfully',
+          'timestamp': DateTime.now().toIso8601String(),
+        };
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load team details';
+
+        print("Failed to load team details: $errorMessage");
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+
+        return {
+          'success': false,
+          'data': {},
+          'message': errorMessage,
+          'status_code': response.statusCode,
+        };
+      }
+    } catch (e) {
+      print('Error fetching team details: $e');
+      return {
+        'success': false,
+        'data': {},
+        'message': 'Network error: ${e.toString()}',
+      };
+    }
+  }
+  // static Future<Map<String, dynamic>> fetchSingleCalllog({
+  //   String? timeRange,
+  //   String? userId,
+  //   bool isFromSM = false, // Add this parameter
+  // }) async {
+  //   try {
+  //     // Build the endpoint with parameters
+  //     String endpoint = 'users/ps/dashboard/call-analytics';
+
+  //     // Add time range parameter
+  //     String periodParam = '';
+  //     switch (timeRange) {
+  //       case '1D':
+  //         periodParam = '?type=DAY';
+  //         break;
+  //       case '1W':
+  //         periodParam = '?type=WEEK';
+  //         break;
+  //       case '1M':
+  //         periodParam = '?type=MTD';
+  //         break;
+  //       case '1Q':
+  //         periodParam = '?type=QTD';
+  //         break;
+  //       case '1Y':
+  //         periodParam = '?type=YTD';
+  //         break;
+  //       default:
+  //         periodParam = '?type=DAY';
+  //     }
+
+  //     // Add user_id parameter if needed
+  //     if (isFromSM && userId != null && userId.isNotEmpty) {
+  //       periodParam += '&user_id=$userId';
+  //     }
+
+  //     endpoint += periodParam;
+
+  //     print('API Endpoint: $endpoint'); // Debug print
+
+  //     final response = await authenticatedRequest(
+  //       method: 'GET',
+  //       endpoint: endpoint,
+  //     );
+
+  //     if (response.statusCode == 200) {
+  //       final Map<String, dynamic> jsonResponse = json.decode(response.body);
+
+  //       return {
+  //         'success': true,
+  //         'data': jsonResponse,
+  //         'message': 'Dashboard data fetched successfully',
+  //         'timestamp': DateTime.now().toIso8601String(),
+  //       };
+  //     } else {
+  //       final Map<String, dynamic> errorData = json.decode(response.body);
+  //       final String errorMessage =
+  //           errorData['message'] ?? 'Failed to load dashboard data';
+
+  //       print("Failed to load dashboard data: $errorMessage");
+  //       await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+
+  //       return {
+  //         'success': false,
+  //         'data': {},
+  //         'message': errorMessage,
+  //         'status_code': response.statusCode,
+  //       };
+  //     }
+  //   } catch (e) {
+  //     print('Error fetching dashboard data: $e');
+  //     return {
+  //       'success': false,
+  //       'data': {},
+  //       'message': 'Network error: ${e.toString()}',
+  //     };
+  //   }
+  // }
+
+  static Future<Map<String, dynamic>> fetchLeads() async {
+    try {
+      final response = await authenticatedRequest(
+        method: 'GET',
+        endpoint: 'favourites/leads/all',
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = json.decode(response.body);
+
+        return {
+          'success': true,
+          'data': jsonResponse['data'],
+          'message': 'Tasks fetched successfully',
+          'timestamp': DateTime.now().toIso8601String(),
+        };
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load tasks';
+
+        print("Failed to load tasks: $errorMessage");
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+
+        // ✅ FIXED: Return error response instead of throwing
+        return {
+          'success': false,
+          'data': {},
+          'message': errorMessage,
+          'status_code': response.statusCode,
+        };
+      }
+    } catch (e) {
+      print('Error fetching tasks: $e');
+      // ✅ FIXED: Return error response instead of throwing
+      return {
+        'success': false,
+        'data': {},
+        'message': 'Network error: ${e.toString()}',
+      };
+    }
+  }
+
+  static Future<Map<String, dynamic>> fetchFavTestdrive() async {
+    try {
+      final response = await authenticatedRequest(
+        method: 'GET',
+        endpoint: 'favourites/events/test-drives/all',
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = json.decode(response.body);
+
+        return {
+          'success': true,
+          'data': jsonResponse['data'],
+          'message': 'Tasks fetched successfully',
+          'timestamp': DateTime.now().toIso8601String(),
+        };
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load tasks';
+
+        print("Failed to load tasks: $errorMessage");
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+
+        // ✅ FIXED: Return error response instead of throwing
+        return {
+          'success': false,
+          'data': {},
+          'message': errorMessage,
+          'status_code': response.statusCode,
+        };
+      }
+    } catch (e) {
+      print('Error fetching tasks: $e');
+      // ✅ FIXED: Return error response instead of throwing
+      return {
+        'success': false,
+        'data': {},
+        'message': 'Network error: ${e.toString()}',
+      };
+    }
+  }
+
+  static Future<Map<String, dynamic>> fetchFavAppointment() async {
+    try {
+      final response = await authenticatedRequest(
+        method: 'GET',
+        endpoint: 'favourites/events/appointments/all',
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = json.decode(response.body);
+
+        return {
+          'success': true,
+          'data': jsonResponse['data'],
+          'message': 'Tasks fetched successfully',
+          'timestamp': DateTime.now().toIso8601String(),
+        };
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load tasks';
+
+        print("Failed to load tasks: $errorMessage");
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+
+        // ✅ FIXED: Return error response instead of throwing
+        return {
+          'success': false,
+          'data': {},
+          'message': errorMessage,
+          'status_code': response.statusCode,
+        };
+      }
+    } catch (e) {
+      print('Error fetching tasks: $e');
+      // ✅ FIXED: Return error response instead of throwing
+      return {
+        'success': false,
+        'data': {},
+        'message': 'Network error: ${e.toString()}',
+      };
+    }
+  }
+
+  static Future<Map<String, dynamic>> fetchTeamsAll() async {
+    try {
+      final response = await authenticatedRequest(
+        method: 'GET',
+        endpoint: 'leads/my-teams/all',
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = json.decode(response.body);
+
+        return {
+          'success': true,
+          'data': jsonResponse['data'],
+          'message': 'Tasks fetched successfully',
+          'timestamp': DateTime.now().toIso8601String(),
+        };
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load tasks';
+
+        print("Failed to load tasks: $errorMessage");
+        // await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+
+        // ✅ FIXED: Return error response instead of throwing
+        return {
+          'success': false,
+          'data': {},
+          'message': errorMessage,
+          'status_code': response.statusCode,
+        };
+      }
+    } catch (e) {
+      print('Error fetching tasks: $e');
+      // ✅ FIXED: Return error response instead of throwing
+      return {
+        'success': false,
+        'data': {},
+        'message': 'Network error: ${e.toString()}',
+      };
+    }
+  }
+
+  static Future<Map<String, dynamic>> fetchCalllogs(
+    String encodedMobile,
+  ) async {
+    try {
+      final response = await authenticatedRequest(
+        method: 'GET',
+        endpoint: 'leads/call-logs/all?mobile=$encodedMobile',
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = json.decode(response.body);
+
+        return {
+          'success': true,
+          'data': jsonResponse['data'],
+          'message': 'Call logs fetched successfully',
+          'timestamp': DateTime.now().toIso8601String(),
+        };
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load call logs';
+
+        print("Failed to load call logs: $errorMessage");
+
+        return {
+          'success': false,
+          'data': {},
+          'message': errorMessage,
+          'status_code': response.statusCode,
+        };
+      }
+    } catch (e) {
+      print('Error fetching call logs: $e');
+
+      return {
+        'success': false,
+        'data': {},
+        'message': 'Network error: ${e.toString()}',
+      };
+    }
+  }
+
+  static Future<Map<String, dynamic>> smCalendarAsondate(
+    Map<String, String>
+    queryParams, // ✅ FIXED: Changed from String? to Map<String, String>
+  ) async {
+    try {
+      final response = await authenticatedRequest(
+        method: 'GET',
+        endpoint: 'calendar/activities/all/asondate',
+        queryParams: queryParams, // ✅ FIXED: Pass the Map directly
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data;
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load calendar data';
+        print("Failed to load data: $errorMessage");
+        throw Exception('Failed to load data: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching calendar data: $e');
+      throw Exception('Error fetching calendar data: $e');
+    }
+  }
+
   static Future<Map<String, dynamic>?> submitLead(
     Map<String, dynamic> leadData,
   ) async {
@@ -981,15 +2052,6 @@ class LeadsSrv {
       );
 
       final responseData = json.decode(response.body);
-
-      //   if (response.statusCode == 201) {
-      //     return responseData;
-      //   } else {
-      //     return {"error": responseData['message'] ?? "Failed."};
-      //   }
-      // } catch (e) {
-      //   return {"error": "An error occurred: $e"};
-      // }
 
       if (response.statusCode == 201) {
         return responseData;
@@ -1020,6 +2082,51 @@ class LeadsSrv {
     }
   }
 
+  static Future<Map<String, dynamic>?> submitCalllogs(
+    List<Map<String, dynamic>>
+    formattedLogs, // ✅ FIXED: Changed from Map to List
+  ) async {
+    try {
+      final response = await authenticatedRequest(
+        method: 'POST',
+        endpoint: 'leads/create-call-logs',
+        body: {'call_logs': formattedLogs},
+      );
+
+      final responseData = json.decode(response.body);
+
+      print('API Response Status: ${response.statusCode}');
+      print('API Response Body: ${response.body}');
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        return responseData;
+      } else {
+        print('Error: ${response.statusCode}');
+        print('Error details: ${response.body}');
+        showErrorMessageGetx(
+          message:
+              'Submission failed: ${responseData['message'] ?? 'Unknown error'}',
+        );
+        return null; // ✅ FIXED: Return null instead of nothing
+      }
+    } on SocketException {
+      showErrorMessageGetx(
+        message: 'No internet connection. Please check your network.',
+      );
+      return null; // ✅ FIXED: Return null
+    } on TimeoutException {
+      showErrorMessageGetx(
+        message: 'Request timed out. Please try again later.',
+      );
+      return null; // ✅ FIXED: Return null
+    } catch (e) {
+      print('Unexpected error: $e');
+      showErrorMessageGetx(
+        message: 'An unexpected error occurred. Please try again.',
+      );
+      return null; // ✅ FIXED: Return null
+    }
+  }
   // create followups
 
   static Future<bool> submitFollowups(
@@ -1129,6 +2236,165 @@ class LeadsSrv {
     }
   }
 
+  static Future<bool> updateLost(
+    Map<String, dynamic> requestBody,
+    String leadId,
+    BuildContext context,
+  ) async {
+    try {
+      final response = await LeadsSrv.authenticatedRequest(
+        method: 'PUT',
+        endpoint: 'leads/mark-lost/$leadId',
+        body: requestBody,
+      );
+
+      print('API Response Status: ${response.statusCode}');
+      print('API Response Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        final successMessage =
+            responseData['message'] ?? 'Lead marked as lost successfully';
+
+        // Show success message
+        Get.snackbar(
+          'Success',
+          successMessage,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+
+        return true;
+      } else {
+        final responseData = json.decode(response.body);
+        final errorMessage =
+            responseData['message'] ?? 'Failed to mark lead as lost';
+
+        print('Error: ${response.statusCode}');
+        print('Error details: ${response.body}');
+
+        showErrorMessage(context, message: 'Submission failed: $errorMessage');
+        return false;
+      }
+    } on SocketException {
+      showErrorMessageGetx(
+        message: 'No internet connection. Please check your network.',
+      );
+      return false;
+    } on TimeoutException {
+      showErrorMessage(
+        context,
+        message: 'Request timed out. Please try again later.',
+      );
+      return false;
+    } catch (e) {
+      print('Unexpected error: $e');
+      showErrorMessage(
+        context,
+        message: 'An unexpected error occurred. Please try again.',
+      );
+      return false;
+    }
+  }
+
+  static Future<bool> updateTestdrive(
+    Map<String, dynamic> newTaskForLead,
+    String eventId,
+    BuildContext context,
+  ) async {
+    try {
+      final response = await LeadsSrv.authenticatedRequest(
+        method: 'PUT',
+        endpoint: 'events/update/$eventId',
+        body: newTaskForLead,
+      );
+
+      print('API Response Status: ${response.statusCode}');
+      print('API Response Body: ${response.body}');
+
+      final responseData = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        print('Error: ${response.statusCode}');
+        print('Error details: ${response.body}');
+        showErrorMessage(
+          context,
+          message: 'Submission failed : ${responseData['message']}',
+        );
+        return false;
+      }
+    } on SocketException {
+      showErrorMessageGetx(
+        message: 'No internet connection. Please check your network.',
+      );
+      return false;
+    } on TimeoutException {
+      showErrorMessage(
+        context,
+        message: 'Request timed out. Please try again later.',
+      );
+      return false;
+    } catch (e) {
+      print('Unexpected error: $e');
+      showErrorMessage(
+        context,
+        message: 'An unexpected error occurred. Please try again.',
+      );
+      return false;
+    }
+  }
+
+  static Future<bool> updateAppointment(
+    Map<String, dynamic> newTaskForLead,
+    String taskId,
+    BuildContext context,
+  ) async {
+    try {
+      final response = await LeadsSrv.authenticatedRequest(
+        method: 'PUT',
+        endpoint: 'tasks/$taskId/update',
+        body: newTaskForLead,
+      );
+
+      print('API Response Status: ${response.statusCode}');
+      print('API Response Body: ${response.body}');
+
+      final responseData = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        print('Error: ${response.statusCode}');
+        print('Error details: ${response.body}');
+        showErrorMessage(
+          context,
+          message: 'Submission failed : ${responseData['message']}',
+        );
+        return false;
+      }
+    } on SocketException {
+      showErrorMessageGetx(
+        message: 'No internet connection. Please check your network.',
+      );
+      return false;
+    } on TimeoutException {
+      showErrorMessage(
+        context,
+        message: 'Request timed out. Please try again later.',
+      );
+      return false;
+    } catch (e) {
+      print('Unexpected error: $e');
+      showErrorMessage(
+        context,
+        message: 'An unexpected error occurred. Please try again.',
+      );
+      return false;
+    }
+  }
+
   static Future<bool> uploadImage(File imageFile) async {
     try {
       final response = await authenticatedMultipartRequest(
@@ -1174,6 +2440,68 @@ class LeadsSrv {
     }
   }
 
+  static Future<Map<String, dynamic>> uploadImageTestdrive(
+    File imageFile,
+    String eventId,
+  ) async {
+    try {
+      final response = await authenticatedMultipartRequest(
+        method: 'POST',
+        endpoint: 'events/$eventId/upload-map',
+        file: imageFile,
+        fieldName: 'file', // Field name your API expects
+        additionalHeaders: {'X-Upload-Type': 'map-image'},
+      );
+
+      final responseData = jsonDecode(response.body);
+
+      print('API Response Status: ${response.statusCode}');
+      print('API Response Body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        String? uploadedUrl;
+        if (responseData['data'] is String) {
+          uploadedUrl = responseData['data'];
+        } else {
+          uploadedUrl =
+              responseData['data']?['map_img'] ?? responseData['map_img'];
+        }
+
+        return {
+          'success': true,
+          'message': responseData['message'] ?? 'Image uploaded successfully',
+          'uploadedUrl': uploadedUrl,
+          'data': responseData,
+        };
+      } else {
+        print('Error: ${response.statusCode}');
+        print('Error details: ${response.body}');
+
+        return {
+          'success': false,
+          'message': responseData['message'] ?? 'Failed to upload image',
+          'status_code': response.statusCode,
+        };
+      }
+    } on SocketException {
+      return {
+        'success': false,
+        'message': 'No internet connection. Please check your network.',
+      };
+    } on TimeoutException {
+      return {
+        'success': false,
+        'message': 'Request timed out. Please try again later.',
+      };
+    } catch (e) {
+      print('Unexpected error: $e');
+      return {
+        'success': false,
+        'message': 'An unexpected error occurred. Please try again.',
+      };
+    }
+  }
+
   // create appoinment
   static Future<bool> submitAppoinment(
     Map<String, dynamic> followupsData,
@@ -1206,6 +2534,64 @@ class LeadsSrv {
         message: 'No internet connection. Please check your network.',
       );
       return false; // Added return statement
+    } on TimeoutException {
+      showErrorMessageGetx(
+        message: 'Request timed out. Please try again later.',
+      );
+      return false;
+    } catch (e) {
+      print('Unexpected error: $e');
+      showErrorMessageGetx(
+        message: 'An unexpected error occurred. Please try again.',
+      );
+      return false;
+    }
+  }
+
+  static Future<bool> submitQualify(
+    Map<String, dynamic> followupsData,
+    String leadId,
+  ) async {
+    try {
+      final response = await LeadsSrv.authenticatedRequest(
+        method: 'POST',
+        endpoint: 'leads/convert-to-opp/$leadId',
+        body: followupsData,
+      );
+
+      final responseData = jsonDecode(response.body);
+
+      print('API Response Status: ${response.statusCode}');
+      print('API Response Body: ${response.body}');
+
+      if (response.statusCode == 201) {
+        final successMessage =
+            responseData['message'] ??
+            'Lead converted to opportunity successfully';
+
+        // Show success message
+        Get.snackbar(
+          'Success',
+          successMessage,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+
+        return true;
+      } else {
+        print('Error: ${response.statusCode}');
+        print('Error details: ${response.body}');
+
+        final errorMessage =
+            responseData['message'] ?? 'Failed to convert lead';
+        showErrorMessageGetx(message: 'Submission failed: $errorMessage');
+        return false;
+      }
+    } on SocketException {
+      showErrorMessageGetx(
+        message: 'No internet connection. Please check your network.',
+      );
+      return false;
     } on TimeoutException {
       showErrorMessageGetx(
         message: 'Request timed out. Please try again later.',
@@ -1275,6 +2661,113 @@ class LeadsSrv {
   //   }
   // }
 
+  static Future<bool> startTestDrive(
+    Map<String, dynamic> testdriveData,
+    String eventId,
+  ) async {
+    try {
+      final response = await LeadsSrv.authenticatedRequest(
+        method: 'POST',
+        endpoint: 'events/$eventId/start-drive',
+        body: testdriveData,
+      );
+
+      final responseData = jsonDecode(response.body);
+
+      print('API Response Status: ${response.statusCode}');
+      print('API Response Body: ${response.body}');
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        // Show success message
+        Get.snackbar(
+          'Success',
+          responseData['message'] ?? 'Test drive started successfully',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+        return true;
+      } else {
+        final errorMessage =
+            responseData['message'] ?? 'Failed to start test drive';
+        showErrorMessageGetx(message: 'Submission failed: $errorMessage');
+        print('Error details: ${response.body}');
+        return false;
+      }
+    } on SocketException {
+      showErrorMessageGetx(
+        message: 'No internet connection. Please check your network.',
+      );
+      return false;
+    } on TimeoutException {
+      showErrorMessageGetx(
+        message: 'Request timed out. Please try again later.',
+      );
+      return false;
+    } catch (e) {
+      print('Unexpected error: $e');
+      showErrorMessageGetx(
+        message: 'An unexpected error occurred. Please try again.',
+      );
+      return false;
+    }
+  }
+
+  static Future<bool> endTestDrive(
+    Map<String, dynamic> testdriveData,
+    String eventId, {
+    bool sendFeedback = false,
+  }) async {
+    try {
+      // Add the sendFeedback parameter to the endpoint
+      String endpoint =
+          'events/$eventId/end-drive?send_feedback=${sendFeedback.toString()}';
+
+      final response = await LeadsSrv.authenticatedRequest(
+        method: 'POST',
+        endpoint: endpoint,
+        body: testdriveData,
+      );
+
+      final responseData = jsonDecode(response.body);
+
+      print('API Response Status: ${response.statusCode}');
+      print('API Response Body: ${response.body}');
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        // Show success message
+        Get.snackbar(
+          'Success',
+          responseData['message'] ?? 'Test drive ended successfully',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+        return true;
+      } else {
+        final errorMessage =
+            responseData['message'] ?? 'Failed to end test drive';
+        showErrorMessageGetx(message: 'Submission failed: $errorMessage');
+        print('Error details: ${response.body}');
+        return false;
+      }
+    } on SocketException {
+      showErrorMessageGetx(
+        message: 'No internet connection. Please check your network.',
+      );
+      return false;
+    } on TimeoutException {
+      showErrorMessageGetx(
+        message: 'Request timed out. Please try again later.',
+      );
+      return false;
+    } catch (e) {
+      print('Unexpected error: $e');
+      showErrorMessageGetx(
+        message: 'An unexpected error occurred. Please try again.',
+      );
+      return false;
+    }
+  }
+
   static Future<bool> submitTestDrive(
     Map<String, dynamic> testdriveData,
     String leadId,
@@ -1282,16 +2775,6 @@ class LeadsSrv {
     final token = await Storage.getToken();
 
     try {
-      // final response = await http.post(
-      //   Uri.parse('${baseUrl}admin/records/$leadId/events/create-test-drive'),
-      //   headers: {
-      //     'Authorization': 'Bearer $token',
-      //     'Content-Type': 'application/json',
-      //     'recordId': leadId,
-      //   },
-      //   body: jsonEncode(testdriveData),
-      // );
-
       final response = await LeadsSrv.authenticatedRequest(
         method: 'POST',
         endpoint: 'admin/records/$leadId/events/create-test-drive',
@@ -1447,6 +2930,54 @@ class LeadsSrv {
     }
   }
 
+  static Future<Map<String, dynamic>> getTestdriveById(String eventId) async {
+    try {
+      final response = await authenticatedRequest(
+        method: 'GET',
+        endpoint: 'events/$eventId',
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data;
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+        print("Failed to load data: $errorMessage");
+
+        throw Exception('Failed to load data: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching data: $e');
+      throw Exception('Error fetching data: $e');
+    }
+  }
+
+  static Future<Map<String, dynamic>> getAppointmentById(String taskId) async {
+    try {
+      final response = await authenticatedRequest(
+        method: 'GET',
+        endpoint: 'tasks/$taskId',
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data;
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+        print("Failed to load data: $errorMessage");
+
+        throw Exception('Failed to load data: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching data: $e');
+      throw Exception('Error fetching data: $e');
+    }
+  }
+
   // history data api
 
   static Future<List<Map<String, dynamic>>> singleTaskById(
@@ -1514,7 +3045,7 @@ class LeadsSrv {
   // static Future<List<Map<String, dynamic>>> singleTasksById(
   //     String leadId) async {
   //   const String apiUrl =
-  //       "https://api.smartassistapp.in/api/admin/leads/tasks/all/";
+  //       "https://api.smartassistapps.in/api/admin/leads/tasks/all/";
 
   //   final token = await Storage.getToken();
   //   if (token == null) {
@@ -1961,14 +3492,6 @@ class LeadsSrv {
   static Future<Map<String, dynamic>> fetchDashboardData() async {
     // final token = await Storage.getToken();
     try {
-      // final response = await http.get(
-      //   Uri.parse('${baseUrl}users/dashboard?filterType=MTD&category=Leads'),
-      //   headers: {
-      //     'Authorization': 'Bearer $token',
-      //     'Content-Type': 'application/json',
-      //   },
-      // );
-
       final response = await authenticatedRequest(
         method: 'GET',
         endpoint: 'users/dashboard?filterType=MTD&category=Leads',
@@ -2067,6 +3590,30 @@ class LeadsSrv {
       }
     } catch (e) {
       throw Exception(e.toString());
+    }
+  }
+
+  static Future<Map<String, dynamic>?> fetchGlobalSearch(String query) async {
+    try {
+      final response = await authenticatedRequest(
+        method: 'GET',
+        endpoint: 'search/global',
+        queryParams: {'query': query},
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = json.decode(response.body);
+        return jsonResponse['data']; // Return the data part directly
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to fetch search results';
+        print("Search failed: $errorMessage");
+        return null; // ✅ FIXED: Return null instead of throwing
+      }
+    } catch (e) {
+      print('Error in fetchGlobalSearch: $e');
+      return null; // ✅ FIXED: Return null instead of throwing
     }
   }
 
@@ -2325,23 +3872,6 @@ class LeadsSrv {
     String? category,
   }) async {
     try {
-      // final token = await Storage.getToken();
-      // String url = '${baseUrl}users/notifications/all';
-
-      // Add category filter if provided
-      // if (category != null && category != 'All') {
-      //   String formattedCategory = category.replaceAll(' ', '');
-      //   url += '?category=$formattedCategory';
-      // }
-
-      // final response = await http.get(
-      //   Uri.parse(url),
-      //   headers: {
-      //     'Authorization': 'Bearer $token',
-      //     'Content-Type': 'application/json',
-      //   },
-      // );
-
       final response = await authenticatedRequest(
         method: 'GET',
         endpoint: 'users/notifications/all',
@@ -2391,38 +3921,94 @@ class LeadsSrv {
     }
   }
 
+  static Future<Map<String, dynamic>> fetchAllNotifications({
+    String? category,
+  }) async {
+    try {
+      final response = await authenticatedRequest(
+        method: 'GET',
+        endpoint: 'users/notifications/all',
+        queryParams: category != null && category != 'All'
+            ? {'category': category.replaceAll(' ', '')}
+            : null,
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+
+        // Combine unread and read notifications
+        List<dynamic> allNotifications = [];
+        if (data['data']['unread']?['rows'] != null) {
+          allNotifications.addAll(data['data']['unread']['rows']);
+        }
+        if (data['data']['read']?['rows'] != null) {
+          allNotifications.addAll(data['data']['read']['rows']);
+        }
+
+        return {
+          'success': true,
+          'data': allNotifications,
+          'message': 'Notifications fetched successfully',
+          'unread_count': data['data']['unread']?['rows']?.length ?? 0,
+          'read_count': data['data']['read']?['rows']?.length ?? 0,
+          'total_count': allNotifications.length,
+        };
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load notifications';
+        print("Failed to load notifications: $errorMessage");
+
+        // ✅ FIXED: Remove the extra () and handle unauthorized properly
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+
+        return {
+          'success': false,
+          'data': [],
+          'message': 'Failed to load notifications: ${response.statusCode}',
+        };
+      }
+    } catch (e) {
+      print('Error fetching notifications: $e');
+      return {
+        'success': false,
+        'data': [],
+        'message': 'Error fetching notifications: $e',
+      };
+    }
+  }
+
   static Future<Map<String, dynamic>> markAsRead(String notificationId) async {
     try {
-      // final token = await Storage.getToken();
-      // final url = '${baseUrl}users/notifications/$notificationId';
-
-      // final response = await http.put(
-      //   Uri.parse(url),
-      //   headers: {
-      //     'Authorization': 'Bearer $token',
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: json.encode({'read': true}),
-      // );
-
-      final response = await LeadsSrv.authenticatedRequest(
+      final response = await authenticatedRequest(
         method: 'PUT',
         endpoint: 'users/notifications/$notificationId',
         body: {'read': true},
       );
 
       if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
         return {
           'success': true,
           'message': 'Notification marked as read successfully',
+          'data': responseData,
         };
       } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to mark as read';
+
+        // Handle unauthorized
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+
         return {
           'success': false,
-          'message': 'Failed to mark as read: ${response.statusCode}',
+          'message': 'Failed to mark as read: $errorMessage',
+          'status_code': response.statusCode,
         };
       }
     } catch (e) {
+      print('Error marking notification as read: $e');
       return {
         'success': false,
         'message': 'Error marking notification as read: $e',
@@ -2430,20 +4016,218 @@ class LeadsSrv {
     }
   }
 
+  static Future<Map<String, dynamic>> submitFeedbackTestdrive(
+    Map<String, dynamic> requestBody,
+    String eventId,
+  ) async {
+    try {
+      final response = await authenticatedRequest(
+        method: 'PUT',
+        endpoint: 'events/update/$eventId',
+        body: requestBody,
+      );
+
+      print('API Response Status: ${response.statusCode}');
+      print('API Response Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        return {
+          'success': true,
+          'message':
+              responseData['message'] ??
+              'License verification skipped successfully',
+          'data': responseData,
+        };
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to update event';
+
+        print('Failed to update event: $errorMessage');
+
+        // Handle unauthorized
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+
+        return {
+          'success': false,
+          'message': errorMessage,
+          'status_code': response.statusCode,
+        };
+      }
+    } on SocketException {
+      const errorMessage = 'No internet connection. Please check your network.';
+      print(errorMessage);
+      return {'success': false, 'message': errorMessage};
+    } on TimeoutException {
+      const errorMessage = 'Request timed out. Please try again later.';
+      print(errorMessage);
+      return {'success': false, 'message': errorMessage};
+    } catch (e) {
+      final errorMessage = 'Error updating event: $e';
+      print(errorMessage);
+      return {'success': false, 'message': errorMessage};
+    }
+  }
+
+  // Mark all notifications as read
+  static Future<Map<String, dynamic>> markAllAsRead() async {
+    try {
+      final response = await authenticatedRequest(
+        method: 'PUT',
+        endpoint: 'users/notifications/read/all',
+        body: {'read': true},
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        return {
+          'success': true,
+          'message': 'All notifications marked as read successfully',
+          'data': responseData,
+          'affected_count': responseData['affected_count'] ?? 0,
+        };
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to mark all as read';
+
+        // Handle unauthorized
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+
+        return {
+          'success': false,
+          'message': 'Failed to mark all as read: $errorMessage',
+          'status_code': response.statusCode,
+        };
+      }
+    } catch (e) {
+      print('Error marking all notifications as read: $e');
+      return {
+        'success': false,
+        'message': 'Error marking all notifications as read: $e',
+      };
+    }
+  }
+  // static Future<Map<String, dynamic>> markAsRead(String notificationId) async {
+  //   try {
+  //     final response = await LeadsSrv.authenticatedRequest(
+  //       method: 'PUT',
+  //       endpoint: 'users/notifications/$notificationId',
+  //       body: {'read': true},
+  //     );
+
+  //     if (response.statusCode == 200) {
+  //       return {
+  //         'success': true,
+  //         'message': 'Notification marked as read successfully',
+  //       };
+  //     } else {
+  //       return {
+  //         'success': false,
+  //         'message': 'Failed to mark as read: ${response.statusCode}',
+  //       };
+  //     }
+  //   } catch (e) {
+  //     return {
+  //       'success': false,
+  //       'message': 'Error marking notification as read: $e',
+  //     };
+  //   }
+  // }
+
+  // static Future<Map<String, dynamic>> readAll() async {
+  //   try {
+  //     final response = await LeadsSrv.authenticatedRequest(
+  //       method: 'PUT',
+  //       endpoint: 'users/notifications/read/all',
+  //       body: {'read': true},
+  //     );
+
+  //     if (response.statusCode == 200) {
+  //       return {
+  //         'success': true,
+  //         'message': 'Notification marked as read successfully',
+  //       };
+  //     } else {
+  //       return {
+  //         'success': false,
+  //         'message': 'Failed to mark as read: ${response.statusCode}',
+  //       };
+  //     }
+  //   } catch (e) {
+  //     return {
+  //       'success': false,
+  //       'message': 'Error marking notification as read: $e',
+  //     };
+  //   }
+  // }
+
   static Future<bool> favorite({required String taskId}) async {
     try {
-      final token = await Storage.getToken();
-      // final response = await http.put(
-      //   Uri.parse('${baseUrl}favourites/mark-fav/task/$taskId'),
-      //   headers: {
-      //     'Authorization': 'Bearer $token',
-      //     'Content-Type': 'application/json',
-      //   },
-      // );
-
       final response = await LeadsSrv.authenticatedRequest(
         method: 'PUT',
         endpoint: 'favourites/mark-fav/task/$taskId',
+        // body: {'read': true},
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        print('❌ Failed to mark favorite: ${response.statusCode}');
+        return false;
+      }
+    } catch (e) {
+      print('❌ Error in favorite(): $e');
+      return false;
+    }
+  }
+
+  static Future<bool> leadFavorite({required String leadId}) async {
+    try {
+      final response = await LeadsSrv.authenticatedRequest(
+        method: 'PUT',
+        endpoint: 'favourites/mark-fav/lead/$leadId',
+        // body: {'read': true},
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        print('❌ Failed to mark favorite: ${response.statusCode}');
+        return false;
+      }
+    } catch (e) {
+      print('❌ Error in favorite(): $e');
+      return false;
+    }
+  }
+
+  static Future<bool> submitLost({required String leadId}) async {
+    try {
+      final response = await LeadsSrv.authenticatedRequest(
+        method: 'PUT',
+        endpoint: 'favourites/mark-fav/lead/$leadId',
+        // body: {'read': true},
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        print('❌ Failed to mark favorite: ${response.statusCode}');
+        return false;
+      }
+    } catch (e) {
+      print('❌ Error in favorite(): $e');
+      return false;
+    }
+  }
+
+  static Future<bool> favoriteTestdrive({required String eventId}) async {
+    try {
+      final response = await LeadsSrv.authenticatedRequest(
+        method: 'PUT',
+        endpoint: 'favourites//mark-fav/event/$eventId',
         // body: {'read': true},
       );
 
@@ -2666,7 +4450,7 @@ class LeadsSrv {
     try {
       // final token = await Storage.getToken();
       // final url = Uri.parse(
-      //   'https://api.smartassistapp.in/api/events/$eventId/send-consent',
+      //   'https://api.smartassistapps.in/api/events/$eventId/send-consent',
       // );
 
       // final response = await http.post(
@@ -2720,7 +4504,7 @@ class LeadsSrv {
 // import 'package:smartassist/utils/token_manager.dart';
 
 // class LeadsSrv {
-//   static const String baseUrl = 'https://api.smartassistapp.in/api/';
+//   static const String baseUrl = 'https://api.smartassistapps.in/api/';
 //   static final ConnectionService _connectionService = ConnectionService();
 
 //   static Future<Map<String, dynamic>> onLogin(Map<String, dynamic> body) async {
@@ -3857,7 +5641,7 @@ class LeadsSrv {
 //   // static Future<List<Map<String, dynamic>>> singleTasksById(
 //   //     String leadId) async {
 //   //   const String apiUrl =
-//   //       "https://api.smartassistapp.in/api/admin/leads/tasks/all/";
+//   //       "https://api.smartassistapps.in/api/admin/leads/tasks/all/";
 
 //   //   final token = await Storage.getToken();
 //   //   if (token == null) {
@@ -4904,7 +6688,7 @@ class LeadsSrv {
 //     try {
 //       final token = await Storage.getToken();
 //       final url = Uri.parse(
-//         'https://api.smartassistapp.in/api/events/$eventId/send-consent',
+//         'https://api.smartassistapps.in/api/events/$eventId/send-consent',
 //       );
 
 //       final response = await http.post(

@@ -165,7 +165,7 @@ class _OppUpcomingState extends State<OppUpcoming> {
               _onHorizontalDragEnd(details, item, index),
           child: OppUpcomingItem(
             key: ValueKey(eventId),
-            name: item['name'],
+            name: item['name'] ?? '',
             subject: item['subject'] ?? 'Meeting',
             date: item['due_date'] ?? '',
             vehicle: item['PMI'] ?? 'Range Rover Velar',

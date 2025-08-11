@@ -176,10 +176,10 @@ class _TestOverdueState extends State<TestOverdue> {
         return GestureDetector(
           child: upcomingTestDrivesItem(
             key: ValueKey(item['event_id']),
-            name: item['name'],
+            name: item['name'] ?? '',
             vehicle: item['PMI'] ?? 'Range Rover Velar',
             subject: item['subject'] ?? 'Meeting',
-            date: item['start_date'],
+            date: item['start_date'] ?? '',
             leadId: item['lead_id'],
             taskId: item['task_id'] ?? '',
             // startTime: item['start_time'],

@@ -122,7 +122,7 @@ class _OppOverdueState extends State<OppOverdue> {
         return GestureDetector(
           child: overdueeOppItem(
             key: ValueKey(taskId),
-            name: item['name'],
+            name: item['name'] ?? '',
             subject: item['subject'] ?? 'Meeting',
             date: item['due_date'] ?? '',
             vehicle: item['PMI'] ?? 'Range Rover Velar',

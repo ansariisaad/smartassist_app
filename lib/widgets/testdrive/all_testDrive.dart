@@ -738,11 +738,11 @@ class _AllTestDriveState extends State<AllTestDrive> {
         return GestureDetector(
           child: upcomingTestDrivesItem(
             key: ValueKey(item['event_id']),
-            name: item['name'],
+            name: item['name'] ?? '',
             vehicle: item['PMI'] ?? 'Range Rover Velar',
             subject: item['subject'] ?? 'Meeting',
 
-            date: item['start_date'],
+            date: item['start_date'] ?? '',
             // email: item['updated_by'], // Removed because 'email' is not a defined parameter
             leadId: item['lead_id'],
             startTime:

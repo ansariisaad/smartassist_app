@@ -666,7 +666,7 @@ class _AllOppintmentState extends State<AllOppintment> {
             return GestureDetector(
               child: allOppointment(
                 key: ValueKey(eventId),
-                name: item['name'],
+                name: item['name'] ?? '',
                 subject: item['subject'] ?? 'Meeting',
                 date: item['due_date'] ?? '',
                 vehicle: item['PMI'] ?? 'Range Rover Velar',

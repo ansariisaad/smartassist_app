@@ -150,11 +150,11 @@ class _OverdueFollowupState extends State<OverdueFollowup> {
           // onHorizontalDragEnd: (details) =>
           //     _onHorizontalDragEnd(details, item, index),
           child: overdueeFollowupsItem(
-            name: item['name'],
-            mobile: item['mobile'],
+            name: item['name'] ?? '',
+            mobile: item['mobile'] ?? '',
             subject: item['subject'] ?? 'call',
-            date: item['due_date'],
-            taskId: item['task_id'],
+            date: item['due_date'] ?? '',
+            taskId: item['task_id'] ?? '',
             vehicle: item['PMI'] ?? 'Range Rover Velar',
             leadId: item['lead_id'],
             refreshDashboard: widget.refreshDashboard,

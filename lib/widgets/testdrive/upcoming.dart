@@ -151,12 +151,12 @@ class _TestUpcomingState extends State<TestUpcoming> {
               _onHorizontalDragEnd(details, item, index),
           child: upcomingTestDrivesItem(
             key: ValueKey(item['event_id']),
-            name: item['name'],
+            name: item['name'] ?? '',
             vehicle: item['PMI'] ?? 'Range Rover Velar',
             subject: item['subject'] ?? 'Meeting',
 
-            date: item['start_date'],
-            email: item['updated_by'],
+            date: item['start_date'] ?? '',
+            email: item['updated_by'] ?? '',
             leadId: item['lead_id'],
             startTime:
                 (item['start_time'] != null &&

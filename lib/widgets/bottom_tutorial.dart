@@ -19,104 +19,27 @@ class _MenuListWidgetState extends State<MenuListWidget> {
   final List<Map<String, dynamic>> menuItems = [
     {
       'icon': Icons.video_collection_outlined,
-      'title': 'Appointment',
+      'title': 'Introduction & Signup',
       'hasSubItems': true,
       'subItems': [
         {
-          'title': 'Add Appointment',
+          'title': 'Introduction',
           'url':
-              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Add+Appointment/Add+Appointment(23).mp4',
+              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Introduction+%26+Signup/Introduction+(1)+(1).mp4',
         },
         {
-          'title': 'Add Appointment',
+          'title': 'Sign-up and login',
           'url':
-              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Add+Appointment/Add+Appointment(24).mp4',
+              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Introduction+%26+Signup/Sign-up+and+login+(2).mp4',
+        },
+        {
+          'title': 'Sign-up and login',
+          'url':
+              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Introduction+%26+Signup/Sign-up+and+login.mp4',
         },
       ],
     },
-    {
-      'icon': Icons.video_collection_outlined,
-      'title': 'Followups',
-      'hasSubItems': true,
-      'subItems': [
-        {
-          'title': 'Add Followups',
-          'url':
-              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Add+Follow-ups/Add++followup+steps+(22).mp4',
-        },
-        {
-          'title': 'Add Followups',
-          'url':
-              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Add+Follow-ups/Add+follow-ups+(21).mp4',
-        },
-      ],
-    },
-    {
-      'icon': Icons.video_collection_outlined,
-      'title': 'Enquiry',
-      'hasSubItems': true,
-      'subItems': [
-        {
-          'title': 'Add New Enquiry',
-          'url':
-              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Add+New+Enquiry/Add+new+Enquiry+(10).mp4',
-        },
-        {
-          'title': 'Add New Enquiry',
-          'url':
-              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Add+New+Enquiry/Add+new+Enquiry+Steps+(12).mp4',
-        },
-        {
-          'title': 'Add New Enquiry',
-          'url':
-              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Add+New+Enquiry/Enquiry++(13).mp4',
-        },
-        {
-          'title': 'Add New Enquiry',
-          'url':
-              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Add+New+Enquiry/Enquiry+(14).mp4',
-        },
-      ],
-    },
-    {
-      'icon': Icons.video_collection_outlined,
-      'title': 'Calender & notifications',
-      'hasSubItems': true,
-      'subItems': [
-        {
-          'title': 'Calender & notifications',
-          'url':
-              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Calender+%26+notifications/Calender+%26+Notifications(25).mp4',
-        },
-        {
-          'title': 'Calender & notifications',
-          'url':
-              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Calender+%26+notifications/Calender+%26+Notifications(26).mp4',
-        },
-      ],
-    },
-    {
-      'icon': Icons.video_collection_outlined,
-      'title': 'Call logs and Watsapp Analysis',
-      'hasSubItems': true,
-      'subItems': [
-        {
-          'title': 'Call logs',
-          'url':
-              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Call+logs+and+Watsapp+Analysis/Call+logs+(32).mp4',
-        },
-        {
-          'title': 'Watsapp Chat',
-          'url':
-              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Call+logs+and+Watsapp+Analysis/Whatsapp+Chat+(31).mp4',
-        },
-        {
-          'title': 'Watsapp Chat & Call Logs',
-          'url':
-              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Call+logs+and+Watsapp+Analysis/Whatsapp+Chat+%26+Call+Logs+(30).mp4',
-        },
-      ],
-    },
+
     {
       'icon': Icons.video_collection_outlined,
       'title': 'Dashboard',
@@ -159,6 +82,53 @@ class _MenuListWidgetState extends State<MenuListWidget> {
         },
       ],
     },
+
+    {
+      'icon': Icons.video_collection_outlined,
+      'title': 'Enquiry',
+      'hasSubItems': true,
+      'subItems': [
+        {
+          'title': 'Add New Enquiry',
+          'url':
+              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Add+New+Enquiry/Add+new+Enquiry+(10).mp4',
+        },
+        {
+          'title': 'Add New Enquiry',
+          'url':
+              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Add+New+Enquiry/Add+new+Enquiry+Steps+(12).mp4',
+        },
+        {
+          'title': 'Add New Enquiry',
+          'url':
+              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Add+New+Enquiry/Enquiry++(13).mp4',
+        },
+        {
+          'title': 'Add New Enquiry',
+          'url':
+              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Add+New+Enquiry/Enquiry+(14).mp4',
+        },
+      ],
+    },
+
+    {
+      'icon': Icons.video_collection_outlined,
+      'title': 'Followups',
+      'hasSubItems': true,
+      'subItems': [
+        {
+          'title': 'Add Followups',
+          'url':
+              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Add+Follow-ups/Add++followup+steps+(22).mp4',
+        },
+        {
+          'title': 'Add Followups',
+          'url':
+              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Add+Follow-ups/Add+follow-ups+(21).mp4',
+        },
+      ],
+    },
+
     {
       'icon': Icons.video_collection_outlined,
       'title': 'Followups',
@@ -176,28 +146,71 @@ class _MenuListWidgetState extends State<MenuListWidget> {
         },
       ],
     },
+
     {
-      'icon': Icons.video_collection_outlined,
-      'title': 'Introduction & Signup',
+      'icon': Icons.video_library_outlined,
+      'title': 'Test Drive',
       'hasSubItems': true,
       'subItems': [
         {
-          'title': 'Introduction',
+          'title': 'Test Drive',
           'url':
-              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Introduction+%26+Signup/Introduction+(1)+(1).mp4',
+              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Test+drive/Test+drive++(17).mp4',
         },
         {
-          'title': 'Sign-up and login',
+          'title': 'Test Drive Steps First',
           'url':
-              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Introduction+%26+Signup/Sign-up+and+login+(2).mp4',
+              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Test+drive/Test+drive+Steps+(19).mp4',
         },
         {
-          'title': 'Sign-up and login',
+          'title': 'Test Drive Steps Second',
           'url':
-              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Introduction+%26+Signup/Sign-up+and+login.mp4',
+              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Test+drive/Test+drive+steps+(20).mp4',
+        },
+        {
+          'title': 'Test Drive Steps Third',
+          'url':
+              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Test+drive/Test+drive+steps(18).mp4',
         },
       ],
     },
+
+    {
+      'icon': Icons.video_collection_outlined,
+      'title': 'Appointment',
+      'hasSubItems': true,
+      'subItems': [
+        {
+          'title': 'Add Appointment',
+          'url':
+              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Add+Appointment/Add+Appointment(23).mp4',
+        },
+        {
+          'title': 'Add Appointment',
+          'url':
+              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Add+Appointment/Add+Appointment(24).mp4',
+        },
+      ],
+    },
+
+    {
+      'icon': Icons.video_collection_outlined,
+      'title': 'Calender & notifications',
+      'hasSubItems': true,
+      'subItems': [
+        {
+          'title': 'Calender & notifications',
+          'url':
+              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Calender+%26+notifications/Calender+%26+Notifications(25).mp4',
+        },
+        {
+          'title': 'Calender & notifications',
+          'url':
+              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Calender+%26+notifications/Calender+%26+Notifications(26).mp4',
+        },
+      ],
+    },
+
     {
       'icon': Icons.video_library_outlined,
       'title': 'More section',
@@ -220,6 +233,30 @@ class _MenuListWidgetState extends State<MenuListWidget> {
         },
       ],
     },
+
+    {
+      'icon': Icons.video_collection_outlined,
+      'title': 'Call logs and Watsapp Analysis',
+      'hasSubItems': true,
+      'subItems': [
+        {
+          'title': 'Call logs',
+          'url':
+              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Call+logs+and+Watsapp+Analysis/Call+logs+(32).mp4',
+        },
+        {
+          'title': 'Watsapp Chat',
+          'url':
+              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Call+logs+and+Watsapp+Analysis/Whatsapp+Chat+(31).mp4',
+        },
+        {
+          'title': 'Watsapp Chat & Call Logs',
+          'url':
+              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Call+logs+and+Watsapp+Analysis/Whatsapp+Chat+%26+Call+Logs+(30).mp4',
+        },
+      ],
+    },
+
     {
       'icon': Icons.video_library_outlined,
       'title': 'My teams',
@@ -254,33 +291,6 @@ class _MenuListWidgetState extends State<MenuListWidget> {
           'title': 'My Teams Fourth',
           'url':
               'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/My+teams/My+teams(36).mp4',
-        },
-      ],
-    },
-    {
-      'icon': Icons.video_library_outlined,
-      'title': 'Test Drive',
-      'hasSubItems': true,
-      'subItems': [
-        {
-          'title': 'Test Drive',
-          'url':
-              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Test+drive/Test+drive++(17).mp4',
-        },
-        {
-          'title': 'Test Drive Steps First',
-          'url':
-              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Test+drive/Test+drive+Steps+(19).mp4',
-        },
-        {
-          'title': 'Test Drive Steps Second',
-          'url':
-              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Test+drive/Test+drive+steps+(20).mp4',
-        },
-        {
-          'title': 'Test Drive Steps Third',
-          'url':
-              'https://smartassist-media.s3.ap-south-1.amazonaws.com/tutorial/Test+drive/Test+drive+steps(18).mp4',
         },
       ],
     },

@@ -887,7 +887,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
-                  width: MediaQuery.of(context).size.width * .15,
+                  width: MediaQuery.of(context).size.width * .14,
                   height: MediaQuery.of(context).size.height * .08,
                   decoration: BoxDecoration(
                     color: fabController.isFabDisabled.value
@@ -896,15 +896,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               ? Colors.red
                               : AppColors.colorsBlue),
                     shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: fabController.isFabExpanded.value
-                            ? Colors.red.withOpacity(0.3)
-                            : AppColors.colorsBlue.withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
                   ),
                   child: Center(
                     child: AnimatedSwitcher(

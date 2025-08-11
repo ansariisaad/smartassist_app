@@ -407,8 +407,8 @@ class BottomNavigation extends StatelessWidget {
 
   double _calculateBottomSheetHeight(double screenHeight, bool isTablet) {
     final calculatedHeight = screenHeight * 0.4;
-    final minHeight = isTablet ? 500.0 : 460.0;
-    final maxHeight = isTablet ? 650.0 : 500.0;
+    final minHeight = isTablet ? 600.0 : 500.0;
+    final maxHeight = isTablet ? 650.0 : 600.0;
 
     return calculatedHeight.clamp(minHeight, maxHeight);
   }
@@ -429,88 +429,97 @@ class BottomNavigation extends StatelessWidget {
         isTablet,
       );
       Get.bottomSheet(
-        Container(
-          // padding: const EdgeInsets.all(16),
-          padding: EdgeInsets.all(isTablet ? 24 : 16),
-          // height: teamRole == "Owner" ? 320 : 300,
-          // height: 310,
-          height: bottomSheetHeight,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-          ),
-          child: Column(
-            children: [
-              ListTile(
-                leading: const Icon(Icons.person_search, size: 28),
-                title: Text(
-                  'My Enquiries',
-                  style: GoogleFonts.poppins(fontSize: 18),
-                ),
-                onTap: () => Get.to(() => const AllLeads()),
-              ),
-              ListTile(
-                leading: const Icon(Icons.call_outlined, size: 28),
-                title: Text(
-                  'My Call Analysis',
-                  style: GoogleFonts.poppins(fontSize: 18),
-                ),
-                onTap: () => Get.to(
-                  () =>
-                      const //CallLogs()
-                      CallAnalytics(userId: '', userName: ''),
-                ),
-              ),
-
-              if (teamRole == "SM")
-                ListTile(
-                  leading: const Icon(Icons.group, size: 28),
-                  title: Text(
-                    'Reassign Enquiries ',
-                    style: GoogleFonts.poppins(fontSize: 18),
+        SingleChildScrollView(
+          // scrollDirection: Axis.vertical,
+          child: Container(
+            // padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(isTablet ? 24 : 16),
+            height: teamRole == "Owner" ? 600 : 480,
+            // height: 310,
+            // height: bottomSheetHeight,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+            ),
+            child: SingleChildScrollView(
+              // scrollDirection: Axis.vertical,
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.person_search, size: 28),
+                    title: Text(
+                      'My Enquiries',
+                      style: GoogleFonts.poppins(fontSize: 18),
+                    ),
+                    onTap: () => Get.to(() => const AllLeads()),
                   ),
-                  onTap: () => Get.to(() => const AllEnq()),
-                ),
-              ListTile(
-                leading: const Icon(Icons.star_border_rounded, size: 28),
-                title: Text(
-                  'Favourites',
-                  style: GoogleFonts.poppins(fontSize: 18),
-                ),
-                onTap: () => Get.to(() => const FavoritePage(leadId: '')),
-              ),
-              ListTile(
-                leading: const Icon(Icons.receipt_outlined, size: 28),
-                title: Text(
-                  'Raise a ticket',
-                  style: GoogleFonts.poppins(fontSize: 18),
-                ),
-                onTap: () =>
-                    Get.to(() => FeedbackForm(userId: '', userName: '')),
-              ),
+                  ListTile(
+                    leading: const Icon(Icons.call_outlined, size: 28),
+                    title: Text(
+                      'My Call Analysis',
+                      style: GoogleFonts.poppins(fontSize: 18),
+                    ),
+                    onTap: () => Get.to(
+                      () =>
+                          const //CallLogs()
+                          CallAnalytics(userId: '', userName: ''),
+                    ),
+                  ),
 
-              ListTile(
-                leading: const Icon(Icons.video_collection, size: 28),
-                title: Text(
-                  'Tutorial',
-                  style: GoogleFonts.poppins(fontSize: 18),
-                ),
-                onTap: () => Get.to(() => MenuListWidget()),
+                  if (teamRole == "SM")
+                    ListTile(
+                      leading: const Icon(Icons.group, size: 28),
+                      title: Text(
+                        'Reassign Enquiries ',
+                        style: GoogleFonts.poppins(fontSize: 18),
+                      ),
+                      onTap: () => Get.to(() => const AllEnq()),
+                    ),
+                  ListTile(
+                    leading: const Icon(Icons.star_border_rounded, size: 28),
+                    title: Text(
+                      'Favourites',
+                      style: GoogleFonts.poppins(fontSize: 18),
+                    ),
+                    onTap: () => Get.to(() => const FavoritePage(leadId: '')),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.receipt_outlined, size: 28),
+                    title: Text(
+                      'Raise a ticket',
+                      style: GoogleFonts.poppins(fontSize: 18),
+                    ),
+                    onTap: () =>
+                        Get.to(() => FeedbackForm(userId: '', userName: '')),
+                  ),
+
+                  ListTile(
+                    leading: const Icon(Icons.video_collection, size: 28),
+                    title: Text(
+                      'Tutorial',
+                      style: GoogleFonts.poppins(fontSize: 18),
+                    ),
+                    onTap: () => Get.to(() => MenuListWidget()),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.message, size: 28),
+                    title: Text(
+                      'Help & Support',
+                      style: GoogleFonts.poppins(fontSize: 18),
+                    ),
+                    onTap: () => Get.to(() => CustomerSupportPage()),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.logout_outlined, size: 28),
+                    title: Text(
+                      'Logout',
+                      style: GoogleFonts.poppins(fontSize: 18),
+                    ),
+                    onTap: () => Get.to(() => const LogoutPage()),
+                  ),
+                ],
               ),
-              ListTile(
-                leading: const Icon(Icons.message, size: 28),
-                title: Text(
-                  'Help & Support',
-                  style: GoogleFonts.poppins(fontSize: 18),
-                ),
-                onTap: () => Get.to(() => CustomerSupportPage()),
-              ),
-              ListTile(
-                leading: const Icon(Icons.logout_outlined, size: 28),
-                title: Text('Logout', style: GoogleFonts.poppins(fontSize: 18)),
-                onTap: () => Get.to(() => const LogoutPage()),
-              ),
-            ],
+            ),
           ),
         ),
       );

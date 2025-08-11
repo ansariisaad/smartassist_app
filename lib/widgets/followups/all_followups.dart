@@ -494,8 +494,8 @@ class AllFollowup extends StatefulWidget {
 
 class _AllFollowupState extends State<AllFollowup> {
   List<bool> _favorites = [];
-  int _currentDisplayCount = 10; // Start with 10 items
-  final int _incrementCount = 10; // Increase/decrease by 10
+  int _currentDisplayCount = 10;
+  final int _incrementCount = 10;
 
   @override
   void initState() {
@@ -519,28 +519,45 @@ class _AllFollowupState extends State<AllFollowup> {
     }
   }
 
+  // void _loadLessRecords() {
+  //   setState(() {
+  //     _currentDisplayCount = math.max(
+  //       _incrementCount,
+  //       _currentDisplayCount - _incrementCount,
+  //     );
+  //     print(
+  //       '📊 Loading less records. New display count: $_currentDisplayCount',
+  //     );
+  //   });
+  // }
+
   void _loadLessRecords() {
     setState(() {
-      _currentDisplayCount = math.max(
-        _incrementCount,
-        _currentDisplayCount - _incrementCount,
-      );
+      _currentDisplayCount = _incrementCount;
       print(
         '📊 Loading less records. New display count: $_currentDisplayCount',
       );
     });
   }
 
-  void _loadMoreRecords() {
+  // void _loadMoreRecords() {
+  //   setState(() {
+  //     int newDisplayCount = math.min(
+  //       _currentDisplayCount + _incrementCount,
+  //       widget.allFollowups.length,
+  //     );
+  //     _currentDisplayCount = newDisplayCount;
+  //     print(
+  //       '📊 Loading more records. New display count: $_currentDisplayCount',
+  //     );
+  //   });
+  // }
+
+  void _loadAllRecords() {
     setState(() {
-      int newDisplayCount = math.min(
-        _currentDisplayCount + _incrementCount,
-        widget.allFollowups.length,
-      );
-      _currentDisplayCount = newDisplayCount;
-      print(
-        '📊 Loading more records. New display count: $_currentDisplayCount',
-      );
+      // Show all records at once
+      _currentDisplayCount = widget.allFollowups.length;
+      print('📊 Loading all records. New display count: $_currentDisplayCount');
     });
   }
 
@@ -571,9 +588,10 @@ class _AllFollowupState extends State<AllFollowup> {
     }
 
     return Container(
+      // padding: EdgeInsets.only(bottom: 20),
       margin: EdgeInsets.only(bottom: 20),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           if (canShowLess)
             TextButton(
@@ -595,7 +613,7 @@ class _AllFollowupState extends State<AllFollowup> {
           // Show More button - only when there are more records to show
           if (hasMoreRecords)
             TextButton(
-              onPressed: _loadMoreRecords,
+              onPressed: _loadAllRecords, // Changed method name
               style: TextButton.styleFrom(
                 foregroundColor: AppColors.colorsBlue,
                 textStyle: const TextStyle(fontSize: 12),
@@ -604,7 +622,7 @@ class _AllFollowupState extends State<AllFollowup> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Show (${widget.allFollowups.length - _currentDisplayCount} more)',
+                    'Show All (${widget.allFollowups.length - _currentDisplayCount} more)', // Updated text
                   ),
                   const SizedBox(width: 4),
                   const Icon(Icons.keyboard_arrow_down, size: 16),
@@ -676,46 +694,9 @@ class _AllFollowupState extends State<AllFollowup> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
           ),
-        // ListView.builder(
-        //   shrinkWrap: true,
-        //   physics: widget.isNested
-        //       ? const NeverScrollableScrollPhysics()
-        //       : const AlwaysScrollableScrollPhysics(),
 
-        //   itemCount: widget.allFollowups.length,
-        //   itemBuilder: (context, index) {
-        //     var item = widget.allFollowups[index];
-
-        //     if (!(item.containsKey('name') &&
-        //         item.containsKey('due_date') &&
-        //         item.containsKey('lead_id') &&
-        //         item.containsKey('task_id'))) {
-        //       return ListTile(title: Text('Invalid data at index $index'));
-        //     }
-
-        //     String taskId = item['task_id'];
-        //     // double swipeOffset = _swipeOffsets[taskId] ?? 0;
-
-        //     return GestureDetector(
-        //       child: AllFollowupItem(
-        //         // key: ValueKey(item['task_id']),
-        //         name: item['name'],
-        //         date: item['due_date'],
-        //         mobile: item['mobile'],
-        //         subject: item['subject'] ?? '',
-        //         vehicle: item['PMI'] ?? 'Range Rover Velar',
-        //         leadId: item['lead_id'],
-        //         taskId: taskId,
-        //         isFavorite: item['favourite'] ?? false,
-        //         // refreshDashboard: widget.refreshDashboard,
-        //         onToggleFavorite: () {
-        //           _toggleFavorite(taskId, index);
-        //         },
-        //       ),
-        //     );
-        //   },
-        // ),
         ListView.builder(
+          padding: EdgeInsets.zero,
           shrinkWrap: true,
           physics: widget.isNested
               ? const NeverScrollableScrollPhysics()

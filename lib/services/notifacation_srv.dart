@@ -404,6 +404,9 @@ class NotificationService {
     print("Handling background message: ${message.notification?.title}");
     print("Message data: ${message.data}");
 
+    String category = message.data['category'] ?? '';
+    String recordId = message.data['recordId'] ?? '';
+
     // Add your navigation logic here
     if (message.data['type'] == 'chat') {
       // Navigate to chat screen

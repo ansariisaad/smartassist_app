@@ -321,7 +321,7 @@ class _MyTeamsState extends State<MyTeams> {
           errorMessage = 'Error parsing server response';
         }
 
-        showErrorMessage(context, message: errorMessage);
+        // showErrorMessage(context, message: errorMessage);
       }
     }
   }
@@ -468,12 +468,12 @@ class _MyTeamsState extends State<MyTeams> {
           errorMessage = 'Error parsing server response';
         }
 
-        Get.snackbar(
-          'Error',
-          errorMessage,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
+        // Get.snackbar(
+        //   'Error',
+        //   errorMessage,
+        //   backgroundColor: Colors.red,
+        //   colorText: Colors.white,
+        // );
       }
     }
   }
@@ -769,12 +769,12 @@ class _MyTeamsState extends State<MyTeams> {
           errorMessage = 'Error parsing server response';
         }
 
-        Get.snackbar(
-          'Error',
-          errorMessage,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
+        // Get.snackbar(
+        //   'Error',
+        //   errorMessage,
+        //   backgroundColor: Colors.red,
+        //   colorText: Colors.white,
+        // );
       }
     }
   }

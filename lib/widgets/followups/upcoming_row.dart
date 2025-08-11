@@ -82,12 +82,12 @@ class _FollowupsUpcomingState extends State<FollowupsUpcoming> {
         return GestureDetector(
           child: UpcomingFollowupItem(
             key: ValueKey(item['task_id']),
-            name: item['name'],
-            date: item['due_date'],
-            mobile: item['mobile'],
+            name: item['name'] ?? '',
+            date: item['due_date'] ?? '',
+            mobile: item['mobile'] ?? '',
             subject: item['subject'] ?? '',
             vehicle: item['PMI'] ?? 'Range Rover Velar',
-            leadId: item['lead_id'],
+            leadId: item['lead_id'] ?? '',
             taskId: taskId,
             isFavorite: item['favourite'] ?? false,
             swipeOffset: swipeOffset,
@@ -520,7 +520,7 @@ class _overdueeFollowupsItemState extends State<UpcomingFollowupItem>
 
     showDialog(
       barrierDismissible: false,
-      context : context,
+      context: context,
       builder: (context) {
         return Dialog(
           insetPadding: const EdgeInsets.symmetric(horizontal: 10),

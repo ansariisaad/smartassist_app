@@ -132,7 +132,7 @@ class _LeadUpdateState extends State<LeadUpdate> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://api.smartassistapp.in/api/search/vehicles?vehicle=${Uri.encodeComponent(query)}',
+          'https://dev.smartassistapp.in/api/search/vehicles?vehicle=${Uri.encodeComponent(query)}',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -191,7 +191,7 @@ class _LeadUpdateState extends State<LeadUpdate> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://api.smartassistapp.in/api/leads/by-id/${widget.leadId}',
+          'https://dev.smartassistapp.in/api/leads/by-id/${widget.leadId}',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -1210,7 +1210,7 @@ class _LeadUpdateState extends State<LeadUpdate> {
 
       final response = await http.put(
         Uri.parse(
-          'https://api.smartassistapp.in/api/leads/update/${widget.leadId}',
+          'https://dev.smartassistapp.in/api/leads/update/${widget.leadId}',
         ),
         headers: {
           'Authorization': 'Bearer $token',

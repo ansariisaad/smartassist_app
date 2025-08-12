@@ -131,6 +131,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
     _selectedTaskWidget = timelineOverdue(
       tasks: overdueTasks,
       overdueEvents: overdueEvents,
+      isFromTeams: false,
     );
     fabController = Get.put(
       FabController(),
@@ -402,6 +403,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
         _selectedTaskWidget = timelineOverdue(
           tasks: overdueTasks,
           overdueEvents: overdueEvents,
+          isFromTeams: false,
         );
       }
     });

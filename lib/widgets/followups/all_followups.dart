@@ -540,19 +540,6 @@ class _AllFollowupState extends State<AllFollowup> {
     });
   }
 
-  // void _loadMoreRecords() {
-  //   setState(() {
-  //     int newDisplayCount = math.min(
-  //       _currentDisplayCount + _incrementCount,
-  //       widget.allFollowups.length,
-  //     );
-  //     _currentDisplayCount = newDisplayCount;
-  //     print(
-  //       '📊 Loading more records. New display count: $_currentDisplayCount',
-  //     );
-  //   });
-  // }
-
   void _loadAllRecords() {
     setState(() {
       // Show all records at once
@@ -701,8 +688,9 @@ class _AllFollowupState extends State<AllFollowup> {
           physics: widget.isNested
               ? const NeverScrollableScrollPhysics()
               : const AlwaysScrollableScrollPhysics(),
-          itemCount:
-              itemsToDisplay.length, // Changed from widget.allFollowups.length
+          // itemCount:
+          //     itemsToDisplay.length, // Changed from widget.allFollowups.length
+          itemCount: _currentDisplayCount,
           itemBuilder: (context, index) {
             var item =
                 itemsToDisplay[index]; // Changed from widget.allFollowups[index]

@@ -285,14 +285,11 @@ class NotificationService {
         requestAlertPermission: true,
         requestBadgePermission: true,
         requestSoundPermission: true,
-        notificationCategories: [
-          DarwinNotificationCategory(
-            'plainCategory',
-            actions: <DarwinNotificationAction>[
-              DarwinNotificationAction.plain('id_1', 'Action 1'),
-            ],
-          ),
-        ],
+        defaultPresentAlert: true,
+        defaultPresentBadge: true,
+        defaultPresentSound: true,
+        defaultPresentBanner: true,
+        defaultPresentList: true,
       );
 
       final initializationSettings = InitializationSettings(
@@ -351,6 +348,8 @@ class NotificationService {
               presentBadge: true,
               presentSound: true,
               sound: 'default',
+
+              interruptionLevel: InterruptionLevel.active,
               badgeNumber: 1,
               categoryIdentifier: 'plainCategory',
               threadIdentifier: 'thread_id',

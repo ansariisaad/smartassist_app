@@ -11,6 +11,10 @@
 		<!-- <string>background-fetch</string> -->
 		<!-- <string>background-processing</string> -->
 	</array>
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<false/>
+	<key>NSUserNotificationAlertStyle</key>
+	<string>alert</string>
 
 	<!-- ✅ FIXED: Location permissions (removed duplicates) -->
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>

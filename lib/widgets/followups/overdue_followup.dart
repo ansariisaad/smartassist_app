@@ -176,7 +176,7 @@ class _OverdueFollowupState extends State<OverdueFollowup> {
               ? const NeverScrollableScrollPhysics()
               : const AlwaysScrollableScrollPhysics(),
           // itemCount: widget.overdueeFollowups.length,
-          
+          itemCount: _currentDisplayCount,
           itemBuilder: (context, index) {
             var item = widget.overdueeFollowups[index];
 

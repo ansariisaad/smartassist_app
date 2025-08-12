@@ -630,6 +630,7 @@ bool _globalWasCallingPhone = false;
 String? _globalCurrentTaskId;
 
 class TimelineUpcoming extends StatefulWidget {
+  // final bool isfrom
   final bool isFromTeams;
   final carIcon = '/assets/caricon.png';
   final List<Map<String, dynamic>> tasks;
@@ -1052,36 +1053,42 @@ class _TimelineUpcomingState extends State<TimelineUpcoming>
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        IconButton(
-                          icon: Icon(Icons.edit, size: 18, color: Colors.black),
-                          onPressed: () {
-                            final lower = subject.trim().toLowerCase();
+                        if (!widget.isFromTeams)
+                          IconButton(
+                            icon: Icon(
+                              Icons.edit,
+                              size: 18,
+                              color: Colors.black,
+                            ),
+                            onPressed: () {
+                              final lower = subject.trim().toLowerCase();
 
-                            // These subjects open FollowupsEdit
-                            if (lower == 'provide quotation' ||
-                                lower == 'send sms' ||
-                                lower == 'call' ||
-                                lower == 'send email' ||
-                                lower == 'showroom appointment' ||
-                                lower == 'trade in evaluation') {
-                              _handleFollowupsEdit(taskId);
-                            }
-                            // These subjects open AppointmentsEdit
-                            else if (lower == 'quotation' ||
-                                lower == 'meeting' ||
-                                lower == 'vehicle selection') {
-                              handleAppointmentsEdit(taskId);
-                            }
-                            // Otherwise, fallback to followup (optional)
-                            else {
-                              _handleFollowupsEdit(taskId);
-                            }
-                          },
-                          tooltip: 'Edit Remarks',
-                          splashRadius: 18,
-                          padding: EdgeInsets.zero,
-                          constraints: BoxConstraints(),
-                        ),
+                              // These subjects open FollowupsEdit
+
+                              if (lower == 'provide quotation' ||
+                                  lower == 'send sms' ||
+                                  lower == 'call' ||
+                                  lower == 'send email' ||
+                                  lower == 'showroom appointment' ||
+                                  lower == 'trade in evaluation') {
+                                _handleFollowupsEdit(taskId);
+                              }
+                              // These subjects open AppointmentsEdit
+                              else if (lower == 'quotation' ||
+                                  lower == 'meeting' ||
+                                  lower == 'vehicle selection') {
+                                handleAppointmentsEdit(taskId);
+                              }
+                              // Otherwise, fallback to followup (optional)
+                              else {
+                                _handleFollowupsEdit(taskId);
+                              }
+                            },
+                            tooltip: 'Edit Remarks',
+                            splashRadius: 18,
+                            padding: EdgeInsets.zero,
+                            constraints: BoxConstraints(),
+                          ),
                       ],
                     ),
                   ),
@@ -1216,19 +1223,21 @@ class _TimelineUpcomingState extends State<TimelineUpcoming>
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          if (eventSubject.trim().toLowerCase() == 'test drive')
-                            IconButton(
-                              icon: Icon(
-                                Icons.edit,
-                                size: 18,
-                                color: Colors.black,
+                          if (!widget.isFromTeams)
+                            if (eventSubject.trim().toLowerCase() ==
+                                'test drive')
+                              IconButton(
+                                icon: Icon(
+                                  Icons.edit,
+                                  size: 18,
+                                  color: Colors.black,
+                                ),
+                                onPressed: () => _handleTestDriveEdit(eventId),
+                                tooltip: 'Edit Test Drive',
+                                splashRadius: 18,
+                                padding: EdgeInsets.zero,
+                                constraints: BoxConstraints(),
                               ),
-                              onPressed: () => _handleTestDriveEdit(eventId),
-                              tooltip: 'Edit Test Drive',
-                              splashRadius: 18,
-                              padding: EdgeInsets.zero,
-                              constraints: BoxConstraints(),
-                            ),
                         ],
                       ),
                     ),

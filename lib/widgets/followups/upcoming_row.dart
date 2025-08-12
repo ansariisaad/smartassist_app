@@ -119,7 +119,6 @@ class _FollowupsUpcomingState extends State<FollowupsUpcoming> {
               : const AlwaysScrollableScrollPhysics(),
           // itemCount: widget.upcomingFollowups.length,
           itemCount: _currentDisplayCount,
-
           itemBuilder: (context, index) {
             var item = widget.upcomingFollowups[index];
 

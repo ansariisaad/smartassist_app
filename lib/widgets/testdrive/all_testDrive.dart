@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -568,19 +570,120 @@ class AllTestDrive extends StatefulWidget {
 
 class _AllTestDriveState extends State<AllTestDrive> {
   List<bool> _favorites = [];
+  int _currentDisplayCount = 10;
+  final int _incrementCount = 10;
 
   @override
   void initState() {
     super.initState();
     _initializeFavorites();
+    _currentDisplayCount = math.min(
+      _incrementCount,
+      widget.allTestDrive.length,
+    );
   }
 
   @override
   void didUpdateWidget(AllTestDrive oldWidget) {
     super.didUpdateWidget(oldWidget);
+
     if (widget.allTestDrive != oldWidget.allTestDrive) {
       _initializeFavorites();
+      _currentDisplayCount = math.min(
+        _incrementCount,
+        widget.allTestDrive.length,
+      );
     }
+  }
+
+  void _loadLessRecords() {
+    setState(() {
+      _currentDisplayCount = _incrementCount;
+      print(
+        '📊 Loading less records. New display count: $_currentDisplayCount',
+      );
+    });
+  }
+
+  void _loadAllRecords() {
+    setState(() {
+      // Show all records at once
+      _currentDisplayCount = widget.allTestDrive.length;
+      print('📊 Loading all records. New display count: $_currentDisplayCount');
+    });
+  }
+
+  Widget _buildShowMoreButton() {
+    // If no data, don't show anything
+    if (widget.allTestDrive.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    // Fix invalid display count
+    if (_currentDisplayCount <= 0 ||
+        _currentDisplayCount > widget.allTestDrive.length) {
+      _currentDisplayCount = math.min(
+        _incrementCount,
+        widget.allTestDrive.length,
+      );
+    }
+
+    // Check if we can show more records
+    bool hasMoreRecords = _currentDisplayCount < widget.allTestDrive.length;
+
+    // Check if we can show less records - only if we're showing more than initial count
+    bool canShowLess = _currentDisplayCount > _incrementCount;
+
+    // If no action is possible, don't show button
+    if (!hasMoreRecords && !canShowLess) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      // padding: EdgeInsets.only(bottom: 20),
+      margin: EdgeInsets.only(bottom: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          if (canShowLess)
+            TextButton(
+              onPressed: _loadLessRecords,
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.grey[600],
+                textStyle: const TextStyle(fontSize: 12),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Show Less'),
+                  SizedBox(width: 4),
+                  Icon(Icons.keyboard_arrow_up, size: 16),
+                ],
+              ),
+            ),
+
+          // Show More button - only when there are more records to show
+          if (hasMoreRecords)
+            TextButton(
+              onPressed: _loadAllRecords, // Changed method name
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.colorsBlue,
+                textStyle: const TextStyle(fontSize: 12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Show All (${widget.allTestDrive.length - _currentDisplayCount} more)', // Updated text
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.keyboard_arrow_down, size: 16),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
   }
 
   void _handleTestDrive(dynamic item) {
@@ -716,62 +819,76 @@ class _AllTestDriveState extends State<AllTestDrive> {
     //   );
     // }
 
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: widget.isNested
-          ? const NeverScrollableScrollPhysics()
-          : const AlwaysScrollableScrollPhysics(),
-      itemCount: widget.allTestDrive.length,
-      itemBuilder: (context, index) {
-        var item = widget.allTestDrive[index];
+    // Get the items to display based on current count
+    List<dynamic> itemsToDisplay = widget.allTestDrive
+        .take(_currentDisplayCount)
+        .toList();
 
-        if (!(item.containsKey('assigned_to') &&
-            item.containsKey('start_date') &&
-            item.containsKey('lead_id') &&
-            item.containsKey('event_id'))) {
-          return ListTile(title: Text('Invalid data at index $index'));
-        }
+    return Column(
+      children: [
+        ListView.builder(
+          padding: EdgeInsets.zero,
+          shrinkWrap: true,
+          physics: widget.isNested
+              ? const NeverScrollableScrollPhysics()
+              : const AlwaysScrollableScrollPhysics(),
+          // itemCount: widget.allTestDrive.length,
+         itemCount:
+              _currentDisplayCount, // Changed from widget.allFollowups.length
 
-        String eventId = item['event_id'];
-        // double swipeOffset = _swipeOffsets[eventId] ?? 0;
+          itemBuilder: (context, index) {
+            var item = widget.allTestDrive[index];
 
-        return GestureDetector(
-          child: upcomingTestDrivesItem(
-            key: ValueKey(item['event_id']),
-            name: item['name'] ?? '',
-            vehicle: item['PMI'] ?? 'Range Rover Velar',
-            subject: item['subject'] ?? 'Meeting',
+            if (!(item.containsKey('assigned_to') &&
+                item.containsKey('start_date') &&
+                item.containsKey('lead_id') &&
+                item.containsKey('event_id'))) {
+              return ListTile(title: Text('Invalid data at index $index'));
+            }
 
-            date: item['start_date'] ?? '',
-            // email: item['updated_by'], // Removed because 'email' is not a defined parameter
-            leadId: item['lead_id'],
-            startTime:
-                (item['start_time'] != null &&
-                    item['start_time'].toString().isNotEmpty)
-                ? item['start_time'].toString()
-                : "00:00:00",
+            String eventId = item['event_id'];
+            // double swipeOffset = _swipeOffsets[eventId] ?? 0;
 
-            eventId: item['event_id'] ?? '',
+            return GestureDetector(
+              child: upcomingTestDrivesItem(
+                key: ValueKey(item['event_id']),
+                name: item['name'] ?? '',
+                vehicle: item['PMI'] ?? 'Range Rover Velar',
+                subject: item['subject'] ?? 'Meeting',
 
-            isFavorite: item['favourite'] ?? false,
-            // swipeOffset: swipeOffset,
-            onToggleFavorite: () {
-              _toggleFavorite(eventId, index);
-            },
-            otpTrigger: () {
-              _getOtp(eventId);
-            },
-            fetchDashboardData: () {},
-            handleTestDrive: () {
-              _handleTestDrive(item);
-            },
-            swipeOffset: 0,
-            // taskId: '',
-            refreshDashboard: () async {},
-            email: '',
-          ),
-        );
-      },
+                date: item['start_date'] ?? '',
+                // email: item['updated_by'], // Removed because 'email' is not a defined parameter
+                leadId: item['lead_id'],
+                startTime:
+                    (item['start_time'] != null &&
+                        item['start_time'].toString().isNotEmpty)
+                    ? item['start_time'].toString()
+                    : "00:00:00",
+
+                eventId: item['event_id'] ?? '',
+
+                isFavorite: item['favourite'] ?? false,
+                // swipeOffset: swipeOffset,
+                onToggleFavorite: () {
+                  _toggleFavorite(eventId, index);
+                },
+                otpTrigger: () {
+                  _getOtp(eventId);
+                },
+                fetchDashboardData: () {},
+                handleTestDrive: () {
+                  _handleTestDrive(item);
+                },
+                swipeOffset: 0,
+                // taskId: '',
+                refreshDashboard: () async {},
+                email: '',
+              ),
+            );
+          },
+        ), // Add the show more/less button
+        _buildShowMoreButton(),
+      ],
     );
   }
 }

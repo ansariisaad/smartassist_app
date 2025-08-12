@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -36,14 +38,46 @@ class _OppOverdueState extends State<OppOverdue> {
   bool _showLoader = true;
   final Map<String, double> _swipeOffsets = {};
   List<dynamic> overdueAppointments = [];
+  int _currentDisplayCount = 10;
+  final int _incrementCount = 10;
 
   @override
   void initState() {
     super.initState();
     // fetchDashboardData();
     overdueAppointments = widget.overdueeOpp;
+    _currentDisplayCount = math.min(_incrementCount, widget.overdueeOpp.length);
     print('this is widget.overdue appointmnet');
     print(widget.overdueeOpp);
+  }
+
+  @override
+  void didUpdateWidget(oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.overdueeOpp != oldWidget.overdueeOpp) {
+      // _initializeFavorites();
+      _currentDisplayCount = math.min(
+        _incrementCount,
+        widget.overdueeOpp.length,
+      );
+    }
+  }
+
+  void _loadLessRecords() {
+    setState(() {
+      _currentDisplayCount = _incrementCount;
+      print(
+        '📊 Loading less records. New display count: $_currentDisplayCount',
+      );
+    });
+  }
+
+  void _loadAllRecords() {
+    setState(() {
+      // Show all records at once
+      _currentDisplayCount = widget.overdueeOpp.length;
+      print('📊 Loading all records. New display count: $_currentDisplayCount');
+    });
   }
 
   // void _handleCall(dynamic item) {
@@ -107,39 +141,124 @@ class _OppOverdueState extends State<OppOverdue> {
         ),
       );
     }
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: widget.isNested
-          ? const NeverScrollableScrollPhysics()
-          : const AlwaysScrollableScrollPhysics(),
-      itemCount: widget.overdueeOpp.length,
-      itemBuilder: (context, index) {
-        var item = widget.overdueeOpp[index];
+    // Get the items to display based on current count
+    List<dynamic> itemsToDisplay = widget.overdueeOpp
+        .take(_currentDisplayCount)
+        .toList();
 
-        String taskId = item['task_id'];
-        double swipeOffset = _swipeOffsets[taskId] ?? 0;
+    return Column(
+      children: [
+        ListView.builder(
+          shrinkWrap: true,
+          physics: widget.isNested
+              ? const NeverScrollableScrollPhysics()
+              : const AlwaysScrollableScrollPhysics(),
+          // itemCount: widget.overdueeOpp.length,
+          itemCount: _currentDisplayCount,
+          itemBuilder: (context, index) {
+            var item = widget.overdueeOpp[index];
 
-        return GestureDetector(
-          child: overdueeOppItem(
-            key: ValueKey(taskId),
-            name: item['name'] ?? '',
-            subject: item['subject'] ?? 'Meeting',
-            date: item['due_date'] ?? '',
-            vehicle: item['PMI'] ?? 'Range Rover Velar',
-            leadId: item['lead_id'],
-            mobile: item['mobile'] ?? '',
-            time: item['time'] ?? '',
-            taskId: item['task_id'] ?? '',
-            refreshDashboard: widget.refreshDashboard,
-            isFavorite: item['favourite'] ?? false,
-            // swipeOffset: swipeOffset,
-            fetchDashboardData: () {},
-            onToggleFavorite: () {
-              _toggleFavorite(taskId, index);
-            },
-          ),
-        );
-      },
+            String taskId = item['task_id'];
+            double swipeOffset = _swipeOffsets[taskId] ?? 0;
+
+            return GestureDetector(
+              child: overdueeOppItem(
+                key: ValueKey(taskId),
+                name: item['name'] ?? '',
+                subject: item['subject'] ?? 'Meeting',
+                date: item['due_date'] ?? '',
+                vehicle: item['PMI'] ?? 'Range Rover Velar',
+                leadId: item['lead_id'],
+                mobile: item['mobile'] ?? '',
+                time: item['time'] ?? '',
+                taskId: item['task_id'] ?? '',
+                refreshDashboard: widget.refreshDashboard,
+                isFavorite: item['favourite'] ?? false,
+                // swipeOffset: swipeOffset,
+                fetchDashboardData: () {},
+                onToggleFavorite: () {
+                  _toggleFavorite(taskId, index);
+                },
+              ),
+            );
+          },
+        ),
+        // Add the show more/less button
+        _buildShowMoreButton(),
+      ],
+    );
+  }
+
+  Widget _buildShowMoreButton() {
+    // If no data, don't show anything
+    if (widget.overdueeOpp.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    // Fix invalid display count
+    if (_currentDisplayCount <= 0 ||
+        _currentDisplayCount > widget.overdueeOpp.length) {
+      _currentDisplayCount = math.min(
+        _incrementCount,
+        widget.overdueeOpp.length,
+      );
+    }
+
+    // Check if we can show more records
+    bool hasMoreRecords = _currentDisplayCount < widget.overdueeOpp.length;
+
+    // Check if we can show less records - only if we're showing more than initial count
+    bool canShowLess = _currentDisplayCount > _incrementCount;
+
+    // If no action is possible, don't show button
+    if (!hasMoreRecords && !canShowLess) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      // padding: EdgeInsets.only(bottom: 20),
+      margin: EdgeInsets.only(bottom: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          if (canShowLess)
+            TextButton(
+              onPressed: _loadLessRecords,
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.grey[600],
+                textStyle: const TextStyle(fontSize: 12),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Show Less'),
+                  SizedBox(width: 4),
+                  Icon(Icons.keyboard_arrow_up, size: 16),
+                ],
+              ),
+            ),
+
+          // Show More button - only when there are more records to show
+          if (hasMoreRecords)
+            TextButton(
+              onPressed: _loadAllRecords, // Changed method name
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.colorsBlue,
+                textStyle: const TextStyle(fontSize: 12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Show All (${widget.overdueeOpp.length - _currentDisplayCount} more)', // Updated text
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.keyboard_arrow_down, size: 16),
+                ],
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

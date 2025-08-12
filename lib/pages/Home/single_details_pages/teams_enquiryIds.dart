@@ -119,6 +119,7 @@ class _TeamsEnquiryidsState extends State<TeamsEnquiryids> {
     _selectedTaskWidget = timelineOverdue(
       tasks: overdueTasks,
       overdueEvents: overdueEvents,
+      isFromTeams: true,
     );
 
     // _callLogsWidget = TimelineEightWid(tasks: upcomingTasks, upcomingEvents: upcomingEvents);
@@ -331,6 +332,7 @@ class _TeamsEnquiryidsState extends State<TeamsEnquiryids> {
       if (index == 0) {
         // Show upcoming tasks
         _selectedTaskWidget = TimelineUpcoming(
+          // isFromTeamEnq : true,
           tasks: upcomingTasks,
           upcomingEvents: upcomingEvents,
           isFromTeams: true,
@@ -344,22 +346,51 @@ class _TeamsEnquiryidsState extends State<TeamsEnquiryids> {
         _selectedTaskWidget = timelineOverdue(
           tasks: overdueTasks,
           overdueEvents: overdueEvents,
+          isFromTeams: true,
         );
       }
     });
   }
 
   // The method to show the toggle options (Upcoming / Completed)
-  Widget _buildToggleOption(int index, String text) {
+  // Widget _buildToggleOption(int index, String text) {
+  //   final bool isActive = _childButtonIndex == index;
+  //   return GestureDetector(
+  //     onTap: () => _toggleTasks(index),
+  //     child: Text(
+  //       text,
+  //       style: GoogleFonts.poppins(
+  //         fontSize: isActive ? 18 : 12,
+  //         fontWeight: FontWeight.w500,
+  //         color: isActive ? Colors.black : Colors.grey,
+  //       ),
+  //     ),
+  //   );
+  // }
+
+  Widget _buildToggleOption(int index, String text, Color color) {
     final bool isActive = _childButtonIndex == index;
     return GestureDetector(
       onTap: () => _toggleTasks(index),
-      child: Text(
-        text,
-        style: GoogleFonts.poppins(
-          fontSize: isActive ? 18 : 12,
-          fontWeight: FontWeight.w500,
-          color: isActive ? Colors.black : Colors.grey,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+        decoration: BoxDecoration(
+          color: isActive
+              ? color.withOpacity(0.2) // Light background when active
+              : Colors.transparent, // Very light grey when inactive
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(
+            color: isActive ? color : Colors.transparent,
+            width: .5,
+          ),
+        ),
+        child: Text(
+          text,
+          style: GoogleFonts.poppins(
+            fontSize: isActive ? 12 : 12,
+            fontWeight: isActive ? FontWeight.w400 : FontWeight.w400,
+            color: isActive ? color : Colors.grey,
+          ),
         ),
       ),
     );
@@ -370,11 +401,11 @@ class _TeamsEnquiryidsState extends State<TeamsEnquiryids> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _buildToggleOption(0, 'Upcoming'),
+        _buildToggleOption(0, 'Upcoming', AppColors.containerGreen),
         const SizedBox(width: 10),
-        _buildToggleOption(1, 'Completed'),
+        _buildToggleOption(1, 'Completed', AppColors.colorsBlue),
         const SizedBox(width: 10),
-        _buildToggleOption(2, 'Overdue'),
+        _buildToggleOption(2, 'Overdue', AppColors.containerRed),
       ],
     );
   }
@@ -1018,13 +1049,18 @@ class _TeamsEnquiryidsState extends State<TeamsEnquiryids> {
                                   Container(
                                     padding: const EdgeInsets.all(5),
                                     decoration: BoxDecoration(
-                                      color: Colors.grey[300],
+                                      color: const Color.fromARGB(
+                                        0,
+                                        255,
+                                        255,
+                                        255,
+                                      ),
                                       borderRadius: BorderRadius.circular(50),
                                     ),
                                     child: const Icon(
-                                      Icons.person,
+                                      Icons.person_search,
                                       size: 40,
-                                      color: Colors.white,
+                                      color: AppColors.colorsBlue,
                                     ),
                                   ),
                                   const SizedBox(width: 10),
@@ -1101,7 +1137,7 @@ class _TeamsEnquiryidsState extends State<TeamsEnquiryids> {
                                       child: _buildContactRow(
                                         icon: Icons.location_on,
                                         title: 'Location',
-                                        subtitle: pincode,
+                                        subtitle: address,
                                       ),
                                     ),
                                   ],
@@ -1110,7 +1146,7 @@ class _TeamsEnquiryidsState extends State<TeamsEnquiryids> {
                                   children: [
                                     Expanded(
                                       child: _buildContactRow(
-                                        icon: Icons.alt_route_outlined,
+                                        icon: Icons.question_mark_rounded,
                                         title: 'Status',
                                         subtitle:
                                             status, // Replace with the actual address variable
@@ -1119,8 +1155,8 @@ class _TeamsEnquiryidsState extends State<TeamsEnquiryids> {
                                     const SizedBox(width: 10),
                                     Expanded(
                                       child: _buildContactRow(
-                                        icon: Icons.person,
-                                        title: 'Lead Source',
+                                        icon: Icons.wechat_rounded,
+                                        title: 'Source',
                                         subtitle:
                                             leadSource, // Replace with the actual address variable
                                       ),
@@ -1132,8 +1168,7 @@ class _TeamsEnquiryidsState extends State<TeamsEnquiryids> {
                                     // Left Section: Phone Number and Company
                                     Expanded(
                                       child: _buildContactRow(
-                                        icon: Icons
-                                            .account_balance_wallet_outlined,
+                                        icon: Icons.email_outlined,
                                         title: 'Email',
                                         subtitle: email,
                                       ),
@@ -1149,27 +1184,6 @@ class _TeamsEnquiryidsState extends State<TeamsEnquiryids> {
                                   ],
                                 ),
 
-                                // Row(
-                                //   children: [
-                                //     Expanded(
-                                //       child: _buildContactRow(
-                                //         icon: Icons.directions_car,
-                                //         title: 'Purchase type',
-                                //         subtitle:
-                                //             purchase_type, // Replace with the actual address variable
-                                //       ),
-                                //     ),
-                                //     const SizedBox(width: 10),
-                                //     Expanded(
-                                //       child: _buildContactRow(
-                                //         icon: Icons.local_gas_station,
-                                //         title: 'Fuel type',
-                                //         subtitle:
-                                //             fuel_type, // Replace with the actual address variable
-                                //       ),
-                                //     ),
-                                //   ],
-                                // ),
                                 Row(
                                   children: [
                                     // Left Section: Phone Number and Company
@@ -1185,7 +1199,7 @@ class _TeamsEnquiryidsState extends State<TeamsEnquiryids> {
                                     const SizedBox(width: 10),
                                     Expanded(
                                       child: _buildContactRow(
-                                        icon: Icons.directions_car,
+                                        icon: Icons.person_search,
                                         title: 'Enquiry type',
                                         subtitle: enquiry_type,
                                       ),
@@ -1204,7 +1218,10 @@ class _TeamsEnquiryidsState extends State<TeamsEnquiryids> {
                                         const SizedBox(width: 10),
 
                                         Container(
-                                          padding: const EdgeInsets.all(7),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 2,
+                                          ),
                                           decoration: BoxDecoration(
                                             borderRadius: BorderRadius.circular(
                                               30,
@@ -1212,26 +1229,13 @@ class _TeamsEnquiryidsState extends State<TeamsEnquiryids> {
                                             color: AppColors.homeContainerLeads,
                                           ),
                                           child: Text(
-                                            _getFirstTwoLettersCapitalized(
-                                              lead_owner,
-                                            ),
+                                            lead_owner,
                                             style: AppFont.mediumText14blue(
                                               context,
                                             ),
                                           ),
                                         ),
                                         const SizedBox(width: 10),
-                                        // IconButton(
-                                        //     onPressed: () {},
-                                        //     icon: Container(
-                                        //         padding: EdgeInsets.all(5),
-                                        //         decoration: BoxDecoration(
-                                        //           borderRadius:
-                                        //               BorderRadius.circular(30),
-                                        //           color: AppColors
-                                        //               .backgroundLightGrey,
-                                        //         ),
-                                        //         child: const Icon(Icons.add)))
                                       ],
                                     ),
                                   ],
@@ -1267,21 +1271,17 @@ class _TeamsEnquiryidsState extends State<TeamsEnquiryids> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  _buildToggleSwitch(),
-                                  // TextButton(
-                                  //   onPressed: () {
-                                  //     setState(() {
-                                  //       _isHidden = !_isHidden;
-                                  //     });
-                                  //   },
-                                  //   child: Text(
-                                  //     _isHidden ? 'Show' : 'Hide',
-                                  //     style: GoogleFonts.poppins(
-                                  //         fontSize: 15,
-                                  //         fontWeight: FontWeight.w500,
-                                  //         color: Colors.black),
-                                  //   ),
-                                  // ),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: AppColors.backgroundLightGrey,
+                                      border: Border.all(
+                                        color: AppColors.iconGrey,
+                                        width: .5,
+                                      ),
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                    child: _buildToggleSwitch(),
+                                  ),
                                   IconButton(
                                     onPressed: () {
                                       setState(() {
@@ -1334,41 +1334,75 @@ class _TeamsEnquiryidsState extends State<TeamsEnquiryids> {
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   // _buildToggleSwitch(),
-                                  Row(
-                                    children: [
-                                      Text(
-                                        'Call logs',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w500,
-                                          color: Colors.black,
-                                        ),
+                                  Container(
+                                    height: 28,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.backgroundLightGrey,
+                                      border: Border.all(
+                                        color: AppColors.iconGrey,
+                                        width: .5,
                                       ),
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  WhatsappChat(
-                                                    // email: email,
-                                                    chatId: chatId,
-                                                    userName: lead_owner,
-                                                    // sessionId: '',
-                                                  ),
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 5,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Color(
+                                              0xFF1380FE,
+                                            ).withOpacity(0.2),
+                                            borderRadius: BorderRadius.circular(
+                                              15,
                                             ),
-                                          );
-                                        },
-                                        child: Text(
-                                          'Whatsapp',
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.black,
+                                            border: Border.all(
+                                              color: Color(
+                                                0xFF1380FE,
+                                              ), // Border color
+                                              width: .5,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            'Call logs',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w400,
+                                              color: AppColors.colorsBlue,
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    ],
+                                        // Tooltip(
+                                        //   // decoration: BoxDecoration(),
+                                        //   message: 'Send message WhatsApp',
+                                        //   child: TextButton(
+                                        //     style: TextButton.styleFrom(
+                                        //       padding: EdgeInsets.symmetric(
+                                        //         horizontal: 10,
+                                        //       ),
+                                        //     ),
+                                        //     onPressed: () async {
+                                        //       Get.to(
+                                        //         WhatsappChat(
+                                        //           chatId: chatId,
+                                        //           userName: lead_name,
+                                        //         ),
+                                        //       );
+                                        //     },
+                                        //     child: Text(
+                                        //       'Whatsapp',
+                                        //       style: GoogleFonts.poppins(
+                                        //         fontSize: 12,
+                                        //         fontWeight: FontWeight.w400,
+                                        //         color: Colors.grey,
+                                        //       ),
+                                        //     ),
+                                        //   ),
+                                        // ),
+                                      ],
+                                    ),
                                   ),
 
                                   IconButton(
@@ -1401,6 +1435,416 @@ class _TeamsEnquiryidsState extends State<TeamsEnquiryids> {
               ),
             ),
           ),
+          // Scaffold(
+          //   body: Container(
+          //     width: double.infinity, // ✅ Ensures full width
+          //     height: double.infinity,
+          //     decoration: BoxDecoration(color: AppColors.backgroundLightGrey),
+          //     child: SafeArea(
+          //       child: SingleChildScrollView(
+          //         child: Padding(
+          //           padding: const EdgeInsets.all(10.0),
+          //           child: Column(
+          //             children: [
+          //               // Main Container with Flexbox Layout
+          //               Container(
+          //                 padding: const EdgeInsets.all(15),
+          //                 decoration: BoxDecoration(
+          //                   color: Colors.white,
+          //                   borderRadius: BorderRadius.circular(10),
+          //                 ),
+          //                 child: Column(
+          //                   children: [
+          //                     // Profile Section (Icon, Name, Divider, Gmail, Car Name)
+          //                     Row(
+          //                       children: [
+          //                         // Profile Icon and Name
+          //                         Container(
+          //                           padding: const EdgeInsets.all(5),
+          //                           decoration: BoxDecoration(
+          //                             color: Colors.grey[300],
+          //                             borderRadius: BorderRadius.circular(50),
+          //                           ),
+          //                           child: const Icon(
+          //                             Icons.person,
+          //                             size: 40,
+          //                             color: Colors.white,
+          //                           ),
+          //                         ),
+          //                         const SizedBox(width: 10),
+          //                         Expanded(
+          //                           child: Column(
+          //                             // mainAxisAlignment: MainAxisAlignment.start,
+          //                             crossAxisAlignment:
+          //                                 CrossAxisAlignment.start,
+          //                             children: [
+          //                               Row(
+          //                                 children: [
+          //                                   Text(
+          //                                     textAlign: TextAlign.left,
+          //                                     lead_name,
+          //                                     style: GoogleFonts.poppins(
+          //                                       fontSize: 16,
+          //                                       fontWeight: FontWeight.w700,
+          //                                       color: Colors.black,
+          //                                     ),
+          //                                   ),
+          //                                   const SizedBox(width: 10),
+          //                                 ],
+          //                               ),
+          //                               Text(
+          //                                 PMI,
+          //                                 maxLines: 4,
+          //                                 style: GoogleFonts.poppins(
+          //                                   fontSize: 12,
+          //                                   fontWeight: FontWeight.w500,
+          //                                   color: Colors.black,
+          //                                 ),
+          //                               ),
+          //                             ],
+          //                           ),
+          //                         ),
+          //                         Row(
+          //                           children: [
+          //                             IconButton(
+          //                               onPressed: () {
+          //                                 setState(() {
+          //                                   _isHiddenTop = !_isHiddenTop;
+          //                                 });
+          //                               },
+          //                               icon: Icon(
+          //                                 _isHiddenTop
+          //                                     ? Icons
+          //                                           .keyboard_arrow_down_rounded
+          //                                     : Icons.keyboard_arrow_up_rounded,
+          //                                 size: 35,
+          //                                 color: AppColors.iconGrey,
+          //                               ),
+          //                             ),
+          //                           ],
+          //                         ),
+          //                       ],
+          //                     ),
+          //                     const SizedBox(height: 5),
+          //                     // Contact Details Section (Phone, Company, Address)
+          //                     if (!_isHiddenTop) ...[
+          //                       const Divider(thickness: 0.5),
+          //                       const SizedBox(height: 5),
+          //                       Row(
+          //                         children: [
+          //                           // Left Section: Phone Number and Company
+          //                           Expanded(
+          //                             child: _buildContactRow(
+          //                               icon: Icons.phone,
+          //                               title: 'Mobile',
+          //                               subtitle: mobile,
+          //                             ),
+          //                           ),
+          //                           const SizedBox(width: 10),
+          //                           Expanded(
+          //                             child: _buildContactRow(
+          //                               icon: Icons.location_on,
+          //                               title: 'Location',
+          //                               subtitle: pincode,
+          //                             ),
+          //                           ),
+          //                         ],
+          //                       ),
+          //                       Row(
+          //                         children: [
+          //                           Expanded(
+          //                             child: _buildContactRow(
+          //                               icon: Icons.alt_route_outlined,
+          //                               title: 'Status',
+          //                               subtitle:
+          //                                   status, // Replace with the actual address variable
+          //                             ),
+          //                           ),
+          //                           const SizedBox(width: 10),
+          //                           Expanded(
+          //                             child: _buildContactRow(
+          //                               icon: Icons.person,
+          //                               title: 'Lead Source',
+          //                               subtitle:
+          //                                   leadSource, // Replace with the actual address variable
+          //                             ),
+          //                           ),
+          //                         ],
+          //                       ),
+          //                       Row(
+          //                         children: [
+          //                           // Left Section: Phone Number and Company
+          //                           Expanded(
+          //                             child: _buildContactRow(
+          //                               icon: Icons
+          //                                   .account_balance_wallet_outlined,
+          //                               title: 'Email',
+          //                               subtitle: email,
+          //                             ),
+          //                           ),
+          //                           const SizedBox(width: 10),
+          //                           Expanded(
+          //                             child: _buildContactRow(
+          //                               icon: Icons.directions_car,
+          //                               title: 'Brand',
+          //                               subtitle: company,
+          //                             ),
+          //                           ),
+          //                         ],
+          //                       ),
+
+          //                       // Row(
+          //                       //   children: [
+          //                       //     Expanded(
+          //                       //       child: _buildContactRow(
+          //                       //         icon: Icons.directions_car,
+          //                       //         title: 'Purchase type',
+          //                       //         subtitle:
+          //                       //             purchase_type, // Replace with the actual address variable
+          //                       //       ),
+          //                       //     ),
+          //                       //     const SizedBox(width: 10),
+          //                       //     Expanded(
+          //                       //       child: _buildContactRow(
+          //                       //         icon: Icons.local_gas_station,
+          //                       //         title: 'Fuel type',
+          //                       //         subtitle:
+          //                       //             fuel_type, // Replace with the actual address variable
+          //                       //       ),
+          //                       //     ),
+          //                       //   ],
+          //                       // ),
+          //                       Row(
+          //                         children: [
+          //                           // Left Section: Phone Number and Company
+          //                           Expanded(
+          //                             child: _buildContactRow(
+          //                               icon: Icons.calendar_month,
+          //                               title: 'Expected purchase date',
+          //                               subtitle: formatDate(
+          //                                 expected_date_purchase,
+          //                               ),
+          //                             ),
+          //                           ),
+          //                           const SizedBox(width: 10),
+          //                           Expanded(
+          //                             child: _buildContactRow(
+          //                               icon: Icons.directions_car,
+          //                               title: 'Enquiry type',
+          //                               subtitle: enquiry_type,
+          //                             ),
+          //                           ),
+          //                         ],
+          //                       ),
+          //                       const SizedBox(height: 10),
+          //                       Row(
+          //                         children: [
+          //                           Row(
+          //                             children: [
+          //                               Text(
+          //                                 'Assignee',
+          //                                 style: AppFont.mediumText14(context),
+          //                               ),
+          //                               const SizedBox(width: 10),
+
+          //                               Container(
+          //                                 padding: const EdgeInsets.all(7),
+          //                                 decoration: BoxDecoration(
+          //                                   borderRadius: BorderRadius.circular(
+          //                                     30,
+          //                                   ),
+          //                                   color: AppColors.homeContainerLeads,
+          //                                 ),
+          //                                 child: Text(
+          //                                   _getFirstTwoLettersCapitalized(
+          //                                     lead_owner,
+          //                                   ),
+          //                                   style: AppFont.mediumText14blue(
+          //                                     context,
+          //                                   ),
+          //                                 ),
+          //                               ),
+          //                               const SizedBox(width: 10),
+          //                               // IconButton(
+          //                               //     onPressed: () {},
+          //                               //     icon: Container(
+          //                               //         padding: EdgeInsets.all(5),
+          //                               //         decoration: BoxDecoration(
+          //                               //           borderRadius:
+          //                               //               BorderRadius.circular(30),
+          //                               //           color: AppColors
+          //                               //               .backgroundLightGrey,
+          //                               //         ),
+          //                               //         child: const Icon(Icons.add)))
+          //                             ],
+          //                           ),
+          //                         ],
+          //                       ),
+          //                     ],
+          //                   ],
+          //                 ),
+          //               ),
+          //               const SizedBox(height: 10), // Spacer
+          //               // History Section
+          //               // Text('hiii'),
+          //               Container(
+          //                 decoration: BoxDecoration(
+          //                   color: Colors.white,
+          //                   borderRadius: BorderRadius.circular(10),
+          //                   boxShadow: [
+          //                     BoxShadow(
+          //                       color: Colors.grey.shade300,
+          //                       blurRadius: 6,
+          //                       offset: const Offset(0, 3),
+          //                     ),
+          //                   ],
+          //                 ),
+          //                 padding: const EdgeInsets.symmetric(
+          //                   horizontal: 10.0,
+          //                   vertical: 0,
+          //                 ),
+          //                 child: Column(
+          //                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //                   children: [
+          //                     // Header Row
+          //                     Row(
+          //                       mainAxisAlignment:
+          //                           MainAxisAlignment.spaceBetween,
+          //                       children: [
+          //                         _buildToggleSwitch(),
+          //                         // TextButton(
+          //                         //   onPressed: () {
+          //                         //     setState(() {
+          //                         //       _isHidden = !_isHidden;
+          //                         //     });
+          //                         //   },
+          //                         //   child: Text(
+          //                         //     _isHidden ? 'Show' : 'Hide',
+          //                         //     style: GoogleFonts.poppins(
+          //                         //         fontSize: 15,
+          //                         //         fontWeight: FontWeight.w500,
+          //                         //         color: Colors.black),
+          //                         //   ),
+          //                         // ),
+          //                         IconButton(
+          //                           onPressed: () {
+          //                             setState(() {
+          //                               _isHidden = !_isHidden;
+          //                             });
+          //                           },
+          //                           icon: Icon(
+          //                             _isHidden
+          //                                 ? Icons.keyboard_arrow_down_rounded
+          //                                 : Icons.keyboard_arrow_up_rounded,
+          //                             size: 35,
+          //                             color: AppColors.iconGrey,
+          //                           ),
+          //                         ),
+          //                       ],
+          //                     ),
+
+          //                     // Show only if _isHidden is false
+          //                     if (!_isHidden) ...[
+          //                       //  i want to show here the timeline eight and nine
+          //                       // and nine data
+          //                       _selectedTaskWidget,
+          //                     ],
+          //                   ],
+          //                 ),
+          //               ),
+
+          //               const SizedBox(height: 10),
+          //               Container(
+          //                 decoration: BoxDecoration(
+          //                   color: Colors.white,
+          //                   borderRadius: BorderRadius.circular(10),
+          //                   boxShadow: [
+          //                     BoxShadow(
+          //                       color: Colors.grey.shade300,
+          //                       blurRadius: 6,
+          //                       offset: const Offset(0, 3),
+          //                     ),
+          //                   ],
+          //                 ),
+          //                 padding: const EdgeInsets.symmetric(
+          //                   horizontal: 10.0,
+          //                   vertical: 0,
+          //                 ),
+          //                 child: Column(
+          //                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //                   children: [
+          //                     Row(
+          //                       mainAxisAlignment:
+          //                           MainAxisAlignment.spaceBetween,
+          //                       children: [
+          //                         // _buildToggleSwitch(),
+          //                         Row(
+          //                           children: [
+          //                             Text(
+          //                               'Call logs',
+          //                               style: GoogleFonts.poppins(
+          //                                 fontSize: 18,
+          //                                 fontWeight: FontWeight.w500,
+          //                                 color: Colors.black,
+          //                               ),
+          //                             ),
+          //                             TextButton(
+          //                               onPressed: () {
+          //                                 Navigator.push(
+          //                                   context,
+          //                                   MaterialPageRoute(
+          //                                     builder: (context) =>
+          //                                         WhatsappChat(
+          //                                           // email: email,
+          //                                           chatId: chatId,
+          //                                           userName: lead_owner,
+          //                                           // sessionId: '',
+          //                                         ),
+          //                                   ),
+          //                                 );
+          //                               },
+          //                               child: Text(
+          //                                 'Whatsapp',
+          //                                 style: GoogleFonts.poppins(
+          //                                   fontSize: 12,
+          //                                   fontWeight: FontWeight.w500,
+          //                                   color: Colors.black,
+          //                                 ),
+          //                               ),
+          //                             ),
+          //                           ],
+          //                         ),
+
+          //                         IconButton(
+          //                           onPressed: () {
+          //                             setState(() {
+          //                               _isHiddenMiddle = !_isHiddenMiddle;
+          //                             });
+          //                           },
+          //                           icon: Icon(
+          //                             _isHiddenMiddle
+          //                                 ? Icons.keyboard_arrow_down_rounded
+          //                                 : Icons.keyboard_arrow_up_rounded,
+          //                             size: 35,
+          //                             color: AppColors.iconGrey,
+          //                           ),
+          //                         ),
+          //                       ],
+          //                     ),
+          //                     if (!_isHiddenMiddle) ...[
+          //                       _callLogsWidget(context),
+          //                     ],
+          //                   ],
+          //                 ),
+          //               ),
+          //               const SizedBox(height: 10),
+          //             ],
+          //           ),
+          //         ),
+          //       ),
+          //     ),
+          //   ),
+          // ),
 
           // Floating Action Button
           // Popup Menu overlay (conditionally rendered)

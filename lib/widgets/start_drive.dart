@@ -22,7 +22,7 @@ import 'package:smartassist/widgets/testdrive_summary.dart';
 // import 'package:smartassist/widgets/testdrive_summary.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:geolocator/geolocator.dart';
-import 'package:get/get.dart';
+// import 'package:get/get.dart';
 
 // Improved distance calculation with better accuracy
 class DistanceCalculator {
@@ -197,9 +197,13 @@ class _StartDriveMapState extends State<StartDriveMap>
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Battery Optimization'),
+          title: Text(
+            'Battery Optimization',
+            style: AppFont.dropDowmLabel(context),
+          ),
           content: Text(
             'To ensure accurate test drive tracking in the background, please disable battery optimization for this app.',
+            style: AppFont.smallText12(context),
           ),
           actions: [
             TextButton(
@@ -917,11 +921,15 @@ class _StartDriveMapState extends State<StartDriveMap>
             children: [
               Icon(Icons.location_off, color: Colors.red),
               SizedBox(width: 8),
-              Text('Location Services Disabled'),
+              Text(
+                'Location Services Disable',
+                style: AppFont.dropDowmLabel(context),
+              ),
             ],
           ),
           content: Text(
             'Location services are turned off. Please enable location services to use test drive tracking.',
+            style: AppFont.smallText12(context),
           ),
           actions: [
             TextButton(

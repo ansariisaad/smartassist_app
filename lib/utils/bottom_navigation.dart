@@ -12,7 +12,7 @@ import 'package:smartassist/pages/navbar_page/logout_page.dart';
 import 'package:smartassist/pages/Home/reassign_enq.dart';
 import 'package:smartassist/pages/Navigation/feedback_nav.dart';
 import 'package:smartassist/utils/navigation_controller.dart' as nav_utils;
-import 'package:smartassist/widgets/bottom_tutorial.dart';
+import 'package:smartassist/pages/navbar_page/bottom_tutorial.dart';
 
 class BottomNavigation extends StatelessWidget {
   BottomNavigation({super.key});

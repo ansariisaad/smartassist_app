@@ -545,12 +545,12 @@ class _CreateLeadsState extends State<CreateLeads> {
   }
 
   bool _isValidFirst(String name) {
-    final nameRegExp = RegExp(r'^[A-Z][a-zA-Z0-9]*( [a-zA-Z0-9]+)*$');
+    final nameRegExp = RegExp(r'^[a-zA-Z0-9]+( [a-zA-Z0-9]+)*$');
     return nameRegExp.hasMatch(name);
   }
 
   bool _isValidSecond(String name) {
-    final nameRegExp = RegExp(r'^[A-Z][a-zA-Z0-9]*( [a-zA-Z0-9]+)*$');
+    final nameRegExp = RegExp(r'^[a-zA-Z0-9]+( [a-zA-Z0-9]+)*$');
     return nameRegExp.hasMatch(name);
   }
 

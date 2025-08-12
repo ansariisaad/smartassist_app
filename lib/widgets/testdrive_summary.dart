@@ -456,7 +456,7 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
                                           style: AppFont.dropDowmLabel(context),
                                         ),
                                         Text(
-                                          '${startTime} m',
+                                          '${startTime}',
                                           style: AppFont.mediumText14(context),
                                         ),
                                       ],

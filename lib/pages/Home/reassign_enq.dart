@@ -12,6 +12,7 @@ import 'package:http/http.dart' as http;
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/services/reassign_enq_srv.dart';
 import 'package:smartassist/services/api_srv.dart';
+import 'package:smartassist/widgets/reusable/globle_speechtotext.dart';
 
 class AllEnq extends StatefulWidget {
   const AllEnq({super.key});
@@ -1101,83 +1102,91 @@ class _AllEnqState extends State<AllEnq> {
           : Column(
               children: [
                 // Responsive Search field container
-                Container(
-                  margin: EdgeInsets.all(isTablet ? 15 : 10),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      minHeight: 38,
-                      maxHeight: 38,
-                    ),
-                    child: TextField(
-                      autofocus: false,
-                      controller: _searchController,
-                      onChanged: (value) => _onSearchChanged(),
-                      textAlignVertical: TextAlignVertical.center,
-                      style: GoogleFonts.poppins(
-                        fontSize: _getResponsiveFontSize(context, isTablet),
-                      ),
-                      decoration: InputDecoration(
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide.none,
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide.none,
-                        ),
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: _getResponsiveHorizontalPadding(
-                            context,
-                            isTablet,
-                          ),
-                          vertical: _getResponsiveVerticalPadding(
-                            context,
-                            isTablet,
-                          ),
-                        ),
-                        filled: true,
-                        fillColor: AppColors.backgroundLightGrey,
-                        hintText: 'Search by name, email or phone',
-                        hintStyle: GoogleFonts.poppins(
-                          fontSize: _getResponsiveHintFontSize(
-                            context,
-                            isTablet,
-                          ),
-                          fontWeight: FontWeight.w300,
-                        ),
-                        prefixIcon: Container(
-                          width: _getResponsiveIconContainerWidth(
-                            context,
-                            isTablet,
-                          ),
-                          child: Center(
-                            child: Icon(
-                              FontAwesomeIcons.magnifyingGlass,
-                              color: AppColors.fontColor,
-                              size: _getResponsiveIconSize(context, isTablet),
-                            ),
-                          ),
-                        ),
-                        prefixIconConstraints: BoxConstraints(
-                          minWidth: _getResponsiveIconContainerWidth(
-                            context,
-                            isTablet,
-                          ),
-                          maxWidth: _getResponsiveIconContainerWidth(
-                            context,
-                            isTablet,
-                          ),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide.none,
-                        ),
-                        isDense: true,
-                      ),
-                    ),
-                  ),
+                // Container(
+                //   margin: EdgeInsets.all(isTablet ? 15 : 10),
+                //   child: ConstrainedBox(
+                //     constraints: const BoxConstraints(
+                //       minHeight: 38,
+                //       maxHeight: 38,
+                //     ),
+                //     child: TextField(
+                //       autofocus: false,
+                //       controller: _searchController,
+                //       onChanged: (value) => _onSearchChanged(),
+                //       textAlignVertical: TextAlignVertical.center,
+                //       style: GoogleFonts.poppins(
+                //         fontSize: _getResponsiveFontSize(context, isTablet),
+                //       ),
+                //       decoration: InputDecoration(
+                //         enabledBorder: OutlineInputBorder(
+                //           borderRadius: BorderRadius.circular(30),
+                //           borderSide: BorderSide.none,
+                //         ),
+                //         focusedBorder: OutlineInputBorder(
+                //           borderRadius: BorderRadius.circular(30),
+                //           borderSide: BorderSide.none,
+                //         ),
+                //         contentPadding: EdgeInsets.symmetric(
+                //           horizontal: _getResponsiveHorizontalPadding(
+                //             context,
+                //             isTablet,
+                //           ),
+                //           vertical: _getResponsiveVerticalPadding(
+                //             context,
+                //             isTablet,
+                //           ),
+                //         ),
+                //         filled: true,
+                //         fillColor: AppColors.backgroundLightGrey,
+                //         hintText: 'Search by name, email or phone',
+                //         hintStyle: GoogleFonts.poppins(
+                //           fontSize: _getResponsiveHintFontSize(
+                //             context,
+                //             isTablet,
+                //           ),
+                //           fontWeight: FontWeight.w300,
+                //         ),
+                //         prefixIcon: Container(
+                //           width: _getResponsiveIconContainerWidth(
+                //             context,
+                //             isTablet,
+                //           ),
+                //           child: Center(
+                //             child: Icon(
+                //               FontAwesomeIcons.magnifyingGlass,
+                //               color: AppColors.fontColor,
+                //               size: _getResponsiveIconSize(context, isTablet),
+                //             ),
+                //           ),
+                //         ),
+                //         prefixIconConstraints: BoxConstraints(
+                //           minWidth: _getResponsiveIconContainerWidth(
+                //             context,
+                //             isTablet,
+                //           ),
+                //           maxWidth: _getResponsiveIconContainerWidth(
+                //             context,
+                //             isTablet,
+                //           ),
+                //         ),
+                //         border: OutlineInputBorder(
+                //           borderRadius: BorderRadius.circular(30),
+                //           borderSide: BorderSide.none,
+                //         ),
+                //         isDense: true,
+                //       ),
+                //     ),
+                //   ),
+                // ),
+                SpeechSearchWidget(
+                  controller: _searchController,
+                  hintText: "Search by name, email or phone",
+                  onChanged: (value) => _onSearchChanged(),
+                  primaryColor: AppColors.fontColor,
+                  backgroundColor: Colors.grey.shade100,
+                  borderRadius: 30.0,
+                  prefixIcon: Icon(Icons.search, color: AppColors.fontColor),
                 ),
-
                 // Filter Section
                 Container(
                   margin: EdgeInsets.symmetric(

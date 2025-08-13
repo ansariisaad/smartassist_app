@@ -905,7 +905,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                       child: Icon(
                         fabController.isFabExpanded.value
-                            ? Icons.close
+                            ? Icons.add
                             : Icons.add,
                         key: ValueKey(fabController.isFabExpanded.value),
                         color: fabController.isFabDisabled.value

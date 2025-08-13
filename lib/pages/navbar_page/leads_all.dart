@@ -11,8 +11,11 @@ import 'package:http/http.dart' as http;
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
+import 'package:smartassist/widgets/buttons/add_btn.dart';
+import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/create_leads.dart';
 import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/lead_update.dart';
 import 'package:smartassist/pages/Home/reassign_enq.dart';
+import 'package:smartassist/widgets/reusable/globle_speechtotext.dart';
 import 'package:smartassist/widgets/reusable/skeleton_globle_search_card.dart';
 
 class AllLeads extends StatefulWidget {
@@ -24,6 +27,7 @@ class AllLeads extends StatefulWidget {
 
 class _AllLeadsState extends State<AllLeads> {
   bool isLoading = true;
+  final Widget _createLeads = CreateLeads(onFormSubmit: () {});
   final Map<String, double> _swipeOffsets = {};
   final ScrollController _scrollController = ScrollController();
   Set<String> selectedLeads = {};
@@ -295,34 +299,6 @@ class _AllLeadsState extends State<AllLeads> {
     }
   }
 
-  // Method to get current dropdown options based on category
-  // List<String> _getCurrentLeadSourceOptions() {
-  //   switch (_selectedLeadSourceCategory) {
-  //     case 'Online Sources':
-  //       return _onlineSourceOptions;
-  //     case 'Others':
-  //       return _otherSourceOptions;
-  //     default:
-  //       return _leadSourceCategoryOptions;
-  //   }
-  // }
-
-  // // Method to get current selected value
-  // String _getCurrentLeadSourceValue() {
-  //   switch (_selectedLeadSourceCategory) {
-  //     case 'Online Sources':
-  //       return _onlineSourceOptions.contains(_selectedLeadSource)
-  //           ? _selectedLeadSource
-  //           : 'All Online';
-  //     case 'Others':
-  //       return _otherSourceOptions.contains(_selectedLeadSource)
-  //           ? _selectedLeadSource
-  //           : 'All Others';
-  //     default:
-  //       return _selectedLeadSourceCategory;
-  //   }
-  // }
-
   void _onSearchChanged() {
     final newQuery = _searchController.text.trim();
     if (newQuery == _query) return;
@@ -330,160 +306,6 @@ class _AllLeadsState extends State<AllLeads> {
     _query = newQuery;
     _performLocalSearch(_query);
   }
-
-  // PATCH 2: Enhanced _applyFilters with filter counts and active status
-  // void _applyFilters() {
-  //   List<dynamic> filteredList = List.from(_filteredTasks);
-
-  //   // Calculate counts for each filter option
-  //   _filterCounts.clear();
-
-  //   // Count status options (keep existing logic)
-  //   for (String status in _statusOptions) {
-  //     if (status == 'All') {
-  //       _filterCounts[status] = filteredList.length;
-  //     } else {
-  //       _filterCounts[status] = filteredList.where((item) {
-  //         String itemStatus = (item['status'] ?? 'New').toString();
-  //         return itemStatus.toLowerCase() == status.toLowerCase();
-  //       }).length;
-  //     }
-  //   }
-
-  //   // Count lead source options (replace time filter counting)
-  //   for (String category in _leadSourceCategoryOptions) {
-  //     if (category == 'All Sources') {
-  //       _filterCounts[category] = filteredList.length;
-  //     } else if (category == 'Online Sources') {
-  //       _filterCounts[category] = filteredList.where((item) {
-  //         String leadSource = (item['lead_source'] ?? '').toString();
-  //         return _onlineSourceOptions
-  //             .skip(1)
-  //             .contains(leadSource); // skip 'All Online'
-  //       }).length;
-  //     } else if (category == 'Others') {
-  //       _filterCounts[category] = filteredList.where((item) {
-  //         String leadSource = (item['lead_source'] ?? '').toString();
-  //         return _otherSourceOptions
-  //             .skip(1)
-  //             .contains(leadSource); // skip 'All Others'
-  //       }).length;
-  //     }
-  //   }
-
-  //   // Count individual online source options
-  //   for (String source in _onlineSourceOptions) {
-  //     if (source != 'All Online') {
-  //       _filterCounts[source] = filteredList.where((item) {
-  //         String leadSource = (item['lead_source'] ?? '').toString();
-  //         return leadSource == source;
-  //       }).length;
-  //     }
-  //   }
-
-  //   // Count individual other source options
-  //   for (String source in _otherSourceOptions) {
-  //     if (source != 'All Others') {
-  //       _filterCounts[source] = filteredList.where((item) {
-  //         String leadSource = (item['lead_source'] ?? '').toString();
-  //         return leadSource == source;
-  //       }).length;
-  //     }
-  //   }
-
-  //   // Apply actual filters
-  //   if (_selectedStatus != 'All') {
-  //     filteredList = filteredList.where((item) {
-  //       String status = (item['status'] ?? 'New').toString();
-  //       return status.toLowerCase() == _selectedStatus.toLowerCase();
-  //     }).toList();
-  //   }
-
-  //   // Apply lead source filter (replace time filter logic)
-  //   if (_selectedLeadSourceCategory != 'All Sources') {
-  //     if (_selectedLeadSourceCategory == 'Online Sources') {
-  //       if (_selectedLeadSource != 'All Online' &&
-  //           _onlineSourceOptions.contains(_selectedLeadSource)) {
-  //         // Filter by specific online source
-  //         filteredList = filteredList.where((item) {
-  //           String leadSource = (item['lead_source'] ?? '').toString();
-  //           return leadSource == _selectedLeadSource;
-  //         }).toList();
-  //       } else {
-  //         // Filter by all online sources
-  //         filteredList = filteredList.where((item) {
-  //           String leadSource = (item['lead_source'] ?? '').toString();
-  //           return _onlineSourceOptions.skip(1).contains(leadSource);
-  //         }).toList();
-  //       }
-  //     } else if (_selectedLeadSourceCategory == 'Others') {
-  //       if (_selectedLeadSource != 'All Others' &&
-  //           _otherSourceOptions.contains(_selectedLeadSource)) {
-  //         // Filter by specific other source
-  //         filteredList = filteredList.where((item) {
-  //           String leadSource = (item['lead_source'] ?? '').toString();
-  //           return leadSource == _selectedLeadSource;
-  //         }).toList();
-  //       } else {
-  //         // Filter by all other sources
-  //         filteredList = filteredList.where((item) {
-  //           String leadSource = (item['lead_source'] ?? '').toString();
-  //           return _otherSourceOptions.skip(1).contains(leadSource);
-  //         }).toList();
-  //       }
-  //     }
-  //   }
-
-  //   // Apply sorting (keep existing logic)
-  //   switch (_selectedSortBy) {
-  //     case 'Name (A-Z)':
-  //       filteredList.sort((a, b) {
-  //         String nameA = (a['lead_name'] ?? '').toString().toLowerCase();
-  //         String nameB = (b['lead_name'] ?? '').toString().toLowerCase();
-  //         return nameA.compareTo(nameB);
-  //       });
-  //       break;
-  //     case 'Name (Z-A)':
-  //       filteredList.sort((a, b) {
-  //         String nameA = (a['lead_name'] ?? '').toString().toLowerCase();
-  //         String nameB = (b['lead_name'] ?? '').toString().toLowerCase();
-  //         return nameB.compareTo(nameA);
-  //       });
-  //       break;
-  //     case 'Recently Updated':
-  //       filteredList.sort((a, b) {
-  //         String dateA = a['updated_at'] ?? a['created_at'] ?? '';
-  //         String dateB = b['updated_at'] ?? b['created_at'] ?? '';
-  //         return dateB.compareTo(dateA);
-  //       });
-  //       break;
-  //     case 'Oldest First':
-  //       filteredList.sort((a, b) {
-  //         String dateA = a['created_at'] ?? '';
-  //         String dateB = b['created_at'] ?? '';
-  //         return dateA.compareTo(dateB);
-  //       });
-  //       break;
-  //     case 'Date Created':
-  //     default:
-  //       filteredList.sort((a, b) {
-  //         String dateA = a['created_at'] ?? '';
-  //         String dateB = b['created_at'] ?? '';
-  //         return dateB.compareTo(dateA);
-  //       });
-  //       break;
-  //   }
-
-  //   // Update _hasActiveFilters (replace time filter check with lead source check)
-  //   _hasActiveFilters =
-  //       _selectedSortBy != 'Date Created' ||
-  //       _selectedStatus != 'All' ||
-  //       _selectedLeadSourceCategory != 'All Sources';
-
-  //   setState(() {
-  //     _filteredTasks = filteredList;
-  //   });
-  // }
 
   void _applyFilters() {
     List<dynamic> filteredList = List.from(_filteredTasks);
@@ -531,7 +353,7 @@ class _AllLeadsState extends State<AllLeads> {
 
     // Apply lead source filter - SIMPLIFIED
     if (_selectedLeadSourceCategory != 'All') {
-      if (_selectedLeadSourceCategory == 'Online Sources') {
+      if (_selectedLeadSourceCategory == 'Digitals') {
         // Show only items where lead_source is NOT in offline list
         filteredList = filteredList.where((item) {
           String leadSource = (item['lead_source'] ?? '').toString();
@@ -799,65 +621,35 @@ class _AllLeadsState extends State<AllLeads> {
         backgroundColor: AppColors.colorsBlue,
         automaticallyImplyLeading: false,
       ),
+      floatingActionButton: CustomFloatingButton(
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (context) {
+              return Dialog(
+                insetPadding: const EdgeInsets.symmetric(horizontal: 10),
+                backgroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: _createLeads,
+              );
+            },
+          );
+        },
+      ),
       body: isLoading
           ? SkeletonGlobleSearchCard()
           : Column(
               children: [
-                // Search field container
-                Container(
-                  margin: EdgeInsets.all(isTablet ? 15 : 10),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: 38, maxHeight: 38),
-                    child: TextField(
-                      autofocus: false,
-                      controller: _searchController,
-                      onChanged: (value) => _onSearchChanged(),
-                      textAlignVertical: TextAlignVertical.center,
-                      style: GoogleFonts.poppins(
-                        fontSize: _isTablet(context) ? 14 : 13,
-                      ),
-                      decoration: InputDecoration(
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide.none,
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide.none,
-                        ),
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: _isTablet(context) ? 16 : 14,
-                          vertical: _isTablet(context) ? 16 : 12,
-                        ),
-                        filled: true,
-                        fillColor: AppColors.searchBar,
-                        hintText: 'Search by name, email or phone',
-                        hintStyle: GoogleFonts.poppins(
-                          fontSize: _isTablet(context) ? 12 : 11,
-                          fontWeight: FontWeight.w300,
-                        ),
-                        prefixIcon: Container(
-                          width: _isTablet(context) ? 50 : 45,
-                          child: Center(
-                            child: Icon(
-                              FontAwesomeIcons.magnifyingGlass,
-                              color: AppColors.fontColor,
-                              size: _isTablet(context) ? 18 : 16,
-                            ),
-                          ),
-                        ),
-                        prefixIconConstraints: BoxConstraints(
-                          minWidth: _isTablet(context) ? 50 : 45,
-                          maxWidth: _isTablet(context) ? 50 : 45,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide.none,
-                        ),
-                        isDense: true,
-                      ),
-                    ),
-                  ),
+                SpeechSearchWidget(
+                  controller: _searchController,
+                  hintText: "Search by name, email or phone",
+                  onChanged: (value) => _onSearchChanged(),
+                  primaryColor: AppColors.fontColor,
+                  backgroundColor: Colors.grey.shade100,
+                  borderRadius: 30.0,
+                  prefixIcon: Icon(Icons.search, color: AppColors.fontColor),
                 ),
                 // Filters Row
                 Container(

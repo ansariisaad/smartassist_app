@@ -2129,7 +2129,7 @@ class _CreateLeadsState extends State<CreateLeads> {
             : _locationController.text.trim(),
 
         'exterior_color': selectedColorName,
-        'Campaign': selectedCampaignId,
+        'campaign': selectedCampaignName,
         'halo': _selectedHaloOption.isNotEmpty ? _selectedHaloOption : null,
       };
 

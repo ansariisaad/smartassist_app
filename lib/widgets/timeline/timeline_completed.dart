@@ -1174,6 +1174,8 @@ class _TimelineCompletedState extends State<TimelineCompleted> {
           String startTime = task['start_time'] ?? 'No Start time';
           String endTime = task['end_time'] ?? 'No end time';
           String duration = task['duration'] ?? 'No duration';
+          String startActualTime = task['actual_start_time'] ?? 'No Start time';
+          String endActualTime = task['actual_end_time'] ?? 'No end time';
           // String distance = task['distance'] ?? 'No distance';
           String rawDistance = task['distance']?.toString() ?? 'No distance';
           String rating = task['avg_rating'] ?? 'No rating';
@@ -1404,6 +1406,25 @@ class _TimelineCompletedState extends State<TimelineCompleted> {
                           const SizedBox(height: 4),
                           Text(
                             'Average rating: $rating',
+                            style: AppFont.smallText12(
+                              context,
+                            )?.copyWith(color: Colors.black),
+                          ),
+                        ],
+
+                        if (startActualTime != 'No Time') ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            'Actual Start Time: $startActualTime',
+                            style: AppFont.smallText12(
+                              context,
+                            )?.copyWith(color: Colors.black),
+                          ),
+                        ],
+                        if (endActualTime != 'No Time') ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            'Actual End Time: $endActualTime',
                             style: AppFont.smallText12(
                               context,
                             )?.copyWith(color: Colors.black),

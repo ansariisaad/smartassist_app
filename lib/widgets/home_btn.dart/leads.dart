@@ -205,7 +205,7 @@ class _LeadsState extends State<Leads> {
                   child: _buildInfoCard(
                     context,
                     'Follow ups done by you per lost enquiry',
-                    '${selectedData['followupsPerLostEnquiry'] ?? '0'}',
+                    '${selectedData['followupsPerLostEnquiry'] ?? '10'}',
                     screenWidth,
                     Colors.red,
                     secondTitle: 'Follow ups recommended per lost enquiry',

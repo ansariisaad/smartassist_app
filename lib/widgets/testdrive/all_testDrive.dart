@@ -15,7 +15,7 @@ import 'package:smartassist/widgets/testdrive_verifyotp.dart';
 
 class AllTestrive extends StatefulWidget {
   final String name, date, vehicle, subject, leadId, eventId, startTime, email;
-  final bool isFavorite;
+  final bool isFavorite, isCompleted;
   final VoidCallback onToggleFavorite;
   final VoidCallback handleTestDrive;
   final VoidCallback otpTrigger;
@@ -34,6 +34,7 @@ class AllTestrive extends StatefulWidget {
     required this.handleTestDrive,
     required this.otpTrigger,
     required this.email,
+    required this.isCompleted,
   });
 
   @override
@@ -162,7 +163,10 @@ class _AllFollowupsItemState extends State<AllTestrive>
         children: [
           if (widget.subject == 'Test Drive')
             ReusableSlidableAction(
-              onPressed: _showAleart,
+              // onPressed: _showAleart,
+              onPressed: () {
+                widget.isCompleted == true ? _showAleart1() : _showAleart();
+              },
               backgroundColor: AppColors.colorsBlue,
               icon: Icons.directions_car,
               foregroundColor: Colors.white,
@@ -284,6 +288,41 @@ class _AllFollowupsItemState extends State<AllTestrive>
               child: Text(
                 'Yes',
                 style: GoogleFonts.poppins(color: AppColors.colorsBlue),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showAleart1() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // User must tap button to close dialog
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          title: Text(
+            'Test Drive has already been completed',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          ),
+          content: Text(
+            'If you wish to initiate test drive again for this client, kindly create a new one',
+            style: GoogleFonts.poppins(),
+          ),
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(
+                overlayColor: Colors.grey.withOpacity(0.1),
+                foregroundColor: Colors.grey,
+              ),
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(
+                'Back',
+                style: GoogleFonts.poppins(color: Colors.grey),
               ),
             ),
           ],
@@ -833,7 +872,7 @@ class _AllTestDriveState extends State<AllTestDrive> {
               ? const NeverScrollableScrollPhysics()
               : const AlwaysScrollableScrollPhysics(),
           // itemCount: widget.allTestDrive.length,
-         itemCount:
+          itemCount:
               _currentDisplayCount, // Changed from widget.allFollowups.length
 
           itemBuilder: (context, index) {
@@ -883,6 +922,7 @@ class _AllTestDriveState extends State<AllTestDrive> {
                 // taskId: '',
                 refreshDashboard: () async {},
                 email: '',
+                isCompleted: item['completed'] ?? false,
               ),
             );
           },

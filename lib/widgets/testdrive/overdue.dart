@@ -223,6 +223,7 @@ class _TestOverdueState extends State<TestOverdue> {
               child: upcomingTestDrivesItem(
                 key: ValueKey(item['event_id']),
                 name: item['name'] ?? '',
+                isCompleted: item['completed'] ?? false,
                 vehicle: item['PMI'] ?? 'Range Rover Velar',
                 subject: item['subject'] ?? 'Meeting',
                 date: item['start_date'] ?? '',
@@ -334,7 +335,7 @@ class _TestOverdueState extends State<TestOverdue> {
 
 class upcomingTestDrivesItem extends StatefulWidget {
   final String name, date, vehicle, taskId, leadId, eventId, subject, startTime;
-  final bool isFavorite;
+  final bool isFavorite, isCompleted;
   final double swipeOffset;
   final Future<void> Function() refreshDashboard;
   final VoidCallback fetchDashboardData;
@@ -360,6 +361,7 @@ class upcomingTestDrivesItem extends StatefulWidget {
     required this.handleTestDrive,
     required this.otpTrigger,
     required this.refreshDashboard,
+    required this.isCompleted,
   });
 
   @override
@@ -445,11 +447,10 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
         children: [
           if (widget.subject == 'Test Drive')
             ReusableSlidableAction(
-              onPressed: _showAleart,
-              // onPressed: () {
-              //   widget.handleTestDrive();
-              //   widget.otpTrigger();
-              // },
+              onPressed: () {
+                widget.isCompleted == true ? _showAleart1() : _showAleart();
+              },
+              // onPressed: _showAleart,
               backgroundColor: AppColors.colorsBlue,
               icon: Icons.directions_car,
               foregroundColor: Colors.white,
@@ -620,6 +621,41 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
     );
   }
 
+  Future<void> _showAleart1() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // User must tap button to close dialog
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          title: Text(
+            'Test Drive has already been completed',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          ),
+          content: Text(
+            'If you wish to initiate test drive again for this client, kindly create a new one',
+            style: GoogleFonts.poppins(),
+          ),
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(
+                overlayColor: Colors.grey.withOpacity(0.1),
+                foregroundColor: Colors.grey,
+              ),
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(
+                'Back',
+                style: GoogleFonts.poppins(color: Colors.grey),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _showAleart() async {
     return showDialog<void>(
       context: context,
@@ -630,11 +666,11 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
             borderRadius: BorderRadius.circular(10),
           ),
           title: Text(
-            'Are You Sure?',
+            'Ready to start test drive?',
             style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
           ),
           content: Text(
-            'Are you sure you want to start a testdrive?',
+            'Please make sure you have all the necessary documents(license) and permissions(OTP) ready before starting test drive.',
             style: GoogleFonts.poppins(),
           ),
           actions: [
@@ -665,50 +701,58 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
             ),
           ],
         );
-
-        // return AlertDialog(
-        //   shape: RoundedRectangleBorder(
-        //     borderRadius: BorderRadius.circular(15),
-        //   ),
-        //   backgroundColor: Colors.white,
-        //   insetPadding: const EdgeInsets.all(10),
-        //   contentPadding: EdgeInsets.zero,
-        //   title: Column(
-        //     crossAxisAlignment: CrossAxisAlignment.start,
-        //     children: [
-        //       Align(
-        //         alignment: Alignment.bottomLeft,
-        //         child: Text(
-        //           textAlign: TextAlign.center,
-        //           'Share your gmail?',
-        //           style: AppFont.mediumText14(context),
-        //         ),
-        //       ),
-        //       const SizedBox(height: 10),
-        //     ],
-        //   ),
-        //   actions: [
-        //     TextButton(
-        //       onPressed: () {
-        //         Navigator.pop(context);
-        //       },
-        //       child: Text(
-        //         'Cancel',
-        //         // style: TextStyle(color: AppColors.colorsBlue),
-        //         style: AppFont.mediumText14blue(context),
-        //       ),
-        //     ),
-        //     TextButton(
-        //       onPressed: () {
-        //         whatsappChat(context); // Pass context to submit
-        //       },
-        //       child: Text('Submit', style: AppFont.mediumText14blue(context)),
-        //     ),
-        //   ],
-        // );
       },
     );
   }
+
+  // Future<void> _showAleart() async {
+  //   return showDialog<void>(
+  //     context: context,
+  //     barrierDismissible: false, // User must tap button to close dialog
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         shape: RoundedRectangleBorder(
+  //           borderRadius: BorderRadius.circular(10),
+  //         ),
+  //         title: Text(
+  //           'Are You Sure?',
+  //           style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+  //         ),
+  //         content: Text(
+  //           'Are you sure you want to start a testdrive?',
+  //           style: GoogleFonts.poppins(),
+  //         ),
+  //         actions: [
+  //           TextButton(
+  //             style: TextButton.styleFrom(
+  //               overlayColor: Colors.grey.withOpacity(0.1),
+  //               foregroundColor: Colors.grey,
+  //             ),
+  //             onPressed: () => Navigator.of(context).pop(false),
+  //             child: Text('No', style: GoogleFonts.poppins(color: Colors.grey)),
+  //           ),
+  //           TextButton(
+  //             style: TextButton.styleFrom(
+  //               overlayColor: AppColors.colorsBlue.withOpacity(0.1),
+  //               foregroundColor: AppColors.colorsBlue,
+  //             ),
+  //             // onPressed: () => Navigator.of(context).pop(
+  //             // true),
+  //             onPressed: () {
+  //               // initwhatsappChat(context); // Pass context to submit
+  //               widget.handleTestDrive();
+  //               widget.otpTrigger();
+  //             },
+  //             child: Text(
+  //               'Yes',
+  //               style: GoogleFonts.poppins(color: AppColors.colorsBlue),
+  //             ),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 
   void _messageAction() {
     print("Message action triggered");

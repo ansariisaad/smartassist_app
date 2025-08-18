@@ -8,8 +8,6 @@ import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:smartassist/services/api_srv.dart';
-import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/buttons/add_btn.dart';
 import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/create_leads.dart';
@@ -1329,7 +1327,7 @@ class _TaskItemState extends State<TaskItem>
     String hiddenMobile = _hideMobileNumber(mobile);
 
     return Text(
-      hiddenMobile,
+      mobile, // add hiddenmobile for hidden 
       style:
           AppFont.smallText(
             context,

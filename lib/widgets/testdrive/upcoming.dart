@@ -200,18 +200,16 @@ class _TestUpcomingState extends State<TestUpcoming> {
                 name: item['name'] ?? '',
                 vehicle: item['PMI'] ?? 'Range Rover Velar',
                 subject: item['subject'] ?? 'Meeting',
-
                 date: item['start_date'] ?? '',
                 email: item['updated_by'] ?? '',
                 leadId: item['lead_id'],
+                // isCompleted : item['completed'] ?? false ;
                 startTime:
                     (item['start_time'] != null &&
                         item['start_time'].toString().isNotEmpty)
                     ? item['start_time'].toString()
                     : "00:00:00",
-
                 eventId: item['event_id'] ?? '',
-
                 isFavorite: item['favourite'] ?? false,
                 swipeOffset: swipeOffset,
                 onToggleFavorite: () {
@@ -225,6 +223,7 @@ class _TestUpcomingState extends State<TestUpcoming> {
                   _handleTestDrive(item);
                 },
                 refreshDashboard: widget.refreshDashboard,
+                isCompleted: item['completed'] ?? false,
 
                 // Placeholder, replace with actual method
               ),
@@ -313,7 +312,7 @@ class _TestUpcomingState extends State<TestUpcoming> {
 
 class upcomingTestDrivesItem extends StatefulWidget {
   final String name, date, vehicle, subject, leadId, eventId, startTime, email;
-  final bool isFavorite;
+  final bool isFavorite, isCompleted;
   final Future<void> Function() refreshDashboard;
   final VoidCallback fetchDashboardData;
   final double swipeOffset;
@@ -339,6 +338,7 @@ class upcomingTestDrivesItem extends StatefulWidget {
     this.item,
     required this.otpTrigger,
     required this.refreshDashboard,
+    required this.isCompleted,
   });
 
   @override
@@ -424,7 +424,10 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
         children: [
           if (widget.subject == 'Test Drive')
             ReusableSlidableAction(
-              onPressed: _showAleart,
+              onPressed: () {
+                widget.isCompleted == true ? _showAleart1() : _showAleart();
+              },
+
               // onPressed: () {
               //   widget.handleTestDrive();
               //   widget.otpTrigger();
@@ -582,6 +585,41 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
               },
               child: Text(
                 'Yes',
+                style: GoogleFonts.poppins(color: AppColors.colorsBlue),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showAleart1() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // User must tap button to close dialog
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          title: Text(
+            'Test Drive has already been completed',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          ),
+          content: Text(
+            'If you wish to initiate test drive again for this client, kindly create a new one',
+            style: GoogleFonts.poppins(),
+          ),
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(
+                overlayColor: Colors.grey.withOpacity(0.1),
+                foregroundColor: Colors.grey,
+              ),
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(
+                'Back',
                 style: GoogleFonts.poppins(color: AppColors.colorsBlue),
               ),
             ),

@@ -86,10 +86,26 @@ class _LeadUpdateState extends State<LeadUpdate> {
       }
     });
 
-    // _searchControllerCampaign.addListener(_onCampaignSearchChanged);
+    // ✅ Campaign search listener - use the passed controller
     campaignController.addListener(_onCampaignSearchChanged);
 
     _fetchLeadData();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    campaignController.removeListener(
+      _onCampaignSearchChanged,
+    ); // ✅ Remove listener
+    // ✅ Don't dispose campaignController as it's passed from parent
+    emailController.dispose();
+    firstNameController.dispose();
+    lastNameController.dispose();
+    mobileController.dispose();
+    modelInterestController.dispose();
+    _debounce?.cancel();
+    super.dispose();
   }
 
   Timer? _debounce;
@@ -1295,8 +1311,8 @@ class _LeadUpdateState extends State<LeadUpdate> {
           child: Column(
             children: [
               TextField(
-                // controller: _searchControllerCampaign,
-                controller: controller,
+                controller:
+                    controller, // ✅ Use the passed controller consistently
                 style: AppFont.dropDowmLabel(context),
                 decoration: InputDecoration(
                   hintText: 'Search campaign',
@@ -1318,24 +1334,20 @@ class _LeadUpdateState extends State<LeadUpdate> {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           ),
                         )
-                      : campaignController.text.isNotEmpty
+                      : controller
+                            .text
+                            .isNotEmpty // ✅ Use controller consistently
                       ? IconButton(
                           icon: const Icon(Icons.clear, color: Colors.grey),
                           onPressed: () {
                             setState(() {
-                              campaignController
-                                  .clear(); // Clear the passed controller
-                              _searchControllerCampaign
-                                  .clear(); // Clear internal controller
-
-                              // _searchControllerCampaign.clear();
+                              controller
+                                  .clear(); // ✅ Clear the passed controller
                               _searchResultsCampaign.clear();
                               selectedCampaignName = null;
                               selectedCampaignId = null;
                               selectedCampaignData = null;
                               _campaignQuery = '';
-
-                              campaignController.clear();
                             });
                           },
                         )
@@ -1344,8 +1356,9 @@ class _LeadUpdateState extends State<LeadUpdate> {
               ),
               // Campaign Results
               if (_searchResultsCampaign.isNotEmpty &&
-                  _searchControllerCampaign.text.isNotEmpty &&
-                  selectedCampaignName != _searchControllerCampaign.text)
+                  controller.text.isNotEmpty && // ✅ Use controller consistently
+                  selectedCampaignName !=
+                      controller.text) // ✅ Use controller consistently
                 Container(
                   constraints: const BoxConstraints(maxHeight: 200),
                   child: ListView.builder(
@@ -1380,13 +1393,12 @@ class _LeadUpdateState extends State<LeadUpdate> {
                               campaign['Campaign_id']?.toString() ??
                               '';
 
-                          print(
-                            "Selected Campaign ID: $campaignId",
-                          ); // Debug print
-                          print("Full campaign data: $campaign"); // Debug print
+                          print("Selected Campaign ID: $campaignId");
+                          print("Full campaign data: $campaign");
 
                           setState(() {
-                            _searchControllerCampaign.text = campaignName;
+                            controller.text =
+                                campaignName; // ✅ Use controller consistently
                             _searchResultsCampaign.clear();
                             selectedCampaignName = campaignName;
                             selectedCampaignId = campaignId;
@@ -1395,7 +1407,8 @@ class _LeadUpdateState extends State<LeadUpdate> {
                           // Create the campaign data
                           final campaignData = {
                             'campaign_name': campaignName,
-                            // 'campaign_id': campaignId,
+                            'campaign_id':
+                                campaignId, // ✅ Include campaign_id if needed
                           };
 
                           // Call the callback
@@ -1409,9 +1422,10 @@ class _LeadUpdateState extends State<LeadUpdate> {
                   ),
                 )
               else if (_searchResultsCampaign.isEmpty &&
-                  _searchControllerCampaign.text.isNotEmpty &&
+                  controller.text.isNotEmpty && // ✅ Use controller consistently
                   !_isLoadingCampaignSearch &&
-                  selectedCampaignName != _searchControllerCampaign.text)
+                  selectedCampaignName !=
+                      controller.text) // ✅ Use controller consistently
                 Container(
                   padding: const EdgeInsets.all(16.0),
                   child: Text(
@@ -1419,14 +1433,12 @@ class _LeadUpdateState extends State<LeadUpdate> {
                     style: GoogleFonts.poppins(
                       fontSize: 14,
                       color: Colors.grey,
-                      // fontStyle: FontStyle.italic,
                     ),
                   ),
                 ),
             ],
           ),
         ),
-
         if (errorText != null)
           Padding(
             padding: const EdgeInsets.only(top: 5, left: 5),
@@ -1438,6 +1450,181 @@ class _LeadUpdateState extends State<LeadUpdate> {
       ],
     );
   }
+
+  // Widget CampaignSearchTextfield({
+  //   required TextEditingController controller,
+  //   String? errorText,
+  //   required Function(Map<String, dynamic>) onCampaignSelected,
+  // }) {
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     children: [
+  //       Padding(
+  //         padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 5),
+  //         child: Text(
+  //           'Campaign',
+  //           style: GoogleFonts.poppins(
+  //             fontSize: 14,
+  //             fontWeight: FontWeight.w500,
+  //             color: AppColors.fontBlack,
+  //           ),
+  //         ),
+  //       ),
+  //       const SizedBox(height: 5),
+  //       Container(
+  //         decoration: BoxDecoration(
+  //           borderRadius: BorderRadius.circular(5),
+  //           color: const Color.fromARGB(255, 248, 247, 247),
+  //           border: errorText != null
+  //               ? Border.all(color: Colors.red, width: 1.0)
+  //               : null,
+  //         ),
+  //         child: Column(
+  //           children: [
+  //             TextField(
+  //               // controller: _searchControllerCampaign,
+  //               controller: controller,
+  //               style: AppFont.dropDowmLabel(context),
+  //               decoration: InputDecoration(
+  //                 hintText: 'Search campaign',
+  //                 hintStyle: GoogleFonts.poppins(
+  //                   color: Colors.grey,
+  //                   fontSize: 14,
+  //                 ),
+  //                 contentPadding: const EdgeInsets.symmetric(
+  //                   horizontal: 10,
+  //                   vertical: 14,
+  //                 ),
+  //                 border: InputBorder.none,
+  //                 suffixIcon: _isLoadingCampaignSearch
+  //                     ? const Padding(
+  //                         padding: EdgeInsets.all(12.0),
+  //                         child: SizedBox(
+  //                           width: 16,
+  //                           height: 16,
+  //                           child: CircularProgressIndicator(strokeWidth: 2),
+  //                         ),
+  //                       )
+  //                     : campaignController.text.isNotEmpty
+  //                     ? IconButton(
+  //                         icon: const Icon(Icons.clear, color: Colors.grey),
+  //                         onPressed: () {
+  //                           setState(() {
+  //                             campaignController
+  //                                 .clear(); // Clear the passed controller
+  //                             _searchControllerCampaign
+  //                                 .clear(); // Clear internal controller
+
+  //                             // _searchControllerCampaign.clear();
+  //                             _searchResultsCampaign.clear();
+  //                             selectedCampaignName = null;
+  //                             selectedCampaignId = null;
+  //                             selectedCampaignData = null;
+  //                             _campaignQuery = '';
+
+  //                             campaignController.clear();
+  //                           });
+  //                         },
+  //                       )
+  //                     : const Icon(Icons.search, color: Colors.grey),
+  //               ),
+  //             ),
+  //             // Campaign Results
+  //             if (_searchResultsCampaign.isNotEmpty &&
+  //                 _searchControllerCampaign.text.isNotEmpty &&
+  //                 selectedCampaignName != _searchControllerCampaign.text)
+  //               Container(
+  //                 constraints: const BoxConstraints(maxHeight: 200),
+  //                 child: ListView.builder(
+  //                   shrinkWrap: true,
+  //                   itemCount: _searchResultsCampaign.length,
+  //                   itemBuilder: (context, index) {
+  //                     final campaign = _searchResultsCampaign[index];
+  //                     return ListTile(
+  //                       dense: true,
+  //                       title: Text(
+  //                         campaign['campaign_name'] ?? 'Unknown Campaign',
+  //                         style: AppFont.dropDowmLabel(context),
+  //                       ),
+  //                       subtitle: campaign['campaign_code'] != null
+  //                           ? Text(
+  //                               campaign['campaign_code'],
+  //                               style: GoogleFonts.poppins(
+  //                                 fontSize: 12,
+  //                                 color: Colors.grey,
+  //                               ),
+  //                               maxLines: 1,
+  //                               overflow: TextOverflow.ellipsis,
+  //                             )
+  //                           : null,
+  //                       onTap: () {
+  //                         final campaignName = campaign['campaign_name'] ?? '';
+
+  //                         // Try different possible field names for campaign ID
+  //                         final campaignId =
+  //                             campaign['id']?.toString() ??
+  //                             campaign['campaign_id']?.toString() ??
+  //                             campaign['Campaign_id']?.toString() ??
+  //                             '';
+
+  //                         print(
+  //                           "Selected Campaign ID: $campaignId",
+  //                         ); // Debug print
+  //                         print("Full campaign data: $campaign"); // Debug print
+
+  //                         setState(() {
+  //                           _searchControllerCampaign.text = campaignName;
+  //                           _searchResultsCampaign.clear();
+  //                           selectedCampaignName = campaignName;
+  //                           selectedCampaignId = campaignId;
+  //                         });
+
+  //                         // Create the campaign data
+  //                         final campaignData = {
+  //                           'campaign_name': campaignName,
+  //                           // 'campaign_id': campaignId,
+  //                         };
+
+  //                         // Call the callback
+  //                         onCampaignSelected(campaignData);
+
+  //                         // Hide keyboard
+  //                         FocusScope.of(context).unfocus();
+  //                       },
+  //                     );
+  //                   },
+  //                 ),
+  //               )
+  //             else if (_searchResultsCampaign.isEmpty &&
+  //                 _searchControllerCampaign.text.isNotEmpty &&
+  //                 !_isLoadingCampaignSearch &&
+  //                 selectedCampaignName != _searchControllerCampaign.text)
+  //               Container(
+  //                 padding: const EdgeInsets.all(16.0),
+  //                 child: Text(
+  //                   'No campaigns found',
+  //                   style: GoogleFonts.poppins(
+  //                     fontSize: 14,
+  //                     color: Colors.grey,
+  //                     // fontStyle: FontStyle.italic,
+  //                   ),
+  //                 ),
+  //               ),
+  //           ],
+  //         ),
+  //       ),
+
+  //       if (errorText != null)
+  //         Padding(
+  //           padding: const EdgeInsets.only(top: 5, left: 5),
+  //           child: Text(
+  //             errorText,
+  //             style: const TextStyle(color: Colors.red, fontSize: 12),
+  //           ),
+  //         ),
+  //     ],
+  //   );
+  // }
 
   Widget _buildOptionButton(
     String shortText,

@@ -301,7 +301,7 @@ class _MyTeamsState extends State<MyTeams> {
       }
 
       final baseUri = Uri.parse(
-        'https://api.smartassistapp.in/api/users/ps/dashboard/call-analytics',
+        'https://dev.smartassistapp.in/api/users/ps/dashboard/call-analytics',
       );
 
       final uri = baseUri.replace(queryParameters: queryParams);
@@ -374,7 +374,7 @@ class _MyTeamsState extends State<MyTeams> {
       }
 
       final baseUri = Uri.parse(
-        'https://api.smartassistapp.in/api/users/sm/dashboard/call-analytics',
+        'https://dev.smartassistapp.in/api/users/sm/dashboard/call-analytics',
       );
 
       final uri = baseUri.replace(queryParameters: queryParams);
@@ -532,7 +532,7 @@ class _MyTeamsState extends State<MyTeams> {
       }
 
       final baseUri = Uri.parse(
-        'https://api.smartassistapp.in/api/users/sm/analytics/team-dashboard',
+        'https://dev.smartassistapp.in/api/users/sm/analytics/team-dashboard',
       );
 
       final uri = baseUri.replace(queryParameters: queryParams);
@@ -3525,108 +3525,123 @@ class _MyTeamsState extends State<MyTeams> {
     required String vehicle,
     // required String userId,
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(5),
-        border: const Border(
-          left: BorderSide(width: 8.0, color: AppColors.colorsBlue),
+    return InkWell(
+      onTap: () {
+        if (leadId.isNotEmpty) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  TeamsEnquiryids(leadId: leadId, userId: _selectedUserId),
+            ),
+          );
+        } else {
+          print("Invalid leadId");
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(5),
+          border: const Border(
+            left: BorderSide(width: 8.0, color: AppColors.colorsBlue),
+          ),
         ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Row(
-            children: [
-              const SizedBox(width: 8),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    // crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      ConstrainedBox(
-                        constraints: BoxConstraints(
-                          maxWidth: MediaQuery.of(context).size.width * .30,
-                        ),
-                        child: Text(
-                          name,
-                          maxLines: 1, // Allow up to 2 lines
-                          overflow: TextOverflow
-                              .ellipsis, // Show ellipsis if it overflows beyond 2 lines
-                          softWrap: true,
-                          style: AppFont.dashboardName(context),
-                        ),
-                      ),
-                      // SizedBox(width: 5),
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 10),
-                        height: 15,
-                        width: 0.1,
-                        decoration: const BoxDecoration(
-                          border: Border(
-                            right: BorderSide(color: AppColors.fontColor),
-                          ),
-                        ),
-                      ),
-                      if (vehicle.isNotEmpty)
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Row(
+              children: [
+                const SizedBox(width: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      // crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
                         ConstrainedBox(
                           constraints: BoxConstraints(
                             maxWidth: MediaQuery.of(context).size.width * .30,
                           ),
                           child: Text(
-                            vehicle,
-                            style: AppFont.dashboardCarName(context),
+                            name,
                             maxLines: 1, // Allow up to 2 lines
                             overflow: TextOverflow
                                 .ellipsis, // Show ellipsis if it overflows beyond 2 lines
-                            softWrap: true, // Allow wrapping
+                            softWrap: true,
+                            style: AppFont.dashboardName(context),
                           ),
                         ),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      Text(subject, style: AppFont.smallText10(context)),
-                      _formatDate(context, date),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
-          GestureDetector(
-            onTap: () {
-              if (leadId.isNotEmpty) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => TeamsEnquiryids(
-                      leadId: leadId,
-                      userId: _selectedUserId,
+                        // SizedBox(width: 5),
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 10),
+                          height: 15,
+                          width: 0.1,
+                          decoration: const BoxDecoration(
+                            border: Border(
+                              right: BorderSide(color: AppColors.fontColor),
+                            ),
+                          ),
+                        ),
+                        if (vehicle.isNotEmpty)
+                          ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxWidth: MediaQuery.of(context).size.width * .30,
+                            ),
+                            child: Text(
+                              vehicle,
+                              style: AppFont.dashboardCarName(context),
+                              maxLines: 1, // Allow up to 2 lines
+                              overflow: TextOverflow
+                                  .ellipsis, // Show ellipsis if it overflows beyond 2 lines
+                              softWrap: true, // Allow wrapping
+                            ),
+                          ),
+                      ],
                     ),
-                  ),
-                );
-              } else {
-                print("Invalid leadId");
-              }
-            },
-            child: Container(
-              padding: const EdgeInsets.all(3),
-              decoration: BoxDecoration(
-                color: AppColors.arrowContainerColor,
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: const Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 25,
-                color: Colors.white,
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Text(subject, style: AppFont.smallText10(context)),
+                        _formatDate(context, date),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            GestureDetector(
+              onTap: () {
+                if (leadId.isNotEmpty) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TeamsEnquiryids(
+                        leadId: leadId,
+                        userId: _selectedUserId,
+                      ),
+                    ),
+                  );
+                } else {
+                  print("Invalid leadId");
+                }
+              },
+              child: Container(
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  color: AppColors.arrowContainerColor,
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 25,
+                  color: Colors.white,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

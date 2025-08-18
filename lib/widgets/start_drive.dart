@@ -22,7 +22,7 @@ import 'package:smartassist/widgets/testdrive_summary.dart';
 // import 'package:smartassist/widgets/testdrive_summary.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:geolocator/geolocator.dart';
-import 'package:get/get.dart';
+// import 'package:get/get.dart';
 
 // Improved distance calculation with better accuracy
 class DistanceCalculator {
@@ -197,9 +197,13 @@ class _StartDriveMapState extends State<StartDriveMap>
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Battery Optimization'),
+          title: Text(
+            'Battery Optimization',
+            style: AppFont.dropDowmLabel(context),
+          ),
           content: Text(
             'To ensure accurate test drive tracking in the background, please disable battery optimization for this app.',
+            style: AppFont.smallText12(context),
           ),
           actions: [
             TextButton(
@@ -917,11 +921,15 @@ class _StartDriveMapState extends State<StartDriveMap>
             children: [
               Icon(Icons.location_off, color: Colors.red),
               SizedBox(width: 8),
-              Text('Location Services Disabled'),
+              Text(
+                'Location Services Disable',
+                style: AppFont.dropDowmLabel(context),
+              ),
             ],
           ),
           content: Text(
             'Location services are turned off. Please enable location services to use test drive tracking.',
+            style: AppFont.smallText12(context),
           ),
           actions: [
             TextButton(
@@ -1211,7 +1219,7 @@ class _StartDriveMapState extends State<StartDriveMap>
 
   void _initializeSocket() {
     try {
-      socket = IO.io('https://api.smartassistapp.in', <String, dynamic>{
+      socket = IO.io('https://dev.smartassistapp.in', <String, dynamic>{
         'transports': ['websocket'],
         'autoConnect': false,
         'reconnection': true,
@@ -1394,7 +1402,7 @@ class _StartDriveMapState extends State<StartDriveMap>
   Future<void> _startTestDrive(LatLng currentLocation) async {
     try {
       final url = Uri.parse(
-        'https://api.smartassistapp.in/api/events/${widget.eventId}/start-drive',
+        'https://dev.smartassistapp.in/api/events/${widget.eventId}/start-drive',
       );
       final token = await Storage.getToken();
 
@@ -2465,7 +2473,7 @@ class _StartDriveMapState extends State<StartDriveMap>
   Future<void> _endTestDrive({bool sendFeedback = false}) async {
     try {
       final uri = Uri.parse(
-        'https://api.smartassistapp.in/api/events/${widget.eventId}/end-drive',
+        'https://dev.smartassistapp.in/api/events/${widget.eventId}/end-drive',
       );
       final url = uri.replace(
         queryParameters: {'send_feedback': sendFeedback.toString()},
@@ -2563,7 +2571,7 @@ class _StartDriveMapState extends State<StartDriveMap>
 
   Future<bool> _uploadImage(File file) async {
     final url = Uri.parse(
-      'https://api.smartassistapp.in/api/events/${widget.eventId}/upload-map',
+      'https://dev.smartassistapp.in/api/events/${widget.eventId}/upload-map',
     );
     final token = await Storage.getToken();
 
@@ -3048,7 +3056,7 @@ class _StartDriveMapState extends State<StartDriveMap>
 //   void _initializeSocket() {
 //     try {
 //       // Updated socket configuration
-//       socket = IO.io('https://api.smartassistapp.in', <String, dynamic>{
+//       socket = IO.io('https://dev.smartassistapp.in', <String, dynamic>{
 //         'transports': ['websocket'],
 //         'autoConnect': false, // Changed to false for better control
 //         'reconnection': true,
@@ -3258,7 +3266,7 @@ class _StartDriveMapState extends State<StartDriveMap>
 //   Future<void> _startTestDrive(LatLng currentLocation) async {
 //     try {
 //       final url = Uri.parse(
-//         'https://api.smartassistapp.in/api/events/${widget.eventId}/start-drive',
+//         'https://dev.smartassistapp.in/api/events/${widget.eventId}/start-drive',
 //       );
 //       final token = await Storage.getToken();
 
@@ -3677,7 +3685,7 @@ class _StartDriveMapState extends State<StartDriveMap>
 //     try {
 //       // Build the URL with query parameter
 //       final uri = Uri.parse(
-//         'https://api.smartassistapp.in/api/events/${widget.eventId}/end-drive',
+//         'https://dev.smartassistapp.in/api/events/${widget.eventId}/end-drive',
 //       );
 //       final url = uri.replace(
 //         queryParameters: {'send_feedback': sendFeedback.toString()},
@@ -3786,7 +3794,7 @@ class _StartDriveMapState extends State<StartDriveMap>
 
 //   Future<bool> _uploadImage(File file) async {
 //     final url = Uri.parse(
-//       'https://api.smartassistapp.in/api/events/${widget.eventId}/upload-map',
+//       'https://dev.smartassistapp.in/api/events/${widget.eventId}/upload-map',
 //     );
 //     final token = await Storage.getToken();
 //     try {

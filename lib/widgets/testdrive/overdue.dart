@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -29,6 +31,8 @@ class TestOverdue extends StatefulWidget {
 class _TestOverdueState extends State<TestOverdue> {
   List<dynamic> upcomingTestDrives = [];
   final Map<String, double> _swipeOffsets = {};
+  int _currentDisplayCount = 10;
+  final int _incrementCount = 10;
 
   @override
   void initState() {
@@ -36,6 +40,39 @@ class _TestOverdueState extends State<TestOverdue> {
     upcomingTestDrives = widget.overdueTestDrive;
     print('this is testdrive');
     print(widget.overdueTestDrive);
+    _currentDisplayCount = math.min(
+      _incrementCount,
+      widget.overdueTestDrive.length,
+    );
+  }
+
+  @override
+  void didUpdateWidget(oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.overdueTestDrive != oldWidget.overdueTestDrive) {
+      // _initializeFavorites();
+      _currentDisplayCount = math.min(
+        _incrementCount,
+        widget.overdueTestDrive.length,
+      );
+    }
+  }
+
+  void _loadLessRecords() {
+    setState(() {
+      _currentDisplayCount = _incrementCount;
+      print(
+        '📊 Loading less records. New display count: $_currentDisplayCount',
+      );
+    });
+  }
+
+  void _loadAllRecords() {
+    setState(() {
+      // Show all records at once
+      _currentDisplayCount = widget.overdueTestDrive.length;
+      print('📊 Loading all records. New display count: $_currentDisplayCount');
+    });
   }
 
   void _onHorizontalDragUpdate(DragUpdateDetails details, String eventId) {
@@ -109,7 +146,7 @@ class _TestOverdueState extends State<TestOverdue> {
 
   //     final response = await http.put(
   //       Uri.parse(
-  //         'https://api.smartassistapp.in/api/favourites/mark-fav/event/$eventId',
+  //         'https://dev.smartassistapp.in/api/favourites/mark-fav/event/$eventId',
   //       ),
   //       headers: {
   //         'Authorization': 'Bearer $token',
@@ -161,57 +198,144 @@ class _TestOverdueState extends State<TestOverdue> {
       );
     }
 
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: widget.isNested
-          ? const NeverScrollableScrollPhysics()
-          : const AlwaysScrollableScrollPhysics(),
-      itemCount: widget.overdueTestDrive.length,
-      itemBuilder: (context, index) {
-        var item = widget.overdueTestDrive[index];
+    // Get the items to display based on current count
+    List<dynamic> itemsToDisplay = widget.overdueTestDrive
+        .take(_currentDisplayCount)
+        .toList();
 
-        String eventId = item['event_id'];
-        double swipeOffset = _swipeOffsets[eventId] ?? 0;
+    return Column(
+      children: [
+        ListView.builder(
+          padding: EdgeInsets.zero,
+          shrinkWrap: true,
+          physics: widget.isNested
+              ? const NeverScrollableScrollPhysics()
+              : const AlwaysScrollableScrollPhysics(),
+          // itemCount: widget.overdueTestDrive.length,
+          itemCount: _currentDisplayCount,
+          itemBuilder: (context, index) {
+            var item = widget.overdueTestDrive[index];
 
-        return GestureDetector(
-          child: upcomingTestDrivesItem(
-            key: ValueKey(item['event_id']),
-            name: item['name'],
-            vehicle: item['PMI'] ?? 'Range Rover Velar',
-            subject: item['subject'] ?? 'Meeting',
-            date: item['start_date'],
-            leadId: item['lead_id'],
-            taskId: item['task_id'] ?? '',
-            // startTime: item['start_time'],
-            startTime:
-                (item['start_time'] != null &&
-                    item['start_time'].toString().isNotEmpty)
-                ? item['start_time'].toString()
-                : "00:00:00",
-            eventId: item['event_id'],
-            isFavorite: item['favourite'] ?? false,
-            swipeOffset: swipeOffset,
-            refreshDashboard: widget.refreshDashboard,
-            onToggleFavorite: () {
-              _toggleFavorite(eventId, index);
-            },
-            otpTrigger: () {
-              _getOtp(eventId);
-            },
-            fetchDashboardData: () {},
-            handleTestDrive: () {
-              _handleTestDrive(item);
-            }, // Placeholder, replace with actual method
-          ),
-        );
-      },
+            String eventId = item['event_id'];
+            double swipeOffset = _swipeOffsets[eventId] ?? 0;
+
+            return GestureDetector(
+              child: upcomingTestDrivesItem(
+                key: ValueKey(item['event_id']),
+                name: item['name'] ?? '',
+                isCompleted: item['completed'] ?? false,
+                vehicle: item['PMI'] ?? 'Range Rover Velar',
+                subject: item['subject'] ?? 'Meeting',
+                date: item['start_date'] ?? '',
+                leadId: item['lead_id'],
+                taskId: item['task_id'] ?? '',
+                // startTime: item['start_time'],
+                startTime:
+                    (item['start_time'] != null &&
+                        item['start_time'].toString().isNotEmpty)
+                    ? item['start_time'].toString()
+                    : "00:00:00",
+                eventId: item['event_id'],
+                isFavorite: item['favourite'] ?? false,
+                swipeOffset: swipeOffset,
+                refreshDashboard: widget.refreshDashboard,
+                onToggleFavorite: () {
+                  _toggleFavorite(eventId, index);
+                },
+                otpTrigger: () {
+                  _getOtp(eventId);
+                },
+                fetchDashboardData: () {},
+                handleTestDrive: () {
+                  _handleTestDrive(item);
+                }, // Placeholder, replace with actual method
+              ),
+            );
+          },
+        ),
+        // Add the show more/less button
+        _buildShowMoreButton(),
+      ],
+    );
+  }
+
+  Widget _buildShowMoreButton() {
+    // If no data, don't show anything
+    if (widget.overdueTestDrive.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    // Fix invalid display count
+    if (_currentDisplayCount <= 0 ||
+        _currentDisplayCount > widget.overdueTestDrive.length) {
+      _currentDisplayCount = math.min(
+        _incrementCount,
+        widget.overdueTestDrive.length,
+      );
+    }
+
+    // Check if we can show more records
+    bool hasMoreRecords = _currentDisplayCount < widget.overdueTestDrive.length;
+
+    // Check if we can show less records - only if we're showing more than initial count
+    bool canShowLess = _currentDisplayCount > _incrementCount;
+
+    // If no action is possible, don't show button
+    if (!hasMoreRecords && !canShowLess) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      // padding: EdgeInsets.only(bottom: 20),
+      margin: EdgeInsets.only(bottom: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          if (canShowLess)
+            TextButton(
+              onPressed: _loadLessRecords,
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.grey[600],
+                textStyle: const TextStyle(fontSize: 12),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Show Less'),
+                  SizedBox(width: 4),
+                  Icon(Icons.keyboard_arrow_up, size: 16),
+                ],
+              ),
+            ),
+
+          // Show More button - only when there are more records to show
+          if (hasMoreRecords)
+            TextButton(
+              onPressed: _loadAllRecords, // Changed method name
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.colorsBlue,
+                textStyle: const TextStyle(fontSize: 12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Show All (${widget.overdueTestDrive.length - _currentDisplayCount} more)', // Updated text
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.keyboard_arrow_down, size: 16),
+                ],
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
 
 class upcomingTestDrivesItem extends StatefulWidget {
   final String name, date, vehicle, taskId, leadId, eventId, subject, startTime;
-  final bool isFavorite;
+  final bool isFavorite, isCompleted;
   final double swipeOffset;
   final Future<void> Function() refreshDashboard;
   final VoidCallback fetchDashboardData;
@@ -237,6 +361,7 @@ class upcomingTestDrivesItem extends StatefulWidget {
     required this.handleTestDrive,
     required this.otpTrigger,
     required this.refreshDashboard,
+    required this.isCompleted,
   });
 
   @override
@@ -322,11 +447,10 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
         children: [
           if (widget.subject == 'Test Drive')
             ReusableSlidableAction(
-              onPressed: _showAleart,
-              // onPressed: () {
-              //   widget.handleTestDrive();
-              //   widget.otpTrigger();
-              // },
+              onPressed: () {
+                widget.isCompleted == true ? _showAleart1() : _showAleart();
+              },
+              // onPressed: _showAleart,
               backgroundColor: AppColors.colorsBlue,
               icon: Icons.directions_car,
               foregroundColor: Colors.white,
@@ -497,6 +621,41 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
     );
   }
 
+  Future<void> _showAleart1() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // User must tap button to close dialog
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          title: Text(
+            'Test Drive has already been completed',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          ),
+          content: Text(
+            'If you wish to initiate test drive again for this client, kindly create a new one',
+            style: GoogleFonts.poppins(),
+          ),
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(
+                overlayColor: Colors.grey.withOpacity(0.1),
+                foregroundColor: Colors.grey,
+              ),
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(
+                'Back',
+                style: GoogleFonts.poppins(color: Colors.grey),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _showAleart() async {
     return showDialog<void>(
       context: context,
@@ -507,11 +666,11 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
             borderRadius: BorderRadius.circular(10),
           ),
           title: Text(
-            'Are You Sure?',
+            'Ready to start test drive?',
             style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
           ),
           content: Text(
-            'Are you sure you want to start a testdrive?',
+            'Please make sure you have all the necessary documents(license) and permissions(OTP) ready before starting test drive.',
             style: GoogleFonts.poppins(),
           ),
           actions: [
@@ -542,50 +701,58 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
             ),
           ],
         );
-
-        // return AlertDialog(
-        //   shape: RoundedRectangleBorder(
-        //     borderRadius: BorderRadius.circular(15),
-        //   ),
-        //   backgroundColor: Colors.white,
-        //   insetPadding: const EdgeInsets.all(10),
-        //   contentPadding: EdgeInsets.zero,
-        //   title: Column(
-        //     crossAxisAlignment: CrossAxisAlignment.start,
-        //     children: [
-        //       Align(
-        //         alignment: Alignment.bottomLeft,
-        //         child: Text(
-        //           textAlign: TextAlign.center,
-        //           'Share your gmail?',
-        //           style: AppFont.mediumText14(context),
-        //         ),
-        //       ),
-        //       const SizedBox(height: 10),
-        //     ],
-        //   ),
-        //   actions: [
-        //     TextButton(
-        //       onPressed: () {
-        //         Navigator.pop(context);
-        //       },
-        //       child: Text(
-        //         'Cancel',
-        //         // style: TextStyle(color: AppColors.colorsBlue),
-        //         style: AppFont.mediumText14blue(context),
-        //       ),
-        //     ),
-        //     TextButton(
-        //       onPressed: () {
-        //         whatsappChat(context); // Pass context to submit
-        //       },
-        //       child: Text('Submit', style: AppFont.mediumText14blue(context)),
-        //     ),
-        //   ],
-        // );
       },
     );
   }
+
+  // Future<void> _showAleart() async {
+  //   return showDialog<void>(
+  //     context: context,
+  //     barrierDismissible: false, // User must tap button to close dialog
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         shape: RoundedRectangleBorder(
+  //           borderRadius: BorderRadius.circular(10),
+  //         ),
+  //         title: Text(
+  //           'Are You Sure?',
+  //           style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+  //         ),
+  //         content: Text(
+  //           'Are you sure you want to start a testdrive?',
+  //           style: GoogleFonts.poppins(),
+  //         ),
+  //         actions: [
+  //           TextButton(
+  //             style: TextButton.styleFrom(
+  //               overlayColor: Colors.grey.withOpacity(0.1),
+  //               foregroundColor: Colors.grey,
+  //             ),
+  //             onPressed: () => Navigator.of(context).pop(false),
+  //             child: Text('No', style: GoogleFonts.poppins(color: Colors.grey)),
+  //           ),
+  //           TextButton(
+  //             style: TextButton.styleFrom(
+  //               overlayColor: AppColors.colorsBlue.withOpacity(0.1),
+  //               foregroundColor: AppColors.colorsBlue,
+  //             ),
+  //             // onPressed: () => Navigator.of(context).pop(
+  //             // true),
+  //             onPressed: () {
+  //               // initwhatsappChat(context); // Pass context to submit
+  //               widget.handleTestDrive();
+  //               widget.otpTrigger();
+  //             },
+  //             child: Text(
+  //               'Yes',
+  //               style: GoogleFonts.poppins(color: AppColors.colorsBlue),
+  //             ),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 
   void _messageAction() {
     print("Message action triggered");

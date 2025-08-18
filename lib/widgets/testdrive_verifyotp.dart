@@ -388,7 +388,7 @@
 
 //     try {
 //       final url = Uri.parse(
-//         'https://api.smartassistapp.in/api/events/${widget.eventId}/verify-otp',
+//         'https://dev.smartassistapp.in/api/events/${widget.eventId}/verify-otp',
 //       );
 //       final token = await Storage.getToken();
 
@@ -584,6 +584,7 @@
 // }
 
 import 'dart:convert';
+import 'package:flutter_svg/svg.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/utils/bottom_navigation.dart';
@@ -712,7 +713,9 @@ class _TestdriveVerifyotpState extends State<TestdriveVerifyotp>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     _buildHeaderImage(),
+                    const SizedBox(height: 20),
                     _buildTitle(),
+                    const SizedBox(height: 10),
                     _buildEmailInfo(),
                     const SizedBox(height: 20),
                     _buildOTPFields(),
@@ -735,9 +738,17 @@ class _TestdriveVerifyotpState extends State<TestdriveVerifyotp>
   }
 
   Widget _buildHeaderImage() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 20),
-      child: Image.asset('assets/car.png', width: 150, fit: BoxFit.contain),
+    // return Padding(
+    //   padding: const EdgeInsets.symmetric(vertical: 20),
+    //   child: Image.asset('assets/car.png', width: 150, fit: BoxFit.contain),
+    // );
+    return Hero(
+      tag: 'logo',
+      child: SvgPicture.asset(
+        'assets/logo-black.svg', // ✅ Correct way to load SVG
+        // width: 120,
+        width: MediaQuery.of(context).size.width * .3,
+      ),
     );
   }
 
@@ -942,7 +953,7 @@ class _TestdriveVerifyotpState extends State<TestdriveVerifyotp>
           await _handleVerification();
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF0276FE),
+          backgroundColor: AppColors.colorsBlue,
           foregroundColor: Colors.white,
           minimumSize: const Size(double.infinity, 50),
           shape: RoundedRectangleBorder(
@@ -1041,7 +1052,7 @@ class _TestdriveVerifyotpState extends State<TestdriveVerifyotp>
 
     try {
       final url = Uri.parse(
-        'https://api.smartassistapp.in/api/events/${widget.eventId}/verify-otp',
+        'https://dev.smartassistapp.in/api/events/${widget.eventId}/verify-otp',
       );
       final token = await Storage.getToken();
 

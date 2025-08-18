@@ -889,7 +889,6 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/widgets/testdrive_summary.dart';
-import 'package:timeline_tile/timeline_tile.dart';
 import 'package:intl/intl.dart';
 
 class TimelineCompleted extends StatefulWidget {
@@ -1175,7 +1174,10 @@ class _TimelineCompletedState extends State<TimelineCompleted> {
           String startTime = task['start_time'] ?? 'No Start time';
           String endTime = task['end_time'] ?? 'No end time';
           String duration = task['duration'] ?? 'No duration';
-          String distance = task['distance'] ?? 'No distance';
+          String startActualTime = task['actual_start_time'] ?? 'No Start time';
+          String endActualTime = task['actual_end_time'] ?? 'No end time';
+          // String distance = task['distance'] ?? 'No distance';
+          String rawDistance = task['distance']?.toString() ?? 'No distance';
           String rating = task['avg_rating'] ?? 'No rating';
           String mobile = task['mobile'] ?? 'N/A';
           String date = _formatDate(task['start_date'] ?? 'No Date');
@@ -1185,6 +1187,39 @@ class _TimelineCompletedState extends State<TimelineCompleted> {
           bool isExpanded = expandedEventIndexes.contains(index);
           bool showSeeMore = _shouldShowSeeMore(remarks);
           IconData icon = _getIconForSubject(taskSubject);
+
+          // Calculate the formatted string
+          double parseDistance(String raw) {
+            return double.tryParse(raw) ?? 0.0;
+          }
+
+          String formatDistance(double distance) {
+            if (distance < 1.0) {
+              return '${(distance * 1000).toStringAsFixed(0)} m';
+            } else {
+              return '${distance.toStringAsFixed(2)} km';
+            }
+          }
+
+          // Now use them
+          // String rawDistance = task['distance']?.toString() ?? 'No distance';
+          String distanceFormatted = 'No distance';
+          if (rawDistance != 'No distance') {
+            double calculatedDistance = parseDistance(rawDistance);
+            distanceFormatted = formatDistance(calculatedDistance);
+          }
+
+          // double parseDistance(String raw) {
+          //   return double.tryParse(raw) ?? 0.0;
+          // }
+
+          // String formatDistance(double distance) {
+          //   if (distance < 1.0) {
+          //     return '${(distance * 1000).toStringAsFixed(0)} m';
+          //   } else {
+          //     return '${distance.toStringAsFixed(2)} km';
+          //   }
+          // }
 
           return Container(
             margin: const EdgeInsets.only(bottom: 20),
@@ -1201,7 +1236,7 @@ class _TimelineCompletedState extends State<TimelineCompleted> {
                         leadId: '',
                         isFromTestdrive: true,
                         isFromCompletdTimeline: true,
-                        isFromCompletedLeadId : leadId,
+                        isFromCompletedLeadId: leadId,
                       ),
                     ),
                   );
@@ -1358,10 +1393,10 @@ class _TimelineCompletedState extends State<TimelineCompleted> {
                             )?.copyWith(color: Colors.black),
                           ),
                         ],
-                        if (distance != 'No distance') ...[
+                        if (distanceFormatted != 'No distance') ...[
                           const SizedBox(height: 4),
                           Text(
-                            'Distance: $distance',
+                            'Distance: $distanceFormatted',
                             style: AppFont.smallText12(
                               context,
                             )?.copyWith(color: Colors.black),
@@ -1371,6 +1406,25 @@ class _TimelineCompletedState extends State<TimelineCompleted> {
                           const SizedBox(height: 4),
                           Text(
                             'Average rating: $rating',
+                            style: AppFont.smallText12(
+                              context,
+                            )?.copyWith(color: Colors.black),
+                          ),
+                        ],
+
+                        if (startActualTime != 'No Time') ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            'Actual Start Time: $startActualTime',
+                            style: AppFont.smallText12(
+                              context,
+                            )?.copyWith(color: Colors.black),
+                          ),
+                        ],
+                        if (endActualTime != 'No Time') ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            'Actual End Time: $endActualTime',
                             style: AppFont.smallText12(
                               context,
                             )?.copyWith(color: Colors.black),

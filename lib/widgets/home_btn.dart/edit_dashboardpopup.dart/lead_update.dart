@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/popups_widget/vehicleSearch_textfield.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
@@ -30,6 +31,7 @@ class LeadUpdate extends StatefulWidget {
 
 class _LeadUpdateState extends State<LeadUpdate> {
   final PageController _pageController = PageController();
+  List<dynamic> _searchResultsCampaign = [];
   bool isLoading = true;
   int _currentStep = 0;
   String? selectedVehicleName;
@@ -51,11 +53,20 @@ class _LeadUpdateState extends State<LeadUpdate> {
   String _query = '';
   final TextEditingController _searchController = TextEditingController();
   TextEditingController emailController = TextEditingController();
+  TextEditingController campaignController = TextEditingController();
   TextEditingController firstNameController = TextEditingController();
   TextEditingController lastNameController = TextEditingController();
   TextEditingController mobileController = TextEditingController();
   TextEditingController modelInterestController = TextEditingController();
   bool consentValue = false;
+
+  bool _isLoadingCampaignSearch = false;
+  String _campaignQuery = '';
+  String? selectedCampaignName;
+  String? selectedCampaignId;
+  Map<String, dynamic>? selectedCampaignData;
+  final TextEditingController _searchControllerCampaign =
+      TextEditingController();
 
   @override
   void initState() {
@@ -74,7 +85,27 @@ class _LeadUpdateState extends State<LeadUpdate> {
         });
       }
     });
+
+    // ✅ Campaign search listener - use the passed controller
+    campaignController.addListener(_onCampaignSearchChanged);
+
     _fetchLeadData();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    campaignController.removeListener(
+      _onCampaignSearchChanged,
+    ); // ✅ Remove listener
+    // ✅ Don't dispose campaignController as it's passed from parent
+    emailController.dispose();
+    firstNameController.dispose();
+    lastNameController.dispose();
+    mobileController.dispose();
+    modelInterestController.dispose();
+    _debounce?.cancel();
+    super.dispose();
   }
 
   Timer? _debounce;
@@ -132,7 +163,7 @@ class _LeadUpdateState extends State<LeadUpdate> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://api.smartassistapp.in/api/search/vehicles?vehicle=${Uri.encodeComponent(query)}',
+          'https://dev.smartassistapp.in/api/search/vehicles?vehicle=${Uri.encodeComponent(query)}',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -169,6 +200,92 @@ class _LeadUpdateState extends State<LeadUpdate> {
     }
   }
 
+  Future<void> fetchCampaignData(String query) async {
+    if (query.isEmpty) {
+      setState(() {
+        _searchResultsCampaign = [];
+        _isLoadingCampaignSearch = false;
+      });
+      return;
+    }
+
+    final token = await Storage.getToken();
+
+    setState(() {
+      _isLoadingCampaignSearch = true;
+    });
+
+    try {
+      final response = await http.get(
+        Uri.parse('https://dev.smartassistapp.in/api/leads/campaigns/all'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        final List<dynamic> results = data['data'] ?? [];
+
+        // Debug: Print the structure of campaign data
+        if (results.isNotEmpty) {
+          print("Campaign data structure: ${results.first}");
+        }
+
+        // Filter campaigns based on query
+        final List<dynamic> filteredResults = results.where((campaign) {
+          final campaignName =
+              campaign['campaign_name']?.toString().toLowerCase() ?? '';
+          return campaignName.contains(query.toLowerCase());
+        }).toList();
+
+        setState(() {
+          _searchResultsCampaign = filteredResults;
+        });
+      } else {
+        print("Failed to load campaigns: ${response.statusCode}");
+        setState(() {
+          _searchResultsCampaign = [];
+        });
+      }
+    } catch (e) {
+      print("Error fetching campaigns: $e");
+      setState(() {
+        _searchResultsCampaign = [];
+      });
+    } finally {
+      setState(() {
+        _isLoadingCampaignSearch = false;
+      });
+    }
+  }
+
+  // void _onCampaignSearchChanged() {
+  //   final newQuery = _searchControllerCampaign.text.trim();
+  //   if (newQuery == _campaignQuery) return;
+
+  //   _campaignQuery = newQuery;
+  //   Future.delayed(const Duration(milliseconds: 500), () {
+  //     if (_campaignQuery == _searchControllerCampaign.text.trim()) {
+  //       fetchCampaignData(_campaignQuery);
+  //     }
+  //   });
+  // }
+
+  void _onCampaignSearchChanged() {
+    final newQuery = campaignController.text.trim(); // ✅ Correct controller
+    if (newQuery == _campaignQuery) return;
+
+    _campaignQuery = newQuery;
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (_campaignQuery == campaignController.text.trim()) {
+        // ✅ Correct controller
+        fetchCampaignData(_campaignQuery);
+      }
+    });
+  }
+
   void _onSearchChanged(String query) {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(const Duration(milliseconds: 300), () {
@@ -191,7 +308,7 @@ class _LeadUpdateState extends State<LeadUpdate> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://api.smartassistapp.in/api/leads/by-id/${widget.leadId}',
+          'https://dev.smartassistapp.in/api/leads/by-id/${widget.leadId}',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -201,7 +318,7 @@ class _LeadUpdateState extends State<LeadUpdate> {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
-
+        print(data.toString());
         // Populate the form with existing data
         if (data['data'] != null) {
           setState(() {
@@ -218,7 +335,7 @@ class _LeadUpdateState extends State<LeadUpdate> {
             }
 
             emailController.text = data['data']['email'] ?? '';
-
+            campaignController.text = data['data']['campaign'] ?? '';
             // Handle mobile number formatting (remove +91 if present)
             String mobile = data['data']['mobile'] ?? '';
             if (mobile.startsWith('+91')) {
@@ -316,7 +433,9 @@ class _LeadUpdateState extends State<LeadUpdate> {
 
   // Email validation
   bool _isValidEmail(String email) {
-    final emailRegExp = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    final emailRegExp = RegExp(
+      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+    ); // ✅ More flexible
     return emailRegExp.hasMatch(email);
   }
 
@@ -353,6 +472,15 @@ class _LeadUpdateState extends State<LeadUpdate> {
           colorText: Colors.white,
         );
       }
+    }
+  }
+
+  // Add this state variable at the top of your class
+  bool get _canProceed {
+    if (_currentStep == 0) {
+      return _validatePage1();
+    } else {
+      return _validatePage2();
     }
   }
 
@@ -643,6 +771,34 @@ class _LeadUpdateState extends State<LeadUpdate> {
                                 );
                               },
                             ),
+
+                            SizedBox(height: 10),
+
+                            CampaignSearchTextfield(
+                              controller: campaignController,
+                              errorText: _errors['campaign'],
+                              onCampaignSelected: (selectedCampaign) {
+                                setState(() {
+                                  selectedCampaignData = selectedCampaign;
+                                  selectedCampaignName =
+                                      selectedCampaign['campaign_name'];
+                                  selectedCampaignId =
+                                      selectedCampaign['campaign_id']
+                                          .toString();
+
+                                  if (_errors.containsKey('campaign')) {
+                                    _errors.remove('campaign');
+                                  }
+                                });
+
+                                print(
+                                  "Selected Campaign: $selectedCampaignName",
+                                );
+                                print(
+                                  "Selected Campaign ID: $selectedCampaignId",
+                                );
+                              },
+                            ),
                           ],
                         ),
                       ),
@@ -689,7 +845,10 @@ class _LeadUpdateState extends State<LeadUpdate> {
                               borderRadius: BorderRadius.circular(5),
                             ),
                           ),
-                          onPressed: isSubmitting ? null : _nextStep,
+                          // onPressed: isSubmitting ? null : _nextStep,
+                          onPressed: (isSubmitting || !_canProceed)
+                              ? null
+                              : _nextStep,
                           child: isSubmitting
                               ? const SizedBox(
                                   height: 20,
@@ -1121,6 +1280,352 @@ class _LeadUpdateState extends State<LeadUpdate> {
     );
   }
 
+  Widget CampaignSearchTextfield({
+    required TextEditingController controller,
+    String? errorText,
+    required Function(Map<String, dynamic>) onCampaignSelected,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 5),
+          child: Text(
+            'Campaign',
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.fontBlack,
+            ),
+          ),
+        ),
+        const SizedBox(height: 5),
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(5),
+            color: const Color.fromARGB(255, 248, 247, 247),
+            border: errorText != null
+                ? Border.all(color: Colors.red, width: 1.0)
+                : null,
+          ),
+          child: Column(
+            children: [
+              TextField(
+                controller:
+                    controller, // ✅ Use the passed controller consistently
+                style: AppFont.dropDowmLabel(context),
+                decoration: InputDecoration(
+                  hintText: 'Search campaign',
+                  hintStyle: GoogleFonts.poppins(
+                    color: Colors.grey,
+                    fontSize: 14,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 14,
+                  ),
+                  border: InputBorder.none,
+                  suffixIcon: _isLoadingCampaignSearch
+                      ? const Padding(
+                          padding: EdgeInsets.all(12.0),
+                          child: SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        )
+                      : controller
+                            .text
+                            .isNotEmpty // ✅ Use controller consistently
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, color: Colors.grey),
+                          onPressed: () {
+                            setState(() {
+                              controller
+                                  .clear(); // ✅ Clear the passed controller
+                              _searchResultsCampaign.clear();
+                              selectedCampaignName = null;
+                              selectedCampaignId = null;
+                              selectedCampaignData = null;
+                              _campaignQuery = '';
+                            });
+                          },
+                        )
+                      : const Icon(Icons.search, color: Colors.grey),
+                ),
+              ),
+              // Campaign Results
+              if (_searchResultsCampaign.isNotEmpty &&
+                  controller.text.isNotEmpty && // ✅ Use controller consistently
+                  selectedCampaignName !=
+                      controller.text) // ✅ Use controller consistently
+                Container(
+                  constraints: const BoxConstraints(maxHeight: 200),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: _searchResultsCampaign.length,
+                    itemBuilder: (context, index) {
+                      final campaign = _searchResultsCampaign[index];
+                      return ListTile(
+                        dense: true,
+                        title: Text(
+                          campaign['campaign_name'] ?? 'Unknown Campaign',
+                          style: AppFont.dropDowmLabel(context),
+                        ),
+                        subtitle: campaign['campaign_code'] != null
+                            ? Text(
+                                campaign['campaign_code'],
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              )
+                            : null,
+                        onTap: () {
+                          final campaignName = campaign['campaign_name'] ?? '';
+
+                          // Try different possible field names for campaign ID
+                          final campaignId =
+                              campaign['id']?.toString() ??
+                              campaign['campaign_id']?.toString() ??
+                              campaign['Campaign_id']?.toString() ??
+                              '';
+
+                          print("Selected Campaign ID: $campaignId");
+                          print("Full campaign data: $campaign");
+
+                          setState(() {
+                            controller.text =
+                                campaignName; // ✅ Use controller consistently
+                            _searchResultsCampaign.clear();
+                            selectedCampaignName = campaignName;
+                            selectedCampaignId = campaignId;
+                          });
+
+                          // Create the campaign data
+                          final campaignData = {
+                            'campaign_name': campaignName,
+                            'campaign_id':
+                                campaignId, // ✅ Include campaign_id if needed
+                          };
+
+                          // Call the callback
+                          onCampaignSelected(campaignData);
+
+                          // Hide keyboard
+                          FocusScope.of(context).unfocus();
+                        },
+                      );
+                    },
+                  ),
+                )
+              else if (_searchResultsCampaign.isEmpty &&
+                  controller.text.isNotEmpty && // ✅ Use controller consistently
+                  !_isLoadingCampaignSearch &&
+                  selectedCampaignName !=
+                      controller.text) // ✅ Use controller consistently
+                Container(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    'No campaigns found',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        if (errorText != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 5, left: 5),
+            child: Text(
+              errorText,
+              style: const TextStyle(color: Colors.red, fontSize: 12),
+            ),
+          ),
+      ],
+    );
+  }
+
+  // Widget CampaignSearchTextfield({
+  //   required TextEditingController controller,
+  //   String? errorText,
+  //   required Function(Map<String, dynamic>) onCampaignSelected,
+  // }) {
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     children: [
+  //       Padding(
+  //         padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 5),
+  //         child: Text(
+  //           'Campaign',
+  //           style: GoogleFonts.poppins(
+  //             fontSize: 14,
+  //             fontWeight: FontWeight.w500,
+  //             color: AppColors.fontBlack,
+  //           ),
+  //         ),
+  //       ),
+  //       const SizedBox(height: 5),
+  //       Container(
+  //         decoration: BoxDecoration(
+  //           borderRadius: BorderRadius.circular(5),
+  //           color: const Color.fromARGB(255, 248, 247, 247),
+  //           border: errorText != null
+  //               ? Border.all(color: Colors.red, width: 1.0)
+  //               : null,
+  //         ),
+  //         child: Column(
+  //           children: [
+  //             TextField(
+  //               // controller: _searchControllerCampaign,
+  //               controller: controller,
+  //               style: AppFont.dropDowmLabel(context),
+  //               decoration: InputDecoration(
+  //                 hintText: 'Search campaign',
+  //                 hintStyle: GoogleFonts.poppins(
+  //                   color: Colors.grey,
+  //                   fontSize: 14,
+  //                 ),
+  //                 contentPadding: const EdgeInsets.symmetric(
+  //                   horizontal: 10,
+  //                   vertical: 14,
+  //                 ),
+  //                 border: InputBorder.none,
+  //                 suffixIcon: _isLoadingCampaignSearch
+  //                     ? const Padding(
+  //                         padding: EdgeInsets.all(12.0),
+  //                         child: SizedBox(
+  //                           width: 16,
+  //                           height: 16,
+  //                           child: CircularProgressIndicator(strokeWidth: 2),
+  //                         ),
+  //                       )
+  //                     : campaignController.text.isNotEmpty
+  //                     ? IconButton(
+  //                         icon: const Icon(Icons.clear, color: Colors.grey),
+  //                         onPressed: () {
+  //                           setState(() {
+  //                             campaignController
+  //                                 .clear(); // Clear the passed controller
+  //                             _searchControllerCampaign
+  //                                 .clear(); // Clear internal controller
+
+  //                             // _searchControllerCampaign.clear();
+  //                             _searchResultsCampaign.clear();
+  //                             selectedCampaignName = null;
+  //                             selectedCampaignId = null;
+  //                             selectedCampaignData = null;
+  //                             _campaignQuery = '';
+
+  //                             campaignController.clear();
+  //                           });
+  //                         },
+  //                       )
+  //                     : const Icon(Icons.search, color: Colors.grey),
+  //               ),
+  //             ),
+  //             // Campaign Results
+  //             if (_searchResultsCampaign.isNotEmpty &&
+  //                 _searchControllerCampaign.text.isNotEmpty &&
+  //                 selectedCampaignName != _searchControllerCampaign.text)
+  //               Container(
+  //                 constraints: const BoxConstraints(maxHeight: 200),
+  //                 child: ListView.builder(
+  //                   shrinkWrap: true,
+  //                   itemCount: _searchResultsCampaign.length,
+  //                   itemBuilder: (context, index) {
+  //                     final campaign = _searchResultsCampaign[index];
+  //                     return ListTile(
+  //                       dense: true,
+  //                       title: Text(
+  //                         campaign['campaign_name'] ?? 'Unknown Campaign',
+  //                         style: AppFont.dropDowmLabel(context),
+  //                       ),
+  //                       subtitle: campaign['campaign_code'] != null
+  //                           ? Text(
+  //                               campaign['campaign_code'],
+  //                               style: GoogleFonts.poppins(
+  //                                 fontSize: 12,
+  //                                 color: Colors.grey,
+  //                               ),
+  //                               maxLines: 1,
+  //                               overflow: TextOverflow.ellipsis,
+  //                             )
+  //                           : null,
+  //                       onTap: () {
+  //                         final campaignName = campaign['campaign_name'] ?? '';
+
+  //                         // Try different possible field names for campaign ID
+  //                         final campaignId =
+  //                             campaign['id']?.toString() ??
+  //                             campaign['campaign_id']?.toString() ??
+  //                             campaign['Campaign_id']?.toString() ??
+  //                             '';
+
+  //                         print(
+  //                           "Selected Campaign ID: $campaignId",
+  //                         ); // Debug print
+  //                         print("Full campaign data: $campaign"); // Debug print
+
+  //                         setState(() {
+  //                           _searchControllerCampaign.text = campaignName;
+  //                           _searchResultsCampaign.clear();
+  //                           selectedCampaignName = campaignName;
+  //                           selectedCampaignId = campaignId;
+  //                         });
+
+  //                         // Create the campaign data
+  //                         final campaignData = {
+  //                           'campaign_name': campaignName,
+  //                           // 'campaign_id': campaignId,
+  //                         };
+
+  //                         // Call the callback
+  //                         onCampaignSelected(campaignData);
+
+  //                         // Hide keyboard
+  //                         FocusScope.of(context).unfocus();
+  //                       },
+  //                     );
+  //                   },
+  //                 ),
+  //               )
+  //             else if (_searchResultsCampaign.isEmpty &&
+  //                 _searchControllerCampaign.text.isNotEmpty &&
+  //                 !_isLoadingCampaignSearch &&
+  //                 selectedCampaignName != _searchControllerCampaign.text)
+  //               Container(
+  //                 padding: const EdgeInsets.all(16.0),
+  //                 child: Text(
+  //                   'No campaigns found',
+  //                   style: GoogleFonts.poppins(
+  //                     fontSize: 14,
+  //                     color: Colors.grey,
+  //                     // fontStyle: FontStyle.italic,
+  //                   ),
+  //                 ),
+  //               ),
+  //           ],
+  //         ),
+  //       ),
+
+  //       if (errorText != null)
+  //         Padding(
+  //           padding: const EdgeInsets.only(top: 5, left: 5),
+  //           child: Text(
+  //             errorText,
+  //             style: const TextStyle(color: Colors.red, fontSize: 12),
+  //           ),
+  //         ),
+  //     ],
+  //   );
+  // }
+
   Widget _buildOptionButton(
     String shortText,
     Map<String, String> options,
@@ -1210,7 +1715,7 @@ class _LeadUpdateState extends State<LeadUpdate> {
 
       final response = await http.put(
         Uri.parse(
-          'https://api.smartassistapp.in/api/leads/update/${widget.leadId}',
+          'https://dev.smartassistapp.in/api/leads/update/${widget.leadId}',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -1220,7 +1725,6 @@ class _LeadUpdateState extends State<LeadUpdate> {
       );
 
       // 👇 Log response status and body
-      print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
       print(leadData);
 
@@ -1231,26 +1735,18 @@ class _LeadUpdateState extends State<LeadUpdate> {
 
         Navigator.pop(context, true);
         widget.onEdit();
+        showSuccessMessage(context, message: message);
 
-        Get.snackbar(
-          'Success',
-          message,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
         await widget.onFormSubmit();
       } else {
         final Map<String, dynamic> responseData = json.decode(response.body);
         String message =
             responseData['message'] ?? 'Submission failed. Try again.';
-        showErrorMessage(context, message: message);
+        showErrorMessageGetx(message: message);
         print(response.body);
       }
     } catch (e) {
-      showErrorMessage(
-        context,
-        message: 'Something went wrong. Please try again.',
-      );
+      showErrorMessageGetx(message: 'Something went wrong. Please try again.');
       print('Error during PUT request: $e');
     }
   }

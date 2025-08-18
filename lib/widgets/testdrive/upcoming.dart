@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -29,12 +31,47 @@ class TestUpcoming extends StatefulWidget {
 class _TestUpcomingState extends State<TestUpcoming> {
   List<dynamic> upcomingTestDrives = [];
   final Map<String, double> _swipeOffsets = {};
+  int _currentDisplayCount = 10;
+  final int _incrementCount = 10;
   @override
   void initState() {
     super.initState();
     upcomingTestDrives = widget.upcomingTestDrive;
     print('this is testdrive');
     print(widget.upcomingTestDrive);
+    _currentDisplayCount = math.min(
+      _incrementCount,
+      widget.upcomingTestDrive.length,
+    );
+  }
+
+  @override
+  void didUpdateWidget(oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.upcomingTestDrive != oldWidget.upcomingTestDrive) {
+      // _initializeFavorites();
+      _currentDisplayCount = math.min(
+        _incrementCount,
+        widget.upcomingTestDrive.length,
+      );
+    }
+  }
+
+  void _loadLessRecords() {
+    setState(() {
+      _currentDisplayCount = _incrementCount;
+      print(
+        '📊 Loading less records. New display count: $_currentDisplayCount',
+      );
+    });
+  }
+
+  void _loadAllRecords() {
+    setState(() {
+      // Show all records at once
+      _currentDisplayCount = widget.upcomingTestDrive.length;
+      print('📊 Loading all records. New display count: $_currentDisplayCount');
+    });
   }
 
   void _onHorizontalDragUpdate(DragUpdateDetails details, String eventId) {
@@ -125,72 +162,157 @@ class _TestUpcomingState extends State<TestUpcoming> {
       );
     }
 
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: widget.isNested
-          ? const NeverScrollableScrollPhysics()
-          : const AlwaysScrollableScrollPhysics(),
-      itemCount: widget.upcomingTestDrive.length,
-      itemBuilder: (context, index) {
-        var item = widget.upcomingTestDrive[index];
+    // Get the items to display based on current count
+    List<dynamic> itemsToDisplay = widget.upcomingTestDrive
+        .take(_currentDisplayCount)
+        .toList();
 
-        if (!(item.containsKey('assigned_to') &&
-            item.containsKey('start_date') &&
-            item.containsKey('lead_id') &&
-            item.containsKey('event_id'))) {
-          return ListTile(title: Text('Invalid data at index $index'));
-        }
+    return Column(
+      children: [
+        ListView.builder(
+          padding: EdgeInsets.zero,
+          shrinkWrap: true,
+          physics: widget.isNested
+              ? const NeverScrollableScrollPhysics()
+              : const AlwaysScrollableScrollPhysics(),
+          // itemCount: widget.upcomingTestDrive.length,
+          itemCount: _currentDisplayCount,
+          itemBuilder: (context, index) {
+            var item = widget.upcomingTestDrive[index];
 
-        String eventId = item['event_id'];
-        double swipeOffset = _swipeOffsets[eventId] ?? 0;
+            if (!(item.containsKey('assigned_to') &&
+                item.containsKey('start_date') &&
+                item.containsKey('lead_id') &&
+                item.containsKey('event_id'))) {
+              return ListTile(title: Text('Invalid data at index $index'));
+            }
 
-        return GestureDetector(
-          onHorizontalDragUpdate: (details) =>
-              _onHorizontalDragUpdate(details, eventId),
-          onHorizontalDragEnd: (details) =>
-              _onHorizontalDragEnd(details, item, index),
-          child: upcomingTestDrivesItem(
-            key: ValueKey(item['event_id']),
-            name: item['name'],
-            vehicle: item['PMI'] ?? 'Range Rover Velar',
-            subject: item['subject'] ?? 'Meeting',
+            String eventId = item['event_id'];
+            double swipeOffset = _swipeOffsets[eventId] ?? 0;
 
-            date: item['start_date'],
-            email: item['updated_by'],
-            leadId: item['lead_id'],
-            startTime:
-                (item['start_time'] != null &&
-                    item['start_time'].toString().isNotEmpty)
-                ? item['start_time'].toString()
-                : "00:00:00",
+            return GestureDetector(
+              onHorizontalDragUpdate: (details) =>
+                  _onHorizontalDragUpdate(details, eventId),
+              onHorizontalDragEnd: (details) =>
+                  _onHorizontalDragEnd(details, item, index),
+              child: upcomingTestDrivesItem(
+                key: ValueKey(item['event_id']),
+                name: item['name'] ?? '',
+                vehicle: item['PMI'] ?? 'Range Rover Velar',
+                subject: item['subject'] ?? 'Meeting',
+                date: item['start_date'] ?? '',
+                email: item['updated_by'] ?? '',
+                leadId: item['lead_id'],
+                // isCompleted : item['completed'] ?? false ;
+                startTime:
+                    (item['start_time'] != null &&
+                        item['start_time'].toString().isNotEmpty)
+                    ? item['start_time'].toString()
+                    : "00:00:00",
+                eventId: item['event_id'] ?? '',
+                isFavorite: item['favourite'] ?? false,
+                swipeOffset: swipeOffset,
+                onToggleFavorite: () {
+                  _toggleFavorite(eventId, index);
+                },
+                otpTrigger: () {
+                  _getOtp(eventId);
+                },
+                fetchDashboardData: () {},
+                handleTestDrive: () {
+                  _handleTestDrive(item);
+                },
+                refreshDashboard: widget.refreshDashboard,
+                isCompleted: item['completed'] ?? false,
 
-            eventId: item['event_id'] ?? '',
+                // Placeholder, replace with actual method
+              ),
+            );
+          },
+        ), // Add the show more/less button
+        _buildShowMoreButton(),
+      ],
+    );
+  }
 
-            isFavorite: item['favourite'] ?? false,
-            swipeOffset: swipeOffset,
-            onToggleFavorite: () {
-              _toggleFavorite(eventId, index);
-            },
-            otpTrigger: () {
-              _getOtp(eventId);
-            },
-            fetchDashboardData: () {},
-            handleTestDrive: () {
-              _handleTestDrive(item);
-            },
-            refreshDashboard: widget.refreshDashboard,
+  Widget _buildShowMoreButton() {
+    // If no data, don't show anything
+    if (widget.upcomingTestDrive.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
-            // Placeholder, replace with actual method
-          ),
-        );
-      },
+    // Fix invalid display count
+    if (_currentDisplayCount <= 0 ||
+        _currentDisplayCount > widget.upcomingTestDrive.length) {
+      _currentDisplayCount = math.min(
+        _incrementCount,
+        widget.upcomingTestDrive.length,
+      );
+    }
+
+    // Check if we can show more records
+    bool hasMoreRecords =
+        _currentDisplayCount < widget.upcomingTestDrive.length;
+
+    // Check if we can show less records - only if we're showing more than initial count
+    bool canShowLess = _currentDisplayCount > _incrementCount;
+
+    // If no action is possible, don't show button
+    if (!hasMoreRecords && !canShowLess) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      // padding: EdgeInsets.only(bottom: 20),
+      margin: EdgeInsets.only(bottom: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          if (canShowLess)
+            TextButton(
+              onPressed: _loadLessRecords,
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.grey[600],
+                textStyle: const TextStyle(fontSize: 12),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Show Less'),
+                  SizedBox(width: 4),
+                  Icon(Icons.keyboard_arrow_up, size: 16),
+                ],
+              ),
+            ),
+
+          // Show More button - only when there are more records to show
+          if (hasMoreRecords)
+            TextButton(
+              onPressed: _loadAllRecords, // Changed method name
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.colorsBlue,
+                textStyle: const TextStyle(fontSize: 12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Show All (${widget.upcomingTestDrive.length - _currentDisplayCount} more)', // Updated text
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.keyboard_arrow_down, size: 16),
+                ],
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
 
 class upcomingTestDrivesItem extends StatefulWidget {
   final String name, date, vehicle, subject, leadId, eventId, startTime, email;
-  final bool isFavorite;
+  final bool isFavorite, isCompleted;
   final Future<void> Function() refreshDashboard;
   final VoidCallback fetchDashboardData;
   final double swipeOffset;
@@ -216,6 +338,7 @@ class upcomingTestDrivesItem extends StatefulWidget {
     this.item,
     required this.otpTrigger,
     required this.refreshDashboard,
+    required this.isCompleted,
   });
 
   @override
@@ -301,7 +424,10 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
         children: [
           if (widget.subject == 'Test Drive')
             ReusableSlidableAction(
-              onPressed: _showAleart,
+              onPressed: () {
+                widget.isCompleted == true ? _showAleart1() : _showAleart();
+              },
+
               // onPressed: () {
               //   widget.handleTestDrive();
               //   widget.otpTrigger();
@@ -459,6 +585,41 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
               },
               child: Text(
                 'Yes',
+                style: GoogleFonts.poppins(color: AppColors.colorsBlue),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showAleart1() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // User must tap button to close dialog
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          title: Text(
+            'Test Drive has already been completed',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          ),
+          content: Text(
+            'If you wish to initiate test drive again for this client, kindly create a new one',
+            style: GoogleFonts.poppins(),
+          ),
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(
+                overlayColor: Colors.grey.withOpacity(0.1),
+                foregroundColor: Colors.grey,
+              ),
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(
+                'Back',
                 style: GoogleFonts.poppins(color: AppColors.colorsBlue),
               ),
             ),

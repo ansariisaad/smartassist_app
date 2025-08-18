@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -31,14 +33,49 @@ class _OppUpcomingState extends State<OppUpcoming> {
   final Map<String, double> _swipeOffsets = {};
   bool _showLoader = true;
   List<dynamic> upcomingAppointments = [];
+  int _currentDisplayCount = 10;
+  final int _incrementCount = 10;
 
   @override
   void initState() {
     super.initState();
     // fetchDashboardData();
     upcomingAppointments = widget.upcomingOpp;
+     _currentDisplayCount = math.min(
+      _incrementCount,
+      widget.upcomingOpp.length,
+    );
     print('this is widget.upcoming appointmnet');
     print(widget.upcomingOpp);
+  }
+
+  @override
+  void didUpdateWidget(oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.upcomingOpp != oldWidget.upcomingOpp) {
+      // _initializeFavorites();
+      _currentDisplayCount = math.min(
+        _incrementCount,
+        widget.upcomingOpp.length,
+      );
+    }
+  }
+
+  void _loadLessRecords() {
+    setState(() {
+      _currentDisplayCount = _incrementCount;
+      print(
+        '📊 Loading less records. New display count: $_currentDisplayCount',
+      );
+    });
+  }
+
+  void _loadAllRecords() {
+    setState(() {
+      // Show all records at once
+      _currentDisplayCount = widget.upcomingOpp.length;
+      print('📊 Loading all records. New display count: $_currentDisplayCount');
+    });
   }
 
   void _onHorizontalDragUpdate(DragUpdateDetails details, String eventId) {
@@ -145,44 +182,130 @@ class _OppUpcomingState extends State<OppUpcoming> {
         ),
       );
     }
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: widget.isNested
-          ? const NeverScrollableScrollPhysics()
-          : const AlwaysScrollableScrollPhysics(),
-      itemCount: widget.upcomingOpp.length,
-      itemBuilder: (context, index) {
-        var item = widget.upcomingOpp[index];
-        print('Item at index $index: $item');
 
-        String eventId = item['task_id'];
-        double swipeOffset = _swipeOffsets[eventId] ?? 0;
+    // Get the items to display based on current count
+    List<dynamic> itemsToDisplay = widget.upcomingOpp
+        .take(_currentDisplayCount)
+        .toList();
+    return Column(
+      children: [
+        ListView.builder(
+          padding: EdgeInsets.zero,
+          shrinkWrap: true,
+          physics: widget.isNested
+              ? const NeverScrollableScrollPhysics()
+              : const AlwaysScrollableScrollPhysics(),
+          // itemCount: widget.upcomingOpp.length,
+          itemCount: _currentDisplayCount,
+          itemBuilder: (context, index) {
+            var item = widget.upcomingOpp[index];
+            print('Item at index $index: $item');
 
-        return GestureDetector(
-          onHorizontalDragUpdate: (details) =>
-              _onHorizontalDragUpdate(details, eventId),
-          onHorizontalDragEnd: (details) =>
-              _onHorizontalDragEnd(details, item, index),
-          child: OppUpcomingItem(
-            key: ValueKey(eventId),
-            name: item['name'],
-            subject: item['subject'] ?? 'Meeting',
-            date: item['due_date'] ?? '',
-            vehicle: item['PMI'] ?? 'Range Rover Velar',
-            leadId: item['lead_id'],
-            mobile: item['mobile'] ?? '',
-            time: item['time'] ?? '',
-            taskId: item['task_id'] ?? '',
-            refreshDashboard: widget.refreshDashboard,
-            isFavorite: item['favourite'] ?? false,
-            swipeOffset: swipeOffset,
-            fetchDashboardData: () {},
-            onToggleFavorite: () {
-              _toggleFavorite(eventId, index);
-            },
-          ),
-        );
-      },
+            String eventId = item['task_id'];
+            double swipeOffset = _swipeOffsets[eventId] ?? 0;
+
+            return GestureDetector(
+              onHorizontalDragUpdate: (details) =>
+                  _onHorizontalDragUpdate(details, eventId),
+              onHorizontalDragEnd: (details) =>
+                  _onHorizontalDragEnd(details, item, index),
+              child: OppUpcomingItem(
+                key: ValueKey(eventId),
+                name: item['name'] ?? '',
+                subject: item['subject'] ?? 'Meeting',
+                date: item['due_date'] ?? '',
+                vehicle: item['PMI'] ?? 'Range Rover Velar',
+                leadId: item['lead_id'],
+                mobile: item['mobile'] ?? '',
+                time: item['time'] ?? '',
+                taskId: item['task_id'] ?? '',
+                refreshDashboard: widget.refreshDashboard,
+                isFavorite: item['favourite'] ?? false,
+                swipeOffset: swipeOffset,
+                fetchDashboardData: () {},
+                onToggleFavorite: () {
+                  _toggleFavorite(eventId, index);
+                },
+              ),
+            );
+          },
+        ),
+        // Add the show more/less button
+        _buildShowMoreButton(),
+      ],
+    );
+  }
+
+  Widget _buildShowMoreButton() {
+    // If no data, don't show anything
+    if (widget.upcomingOpp.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    // Fix invalid display count
+    if (_currentDisplayCount <= 0 ||
+        _currentDisplayCount > widget.upcomingOpp.length) {
+      _currentDisplayCount = math.min(
+        _incrementCount,
+        widget.upcomingOpp.length,
+      );
+    }
+
+    // Check if we can show more records
+    bool hasMoreRecords = _currentDisplayCount < widget.upcomingOpp.length;
+
+    // Check if we can show less records - only if we're showing more than initial count
+    bool canShowLess = _currentDisplayCount > _incrementCount;
+
+    // If no action is possible, don't show button
+    if (!hasMoreRecords && !canShowLess) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      // padding: EdgeInsets.only(bottom: 20),
+      margin: EdgeInsets.only(bottom: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          if (canShowLess)
+            TextButton(
+              onPressed: _loadLessRecords,
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.grey[600],
+                textStyle: const TextStyle(fontSize: 12),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Show Less'),
+                  SizedBox(width: 4),
+                  Icon(Icons.keyboard_arrow_up, size: 16),
+                ],
+              ),
+            ),
+
+          // Show More button - only when there are more records to show
+          if (hasMoreRecords)
+            TextButton(
+              onPressed: _loadAllRecords, // Changed method name
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.colorsBlue,
+                textStyle: const TextStyle(fontSize: 12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Show All (${widget.upcomingOpp.length - _currentDisplayCount} more)', // Updated text
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.keyboard_arrow_down, size: 16),
+                ],
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

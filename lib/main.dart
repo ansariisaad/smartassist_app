@@ -24,11 +24,9 @@ void main() async {
     await Firebase.initializeApp();
     await Environment.init();
     Environment.validateConfig();
-    // await GetStorage.init();
+
     // Request location permissions
     await _requestLocationPermissions();
-    // Request necessary permissions
-    // await _requestPermissions();
 
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitDown,
@@ -44,6 +42,13 @@ void main() async {
 
   try {
     await NotificationService.instance.initialize();
+
+    // ADD DELAY FOR iOS APNs TOKEN
+    if (Platform.isIOS) {
+      // Wait a bit for APNs token to be available
+      await Future.delayed(Duration(seconds: 2));
+    }
+
     final apnsToken = await FirebaseMessaging.instance.getAPNSToken();
     if (apnsToken != null) {
       print('🔔 APNs Token retrieved: $apnsToken');
@@ -51,7 +56,17 @@ void main() async {
       print(
         '❌ APNs Token is null - make sure you are testing on a real iOS device',
       );
+
+      // Try to get APNs token again after a delay
+      if (Platform.isIOS) {
+        await Future.delayed(Duration(seconds: 3));
+        final retryApnsToken = await FirebaseMessaging.instance.getAPNSToken();
+        if (retryApnsToken != null) {
+          print('🔔 APNs Token retrieved on retry: $retryApnsToken');
+        }
+      }
     }
+
     // Get FCM token
     final fcmToken = await FirebaseMessaging.instance.getToken();
     print('📱 FCM Token: $fcmToken');
@@ -62,6 +77,51 @@ void main() async {
   await ConnectionService().initialize();
   runApp(const ProviderScope(child: MyApp()));
 }
+// void main() async {
+//   WidgetsFlutterBinding.ensureInitialized();
+
+//   try {
+//     await Firebase.initializeApp();
+//     await Environment.init();
+//     Environment.validateConfig();
+//     // await GetStorage.init();
+//     // Request location permissions
+//     await _requestLocationPermissions();
+//     // Request necessary permissions
+//     // await _requestPermissions();
+
+//     SystemChrome.setPreferredOrientations([
+//       DeviceOrientation.portraitDown,
+//       DeviceOrientation.portraitUp,
+//     ]);
+
+//     print("Firebase initialized successfully!");
+//   } catch (e) {
+//     print("Initialization failed: $e");
+//   }
+
+//   await Hive.initFlutter();
+
+//   try {
+//     await NotificationService.instance.initialize();
+//     final apnsToken = await FirebaseMessaging.instance.getAPNSToken();
+//     if (apnsToken != null) {
+//       print('🔔 APNs Token retrieved: $apnsToken');
+//     } else {
+//       print(
+//         '❌ APNs Token is null - make sure you are testing on a real iOS device',
+//       );
+//     }
+//     // Get FCM token
+//     final fcmToken = await FirebaseMessaging.instance.getToken();
+//     print('📱 FCM Token: $fcmToken');
+//   } catch (e) {
+//     print("Notification initialization failed: $e");
+//   }
+
+//   await ConnectionService().initialize();
+//   runApp(const ProviderScope(child: MyApp()));
+// }
 
 Future<void> _requestLocationPermissions() async {
   try {

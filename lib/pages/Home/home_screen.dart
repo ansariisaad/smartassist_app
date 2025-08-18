@@ -182,7 +182,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Send to API
     final token = await Storage.getToken();
-    const apiUrl = 'https://api.smartassistapp.in/api/leads/create-call-logs';
+    const apiUrl = 'https://dev.smartassistapp.in/api/leads/create-call-logs';
 
     try {
       final response = await http.post(
@@ -366,7 +366,7 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://api.smartassistapp.in/api/search/global?query=$query',
+          'https://dev.smartassistapp.in/api/search/global?query=$query',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -887,7 +887,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
-                  width: MediaQuery.of(context).size.width * .15,
+                  width: MediaQuery.of(context).size.width * .14,
                   height: MediaQuery.of(context).size.height * .08,
                   decoration: BoxDecoration(
                     color: fabController.isFabDisabled.value
@@ -896,15 +896,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               ? Colors.red
                               : AppColors.colorsBlue),
                     shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: fabController.isFabExpanded.value
-                            ? Colors.red.withOpacity(0.3)
-                            : AppColors.colorsBlue.withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
                   ),
                   child: Center(
                     child: AnimatedSwitcher(
@@ -914,7 +905,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                       child: Icon(
                         fabController.isFabExpanded.value
-                            ? Icons.close
+                            ? Icons.add
                             : Icons.add,
                         key: ValueKey(fabController.isFabExpanded.value),
                         color: fabController.isFabDisabled.value

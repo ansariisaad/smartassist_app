@@ -145,7 +145,7 @@ class _CreateLeadsState extends State<CreateLeads> {
 
     try {
       final response = await http.get(
-        Uri.parse('https://api.smartassistapp.in/api/leads/campaigns/all'),
+        Uri.parse('https://dev.smartassistapp.in/api/leads/campaigns/all'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -254,7 +254,7 @@ class _CreateLeadsState extends State<CreateLeads> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://api.smartassistapp.in/api/search/vehicles?vehicle=${Uri.encodeComponent(query)}',
+          'https://dev.smartassistapp.in/api/search/vehicles?vehicle=${Uri.encodeComponent(query)}',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -321,7 +321,7 @@ class _CreateLeadsState extends State<CreateLeads> {
       final token = await Storage.getToken();
 
       final apiUrl =
-          'https://api.smartassistapp.in/api/search/vehicle-color?color=$query';
+          'https://dev.smartassistapp.in/api/search/vehicle-color?color=$query';
       print("API URL: $apiUrl");
 
       final response = await http.get(
@@ -383,7 +383,7 @@ class _CreateLeadsState extends State<CreateLeads> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://api.smartassistapp.in/api/leads/existing-check?mobile=$encodedMobile',
+          'https://dev.smartassistapp.in/api/leads/existing-check?mobile=$encodedMobile',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -545,12 +545,12 @@ class _CreateLeadsState extends State<CreateLeads> {
   }
 
   bool _isValidFirst(String name) {
-    final nameRegExp = RegExp(r'^[A-Z][a-zA-Z0-9]*( [a-zA-Z0-9]+)*$');
+    final nameRegExp = RegExp(r'^[a-zA-Z0-9]+( [a-zA-Z0-9]+)*$');
     return nameRegExp.hasMatch(name);
   }
 
   bool _isValidSecond(String name) {
-    final nameRegExp = RegExp(r'^[A-Z][a-zA-Z0-9]*( [a-zA-Z0-9]+)*$');
+    final nameRegExp = RegExp(r'^[a-zA-Z0-9]+( [a-zA-Z0-9]+)*$');
     return nameRegExp.hasMatch(name);
   }
 
@@ -859,22 +859,37 @@ class _CreateLeadsState extends State<CreateLeads> {
                         },
                       ),
 
-                      _buildSecondNumberWidget(
-                        isRequired: false,
-                        label: 'Mobile No',
-                        controller: mobileSecondController,
-                        // errorText: _errors['mobile'],
-                        hintText: '+91',
+                      _buildTextField(
+                        isRequired: true,
+                        label: 'Email',
+                        controller: emailController,
+                        hintText: 'Email',
+                        errorText: _errors['email'],
                         onChanged: (value) {
-                          if (_errors.containsKey('mobile')) {
+                          if (_errors.containsKey('email')) {
                             setState(() {
-                              _errors.remove('mobile');
+                              _errors.remove('email');
                             });
                           }
-                          print("mobile: $value");
+                          print("email : $value");
                         },
                       ),
 
+                      // _buildSecondNumberWidget(
+                      //   isRequired: false,
+                      //   label: 'Mobile No',
+                      //   controller: mobileSecondController,
+                      //   // errorText: _errors['mobile'],
+                      //   hintText: '+91',
+                      //   onChanged: (value) {
+                      //     if (_errors.containsKey('mobile')) {
+                      //       setState(() {
+                      //         _errors.remove('mobile');
+                      //       });
+                      //     }
+                      //     print("mobile: $value");
+                      //   },
+                      // ),
                       const SizedBox(height: 10),
                       _buildButtonsFloat1(
                         isRequired: true,
@@ -911,21 +926,6 @@ class _CreateLeadsState extends State<CreateLeads> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildTextField(
-                        isRequired: true,
-                        label: 'Email',
-                        controller: emailController,
-                        hintText: 'Email',
-                        errorText: _errors['email'],
-                        onChanged: (value) {
-                          if (_errors.containsKey('email')) {
-                            setState(() {
-                              _errors.remove('email');
-                            });
-                          }
-                          print("email : $value");
-                        },
-                      ),
                       _buildAmountRange(isRequired: true),
                       VehiclesearchTextfield(
                         errorText: _errors['vehicleName'],
@@ -2110,7 +2110,7 @@ class _CreateLeadsState extends State<CreateLeads> {
         'lname': lastNameController.text,
         'email': emailController.text,
         'mobile': mobileNumber,
-        'mobile_second': mobileSecondController,
+        // 'mobile_second': mobileSecondController,
         'purchase_type': _selectedPurchaseType,
         'brand': selectedBrand ?? '',
         'vehicle_id': vehicleId ?? '',
@@ -2129,7 +2129,7 @@ class _CreateLeadsState extends State<CreateLeads> {
             : _locationController.text.trim(),
 
         'exterior_color': selectedColorName,
-        'Campaign': selectedCampaignId,
+        'campaign': selectedCampaignName,
         'halo': _selectedHaloOption.isNotEmpty ? _selectedHaloOption : null,
       };
 

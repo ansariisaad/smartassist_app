@@ -1145,6 +1145,7 @@ import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/testd
 import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/appointments.dart';
 
 class timelineOverdue extends StatefulWidget {
+  final bool isFromTeams;
   final carIcon = '/assets/caricon.png';
   final List<Map<String, dynamic>> tasks;
   final List<Map<String, dynamic>> overdueEvents;
@@ -1152,6 +1153,7 @@ class timelineOverdue extends StatefulWidget {
     super.key,
     required this.tasks,
     required this.overdueEvents,
+    required this.isFromTeams,
   });
 
   @override
@@ -1350,18 +1352,31 @@ class _timelineOverdueState extends State<timelineOverdue> {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        IconButton(
-                          icon: Icon(
-                            Icons.edit,
-                            size: 18,
-                            color: Colors.black,
-                          ), // Red pencil
-                          onPressed: () => _handleEdit(subject, taskId),
-                          tooltip: 'Edit',
-                          splashRadius: 18,
-                          padding: EdgeInsets.zero,
-                          constraints: BoxConstraints(),
-                        ),
+                        // IconButton(
+                        //   icon: Icon(
+                        //     Icons.edit,
+                        //     size: 18,
+                        //     color: Colors.black,
+                        //   ), // Red pencil
+                        //   onPressed: () => _handleEdit(subject, taskId),
+                        //   tooltip: 'Edit',
+                        //   splashRadius: 18,
+                        //   padding: EdgeInsets.zero,
+                        //   constraints: BoxConstraints(),
+                        // ),
+                        if (!widget.isFromTeams)
+                          IconButton(
+                            icon: const Icon(
+                              Icons.edit,
+                              size: 18,
+                              color: Colors.black,
+                            ),
+                            onPressed: () => _handleEdit(subject, taskId),
+                            tooltip: 'Edit',
+                            splashRadius: 18,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
                       ],
                     ),
                   ),
@@ -1497,18 +1512,32 @@ class _timelineOverdueState extends State<timelineOverdue> {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          IconButton(
-                            icon: Icon(
-                              Icons.edit,
-                              size: 18,
-                              color: const Color.fromARGB(255, 0, 0, 0),
-                            ), // Red pencil
-                            onPressed: () => _handleEdit(eventSubject, eventId),
-                            tooltip: 'Edit',
-                            splashRadius: 18,
-                            padding: EdgeInsets.zero,
-                            constraints: BoxConstraints(),
-                          ),
+                          // IconButton(
+                          //   icon: Icon(
+                          //     Icons.edit,
+                          //     size: 18,
+                          //     color: const Color.fromARGB(255, 0, 0, 0),
+                          //   ), // Red pencil
+                          //   onPressed: () => _handleEdit(eventSubject, eventId),
+                          //   tooltip: 'Edit',
+                          //   splashRadius: 18,
+                          //   padding: EdgeInsets.zero,
+                          //   constraints: BoxConstraints(),
+                          // ),
+                          if (!widget.isFromTeams)
+                            IconButton(
+                              icon: const Icon(
+                                Icons.edit,
+                                size: 18,
+                                color: Colors.black,
+                              ),
+                              onPressed: () =>
+                                  _handleEdit(eventSubject, eventId),
+                              tooltip: 'Edit',
+                              splashRadius: 18,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
                         ],
                       ),
                     ),

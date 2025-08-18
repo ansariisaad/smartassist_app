@@ -1,6 +1,6 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
@@ -494,11 +494,17 @@ class AllFollowup extends StatefulWidget {
 
 class _AllFollowupState extends State<AllFollowup> {
   List<bool> _favorites = [];
+  int _currentDisplayCount = 10;
+  final int _incrementCount = 10;
 
   @override
   void initState() {
     super.initState();
     _initializeFavorites();
+    _currentDisplayCount = math.min(
+      _incrementCount,
+      widget.allFollowups.length,
+    );
   }
 
   @override
@@ -506,7 +512,113 @@ class _AllFollowupState extends State<AllFollowup> {
     super.didUpdateWidget(oldWidget);
     if (widget.allFollowups != oldWidget.allFollowups) {
       _initializeFavorites();
+      _currentDisplayCount = math.min(
+        _incrementCount,
+        widget.allFollowups.length,
+      );
     }
+  }
+
+  // void _loadLessRecords() {
+  //   setState(() {
+  //     _currentDisplayCount = math.max(
+  //       _incrementCount,
+  //       _currentDisplayCount - _incrementCount,
+  //     );
+  //     print(
+  //       '📊 Loading less records. New display count: $_currentDisplayCount',
+  //     );
+  //   });
+  // }
+
+  void _loadLessRecords() {
+    setState(() {
+      _currentDisplayCount = _incrementCount;
+      print(
+        '📊 Loading less records. New display count: $_currentDisplayCount',
+      );
+    });
+  }
+
+  void _loadAllRecords() {
+    setState(() {
+      // Show all records at once
+      _currentDisplayCount = widget.allFollowups.length;
+      print('📊 Loading all records. New display count: $_currentDisplayCount');
+    });
+  }
+
+  Widget _buildShowMoreButton() {
+    // If no data, don't show anything
+    if (widget.allFollowups.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    // Fix invalid display count
+    if (_currentDisplayCount <= 0 ||
+        _currentDisplayCount > widget.allFollowups.length) {
+      _currentDisplayCount = math.min(
+        _incrementCount,
+        widget.allFollowups.length,
+      );
+    }
+
+    // Check if we can show more records
+    bool hasMoreRecords = _currentDisplayCount < widget.allFollowups.length;
+
+    // Check if we can show less records - only if we're showing more than initial count
+    bool canShowLess = _currentDisplayCount > _incrementCount;
+
+    // If no action is possible, don't show button
+    if (!hasMoreRecords && !canShowLess) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      // padding: EdgeInsets.only(bottom: 20),
+      margin: EdgeInsets.only(bottom: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          if (canShowLess)
+            TextButton(
+              onPressed: _loadLessRecords,
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.grey[600],
+                textStyle: const TextStyle(fontSize: 12),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Show Less'),
+                  SizedBox(width: 4),
+                  Icon(Icons.keyboard_arrow_up, size: 16),
+                ],
+              ),
+            ),
+
+          // Show More button - only when there are more records to show
+          if (hasMoreRecords)
+            TextButton(
+              onPressed: _loadAllRecords, // Changed method name
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.colorsBlue,
+                textStyle: const TextStyle(fontSize: 12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Show All (${widget.allFollowups.length - _currentDisplayCount} more)', // Updated text
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.keyboard_arrow_down, size: 16),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
   }
 
   void _initializeFavorites() {
@@ -553,6 +665,11 @@ class _AllFollowupState extends State<AllFollowup> {
       );
     }
 
+    // Get the items to display based on current count
+    List<dynamic> itemsToDisplay = widget.allFollowups
+        .take(_currentDisplayCount)
+        .toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -564,14 +681,19 @@ class _AllFollowupState extends State<AllFollowup> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
           ),
+
         ListView.builder(
+          padding: EdgeInsets.zero,
           shrinkWrap: true,
           physics: widget.isNested
               ? const NeverScrollableScrollPhysics()
               : const AlwaysScrollableScrollPhysics(),
-          itemCount: widget.allFollowups.length,
+          // itemCount:
+          //     itemsToDisplay.length, // Changed from widget.allFollowups.length
+          itemCount: _currentDisplayCount,
           itemBuilder: (context, index) {
-            var item = widget.allFollowups[index];
+            var item =
+                itemsToDisplay[index]; // Changed from widget.allFollowups[index]
 
             if (!(item.containsKey('name') &&
                 item.containsKey('due_date') &&
@@ -581,27 +703,32 @@ class _AllFollowupState extends State<AllFollowup> {
             }
 
             String taskId = item['task_id'];
-            // double swipeOffset = _swipeOffsets[taskId] ?? 0;
 
             return GestureDetector(
               child: AllFollowupItem(
-                key: ValueKey(item['task_id']),
-                name: item['name'],
-                date: item['due_date'],
-                mobile: item['mobile'],
+                name: item['name'] ?? '',
+                date: item['due_date'] ?? '',
+                mobile: item['mobile'] ?? '',
                 subject: item['subject'] ?? '',
                 vehicle: item['PMI'] ?? 'Range Rover Velar',
-                leadId: item['lead_id'],
+                leadId: item['lead_id'] ?? '',
                 taskId: taskId,
                 isFavorite: item['favourite'] ?? false,
-                // refreshDashboard: widget.refreshDashboard,
                 onToggleFavorite: () {
-                  _toggleFavorite(taskId, index);
+                  // Find the original index in the full list
+                  int originalIndex = widget.allFollowups.indexWhere(
+                    (element) => element['task_id'] == taskId,
+                  );
+                  if (originalIndex != -1) {
+                    _toggleFavorite(taskId, originalIndex);
+                  }
                 },
               ),
             );
           },
         ),
+        // Add the show more/less button
+        _buildShowMoreButton(),
       ],
     );
   }

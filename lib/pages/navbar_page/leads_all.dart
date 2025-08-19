@@ -1327,7 +1327,7 @@ class _TaskItemState extends State<TaskItem>
     String hiddenMobile = _hideMobileNumber(mobile);
 
     return Text(
-      mobile, // add hiddenmobile for hidden 
+      mobile, // add hiddenmobile for hidden
       style:
           AppFont.smallText(
             context,

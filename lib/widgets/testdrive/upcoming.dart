@@ -551,6 +551,8 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
       barrierDismissible: false, // User must tap button to close dialog
       builder: (BuildContext context) {
         return AlertDialog(
+
+          backgroundColor: AppColors.containerBg,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),

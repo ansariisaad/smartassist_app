@@ -165,13 +165,13 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
         // Only check for start/end time if a date is selected
         if (slotData?['start_time_slot'] == null ||
             slotData?['start_time_slot'].isEmpty) {
-          _errors['select_start_time'] = 'Please select start time';
+          _errors['select_start_time'] = '';
           isValid = false;
         }
 
         if (slotData?['end_time_slot'] == null ||
             slotData?['end_time_slot'].isEmpty) {
-          _errors['select_end_time'] = 'Please select end time';
+          _errors['select_end_time'] = '';
           isValid = false;
         }
       }
@@ -179,25 +179,6 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
     if (!isValid) {
       setState(() => isSubmitting = false);
 
-      // Custom error for end time
-      // if (_errors.containsKey('select_end_time')) {
-      //   Get.snackbar(
-      //     'Validation Error',
-      //     _errors['select_end_time']!,
-      //     backgroundColor: Colors.red,
-      //     colorText: Colors.white,
-      //   );
-      //   return;
-      // }
-
-      // Otherwise, show all other error messages
-      // String errorMessages = _errors.values.join('\n');
-      // Get.snackbar(
-      //   'Validation Error',
-      //   errorMessages,
-      //   backgroundColor: Colors.red,
-      //   colorText: Colors.white,
-      // );
       return;
     }
 
@@ -351,8 +332,50 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
                 vehicleId:
                     vehicleId?.toString() ??
                     '', // This gets the vehicle ID from either source
+                // onChanged: (value) {
+                //   try {
+                //     if (value == 'clear_start_time_error') {
+                //       setState(() {
+                //         _errors.remove('select_start_time');
+                //       });
+                //       return;
+                //     }
+
+                //     if (value == 'clear_end_time_error') {
+                //       setState(() {
+                //         _errors.remove('select_end_time');
+                //       });
+                //       return;
+                //     }
+                //     final parsedSlotData = jsonDecode(value);
+                //     print('Slot data received: $parsedSlotData');
+
+                //     setState(() {
+                //       slotData = parsedSlotData;
+                //       // Clear the error if it exists
+                //       if (_errors.containsKey('select_slot')) {
+                //         _errors.remove('select_slot');
+                //       }
+                //       _errors.remove('select_slot');
+                //       _errors.remove('select_start_time');
+                //       _errors.remove('select_end_time');
+                //     });
+
+                //     print('slotData variable set to: $slotData'); // Debug log
+                //   } catch (e) {
+                //     // If it's not JSON (like initial date selection), just print
+                //     print('Slot changed: $value');
+                //   }
+                // },
                 onChanged: (value) {
                   try {
+                    if (value == 'date_selected') {
+                      setState(() {
+                        _errors.remove('select_slot'); // Clear date error
+                      });
+                      return;
+                    }
+
                     if (value == 'clear_start_time_error') {
                       setState(() {
                         _errors.remove('select_start_time');
@@ -366,26 +389,23 @@ class _CreateTestdriveState extends State<CreateTestdrive> {
                       });
                       return;
                     }
+
                     final parsedSlotData = jsonDecode(value);
                     print('Slot data received: $parsedSlotData');
 
                     setState(() {
                       slotData = parsedSlotData;
-                      // Clear the error if it exists
-                      if (_errors.containsKey('select_slot')) {
-                        _errors.remove('select_slot');
-                      }
                       _errors.remove('select_slot');
                       _errors.remove('select_start_time');
                       _errors.remove('select_end_time');
                     });
 
-                    print('slotData variable set to: $slotData'); // Debug log
+                    print('slotData variable set to: $slotData');
                   } catch (e) {
-                    // If it's not JSON (like initial date selection), just print
-                    print('Slot changed: $value');
+                    print('Slot changed (not JSON): $value');
                   }
                 },
+
                 onTextFieldTap: () {
                   print('Calendar container tapped');
                 },

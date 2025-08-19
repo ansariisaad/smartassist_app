@@ -293,7 +293,8 @@ class _SlotCalendarState extends State<SlotCalendar> {
 
     final formattedDate = DateFormat('MMM dd, yyyy').format(selectedDate);
     _internalController.text = 'Selected: $formattedDate';
-    widget.onChanged('Selected: $formattedDate');
+    // widget.onChanged('Selected: $formattedDate');
+    widget.onChanged('date_selected');
   }
 
   Future<void> _showCustomTimePicker(bool isStartTime) async {
@@ -316,13 +317,13 @@ class _SlotCalendarState extends State<SlotCalendar> {
       );
     }
 
-    if (isStartTime) {
-      // Clear start time error when user starts selecting start time
-      widget.onChanged('clear_start_time_error');
-    } else {
-      // Clear end time error when user starts selecting end time
-      widget.onChanged('clear_end_time_error');
-    }
+    // if (isStartTime) {
+    //   // Clear start time error when user starts selecting start time
+    //   widget.onChanged('clear_start_time_error');
+    // } else {
+    //   // Clear end time error when user starts selecting end time
+    //   widget.onChanged('clear_end_time_error');
+    // }
 
     showDialog(
       context: context,
@@ -349,7 +350,6 @@ class _SlotCalendarState extends State<SlotCalendar> {
               onTimeChange: (time) {
                 tempTime = time;
               },
-              // Disable specific times
               isForce2Digits: true,
             ),
           ),
@@ -360,7 +360,6 @@ class _SlotCalendarState extends State<SlotCalendar> {
             ),
             TextButton(
               onPressed: () {
-                // Check if selected time is disabled
                 if (_isTimeDisabled(tempTime)) {
                   Get.snackbar(
                     'Time Not Available',
@@ -387,6 +386,8 @@ class _SlotCalendarState extends State<SlotCalendar> {
                       }
                     }
                   });
+                  // ONLY clear start time error when start time is actually selected:
+                  widget.onChanged('clear_start_time_error');
                 } else {
                   if (_selectedStartTime != null) {
                     int startMinutes =
@@ -408,6 +409,8 @@ class _SlotCalendarState extends State<SlotCalendar> {
                     setState(() {
                       _selectedEndTime = selectedTime;
                     });
+                    // ONLY clear end time error when end time is actually selected:
+                    widget.onChanged('clear_end_time_error');
                     _updateDisplayText();
                   }
                 }
@@ -420,6 +423,104 @@ class _SlotCalendarState extends State<SlotCalendar> {
         );
       },
     );
+
+    // showDialog(
+    //   context: context,
+    //   builder: (BuildContext context) {
+    //     DateTime tempTime = initialTime;
+    //     return AlertDialog(
+    //       title: Text(isStartTime ? 'Select Start Time' : 'Select End Time'),
+    //       content: SizedBox(
+    //         height: 200,
+    //         child: TimePickerSpinner(
+    //           time: initialTime,
+    //           is24HourMode: false,
+    //           itemHeight: 40,
+    //           normalTextStyle: const TextStyle(
+    //             fontSize: 16,
+    //             color: Colors.black54,
+    //           ),
+    //           highlightedTextStyle: const TextStyle(
+    //             fontSize: 18,
+    //             color: AppColors.colorsBlue,
+    //           ),
+    //           spacing: 20,
+    //           itemWidth: 60,
+    //           onTimeChange: (time) {
+    //             tempTime = time;
+    //           },
+    //           // Disable specific times
+    //           isForce2Digits: true,
+    //         ),
+    //       ),
+    //       actions: [
+    //         TextButton(
+    //           onPressed: () => Navigator.of(context).pop(),
+    //           child: const Text('Cancel'),
+    //         ),
+    //         TextButton(
+    //           onPressed: () {
+    //             // Check if selected time is disabled
+    //             if (_isTimeDisabled(tempTime)) {
+    //               Get.snackbar(
+    //                 'Time Not Available',
+    //                 'This time slot is already booked',
+    //                 backgroundColor: Colors.red,
+    //                 colorText: Colors.white,
+    //               );
+    //               return;
+    //             }
+
+    //             final selectedTime = TimeOfDay.fromDateTime(tempTime);
+
+    //             if (isStartTime) {
+    //               setState(() {
+    //                 _selectedStartTime = selectedTime;
+    //                 if (_selectedEndTime != null) {
+    //                   int startMinutes =
+    //                       selectedTime.hour * 60 + selectedTime.minute;
+    //                   int endMinutes =
+    //                       _selectedEndTime!.hour * 60 +
+    //                       _selectedEndTime!.minute;
+    //                   if (endMinutes <= startMinutes) {
+    //                     _selectedEndTime = null;
+    //                   }
+    //                 }
+    //               });
+    //                 widget.onChanged('clear_start_time_error');
+    //             } else {
+    //               if (_selectedStartTime != null) {
+    //                 int startMinutes =
+    //                     _selectedStartTime!.hour * 60 +
+    //                     _selectedStartTime!.minute;
+    //                 int endMinutes =
+    //                     selectedTime.hour * 60 + selectedTime.minute;
+
+    //                 if (endMinutes <= startMinutes) {
+    //                   Get.snackbar(
+    //                     'Invalid Time',
+    //                     'End time must be after start time',
+    //                     backgroundColor: Colors.red,
+    //                     colorText: Colors.white,
+    //                   );
+    //                   return;
+    //                 }
+
+    //                 setState(() {
+    //                   _selectedEndTime = selectedTime;
+    //                 });
+    //                 _updateDisplayText();
+    //               }
+    //             }
+
+    //             Navigator.of(context).pop();
+    //           },
+    //           child: const Text('OK'),
+    //         ),
+    //       ],
+    //     );
+    //   },
+    // );
   }
 
   void _updateDisplayText() {
@@ -536,6 +637,7 @@ class _SlotCalendarState extends State<SlotCalendar> {
             ),
           ),
         ),
+
         // Show error message if any
         if (_errorMessage != null)
           Padding(
@@ -583,158 +685,262 @@ class _SlotCalendarState extends State<SlotCalendar> {
             ),
           ),
           const SizedBox(height: 8),
-
           Row(
             children: [
               // Start Time Container
               Expanded(
-                child: GestureDetector(
-                  onTap: () => _showCustomTimePicker(true),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 12,
-                      horizontal: 16,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: widget.startTimeError != null
-                            ? Colors.red
-                            : Colors.grey.shade300,
-                        width: widget.startTimeError != null ? 1.5 : 1.0,
-                      ),
-                      borderRadius: BorderRadius.circular(8),
-                      color: Colors.white,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          _selectedStartTime != null
-                              ? _selectedStartTime!.format(context)
-                              : 'Start Time',
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            color: _selectedStartTime != null
-                                ? Colors.black
-                                : Colors.grey,
-                          ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    GestureDetector(
+                      onTap: () => _showCustomTimePicker(true),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 16,
                         ),
-                        const Icon(Icons.access_time, color: Colors.grey),
-                      ],
-                    ),
-                  ),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: widget.startTimeError != null
+                                ? Colors.red
+                                : Colors.grey.shade300,
+                            width: widget.startTimeError != null ? 1.5 : 1.0,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.white,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              _selectedStartTime != null
+                                  ? _selectedStartTime!.format(context)
+                                  : 'Start Time',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                color: _selectedStartTime != null
+                                    ? Colors.black
+                                    : Colors.grey,
+                              ),
+                            ),
+                            const Icon(Icons.access_time, color: Colors.grey),
+                          ],
+                        ),
+                      ),
+                    ), 
+                  ],
                 ),
               ),
               const SizedBox(width: 10),
               // End Time Container
               Expanded(
-                child: GestureDetector(
-                  onTap: () => _showCustomTimePicker(false),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 12,
-                      horizontal: 16,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: widget.endTimeError != null
-                            ? Colors.red
-                            : Colors.grey.shade300,
-                        width: widget.endTimeError != null ? 1.5 : 1.0,
-                      ),
-                      borderRadius: BorderRadius.circular(8),
-                      color: Colors.white,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          _selectedEndTime != null
-                              ? _selectedEndTime!.format(context)
-                              : 'End Time',
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            color: _selectedEndTime != null
-                                ? Colors.black
-                                : Colors.grey,
-                          ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    GestureDetector(
+                      onTap: () => _showCustomTimePicker(false),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 16,
                         ),
-                        const Icon(Icons.access_time, color: Colors.grey),
-                      ],
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: widget.endTimeError != null
+                                ? Colors.red
+                                : Colors.grey.shade300,
+                            width: widget.endTimeError != null ? 1.5 : 1.0,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.white,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              _selectedEndTime != null
+                                  ? _selectedEndTime!.format(context)
+                                  : 'End Time',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                color: _selectedEndTime != null
+                                    ? Colors.black
+                                    : Colors.grey,
+                              ),
+                            ),
+                            const Icon(Icons.access_time, color: Colors.grey),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
+                    // END TIME ERROR TEXT:
+                    // if (widget.endTimeError != null)
+                    //   Padding(
+                    //     padding: const EdgeInsets.only(top: 4.0, left: 4.0),
+                    //     child: Text(
+                    //       widget.endTimeError!,
+                    //       style: const TextStyle(
+                    //         color: Colors.red,
+                    //         fontSize: 12,
+                    //       ),
+                    //     ),
+                    //   ),
+                  ],
                 ),
               ),
-
-              // Expanded(
-              //   child: GestureDetector(
-              //     onTap: () => _showCustomTimePicker(true),
-              //     child: Container(
-              //       padding: const EdgeInsets.symmetric(
-              //         vertical: 12,
-              //         horizontal: 16,
-              //       ),
-              //       decoration: BoxDecoration(
-              //         border: Border.all(color: Colors.grey.shade300),
-              //         borderRadius: BorderRadius.circular(8),
-              //         color: Colors.white,
-              //       ),
-              //       child: Row(
-              //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              //         children: [
-              //           Text(
-              //             _selectedStartTime != null
-              //                 ? _selectedStartTime!.format(context)
-              //                 : 'Start Time',
-              //             style: GoogleFonts.poppins(
-              //               fontSize: 14,
-              //               color: _selectedStartTime != null
-              //                   ? Colors.black
-              //                   : Colors.grey,
-              //             ),
-              //           ),
-              //           const Icon(Icons.access_time, color: Colors.grey),
-              //         ],
-              //       ),
-              //     ),
-              //   ),
-              // ),
-              // const SizedBox(width: 10),
-              // Expanded(
-              //   child: GestureDetector(
-              //     onTap: () => _showCustomTimePicker(false),
-              //     child: Container(
-              //       padding: const EdgeInsets.symmetric(
-              //         vertical: 12,
-              //         horizontal: 16,
-              //       ),
-              //       decoration: BoxDecoration(
-              //         border: Border.all(color: Colors.grey.shade300),
-              //         borderRadius: BorderRadius.circular(8),
-              //         color: Colors.white,
-              //       ),
-              //       child: Row(
-              //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              //         children: [
-              //           Text(
-              //             _selectedEndTime != null
-              //                 ? _selectedEndTime!.format(context)
-              //                 : 'End Time',
-              //             style: GoogleFonts.poppins(
-              //               fontSize: 14,
-              //               color: _selectedEndTime != null
-              //                   ? Colors.black
-              //                   : Colors.grey,
-              //             ),
-              //           ),
-              //           const Icon(Icons.access_time, color: Colors.grey),
-              //         ],
-              //       ),
-              //     ),
-              //   ),
-              // ),
             ],
           ),
+          // Row(
+          //   children: [
+          //     // Start Time Container
+          //     Expanded(
+          //       child: GestureDetector(
+          //         onTap: () => _showCustomTimePicker(true),
+          //         child: Container(
+          //           padding: const EdgeInsets.symmetric(
+          //             vertical: 12,
+          //             horizontal: 16,
+          //           ),
+          //           decoration: BoxDecoration(
+          //             border: Border.all(
+          //               color: widget.startTimeError != null
+          //                   ? Colors.red
+          //                   : Colors.grey.shade300,
+          //               width: widget.startTimeError != null ? 1.5 : 1.0,
+          //             ),
+          //             borderRadius: BorderRadius.circular(8),
+          //             color: Colors.white,
+          //           ),
+          //           child: Row(
+          //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //             children: [
+          //               Text(
+          //                 _selectedStartTime != null
+          //                     ? _selectedStartTime!.format(context)
+          //                     : 'Start Time',
+          //                 style: GoogleFonts.poppins(
+          //                   fontSize: 14,
+          //                   color: _selectedStartTime != null
+          //                       ? Colors.black
+          //                       : Colors.grey,
+          //                 ),
+          //               ),
+          //               const Icon(Icons.access_time, color: Colors.grey),
+          //             ],
+          //           ),
+          //         ),
+          //       ),
+          //     ),
+          //     const SizedBox(width: 10),
+          //     // End Time Container
+          //     Expanded(
+          //       child: GestureDetector(
+          //         onTap: () => _showCustomTimePicker(false),
+          //         child: Container(
+          //           padding: const EdgeInsets.symmetric(
+          //             vertical: 12,
+          //             horizontal: 16,
+          //           ),
+          //           decoration: BoxDecoration(
+          //             border: Border.all(
+          //               color: widget.endTimeError != null
+          //                   ? Colors.red
+          //                   : Colors.grey.shade300,
+          //               width: widget.endTimeError != null ? 1.5 : 1.0,
+          //             ),
+          //             borderRadius: BorderRadius.circular(8),
+          //             color: Colors.white,
+          //           ),
+          //           child: Row(
+          //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //             children: [
+          //               Text(
+          //                 _selectedEndTime != null
+          //                     ? _selectedEndTime!.format(context)
+          //                     : 'End Time',
+          //                 style: GoogleFonts.poppins(
+          //                   fontSize: 14,
+          //                   color: _selectedEndTime != null
+          //                       ? Colors.black
+          //                       : Colors.grey,
+          //                 ),
+          //               ),
+          //               const Icon(Icons.access_time, color: Colors.grey),
+          //             ],
+          //           ),
+          //         ),
+          //       ),
+          //     ),
+
+          //     // Expanded(
+          //     //   child: GestureDetector(
+          //     //     onTap: () => _showCustomTimePicker(true),
+          //     //     child: Container(
+          //     //       padding: const EdgeInsets.symmetric(
+          //     //         vertical: 12,
+          //     //         horizontal: 16,
+          //     //       ),
+          //     //       decoration: BoxDecoration(
+          //     //         border: Border.all(color: Colors.grey.shade300),
+          //     //         borderRadius: BorderRadius.circular(8),
+          //     //         color: Colors.white,
+          //     //       ),
+          //     //       child: Row(
+          //     //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //     //         children: [
+          //     //           Text(
+          //     //             _selectedStartTime != null
+          //     //                 ? _selectedStartTime!.format(context)
+          //     //                 : 'Start Time',
+          //     //             style: GoogleFonts.poppins(
+          //     //               fontSize: 14,
+          //     //               color: _selectedStartTime != null
+          //     //                   ? Colors.black
+          //     //                   : Colors.grey,
+          //     //             ),
+          //     //           ),
+          //     //           const Icon(Icons.access_time, color: Colors.grey),
+          //     //         ],
+          //     //       ),
+          //     //     ),
+          //     //   ),
+          //     // ),
+          //     // const SizedBox(width: 10),
+          //     // Expanded(
+          //     //   child: GestureDetector(
+          //     //     onTap: () => _showCustomTimePicker(false),
+          //     //     child: Container(
+          //     //       padding: const EdgeInsets.symmetric(
+          //     //         vertical: 12,
+          //     //         horizontal: 16,
+          //     //       ),
+          //     //       decoration: BoxDecoration(
+          //     //         border: Border.all(color: Colors.grey.shade300),
+          //     //         borderRadius: BorderRadius.circular(8),
+          //     //         color: Colors.white,
+          //     //       ),
+          //     //       child: Row(
+          //     //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //     //         children: [
+          //     //           Text(
+          //     //             _selectedEndTime != null
+          //     //                 ? _selectedEndTime!.format(context)
+          //     //                 : 'End Time',
+          //     //             style: GoogleFonts.poppins(
+          //     //               fontSize: 14,
+          //     //               color: _selectedEndTime != null
+          //     //                   ? Colors.black
+          //     //                   : Colors.grey,
+          //     //             ),
+          //     //           ),
+          //     //           const Icon(Icons.access_time, color: Colors.grey),
+          //     //         ],
+          //     //       ),
+          //     //     ),
+          //     //   ),
+          //     // ),
+          //   ],
+          // ),
 
           // Show booked times for selected date
           if (_getBookedTimesForSelectedDate().isNotEmpty) ...[

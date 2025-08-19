@@ -253,6 +253,8 @@ class _AllFollowupsItemState extends State<AllTestrive>
       barrierDismissible: false, // User must tap button to close dialog
       builder: (BuildContext context) {
         return AlertDialog(
+
+          backgroundColor: AppColors.containerBg,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),

@@ -94,19 +94,27 @@ class _TestdriveIdsState extends State<TestdriveIds> {
       isSubmitting = true;
       _errors = {};
 
-      // if (_leadId == null || _leadId!.isEmpty) {
-      //   _errors['select lead name'] = 'Please select a lead name';
-      //   isValid = false;
-      // }
-
-      // if (_selectedSubject == null || _selectedSubject!.isEmpty) {
-      //   _errors['subject'] = 'Please select an action';
-      //   isValid = false;
-      // }
-
       if (startDateController == null || startDateController.text!.isEmpty) {
         _errors['date'] = 'Please select an action';
         isValid = false;
+      }
+
+      if (slotData == null) {
+        _errors['select_slot'] = 'Please select a date and time slot';
+        isValid = false;
+      } else {
+        // Only check for start/end time if a date is selected
+        if (slotData?['start_time_slot'] == null ||
+            slotData?['start_time_slot'].isEmpty) {
+          _errors['select_start_time'] = '';
+          isValid = false;
+        }
+
+        if (slotData?['end_time_slot'] == null ||
+            slotData?['end_time_slot'].isEmpty) {
+          _errors['select_end_time'] = '';
+          isValid = false;
+        }
       }
     });
 
@@ -223,31 +231,161 @@ class _TestdriveIdsState extends State<TestdriveIds> {
                 label: 'Select Date & Time Slot',
                 isRequired: true,
                 controller: startDateController,
-                vehicleId: vehicleId?.toString() ?? '',
+
+                errorText: _errors['select_slot'], // Date error
+                startTimeError:
+                    _errors['select_start_time'], // Start time error
+                endTimeError: _errors['select_end_time'], // End time error
+                vehicleId:
+                    vehicleId?.toString() ??
+                    '', // This gets the vehicle ID from either source
+                // onChanged: (value) {
+                //   try {
+                //     if (value == 'clear_start_time_error') {
+                //       setState(() {
+                //         _errors.remove('select_start_time');
+                //       });
+                //       return;
+                //     }
+
+                //     if (value == 'clear_end_time_error') {
+                //       setState(() {
+                //         _errors.remove('select_end_time');
+                //       });
+                //       return;
+                //     }
+                //     final parsedSlotData = jsonDecode(value);
+                //     print('Slot data received: $parsedSlotData');
+
+                //     setState(() {
+                //       slotData = parsedSlotData;
+                //       // Clear the error if it exists
+                //       if (_errors.containsKey('select_slot')) {
+                //         _errors.remove('select_slot');
+                //       }
+                //       _errors.remove('select_slot');
+                //       _errors.remove('select_start_time');
+                //       _errors.remove('select_end_time');
+                //     });
+
+                //     print('slotData variable set to: $slotData'); // Debug log
+                //   } catch (e) {
+                //     // If it's not JSON (like initial date selection), just print
+                //     print('Slot changed: $value');
+                //   }
+                // },
                 onChanged: (value) {
                   try {
+                    if (value == 'date_selected') {
+                      setState(() {
+                        _errors.remove('select_slot'); // Clear date error
+                      });
+                      return;
+                    }
+
+                    if (value == 'clear_start_time_error') {
+                      setState(() {
+                        _errors.remove('select_start_time');
+                      });
+                      return;
+                    }
+
+                    if (value == 'clear_end_time_error') {
+                      setState(() {
+                        _errors.remove('select_end_time');
+                      });
+                      return;
+                    }
+
                     final parsedSlotData = jsonDecode(value);
                     print('Slot data received: $parsedSlotData');
 
                     setState(() {
                       slotData = parsedSlotData;
-                      // Clear the error if it exists
-                      if (_errors.containsKey('select_slot')) {
-                        _errors.remove('select_slot');
-                      }
+                      _errors.remove('select_slot');
+                      _errors.remove('select_start_time');
+                      _errors.remove('select_end_time');
                     });
 
-                    print('slotData variable set to: $slotData'); // Debug log
+                    print('slotData variable set to: $slotData');
                   } catch (e) {
-                    // If it's not JSON (like initial date selection), just print
-                    print('Slot changed: $value');
+                    print('Slot changed (not JSON): $value');
                   }
                 },
+
                 onTextFieldTap: () {
                   print('Calendar container tapped');
                 },
               ),
 
+              // SlotCalendar(
+              //   label: 'Select Date & Time Slot',
+              //   isRequired: true,
+              //   controller: startDateController,
+              //   vehicleId: vehicleId?.toString() ?? '',
+              //   errorText: _errors['select_slot'],
+              //   onChanged: (value) {
+              //     try {
+              //       if (value == 'date_selected') {
+              //         setState(() {
+              //           _errors.remove('select_slot'); // Clear date error
+              //         });
+              //         return;
+              //       }
+
+              //       if (value == 'clear_start_time_error') {
+              //         setState(() {
+              //           _errors.remove('select_start_time');
+              //         });
+              //         return;
+              //       }
+
+              //       if (value == 'clear_end_time_error') {
+              //         setState(() {
+              //           _errors.remove('select_end_time');
+              //         });
+              //         return;
+              //       }
+
+              //       final parsedSlotData = jsonDecode(value);
+              //       print('Slot data received: $parsedSlotData');
+
+              //       setState(() {
+              //         slotData = parsedSlotData;
+              //         _errors.remove('select_slot');
+              //         _errors.remove('select_start_time');
+              //         _errors.remove('select_end_time');
+              //       });
+
+              //       print('slotData variable set to: $slotData');
+              //     } catch (e) {
+              //       print('Slot changed (not JSON): $value');
+              //     }
+              //   },
+
+              //   // onChanged: (value) {
+              //   //   try {
+              //   //     final parsedSlotData = jsonDecode(value);
+              //   //     print('Slot data received: $parsedSlotData');
+
+              //   //     setState(() {
+              //   //       slotData = parsedSlotData;
+              //   //       // Clear the error if it exists
+              //   //       if (_errors.containsKey('select_slot')) {
+              //   //         _errors.remove('select_slot');
+              //   //       }
+              //   //     });
+
+              //   //     print('slotData variable set to: $slotData'); // Debug log
+              //   //   } catch (e) {
+              //   //     // If it's not JSON (like initial date selection), just print
+              //   //     print('Slot changed: $value');
+              //   //   }
+              //   // },
+              //   onTextFieldTap: () {
+              //     print('Calendar container tapped');
+              //   },
+              // ),
               const SizedBox(height: 10),
               EnhancedSpeechTextField(
                 isRequired: false,

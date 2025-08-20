@@ -2147,8 +2147,7 @@ class _StartDriveMapState extends State<StartDriveMap>
     super.initState();
     driveStartTime = DateTime.now();
     totalDistance = 0.0;
-    WidgetsBinding.instance.addObserver(this);
-    _requestBatteryOptimization();
+    WidgetsBinding.instance.addObserver(this); 
     _setupiOSLocationListener();
     _initializeBackgroundService();
     _determinePosition();
@@ -2162,57 +2161,8 @@ class _StartDriveMapState extends State<StartDriveMap>
       width: 5,
     );
   }
-
-  Future<void> _requestBatteryOptimization() async {
-    try {
-      final bool isDisabled = await platform.invokeMethod(
-        'isBatteryOptimizationDisabled',
-      );
-      if (!isDisabled) {
-        // Show dialog to user explaining why this is needed
-        _showBatteryOptimizationDialog();
-      }
-    } catch (e) {
-      print('❌ Failed to check battery optimization: $e');
-    }
-  }
-
-  void _showBatteryOptimizationDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: AppColors.white,
-          title: Text(
-            'Battery Optimization',
-            style: AppFont.dropDowmLabel(context),
-          ),
-          content: Text(
-            'To ensure accurate test drive tracking in the background, please disable battery optimization for this app.',
-            style: AppFont.smallText12(context),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Skip'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-                try {
-                  await platform.invokeMethod('requestBatteryOptimization');
-                } catch (e) {
-                  print('❌ Failed to request battery optimization: $e');
-                }
-              },
-              child: Text('Open Settings'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
+ 
+  
   void _startServiceHealthCheck() {
     _serviceHealthCheck = Timer.periodic(Duration(seconds: 60), (timer) {
       if (_backgroundServiceStarted) {
@@ -3786,6 +3736,10 @@ class _StartDriveMapState extends State<StartDriveMap>
     // ✅ NEW: Stop iOS native service
     if (Platform.isIOS) {
       _stopNativeBackgroundService();
+    }
+
+    if (Platform.isAndroid) {
+      platform.invokeMethod('cancelNotification');
     }
 
     _cleanupResources();

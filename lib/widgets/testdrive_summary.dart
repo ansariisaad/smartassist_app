@@ -37,6 +37,7 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
   bool isFromTestdriveOverview = false;
   bool _isHidden = false;
   String startTime = '';
+  String remarks = 'No Remarks';
   String distanceCovered = '';
   String mapImgUrl = '';
   bool isLoading = true;
@@ -111,6 +112,7 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
         print(const JsonEncoder.withIndent('  ').convert(data));
         setState(() {
           startTime = data['data']['duration'] ?? '0';
+          remarks = data['data']['remarks'] ?? 'No Remarks';
           if (data['data']['distance'] != null) {
             String rawDistance = data['data']['distance'].toString();
             double calculatedDistance = parseDistance(rawDistance);
@@ -510,6 +512,44 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
                                           style: AppFont.mediumText14(context),
                                         ),
                                       ],
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          Container(
+                            margin: const EdgeInsets.fromLTRB(10, 20, 10, 0),
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        left: 15.0,
+                                      ),
+                                      child: Text(
+                                        'Remarks',
+                                        style: AppFont.popupTitleBlack16(
+                                          context,
+                                        ),
+                                      ),
+                                    ),
+                                    Text(
+                                      (remarks == null ||
+                                              remarks.trim().isEmpty)
+                                          ? 'No Remarks'
+                                          : remarks,
+
+                                      style: AppFont.dropDowmLabel(context),
                                     ),
                                   ],
                                 ),

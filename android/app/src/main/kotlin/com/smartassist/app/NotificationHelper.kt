@@ -8,7 +8,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 
 class NotificationHelper {
     companion object {
@@ -20,10 +19,10 @@ class NotificationHelper {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 val importance = NotificationManager.IMPORTANCE_LOW
                 val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, importance).apply {
-                    description = "Notifications for active test drive tracking"
-                    setSound(null, null) // No sound
-                    enableVibration(false) // No vibration
-                    setShowBadge(false) // No badge
+                    description = "Test drive location tracking"
+                    setSound(null, null)
+                    enableVibration(false)
+                    setShowBadge(false)
                 }
 
                 val notificationManager: NotificationManager =
@@ -33,11 +32,13 @@ class NotificationHelper {
         }
 
         fun createNotification(context: Context, title: String, content: String): android.app.Notification {
-            // Create intent to open app when notification is tapped
+            // ✅ FIXED: Proper intent to resume existing activity
             val intent = Intent(context, MainActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                action = Intent.ACTION_MAIN
+                addCategory(Intent.CATEGORY_LAUNCHER)
             }
-            
+
             val pendingIntent: PendingIntent = PendingIntent.getActivity(
                 context, 0, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
@@ -46,13 +47,19 @@ class NotificationHelper {
             return NotificationCompat.Builder(context, CHANNEL_ID)
                 .setContentTitle(title)
                 .setContentText(content)
-                .setSmallIcon(android.R.drawable.ic_dialog_info) // ✅ Use system icon instead
+                .setSmallIcon(android.R.drawable.ic_dialog_info)
                 .setContentIntent(pendingIntent)
-                .setOngoing(true) // Make it persistent
-                .setAutoCancel(false) // Don't auto-cancel
-                .setSilent(true) // No sound
+                .setOngoing(true)
+                .setAutoCancel(false)
+                .setSilent(true)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .build()
+        }
+
+        // ✅ NEW: Method to cancel notification
+        fun cancelNotification(context: Context) {
+            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.cancel(NOTIFICATION_ID)
         }
     }
 }

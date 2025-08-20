@@ -36,21 +36,18 @@ class MainActivity: FlutterFragmentActivity() {
                 "stopBackgroundService" -> {
                     stopBackgroundService()
                     result.success(true)
-                }
-                "requestBatteryOptimization" -> {
-                    requestBatteryOptimizationExemption()
-                    result.success(true)
-                }
-                "isBatteryOptimizationDisabled" -> {
-                    val isDisabled = isBatteryOptimizationDisabled()
-                    result.success(isDisabled)
-                }
+                } 
                 "openLocationSettings" -> {
                     openLocationSettings()
                     result.success(true)
                 }
                 "openAppSettings" -> {
                     openAppSettings()
+                    result.success(true)
+                }
+
+                "cancelNotification" -> {
+                    NotificationHelper.cancelNotification(this)
                     result.success(true)
                 }
                 else -> {
@@ -96,37 +93,7 @@ class MainActivity: FlutterFragmentActivity() {
         } catch (e: Exception) {
             Log.e(TAG, "❌ Failed to stop Android background service", e)
         }
-    }
-
-    // ✅ Battery optimization helper
-    private fun requestBatteryOptimizationExemption() {
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                val intent = Intent().apply {
-                    action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
-                    data = Uri.parse("package:$packageName")
-                }
-                startActivity(intent)
-                Log.d(TAG, "Battery optimization exemption requested")
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to request battery optimization exemption", e)
-        }
-    }
-
-    private fun isBatteryOptimizationDisabled(): Boolean {
-        return try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
-                powerManager.isIgnoringBatteryOptimizations(packageName)
-            } else {
-                true // Not applicable for older versions
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to check battery optimization status", e)
-            false
-        }
-    }
+    } 
 
     // ✅ Location settings helper
     private fun openLocationSettings() {
@@ -138,6 +105,7 @@ class MainActivity: FlutterFragmentActivity() {
             Log.e(TAG, "Failed to open location settings", e)
         }
     }
+    
 
     // ✅ App settings helper
     private fun openAppSettings() {
@@ -153,6 +121,8 @@ class MainActivity: FlutterFragmentActivity() {
         }
     }
 }
+
+
 // 📁 android/app/src/main/kotlin/com/smartassist/app/MainActivity.kt
 // package com.smartassist.app
 

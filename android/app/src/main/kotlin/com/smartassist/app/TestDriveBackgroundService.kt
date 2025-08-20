@@ -153,6 +153,9 @@ class TestDriveBackgroundService : Service() {
         // Send stop command to Flutter
         methodChannel?.invokeMethod("stop_tracking", null)
         
+        // ✅ ADDED: Cancel notification before stopping
+        NotificationHelper.cancelNotification(this)
+        
         // Stop foreground service
         stopForeground(true)
         stopSelf()

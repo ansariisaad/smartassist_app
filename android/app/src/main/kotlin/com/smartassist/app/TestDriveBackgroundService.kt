@@ -11,6 +11,7 @@ import io.flutter.embedding.engine.dart.DartExecutor
 import io.flutter.plugin.common.MethodChannel
 import android.app.NotificationManager
 import android.content.Context
+import androidx.core.app.NotificationCompat
 
 class TestDriveBackgroundService : Service() {
     private var flutterEngine: FlutterEngine? = null
@@ -73,12 +74,12 @@ class TestDriveBackgroundService : Service() {
         return START_STICKY
     }
 
-    // ✅ NEW: Immediate foreground service start
+    // ✅ NEW: Immediate foreground service start 
     private fun startForegroundServiceImmediately() {
         try {
             val notification = NotificationHelper.createNotification(
                 this,
-                "Test Drive Service",
+                "Test Drive Service", 
                 "Initializing location tracking..."
             )
             
@@ -86,6 +87,13 @@ class TestDriveBackgroundService : Service() {
             Log.d(TAG, "✅ Started as foreground service immediately")
         } catch (e: Exception) {
             Log.e(TAG, "❌ Failed to start foreground service immediately", e)
+            // ✅ ADD THIS: Create a simple fallback notification
+            val simpleNotification = NotificationCompat.Builder(this, "testdrive_tracking")
+                .setContentTitle("Test Drive Service")
+                .setContentText("Location tracking active")
+                .setSmallIcon(android.R.drawable.ic_menu_mylocation)
+                .build()
+            startForeground(888, simpleNotification)
         }
     }
 

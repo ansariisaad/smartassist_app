@@ -3,7 +3,7 @@ import Foundation
 import CoreLocation
 import Flutter
 import UIKit
-import UserNotifications  // ✅ ADDED: Missing import
+import UserNotifications
 
 @available(iOS 9.0, *)
 @objc(LocationManager)
@@ -56,8 +56,6 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
             if locationManager.authorizationStatus == .notDetermined {
                 locationManager.requestAlwaysAuthorization()
             }
-        } else {
-            // Fallback on earlier versions
         }
         
         if CLLocationManager.locationServicesEnabled() {
@@ -201,13 +199,33 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
         }
     }
     
+    // ✅ FIXED: Only ONE didFailWithError method with proper error handling
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         print("❌ iOS location error: \(error.localizedDescription)")
         
-        // Retry location after error
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-            if self.isTracking {
-                self.locationManager.startUpdatingLocation()
+        if let clError = error as? CLError {
+            switch clError.code {
+            case .denied:
+                print("❌ iOS location access denied")
+                stopTracking()
+            case .locationUnknown:
+                print("⚠️ iOS location unknown - continuing")
+                // Don't stop, just continue
+            case .network:
+                print("⚠️ iOS network error - retrying")
+                // Retry after delay
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                    if self.isTracking {
+                        self.locationManager.startUpdatingLocation()
+                    }
+                }
+            default:
+                print("⚠️ iOS other location error - retrying")
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                    if self.isTracking {
+                        self.locationManager.startUpdatingLocation()
+                    }
+                }
             }
         }
     }

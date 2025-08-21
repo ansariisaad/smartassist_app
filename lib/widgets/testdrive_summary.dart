@@ -543,13 +543,16 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
                                         ),
                                       ),
                                     ),
-                                    Text(
-                                      (remarks == null ||
-                                              remarks.trim().isEmpty)
-                                          ? 'No Remarks'
-                                          : remarks,
+                                    Container(
+                                      margin: EdgeInsets.only(right: 10),
+                                      child: Text(
+                                        (remarks == null ||
+                                                remarks.trim().isEmpty)
+                                            ? 'No Remarks'
+                                            : remarks,
 
-                                      style: AppFont.dropDowmLabel(context),
+                                        style: AppFont.mediumText14(context),
+                                      ),
                                     ),
                                   ],
                                 ),

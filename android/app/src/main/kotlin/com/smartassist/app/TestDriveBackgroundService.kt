@@ -30,21 +30,24 @@ class TestDriveBackgroundService : Service() {
         super.onCreate()
         Log.d(TAG, "Service created")
         
-        // ✅ CRITICAL: Start foreground IMMEDIATELY in onCreate()
-        startForegroundServiceImmediately()
+        // ✅ CRITICAL: More robust foreground start
+        try {
+            startForegroundServiceImmediately()
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start foreground immediately, retrying", e)
+            // ✅ Fallback for release builds
+            createSimpleForegroundNotification()
+        }
         
-        // Create notification channel
         NotificationHelper.createNotificationChannel(this)
         
-        // Acquire wake lock to prevent CPU sleep
         val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
         wakeLock = powerManager.newWakeLock(
             PowerManager.PARTIAL_WAKE_LOCK,
             "TestDrive::LocationTracking"
         )
-        wakeLock?.acquire(10*60*1000L /*10 minutes*/)
+        wakeLock?.acquire(30*60*1000L) // ✅ Increased to 30 minutes
         
-        // Initialize Flutter engine in background thread
         Thread {
             initializeFlutterEngine()
         }.start()
@@ -72,6 +75,23 @@ class TestDriveBackgroundService : Service() {
         }
         
         return START_STICKY
+    }
+
+    private fun createSimpleForegroundNotification() {
+        try {
+            val notification = NotificationCompat.Builder(this, "testdrive_tracking")
+                .setContentTitle("Test Drive Active")
+                .setContentText("Location tracking in progress")
+                .setSmallIcon(android.R.drawable.ic_menu_mylocation)
+                .setOngoing(true)
+                .setSilent(true)
+                .build()
+            
+            startForeground(888, notification)
+            Log.d(TAG, "✅ Fallback foreground notification created")
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Failed to create fallback notification", e)
+        }
     }
 
     // ✅ NEW: Immediate foreground service start 

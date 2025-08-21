@@ -727,7 +727,7 @@ class _SlotCalendarState extends State<SlotCalendar> {
                           ],
                         ),
                       ),
-                    ), 
+                    ),
                   ],
                 ),
               ),

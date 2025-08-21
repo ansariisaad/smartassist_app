@@ -92,6 +92,10 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
         notificationTimer?.invalidate()
         notificationTimer = nil
         
+        // ✅ ADDED: Cancel persistent notifications
+        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+        UNUserNotificationCenter.current().removeAllDeliveredNotifications()
+        
         print("🛑 iOS background location tracking stopped")
     }
     
@@ -126,6 +130,9 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
         let duration = calculateDuration()
         let distanceText = formatDistance(totalDistance)
         let content = "\(distanceText) • \(duration)m • \(isPaused ? "Paused" : "Tracking")"
+        
+        // ✅ IMPROVED: Remove previous notifications before adding new one
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ["testdrive_tracking"])
         
         // Create local notification
         let content_notification = UNMutableNotificationContent()

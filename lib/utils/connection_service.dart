@@ -14,7 +14,7 @@ class ConnectionService {
   Stream<bool> get connectionStream => _connectionController.stream;
   bool _isConnected = true;
   bool get isConnected => _isConnected;
-
+  
   Future<void> initialize() async {
     await checkConnection();
     _connectivity.onConnectivityChanged.listen((_) async {

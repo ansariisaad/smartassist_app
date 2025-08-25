@@ -1083,7 +1083,7 @@ class _StartDriveMapState extends State<StartDriveMap>
       final token = await Storage.getToken();
 
       final requestBody = {
-        'startCoordinates': {
+        'start_location': {
           'latitude': currentLocation.latitude,
           'longitude': currentLocation.longitude,
         },
@@ -1105,23 +1105,6 @@ class _StartDriveMapState extends State<StartDriveMap>
 
       print('Starting test drive for event: ${widget.eventId}');
       print('📩 Response body: ${response.body}');
-
-      // final response = await http
-      //     .post(
-      //       url,
-      //       headers: {
-      //         'Content-Type': 'application/json',
-      //         'Authorization': 'Bearer $token',
-      //       },
-      //       body: json.encode({
-      //         'startCoordinates': {
-      //           'latitude': currentLocation.latitude,
-      //           'longitude': currentLocation.longitude,
-      //         },
-      //         'timestamp': DateTime.now().toIso8601String(),
-      //       }),
-      //     )
-      //     .timeout(Duration(seconds: 15));
 
       print('Starting test drive for event: ${widget.eventId}');
       if (response.statusCode == 200) {
@@ -1448,9 +1431,16 @@ class _StartDriveMapState extends State<StartDriveMap>
       service.invoke('stop_tracking');
     }
 
-    // Stop iOS native service
     if (Platform.isIOS) {
       _stopNativeBackgroundService();
+      // ✅ ADDED: Cancel iOS notifications
+      iosChannel.invokeMethod('cancelNotification').catchError((e) {
+        print('Error canceling iOS notifications: $e');
+      });
+    }
+
+    if (Platform.isAndroid) {
+      platform.invokeMethod('cancelNotification');
     }
 
     _cleanupResources();
@@ -1925,38 +1915,25 @@ class _StartDriveMapState extends State<StartDriveMap>
       // Calculate final duration ensuring pauses are accounted for
       int finalDuration = _calculateDuration();
 
-      // ✅ CLEAN: Only send essential data to API (removed socket dependencies)
-      // final response = await http
-      //     .post(
-      //       url,
-      //       headers: {
-      //         'Content-Type': 'application/json',
-      //         'Authorization': 'Bearer $token',
-      //       },
-      //       body: json.encode({
-      //         'totalDistance': totalDistance,
-      //         'duration': finalDuration,
-      //         'startTime': driveStartTime?.toIso8601String(),
-      //         'endTime': DateTime.now().toIso8601String(),
-      //         'totalPausedDuration': totalPausedDuration,
-      //         'routePoints': routePoints
-      //             .map(
-      //               (point) => {
-      //                 'latitude': point.latitude,
-      //                 'longitude': point.longitude,
-      //               },
-      //             )
-      //             .toList(),
-      //       }),
-      //     )
-      //     .timeout(const Duration(seconds: 15));
+      // ✅ FIXED: Get current location for end coordinates
+      LatLng? endLocation;
+      if (_lastValidLocation != null) {
+        endLocation = _lastValidLocation;
+      } else if (userMarker != null) {
+        endLocation = userMarker!.position;
+      } else if (routePoints.isNotEmpty) {
+        endLocation = routePoints.last;
+      }
 
       final requestBody = {
-        'totalDistance': totalDistance,
+        'distance': totalDistance,
         'duration': finalDuration,
-        'startTime': driveStartTime?.toIso8601String(),
-        'endTime': DateTime.now().toIso8601String(),
-        'totalPausedDuration': totalPausedDuration,
+        'end_location': endLocation != null
+            ? {
+                'latitude': endLocation.latitude,
+                'longitude': endLocation.longitude,
+              }
+            : {},
         'routePoints': routePoints
             .map(
               (point) => {

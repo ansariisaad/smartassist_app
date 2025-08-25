@@ -77,12 +77,11 @@
         </activity>
         
         <!-- ✅ NATIVE: Your custom background service -->
-        <service 
+        <service
             android:name=".TestDriveBackgroundService"
-            android:exported="false"
             android:enabled="true"
-            android:foregroundServiceType="location"
-            android:stopWithTask="false" />
+            android:exported="false"
+            android:foregroundServiceType="location" />
             
         <!-- ✅ KEEP: Flutter background service (as fallback) -->
         <service 

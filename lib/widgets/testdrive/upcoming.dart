@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
@@ -9,6 +10,7 @@ import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/testdrive.dart';
+import 'package:smartassist/widgets/start_drive.dart';
 import 'package:smartassist/widgets/testdrive_verifyotp.dart';
 
 class TestUpcoming extends StatefulWidget {
@@ -551,6 +553,7 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
       barrierDismissible: false, // User must tap button to close dialog
       builder: (BuildContext context) {
         return AlertDialog(
+          backgroundColor: AppColors.containerBg,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
@@ -576,13 +579,17 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
                 overlayColor: AppColors.colorsBlue.withOpacity(0.1),
                 foregroundColor: AppColors.colorsBlue,
               ),
-              // onPressed: () => Navigator.of(context).pop(
-              // true),
               onPressed: () {
-                // initwhatsappChat(context); // Pass context to submit
                 widget.handleTestDrive();
                 widget.otpTrigger();
               },
+
+              // onPressed: () => Navigator.push(
+              //   context,
+              //   MaterialPageRoute(
+              //     builder: (context) => StartDriveMap(eventId: '', leadId: ''),
+              //   ),
+              // ),
               child: Text(
                 'Yes',
                 style: GoogleFonts.poppins(color: AppColors.colorsBlue),
@@ -600,16 +607,21 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
       barrierDismissible: false, // User must tap button to close dialog
       builder: (BuildContext context) {
         return AlertDialog(
+          backgroundColor: AppColors.containerBg,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
           title: Text(
             'Test Drive has already been completed',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+
+            // style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+            style: AppFont.appbarfontblack(context),
           ),
           content: Text(
             'If you wish to initiate test drive again for this client, kindly create a new one',
-            style: GoogleFonts.poppins(),
+
+            // style: GoogleFonts.poppins(),
+            style: AppFont.dropDown(context),
           ),
           actions: [
             TextButton(
@@ -619,7 +631,7 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
               ),
               onPressed: () => Navigator.of(context).pop(false),
               child: Text(
-                'Back',
+                'Cancel',
                 style: GoogleFonts.poppins(color: AppColors.colorsBlue),
               ),
             ),

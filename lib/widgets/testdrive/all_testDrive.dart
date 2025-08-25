@@ -253,6 +253,8 @@ class _AllFollowupsItemState extends State<AllTestrive>
       barrierDismissible: false, // User must tap button to close dialog
       builder: (BuildContext context) {
         return AlertDialog(
+
+          backgroundColor: AppColors.containerBg,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
@@ -296,22 +298,27 @@ class _AllFollowupsItemState extends State<AllTestrive>
     );
   }
 
-  Future<void> _showAleart1() async {
+    Future<void> _showAleart1() async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // User must tap button to close dialog
       builder: (BuildContext context) {
         return AlertDialog(
+          backgroundColor: AppColors.containerBg,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
           title: Text(
             'Test Drive has already been completed',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+
+            // style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+            style: AppFont.appbarfontblack(context),
           ),
           content: Text(
             'If you wish to initiate test drive again for this client, kindly create a new one',
-            style: GoogleFonts.poppins(),
+
+            // style: GoogleFonts.poppins(),
+            style: AppFont.dropDown(context),
           ),
           actions: [
             TextButton(
@@ -321,8 +328,8 @@ class _AllFollowupsItemState extends State<AllTestrive>
               ),
               onPressed: () => Navigator.of(context).pop(false),
               child: Text(
-                'Back',
-                style: GoogleFonts.poppins(color: Colors.grey),
+                'Cancel',
+                style: GoogleFonts.poppins(color: AppColors.colorsBlue),
               ),
             ),
           ],

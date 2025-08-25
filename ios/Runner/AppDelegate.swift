@@ -86,6 +86,11 @@ import UserNotifications
             case "requestAlwaysPermission":
                 self.locationManager?.requestAlwaysPermission()
                 result(true)
+                // ✅ ADDED: New case for notification cleanup
+            case "cancelNotification":
+                UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+                UNUserNotificationCenter.current().removeAllDeliveredNotifications()
+                result(true)
             default:
                 result(FlutterMethodNotImplemented)
             }

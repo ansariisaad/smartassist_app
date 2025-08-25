@@ -46,6 +46,8 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
   String avg_rating = '';
   // Map<String, dynamic> ratings = {};
   Map<String, dynamic>? ratings;
+  String rawDistance = '';
+  // String formattedDistance = rawDistance.toStringAsFixed(2);
 
   DateTime? _lastBackPressTime;
   final int _exitTimeInMillis = 2000;
@@ -115,12 +117,13 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
           remarks = data['data']['remarks'] ?? 'No Remarks';
           if (data['data']['distance'] != null) {
             String rawDistance = data['data']['distance'].toString();
-            double calculatedDistance = parseDistance(rawDistance);
-            distanceCovered = formatDistance(calculatedDistance);
 
-            // Debug print to verify calculation
+            double parsedDistance = double.tryParse(rawDistance) ?? 0.0;
+            String formattedDistance = parsedDistance.toStringAsFixed(2);
+
+            distanceCovered = '$formattedDistance km';
+
             print('Raw distance: $rawDistance');
-            print('Calculated distance: $calculatedDistance km');
             print('Formatted distance: $distanceCovered');
           } else {
             distanceCovered = '0.0 km';

@@ -906,7 +906,7 @@ class _CreateLeadsState extends State<CreateLeads> {
                           "SMS": "SMS",
                           "Social (Retailer)": "Social (Retailer)",
                           "Walk-in": "Walk-in",
-                          "Other": "Other",
+                          // "Other": "Other",
                         },
                         groupValue: _selectedType,
                         errorText: _errors['leadSource'],

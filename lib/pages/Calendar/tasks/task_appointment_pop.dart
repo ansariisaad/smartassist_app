@@ -253,6 +253,7 @@ class _TaskAppointmentPopState extends State<TaskAppointmentPop> {
     if (widget.selectedDate != null) {
       startDateTime = widget.selectedDate!;
     } else {
+      // ignore: use_build_context_synchronously
       showErrorMessage(context, message: 'Start date is required.');
       return;
     }

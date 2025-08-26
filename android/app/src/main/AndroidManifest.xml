@@ -50,6 +50,10 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="${googleMapsApiKey}" />
+        
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
             
         <activity
             android:name=".MainActivity"
@@ -128,4 +132,14 @@
         <data android:scheme="mailto" />
     </intent>
     </queries>
+
+    <!-- <provider
+        android:name="com.pichillilorenzo.flutter_inappwebview_android.InAppWebViewFileProvider"
+        android:authorities="${applicationId}.flutter_inappwebview_android.fileprovider"
+        android:exported="false"
+        android:grantUriPermissions="true">
+        <meta-data
+            android:name="android.support.FILE_PROVIDER_PATHS"
+            android:resource="@xml/provider_paths" />
+    </provider> -->
 </manifest>

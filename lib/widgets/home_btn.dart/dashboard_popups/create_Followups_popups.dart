@@ -139,14 +139,24 @@ class _CreateFollowupsPopupsState extends State<CreateFollowupsPopups> {
       }
 
       // Validate date selection
+      // if (startDateController.text.isEmpty) {
+      //   _errors['date'] = 'Please select a date';
+      //   isValid = false;
+      // }
+
+      // // Validate time selection - Only highlight time tab, not date
+      // if (startTimeController.text.isEmpty) {
+      //   _errors['time'] = 'Please select a time for the follow-up';
+      //   isValid = false;
+      // }
+
       if (startDateController.text.isEmpty) {
         _errors['date'] = 'Please select a date';
         isValid = false;
       }
 
-      // Validate time selection - Only highlight time tab, not date
       if (startTimeController.text.isEmpty) {
-        _errors['time'] = 'Please select a time for the follow-up';
+        _errors['time'] = 'Please select a time';
         isValid = false;
       }
     });
@@ -548,8 +558,6 @@ class _CreateFollowupsPopupsState extends State<CreateFollowupsPopups> {
 
             // FIXED: Only pass error text when there's a date error (not time error)
             DateButton(
-              errorText:
-                  _errors['date'], // Only show date error, not time error
               isRequired: true,
               label: 'When?',
               dateController: startDateController,
@@ -557,6 +565,8 @@ class _CreateFollowupsPopupsState extends State<CreateFollowupsPopups> {
               onDateTap: _pickStartDate,
               onTimeTap: _pickStartTime,
               onChanged: (String value) {},
+              dateErrorText: _errors['date'],
+              timeErrorText: _errors['time'],
             ),
 
             const SizedBox(height: 10),

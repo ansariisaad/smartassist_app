@@ -380,9 +380,17 @@ class _AppointmentIdsState extends State<AppointmentIds> {
         _errors['subject'] = 'Please select an action';
         isValid = false;
       }
+      // if (startDateController == null || startDateController.text!.isEmpty) {
+      //   _errors['date'] = 'Please select an action';
+      //   isValid = false;
+      // }
+      if (startDateController.text.isEmpty) {
+        _errors['date'] = 'Please select a date';
+        isValid = false;
+      }
 
-      if (startDateController == null || startDateController.text!.isEmpty) {
-        _errors['date'] = 'Please select an action';
+      if (startTimeController.text.isEmpty) {
+        _errors['time'] = 'Please select a time';
         isValid = false;
       }
     });
@@ -528,7 +536,7 @@ class _AppointmentIdsState extends State<AppointmentIds> {
               //   ],
               // ),
               DateButton(
-                errorText: _errors['date'],
+                // errorText: _errors['date'],
                 isRequired: true,
                 label: 'When?',
                 dateController: startDateController,
@@ -536,6 +544,8 @@ class _AppointmentIdsState extends State<AppointmentIds> {
                 onDateTap: _pickStartDate,
                 onTimeTap: _pickStartTime,
                 onChanged: (String value) {},
+                dateErrorText: _errors['date'],
+                timeErrorText: _errors['time'],
               ),
               // Row(
               //   children: [

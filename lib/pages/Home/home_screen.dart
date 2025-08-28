@@ -1,12 +1,10 @@
 import 'dart:convert';
-import 'package:call_log/call_log.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
@@ -179,12 +177,16 @@ class _HomeScreenState extends State<HomeScreen> {
     // Check permissions first
     final hasPermissions = await _checkAndRequestPermissions();
     if (!hasPermissions) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Phone permissions required to access call logs'),
-          backgroundColor: Colors.red,
-        ),
+      showErrorMessage(
+        context,
+        message: 'Phone permissions required to access call logs',
       );
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   SnackBar(
+      //     content: Text('Phone permissions required to access call logs'),
+      //     backgroundColor: Colors.red,
+      //   ),
+      // );
       return;
     }
 
@@ -193,12 +195,13 @@ class _HomeScreenState extends State<HomeScreen> {
       final sims = await CalllogChannel.listSimAccounts();
 
       if (sims.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('No SIM cards found'),
-            backgroundColor: Colors.orange,
-          ),
-        );
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   SnackBar(
+        //     content: Text('No SIM cards found'),
+        //     backgroundColor: Colors.orange,
+        //   ),
+        // );
+        showErrorMessage(context, message: 'No SIM cards found');
         return;
       }
 
@@ -218,12 +221,13 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     } catch (e) {
       print('Error in upload process: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error accessing SIM cards: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      // ScaffoldMessenger.of(context).showSnackBar(
+      // SnackBar(
+      //   content: Text('Error accessing SIM cards: $e'),
+      //   backgroundColor: Colors.red,
+      // ),
+      showErrorMessage(context, message: 'Error accessing SIM cards: $e');
+      // );
     }
   }
 

@@ -64,7 +64,7 @@ class MainActivity: FlutterFragmentActivity() {
                 }
             }
         }
-        
+
         // New call log channel
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CALLLOG_CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
@@ -204,7 +204,7 @@ class MainActivity: FlutterFragmentActivity() {
         } catch (e: Exception) {
             Log.e(TAG, "Failed to open app settings", e)
         }
-    }
+    } 
 }
 
 

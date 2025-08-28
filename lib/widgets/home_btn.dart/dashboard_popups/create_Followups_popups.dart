@@ -165,11 +165,7 @@ class _CreateFollowupsPopupsState extends State<CreateFollowupsPopups> {
     if (!isValid) {
       setState(() => isSubmitting = false);
 
-      // Show specific error snackbar for time validation ONLY if:
-      // 1. Time is missing AND
-      // 2. Lead is selected AND
-      // 3. Action is selected AND
-      // 4. Date is selected
+      
       // This means user has filled the form but just missing the time
       if (_errors.containsKey('time') &&
           _leadId != null &&

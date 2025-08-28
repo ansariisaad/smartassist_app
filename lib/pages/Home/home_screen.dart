@@ -181,12 +181,6 @@ class _HomeScreenState extends State<HomeScreen> {
         context,
         message: 'Phone permissions required to access call logs',
       );
-      // ScaffoldMessenger.of(context).showSnackBar(
-      //   SnackBar(
-      //     content: Text('Phone permissions required to access call logs'),
-      //     backgroundColor: Colors.red,
-      //   ),
-      // );
       return;
     }
 
@@ -195,12 +189,6 @@ class _HomeScreenState extends State<HomeScreen> {
       final sims = await CalllogChannel.listSimAccounts();
 
       if (sims.isEmpty) {
-        // ScaffoldMessenger.of(context).showSnackBar(
-        //   SnackBar(
-        //     content: Text('No SIM cards found'),
-        //     backgroundColor: Colors.orange,
-        //   ),
-        // );
         showErrorMessage(context, message: 'No SIM cards found');
         return;
       }
@@ -221,13 +209,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     } catch (e) {
       print('Error in upload process: $e');
-      // ScaffoldMessenger.of(context).showSnackBar(
-      // SnackBar(
-      //   content: Text('Error accessing SIM cards: $e'),
-      //   backgroundColor: Colors.red,
-      // ),
       showErrorMessage(context, message: 'Error accessing SIM cards: $e');
-      // );
     }
   }
 

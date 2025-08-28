@@ -1041,7 +1041,7 @@ class _WhatsappChatState extends State<WhatsappChat>
     socket.onConnect((_) {
       print('Socket connected');
       _stopReconnectTimer();
-      socket.emit('register_session', {'sessionId': spId});
+      socket.emit('register_session', {'sessionId': spId , 'email' : email});
       print('Emitted register_session: sessionId=$spId');
       setState(() {
         isConnected = true;

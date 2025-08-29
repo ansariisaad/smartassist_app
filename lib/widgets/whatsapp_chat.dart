@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
-import 'dart:typed_data';
+// import 'dart:typed_data';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:external_app_launcher/external_app_launcher.dart';
 import 'package:file_picker/file_picker.dart';
@@ -983,7 +983,7 @@ class _WhatsappChatState extends State<WhatsappChat>
       loadingMessage = 'Regenerating QR code...';
     });
 
-    socket.emit('resend_qr', {'sessionId': spId});
+    socket.emit('resend_qr', {'sessionId': spId , 'email' : email});
   }
 
   Future<void> launchWhatsAppScanner() async {
@@ -1041,7 +1041,7 @@ class _WhatsappChatState extends State<WhatsappChat>
     socket.onConnect((_) {
       print('Socket connected');
       _stopReconnectTimer();
-      socket.emit('register_session', {'sessionId': spId , 'email' : email});
+      socket.emit('register_session', {'sessionId': spId, 'email': email});
       print('Emitted register_session: sessionId=$spId');
       setState(() {
         isConnected = true;

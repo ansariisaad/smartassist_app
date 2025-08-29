@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -13,6 +14,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:smartassist/config/component/color/colors.dart';
+import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -133,6 +135,8 @@ class _ProfileScreenState extends State<ProfileScreen>
         // Start animations once data is loaded
         _fadeController.forward();
         _slideController.forward();
+
+        print('this is the obj ${json.decode(response.body)}');
       });
     } else {
       setState(() {
@@ -240,7 +244,7 @@ class _ProfileScreenState extends State<ProfileScreen>
 
     final request = http.MultipartRequest('POST', uri)
       ..headers['Authorization'] = 'Bearer $token'
-      ..fields['mobile'] = _mobileController.text; // only mobile, no file
+      ..fields['phone'] = _mobileController.text; // only mobile, no file
 
     try {
       final streamedResponse = await request.send();
@@ -249,16 +253,19 @@ class _ProfileScreenState extends State<ProfileScreen>
       if (response.statusCode == 200) {
         final res = json.decode(response.body);
         print("✅ Mobile updated: ${res['message']}");
+        print("✅ Mobile updated: ${res['body']}");
         setState(() {
           mobile = _mobileController.text;
         });
-        Get.snackbar(
-          "Success",
-          res['message'] ?? "Mobile updated",
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
+
+        showSuccessMessage(
+          context,
+          message: res['message'] ?? "Mobile updated",
         );
+        await fetchProfileData();
       } else {
+        final res = json.decode(response.body);
+        showErrorMessage(context, message: res['message'] ?? "Mobile updated");
         print("❌ Failed: ${response.body}");
       }
     } catch (e) {
@@ -346,12 +353,13 @@ class _ProfileScreenState extends State<ProfileScreen>
       if (response.statusCode == 200) {
         final errorMessage =
             json.decode(response.body)['message'] ?? 'Unknown error';
-        Get.snackbar(
-          'Success',
-          errorMessage,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
+        showSuccessMessage(context, message: errorMessage);
+        // Get.snackbar(
+        //   'Success',
+        //   errorMessage,
+        //   backgroundColor: Colors.green,
+        //   colorText: Colors.white,
+        // );
         fetchProfileData();
       }
     } catch (e) {
@@ -375,12 +383,20 @@ class _ProfileScreenState extends State<ProfileScreen>
         'https://feedbacks.smartassistapp.in/user-feedback/feedback/${userId}\n\n',
       );
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to share profile: ${e.toString()}',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+      showErrorMessage(
+        context,
+        message: 'Failed to share profile: ${e.toString()}',
       );
+      showErrorMessage(
+        context,
+        message: 'Failed to share profile: ${e.toString()}',
+      );
+      // Get.snackbar(
+      //   'Error',
+      //   'Failed to share profile: ${e.toString()}',
+      //   backgroundColor: Colors.red,
+      //   colorText: Colors.white,
+      // );
     }
   }
 
@@ -830,6 +846,10 @@ class _ProfileScreenState extends State<ProfileScreen>
                     ? TextField(
                         controller: _mobileController,
                         keyboardType: TextInputType.phone,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly, // only digits
+                          LengthLimitingTextInputFormatter(10), // max 10 digits
+                        ],
                         decoration: InputDecoration(
                           isDense: true,
                           contentPadding: const EdgeInsets.symmetric(

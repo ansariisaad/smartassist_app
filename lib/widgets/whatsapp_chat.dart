@@ -1,14 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
-// import 'dart:typed_data';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:external_app_launcher/external_app_launcher.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
@@ -193,14 +191,6 @@ class _MessageBubbleState extends State<MessageBubble> {
                 imageUrl: widget.message.mediaUrl!,
                 heroTag: widget.message.id ?? widget.message.mediaUrl,
               ),
-
-            // Video handling - ADD THIS NEW SECTION
-            // if (widget.message.type == 'video' &&
-            //     widget.message.mediaUrl != null)
-            //   ClickableMessageVideo(
-            //     videoUrl: widget.message.mediaUrl!,
-            //     heroTag: widget.message.id ?? widget.message.mediaUrl,
-            //   ),
             // Document handling
             if (widget.message.type == 'document' &&
                 widget.message.media != null)
@@ -224,81 +214,6 @@ class _MessageBubbleState extends State<MessageBubble> {
       ),
     );
   }
-
-  // Widget _buildVideoWidget() {
-  //   return Container(
-  //     width: 200,
-  //     height: 150,
-  //     decoration: BoxDecoration(
-  //       color: Colors.black,
-  //       borderRadius: BorderRadius.circular(8),
-  //     ),
-  //     child: Stack(
-  //       alignment: Alignment.center,
-  //       children: [
-  //         // Video thumbnail placeholder
-  //         Container(
-  //           width: double.infinity,
-  //           height: double.infinity,
-  //           decoration: BoxDecoration(
-  //             color: Colors.grey[800],
-  //             borderRadius: BorderRadius.circular(8),
-  //           ),
-  //           child: Icon(Icons.videocam, size: 40, color: Colors.white),
-  //         ),
-  //         // Play button overlay
-  //         Container(
-  //           decoration: BoxDecoration(
-  //             color: Colors.black54,
-  //             shape: BoxShape.circle,
-  //           ),
-  //           child: IconButton(
-  //             icon: Icon(Icons.play_arrow, color: Colors.white, size: 30),
-  //             onPressed: () {
-  //               // Handle video playback
-  //               _playVideo();
-  //             },
-  //           ),
-  //         ),
-  //         // Duration badge (optional)
-  //         Positioned(
-  //           bottom: 8,
-  //           right: 8,
-  //           child: Container(
-  //             padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-  //             decoration: BoxDecoration(
-  //               color: Colors.black54,
-  //               borderRadius: BorderRadius.circular(4),
-  //             ),
-  //             child: Text(
-  //               'Video',
-  //               style: TextStyle(color: Colors.white, fontSize: 10),
-  //             ),
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
-  // void _playVideo() {
-  //   // You can implement video playback here
-  //   // For now, show a message or navigate to video player
-  //   ScaffoldMessenger.of(context).showSnackBar(
-  //     SnackBar(
-  //       content: Text('Video playback not implemented yet'),
-  //       duration: Duration(seconds: 2),
-  //     ),
-  //   );
-
-  //   // Or you can implement actual video playback using video_player package
-  //   Navigator.push(
-  //     context,
-  //     MaterialPageRoute(
-  //       builder: (context) => WhatsappVideo(videoUrl: widget.message.mediaUrl!),
-  //     ),
-  //   );
-  // }
 
   Widget _buildDocumentWidget() {
     final media = widget.message.media;
@@ -936,17 +851,20 @@ class _WhatsappChatState extends State<WhatsappChat>
   }
 
   Future<void> resendQR() async {
-    if (!isConnected) {
-      showErrorMessage(context, message: 'Not connected to server.');
+    // if (!isConnected) {
+    //   showErrorMessage(context, message: 'Not connected to server.');
 
-      return;
-    }
+    //   return;
+    // }
 
-    setState(() {
-      isWhatsAppLoading = true;
-      loadingMessage = 'Regenerating QR code...';
-    });
+    // setState(() {
+    //   isWhatsAppLoading = true;
+    //   loadingMessage = 'Regenerating QR code...';
+    // });
 
+    // await initWhatsAppChat(context);
+
+    await initWhatsAppChat(context);
     socket.emit('resend_qr', {'sessionId': spId, 'email': email});
   }
 

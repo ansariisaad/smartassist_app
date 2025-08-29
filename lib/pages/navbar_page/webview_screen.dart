@@ -15,7 +15,9 @@ class SmartAssistWebView extends StatefulWidget {
 class _SmartAssistWebViewState extends State<SmartAssistWebView> {
   final GlobalKey webViewKey = GlobalKey();
   InAppWebViewController? webViewController;
+  // ignore: deprecated_member_use
   InAppWebViewGroupOptions options = InAppWebViewGroupOptions(
+    // ignore: deprecated_member_use
     crossPlatform: InAppWebViewOptions(
       useShouldOverrideUrlLoading: true,
       mediaPlaybackRequiresUserGesture: false,
@@ -28,6 +30,7 @@ class _SmartAssistWebViewState extends State<SmartAssistWebView> {
       clearCache: false,
       supportZoom: true,
     ),
+    // ignore: deprecated_member_use
     android: AndroidInAppWebViewOptions(
       useHybridComposition: true,
       allowContentAccess: true,
@@ -35,6 +38,7 @@ class _SmartAssistWebViewState extends State<SmartAssistWebView> {
       domStorageEnabled: true,
       databaseEnabled: true,
     ),
+    // ignore: deprecated_member_use
     ios: IOSInAppWebViewOptions(
       allowsInlineMediaPlayback: true,
       allowsBackForwardNavigationGestures: true,
@@ -52,6 +56,7 @@ class _SmartAssistWebViewState extends State<SmartAssistWebView> {
     super.initState();
 
     pullToRefreshController = PullToRefreshController(
+      // ignore: deprecated_member_use
       options: PullToRefreshOptions(color: Colors.blue),
       onRefresh: () async {
         if (Platform.isAndroid) {
@@ -79,7 +84,7 @@ class _SmartAssistWebViewState extends State<SmartAssistWebView> {
           alignment: Alignment.centerLeft,
           child: Text('Smart Assist', style: AppFont.appbarfontWhite(context)),
         ),
-        backgroundColor: const Color(0xff2563eb),
+        backgroundColor: AppColors.colorsBlue,
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
@@ -100,7 +105,7 @@ class _SmartAssistWebViewState extends State<SmartAssistWebView> {
                 value: progress,
                 backgroundColor: Colors.grey[300],
                 valueColor: const AlwaysStoppedAnimation<Color>(
-                  Color(0xff2563eb),
+                  AppColors.colorsBlue,
                 ),
               ),
 
@@ -109,7 +114,7 @@ class _SmartAssistWebViewState extends State<SmartAssistWebView> {
               child: Stack(
                 children: [
                   InAppWebView(
-                    key: webViewKey, 
+                    key: webViewKey,
                     initialUrlRequest: URLRequest(
                       url: WebUri("https://payroll.razorpay.com/"),
                     ),
@@ -164,12 +169,14 @@ class _SmartAssistWebViewState extends State<SmartAssistWebView> {
 
                           return NavigationActionPolicy.CANCEL;
                         },
+                    // ignore: deprecated_member_use
                     onLoadError: (controller, url, code, message) {
                       setState(() {
                         isLoading = false;
                       });
                       _showErrorDialog("Load Error", message);
                     },
+                    // ignore: deprecated_member_use
                     onLoadHttpError:
                         (controller, url, statusCode, description) {
                           setState(() {
@@ -242,7 +249,7 @@ class _SmartAssistWebViewState extends State<SmartAssistWebView> {
 
 // home_page.dart - Your existing home page with updated navigation
 class HomePage extends StatelessWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -403,7 +410,9 @@ class _ExternalWebViewState extends State<ExternalWebView> {
               child: InAppWebView(
                 key: webViewKey,
                 initialUrlRequest: URLRequest(url: WebUri(widget.url)),
+                // ignore: deprecated_member_use
                 initialOptions: InAppWebViewGroupOptions(
+                  // ignore: deprecated_member_use
                   crossPlatform: InAppWebViewOptions(
                     javaScriptEnabled: true,
                     supportZoom: true,

@@ -37,6 +37,9 @@ class _ProfileScreenState extends State<ProfileScreen>
   double responseTime = 0.0;
   double productKnowledge = 0.0;
 
+  bool isEditingMobile = false;
+  TextEditingController _mobileController = TextEditingController();
+
   // Animation controllers
   late AnimationController _fadeController;
   late AnimationController _slideController;
@@ -97,6 +100,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       setState(() {
+        _mobileController.text = mobile ?? '';
         userId = data['data']['user_id'];
         name = data['data']['name'];
         email = data['data']['email'];
@@ -228,6 +232,40 @@ class _ProfileScreenState extends State<ProfileScreen>
     return true; // iOS permissions are handled automatically
   }
 
+  Future<void> _updateMobileOnly() async {
+    final token = await Storage.getToken();
+    final uri = Uri.parse(
+      'https://dev.smartassistapp.in/api/users/profile/set',
+    );
+
+    final request = http.MultipartRequest('POST', uri)
+      ..headers['Authorization'] = 'Bearer $token'
+      ..fields['mobile'] = _mobileController.text; // only mobile, no file
+
+    try {
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        final res = json.decode(response.body);
+        print("✅ Mobile updated: ${res['message']}");
+        setState(() {
+          mobile = _mobileController.text;
+        });
+        Get.snackbar(
+          "Success",
+          res['message'] ?? "Mobile updated",
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+      } else {
+        print("❌ Failed: ${response.body}");
+      }
+    } catch (e) {
+      print("❌ Error updating mobile: $e");
+    }
+  }
+
   Future<void> _proceedWithImagePicking() async {
     final pickedFile = await ImagePicker().pickImage(
       source: ImageSource.gallery,
@@ -281,73 +319,6 @@ class _ProfileScreenState extends State<ProfileScreen>
       });
     }
   }
-
-  // Future<void> _pickImage() async {
-  //   // Request permissions first
-  //   final hasPermission = await _requestPermissions();
-
-  //   if (!hasPermission) {
-  //     // Show a dialog or snackbar to inform user about permission denial
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(
-  //         content: Text('Storage permission is required to select images'),
-  //         backgroundColor: Colors.red,
-  //       ),
-  //     );
-  //     return;
-  //   }
-  //   final pickedFile = await ImagePicker().pickImage(
-  //     source: ImageSource.gallery,
-  //   );
-
-  //   if (pickedFile == null) return;
-
-  //   File imageFile = File(pickedFile.path);
-
-  //   setState(() {
-  //     _profileImage = imageFile;
-  //     _isUploading = true;
-  //   });
-
-  //   final token = await Storage.getToken();
-  //   final uri = Uri.parse(
-  //     'https://dev.smartassistapp.in/api/users/profile/set',
-  //   );
-
-  //   final request = http.MultipartRequest('POST', uri)
-  //     ..headers['Authorization'] = 'Bearer $token'
-  //     ..files.add(
-  //       http.MultipartFile(
-  //         'file',
-  //         imageFile.readAsBytes().asStream(),
-  //         imageFile.lengthSync(),
-  //         filename: path.basename(imageFile.path),
-  //         contentType: MediaType('image', 'jpeg'),
-  //       ),
-  //     );
-
-  //   try {
-  //     final streamedResponse = await request.send();
-  //     final response = await http.Response.fromStream(streamedResponse);
-
-  //     if (response.statusCode == 200) {
-  //       final res = json.decode(response.body);
-  //       print(response.body);
-  //       print('this is the update img');
-  //       setState(() {
-  //         profilePic = res['data'];
-  //         _profileImage = null;
-  //       });
-  //       // fetchProfileData();
-  //     }
-  //   } catch (e) {
-  //     print("❌ Upload error: $e");
-  //   } finally {
-  //     setState(() {
-  //       _isUploading = false;
-  //     });
-  //   }
-  // }
 
   void _removeImage() {
     setState(() {
@@ -412,59 +383,6 @@ class _ProfileScreenState extends State<ProfileScreen>
       );
     }
   }
-
-  // Future<void> _shareFullBodyScreenshot() async {
-  //   try {
-  //     Get.dialog(
-  //       const Center(child: CircularProgressIndicator()),
-  //       barrierDismissible: false,
-  //     );
-
-  //     final Uint8List? image = await _screenshotController.capture();
-  //     Get.back();
-
-  //     if (image != null) {
-  //       final directory = await getTemporaryDirectory();
-  //       final filePath =
-  //           '${directory.path}/profile_${DateTime.now().millisecondsSinceEpoch}.png';
-  //       final file = File(filePath);
-  //       await file.writeAsBytes(image);
-
-  //       final XFile xFile = XFile(filePath);
-
-  //       await Share.shareXFiles(
-  //         [xFile],
-  //         text:
-  //             'Check out my SmartAssist profile! 🚀\n\n'
-  //             '👤 ${name ?? "User"}\n'
-  //             '📧 ${email ?? ""}\n'
-  //             '📍 ${location ?? ""}\n'
-  //             '⭐ Rating: ${rating.toStringAsFixed(1)}/5\n\n'
-  //             '📊 My Performance Evaluation:\n'
-  //             '• Professionalism: ${(professionalism * 100).toStringAsFixed(0)}%\n'
-  //             '• Efficiency: ${(efficiency * 100).toStringAsFixed(0)}%\n'
-  //             '• Response Time: ${(responseTime * 100).toStringAsFixed(0)}%\n'
-  //             '• Product Knowledge: ${(productKnowledge * 100).toStringAsFixed(0)}%\n\n'
-  //             '#SmartAssist #Profile #Performance',
-  //         subject: '${name ?? "User"}\'s SmartAssist Profile',
-  //       );
-
-  //       Future.delayed(const Duration(seconds: 5), () {
-  //         if (file.existsSync()) {
-  //           file.deleteSync();
-  //         }
-  //       });
-  //     }
-  //   } catch (e) {
-  //     Get.back();
-  //     Get.snackbar(
-  //       'Error',
-  //       'Failed to share profile: ${e.toString()}',
-  //       backgroundColor: Colors.red,
-  //       colorText: Colors.white,
-  //     );
-  //   }
-  // }
 
   bool _isTablet(BuildContext context) =>
       MediaQuery.of(context).size.width > 768;
@@ -867,6 +785,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             mobile ?? '',
             Icons.phone_outlined,
             isDesktop,
+            isEditable: true,
           ),
         ],
       ),
@@ -877,11 +796,13 @@ class _ProfileScreenState extends State<ProfileScreen>
     String label,
     String value,
     IconData icon,
-    bool isDesktop,
-  ) {
+    bool isDesktop, {
+    bool isEditable = false,
+  }) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 0),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
             padding: const EdgeInsets.all(8),
@@ -905,21 +826,103 @@ class _ProfileScreenState extends State<ProfileScreen>
                   ),
                 ),
                 const SizedBox(height: 2),
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: isDesktop ? 16 : 15,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey[900],
-                  ),
-                ),
+                isEditable && isEditingMobile
+                    ? TextField(
+                        controller: _mobileController,
+                        keyboardType: TextInputType.phone,
+                        decoration: InputDecoration(
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 8,
+                          ),
+                          hintText: "Enter Mobile",
+                          border: UnderlineInputBorder(),
+                        ),
+                        style: TextStyle(
+                          fontSize: isDesktop ? 16 : 15,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[900],
+                        ),
+                      )
+                    : Text(
+                        value,
+                        style: TextStyle(
+                          fontSize: isDesktop ? 16 : 15,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[900],
+                        ),
+                      ),
               ],
             ),
           ),
+          if (isEditable)
+            IconButton(
+              icon: Icon(
+                isEditingMobile ? Icons.check : Icons.edit,
+                color: AppColors.colorsBlue,
+                size: 20,
+              ),
+              onPressed: () {
+                if (isEditingMobile) {
+                  _updateMobileOnly();
+                }
+                setState(() {
+                  isEditingMobile = !isEditingMobile;
+                });
+              },
+            ),
         ],
       ),
     );
   }
+
+  // Widget _buildCleanProfileItem(
+  //   String label,
+  //   String value,
+  //   IconData icon,
+  //   bool isDesktop,
+  // ) {
+  //   return Container(
+  //     padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 0),
+  //     child: Row(
+  //       children: [
+  //         Container(
+  //           padding: const EdgeInsets.all(8),
+  //           decoration: BoxDecoration(
+  //             color: Colors.grey[100],
+  //             borderRadius: BorderRadius.circular(8),
+  //           ),
+  //           child: Icon(icon, size: 20, color: Colors.grey[600]),
+  //         ),
+  //         const SizedBox(width: 16),
+  //         Expanded(
+  //           child: Column(
+  //             crossAxisAlignment: CrossAxisAlignment.start,
+  //             children: [
+  //               Text(
+  //                 label,
+  //                 style: TextStyle(
+  //                   fontSize: 13,
+  //                   fontWeight: FontWeight.w500,
+  //                   color: Colors.grey[600],
+  //                 ),
+  //               ),
+  //               const SizedBox(height: 2),
+  //               Text(
+  //                 value,
+  //                 style: TextStyle(
+  //                   fontSize: isDesktop ? 16 : 15,
+  //                   fontWeight: FontWeight.w500,
+  //                   color: Colors.grey[900],
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget _buildEvaluationSection(
     double padding,

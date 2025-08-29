@@ -285,16 +285,12 @@ Future<bool> _requestLocationPermissionsWithDialog() async {
 }
 
 // Helper method to show permission explanation dialog
-Future<bool> _showPermissionDialog() async {
-  // Implement your dialog here
-  // Return true if user agrees to grant permission
+Future<bool> _showPermissionDialog() async { 
   return true;
 }
 
 // Helper method to show settings dialog
-Future<bool> _showSettingsDialog() async {
-  // Implement your dialog here explaining how to enable in settings
-  // Return true if user wants to open settings
+Future<bool> _showSettingsDialog() async { 
   return true;
 }
 

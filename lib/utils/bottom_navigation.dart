@@ -230,7 +230,6 @@ class BottomNavigation extends StatelessWidget {
                   ),
                 );
 
-                // Other users: show image-based Calendar nav item
                 navItems.add(
                   _buildNavItem(
                     context: context,
@@ -244,27 +243,16 @@ class BottomNavigation extends StatelessWidget {
                     index: 1,
                   ),
                 );
-
-                // navItems.add(
-                //   _buildNavItem(
-                //     icon: Icons.home,
-                //     label: 'Home',
-                //     index: 0,
-                //     isIcon: true,
-                //     isImg: false,
-                //   ),
-                // );
               }
-
-              // Add Calendar - index needs to be adjusted based on whether Teams is present
-              // int calendarIndex = controller.userRole.value == "SM" ? 2 : 1;
+              // int xoxoIndex = controller.userRole.value == "SM" ? 3 : 2;
               // navItems.add(
               //   _buildNavItem(
-              //     isImg: true,
-              //     isIcon: false,
-              //     img: Image.asset('assets/calendar.png', fit: BoxFit.contain),
-              //     label: 'Calendar',
-              //     index: calendarIndex,
+              //     context: context,
+              //     isImg: false,
+              //     icon: Icons.new_releases,
+              //     isIcon: true,
+              //     label: 'xoxo',
+              //     index: xoxoIndex,
               //   ),
               // );
 
@@ -509,6 +497,15 @@ class BottomNavigation extends StatelessWidget {
                     ),
                     onTap: () => Get.to(() => CustomerSupportPage()),
                   ),
+
+                  // ListTile(
+                  //   leading: const Icon(Icons.message, size: 28),
+                  //   title: Text(
+                  //     'Smart Assist Pro',
+                  //     style: GoogleFonts.poppins(fontSize: 18),
+                  //   ),
+                  //   onTap: () => Get.to(() => SmartAssistWebView()),
+                  // ),
                   ListTile(
                     leading: const Icon(Icons.logout_outlined, size: 28),
                     title: Text(

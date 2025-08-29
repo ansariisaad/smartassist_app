@@ -36,6 +36,9 @@
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.READ_SMS" /> 
     <uses-permission android:name="android.permission.MICROPHONE" /> 
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.READ_PHONE_NUMBERS"/> 
+
 
     <application 
          android:largeHeap="true"
@@ -45,11 +48,16 @@
          android:icon="@mipmap/ic_launcher"
          android:networkSecurityConfig="@xml/network_security_config"
          android:usesCleartextTraffic="false"
-         android:requestLegacyExternalStorage="true">
+         android:requestLegacyExternalStorage="true"  
+         android:enableOnBackInvokedCallback="true">
          
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="${googleMapsApiKey}" />
+        
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
             
         <activity
             android:name=".MainActivity"
@@ -128,4 +136,14 @@
         <data android:scheme="mailto" />
     </intent>
     </queries>
+
+    <!-- <provider
+        android:name="com.pichillilorenzo.flutter_inappwebview_android.InAppWebViewFileProvider"
+        android:authorities="${applicationId}.flutter_inappwebview_android.fileprovider"
+        android:exported="false"
+        android:grantUriPermissions="true">
+        <meta-data
+            android:name="android.support.FILE_PROVIDER_PATHS"
+            android:resource="@xml/provider_paths" />
+    </provider> -->
 </manifest>

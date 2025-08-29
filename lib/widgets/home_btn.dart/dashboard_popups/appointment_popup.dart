@@ -228,8 +228,13 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
         isValid = false;
       }
 
-      if (startDateController == null || startDateController.text!.isEmpty) {
-        _errors['date'] = 'Please select an action';
+      if (startDateController.text.isEmpty) {
+        _errors['date'] = 'Please select a date';
+        isValid = false;
+      }
+
+      if (startTimeController.text.isEmpty) {
+        _errors['time'] = 'Please select a time';
         isValid = false;
       }
     });
@@ -573,7 +578,6 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
               ),
               const SizedBox(height: 15),
               DateButton(
-                errorText: _errors['date'],
                 isRequired: true,
                 label: 'When?',
                 dateController: startDateController,
@@ -581,6 +585,8 @@ class _AppointmentPopupState extends State<AppointmentPopup> {
                 onDateTap: _pickStartDate,
                 onTimeTap: _pickStartTime,
                 onChanged: (String value) {},
+                dateErrorText: _errors['date'],
+                timeErrorText: _errors['time'],
               ),
               // Row(
               //   children: [

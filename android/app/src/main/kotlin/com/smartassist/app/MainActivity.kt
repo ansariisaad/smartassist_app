@@ -1,4 +1,5 @@
 // 📁 android/app/src/main/kotlin/com/smartassist/app/MainActivity.kt
+// 📁 android/app/src/main/kotlin/com/smartassist/app/MainActivity.kt
 package com.smartassist.app
 
 import io.flutter.embedding.android.FlutterFragmentActivity
@@ -14,11 +15,18 @@ import android.content.Context
 
 class MainActivity: FlutterFragmentActivity() { 
     private val CHANNEL = "testdrive_native_service"
+    private val CALLLOG_CHANNEL = "smartassist/calllog"
     private val TAG = "MainActivity"
+    
+    private lateinit var callLogManager: CallLogManager
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         
+        // Initialize CallLogManager
+        callLogManager = CallLogManager(this)
+        
+        // Existing testdrive channel
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
                 "startBackgroundService" -> {
@@ -39,7 +47,6 @@ class MainActivity: FlutterFragmentActivity() {
                     openAppSettings()
                     result.success(true)
                 }
-                // ✅ ADD: Missing battery optimization methods
                 "isBatteryOptimizationDisabled" -> {
                     val isDisabled = isBatteryOptimizationDisabled()
                     result.success(isDisabled)
@@ -57,15 +64,62 @@ class MainActivity: FlutterFragmentActivity() {
                 }
             }
         }
+
+        // New call log channel
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CALLLOG_CHANNEL).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "listSimAccounts" -> {
+                    try {
+                        val sims = callLogManager.listSimAccounts()
+                        result.success(sims)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error listing SIM accounts", e)
+                        result.error("LIST_SIMS_ERROR", e.message, null)
+                    }
+                }
+                "getCallLogsForAccount" -> {
+                    val accountId = call.argument<String>("phoneAccountId")
+                    val max = call.argument<Int>("limit") ?: 100
+                    val afterMillis = call.argument<Long>("after")
+                    
+                    if (accountId.isNullOrEmpty()) {
+                        result.error("BAD_ARGS", "phoneAccountId is required", null)
+                        return@setMethodCallHandler
+                    }
+                    
+                    try {
+                        val logs = callLogManager.getCallLogsForAccount(accountId, max, afterMillis)
+                        result.success(logs)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error getting call logs for account: $accountId", e)
+                        result.error("QUERY_LOGS_ERROR", e.message, null)
+                    }
+                }
+                "getAllCallLogs" -> {
+                    val max = call.argument<Int>("limit") ?: 100
+                    val afterMillis = call.argument<Long>("after")
+                    
+                    try {
+                        val logs = callLogManager.getAllCallLogs(max, afterMillis)
+                        result.success(logs)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error getting all call logs", e)
+                        result.error("QUERY_ALL_LOGS_ERROR", e.message, null)
+                    }
+                }
+                else -> {
+                    result.notImplemented()
+                }
+            }
+        }
     }
 
-    // ✅ ADD: Battery optimization methods
     private fun isBatteryOptimizationDisabled(): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
             powerManager.isIgnoringBatteryOptimizations(packageName)
         } else {
-            true // Battery optimization doesn't exist on older versions
+            true
         }
     }
 
@@ -80,7 +134,6 @@ class MainActivity: FlutterFragmentActivity() {
                 Log.d(TAG, "Opened battery optimization settings")
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to open battery optimization settings", e)
-                // Fallback to general battery optimization settings
                 try {
                     val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
                     startActivity(intent)
@@ -95,7 +148,6 @@ class MainActivity: FlutterFragmentActivity() {
         try {
             Log.d(TAG, "Starting Android background service for event: $eventId")
             
-            // ✅ CRITICAL: Create notification channel BEFORE starting service
             NotificationHelper.createNotificationChannel(this)
             
             val serviceIntent = Intent(this, TestDriveBackgroundService::class.java).apply {
@@ -152,7 +204,7 @@ class MainActivity: FlutterFragmentActivity() {
         } catch (e: Exception) {
             Log.e(TAG, "Failed to open app settings", e)
         }
-    }
+    } 
 }
 
 

@@ -11,7 +11,9 @@ class DateButton extends StatelessWidget {
   final VoidCallback onTimeTap;
   bool isRequired = false;
   final ValueChanged<String> onChanged;
-  final String? errorText;
+  // final String? errorText;
+  final String? dateErrorText;
+  final String? timeErrorText;
 
   DateButton({
     super.key,
@@ -21,8 +23,8 @@ class DateButton extends StatelessWidget {
     required this.onDateTap,
     required this.onTimeTap,
     required this.isRequired,
-    required this.onChanged,
-    this.errorText,
+    required this.onChanged, this.dateErrorText, this.timeErrorText,
+    
   });
 
   @override
@@ -53,7 +55,7 @@ class DateButton extends StatelessWidget {
         const SizedBox(width: 10),
         Expanded(
           child: _buildPickerField(
-            errorText: errorText,
+            errorText: dateErrorText,
             controller: dateController,
             onTap: onDateTap,
             icon: Icons.calendar_month_outlined,
@@ -62,7 +64,7 @@ class DateButton extends StatelessWidget {
         const SizedBox(width: 10),
         Expanded(
           child: _buildPickerField(
-            errorText: errorText,
+            errorText: timeErrorText,
             controller: timeController,
             onTap: onTimeTap,
             icon: Icons.watch_later_outlined,

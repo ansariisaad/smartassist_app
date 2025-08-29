@@ -80,11 +80,54 @@
 	</array>
 
 	<!-- APP TRANSPORT SECURITY -->
+	<!-- <key>NSAppTransportSecurity</key>
+	<dict> -->
+		<!-- Disable arbitrary loads globally -->
+		<!-- <key>NSAllowsArbitraryLoads</key>
+		<false/> -->
+
+		<!-- Add exceptions for your specific domain -->
+		<!-- <key>NSExceptionDomains</key>
+		<dict>
+			<key>www.yourserver.com</key>
+			<dict> -->
+				<!-- Enable subdomains -->
+				<!-- <key>NSIncludesSubdomains</key>
+				<true/> -->
+				
+				<!-- Allow HTTP (insecure) loads for this domain -->
+				<!-- <key>NSTemporaryExceptionAllowsInsecureHTTPLoads</key>
+				<true/> -->
+				
+				<!-- Minimum TLS version -->
+				<!-- <key>NSTemporaryExceptionMinimumTLSVersion</key>
+				<string>TLSv1.1</string>
+			</dict>
+		</dict>
+	</dict> -->
 	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<false/>
-	</dict>
+    <dict>
+        <!-- Disable arbitrary loads globally for security -->
+        <key>NSAllowsArbitraryLoads</key>
+        <false/>
+
+        <!-- Add exceptions for your specific domains -->
+        <key>NSExceptionDomains</key>
+        <dict>
+            <key>ariantechsolutions.com</key>
+            <dict>
+                <key>NSIncludesSubdomains</key>
+                <true/>
+                <key>NSTemporaryExceptionAllowsInsecureHTTPLoads</key>
+                <true/>
+                <key>NSTemporaryExceptionMinimumTLSVersion</key>
+                <string>TLSv1.1</string>
+            </dict>
+        </dict>
+    </dict>
+
+
+
 
 	<!-- FLUTTER AND APP CONFIG -->
 	<key>io.flutter.embedded_views_preview</key>

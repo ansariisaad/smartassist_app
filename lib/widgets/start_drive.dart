@@ -123,7 +123,7 @@ class _StartDriveMapState extends State<StartDriveMap>
   DateTime? driveStartTime;
   DateTime? driveEndTime;
   DateTime? pauseStartTime;
-  int totalPausedDuration = 0; // in seconds
+  int totalPausedDuration = 0;
   bool isDrivePaused = false;
 
   StreamSubscription<Position>? positionStreamSubscription;

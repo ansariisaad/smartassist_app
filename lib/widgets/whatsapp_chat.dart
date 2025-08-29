@@ -1,14 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
-import 'dart:typed_data';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:external_app_launcher/external_app_launcher.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
@@ -16,6 +14,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
+import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/utils/token_manager.dart';
 import 'package:smartassist/widgets/reusable/whatsapp_fullscreen.dart'
@@ -50,30 +49,6 @@ class Message {
     this.id,
     this.media,
   });
-
-  // factory Message.fromJson(Map<String, dynamic> json) {
-  //   String? mediaUrl;
-
-  //   // Handle media data from server
-  //   if (json['media'] != null && json['media']['base64'] != null) {
-  //     final mediaData = json['media'];
-  //     final base64Data = mediaData['base64'];
-  //     final mimeType = mediaData['mimetype'] ?? '';
-  //     // Convert base64 to data URL for display
-  //     mediaUrl = 'data:$mimeType;base64,$base64Data';
-  //   }
-
-  //   return Message(
-  //     body: json['body'] ?? '',
-  //     fromMe: json['fromMe'] ?? false,
-  //     timestamp:
-  //         json['timestamp'] ?? (DateTime.now().millisecondsSinceEpoch ~/ 1000),
-  //     type: json['type'] ?? 'chat',
-  //     mediaUrl: mediaUrl ?? json['mediaUrl'],
-  //     id: json['id'],
-  //     media: json['media'],
-  //   );
-  // }
 
   factory Message.fromJson(Map<String, dynamic> json) {
     String? mediaUrl;
@@ -216,14 +191,6 @@ class _MessageBubbleState extends State<MessageBubble> {
                 imageUrl: widget.message.mediaUrl!,
                 heroTag: widget.message.id ?? widget.message.mediaUrl,
               ),
-
-            // Video handling - ADD THIS NEW SECTION
-            // if (widget.message.type == 'video' &&
-            //     widget.message.mediaUrl != null)
-            //   ClickableMessageVideo(
-            //     videoUrl: widget.message.mediaUrl!,
-            //     heroTag: widget.message.id ?? widget.message.mediaUrl,
-            //   ),
             // Document handling
             if (widget.message.type == 'document' &&
                 widget.message.media != null)
@@ -247,81 +214,6 @@ class _MessageBubbleState extends State<MessageBubble> {
       ),
     );
   }
-
-  // Widget _buildVideoWidget() {
-  //   return Container(
-  //     width: 200,
-  //     height: 150,
-  //     decoration: BoxDecoration(
-  //       color: Colors.black,
-  //       borderRadius: BorderRadius.circular(8),
-  //     ),
-  //     child: Stack(
-  //       alignment: Alignment.center,
-  //       children: [
-  //         // Video thumbnail placeholder
-  //         Container(
-  //           width: double.infinity,
-  //           height: double.infinity,
-  //           decoration: BoxDecoration(
-  //             color: Colors.grey[800],
-  //             borderRadius: BorderRadius.circular(8),
-  //           ),
-  //           child: Icon(Icons.videocam, size: 40, color: Colors.white),
-  //         ),
-  //         // Play button overlay
-  //         Container(
-  //           decoration: BoxDecoration(
-  //             color: Colors.black54,
-  //             shape: BoxShape.circle,
-  //           ),
-  //           child: IconButton(
-  //             icon: Icon(Icons.play_arrow, color: Colors.white, size: 30),
-  //             onPressed: () {
-  //               // Handle video playback
-  //               _playVideo();
-  //             },
-  //           ),
-  //         ),
-  //         // Duration badge (optional)
-  //         Positioned(
-  //           bottom: 8,
-  //           right: 8,
-  //           child: Container(
-  //             padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-  //             decoration: BoxDecoration(
-  //               color: Colors.black54,
-  //               borderRadius: BorderRadius.circular(4),
-  //             ),
-  //             child: Text(
-  //               'Video',
-  //               style: TextStyle(color: Colors.white, fontSize: 10),
-  //             ),
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
-  // void _playVideo() {
-  //   // You can implement video playback here
-  //   // For now, show a message or navigate to video player
-  //   ScaffoldMessenger.of(context).showSnackBar(
-  //     SnackBar(
-  //       content: Text('Video playback not implemented yet'),
-  //       duration: Duration(seconds: 2),
-  //     ),
-  //   );
-
-  //   // Or you can implement actual video playback using video_player package
-  //   Navigator.push(
-  //     context,
-  //     MaterialPageRoute(
-  //       builder: (context) => WhatsappVideo(videoUrl: widget.message.mediaUrl!),
-  //     ),
-  //   );
-  // }
 
   Widget _buildDocumentWidget() {
     final media = widget.message.media;
@@ -901,12 +793,7 @@ class _WhatsappChatState extends State<WhatsappChat>
         isWhatsAppReady = false;
         isCheckingStatus = false;
       });
-      Get.snackbar(
-        'Error',
-        'Failed to check WhatsApp status',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      showErrorMessage(context, message: 'Failed to check WhatsApp status');
     }
   }
 
@@ -954,12 +841,8 @@ class _WhatsappChatState extends State<WhatsappChat>
       }
     } catch (e) {
       print('Error initializing WhatsApp chat: $e');
-      Get.snackbar(
-        'Error',
-        'Failed to initialize WhatsApp chat',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+
+      showErrorMessage(context, message: 'Failed to initialize WhatsApp chat.');
     } finally {
       setState(() {
         isLoading = false;
@@ -968,22 +851,21 @@ class _WhatsappChatState extends State<WhatsappChat>
   }
 
   Future<void> resendQR() async {
-    if (!isConnected) {
-      Get.snackbar(
-        'Error',
-        'Not connected to server',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-      return;
-    }
+    // if (!isConnected) {
+    //   showErrorMessage(context, message: 'Not connected to server.');
 
-    setState(() {
-      isWhatsAppLoading = true;
-      loadingMessage = 'Regenerating QR code...';
-    });
+    //   return;
+    // }
 
-    socket.emit('resend_qr', {'sessionId': spId});
+    // setState(() {
+    //   isWhatsAppLoading = true;
+    //   loadingMessage = 'Regenerating QR code...';
+    // });
+
+    // await initWhatsAppChat(context);
+
+    await initWhatsAppChat(context);
+    socket.emit('resend_qr', {'sessionId': spId, 'email': email});
   }
 
   Future<void> launchWhatsAppScanner() async {
@@ -997,13 +879,12 @@ class _WhatsappChatState extends State<WhatsappChat>
       print('WhatsApp launched successfully');
     } catch (e) {
       print('Error launching WhatsApp: $e');
-      Get.snackbar(
-        'Error',
-        e.toString().contains('not installed')
-            ? 'Please install WhatsApp to continue'
+
+      showErrorMessage(
+        context,
+        message: e.toString().contains('not installed')
+            ? 'Please install whatsapp to continue'
             : 'Failed to open WhatsApp',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
       );
     }
   }
@@ -1041,7 +922,7 @@ class _WhatsappChatState extends State<WhatsappChat>
     socket.onConnect((_) {
       print('Socket connected');
       _stopReconnectTimer();
-      socket.emit('register_session', {'sessionId': spId});
+      socket.emit('register_session', {'sessionId': spId, 'email': email});
       print('Emitted register_session: sessionId=$spId');
       setState(() {
         isConnected = true;
@@ -1100,11 +981,10 @@ class _WhatsappChatState extends State<WhatsappChat>
         isLoggedOut = true; // Set logout flag on auth failure
         messages.clear(); // Clear messages on auth failure
       });
-      Get.snackbar(
-        'Error',
-        data['error'] ?? 'WhatsApp authentication failed',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+
+      showErrorMessage(
+        context,
+        message: data['error'] ?? 'WhatsApp authentication Failed.',
       );
     });
 
@@ -1116,12 +996,10 @@ class _WhatsappChatState extends State<WhatsappChat>
         loadingMessage = '';
         isLoggedOut = true; // Show reconnect button
       });
-      Get.snackbar(
-        'QR Code Expired',
-        data['message'] ?? 'QR code expired, please rescan.',
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-        duration: Duration(seconds: 4),
+
+      showErrorMessage(
+        context,
+        message: data['message'] ?? 'QR code expired, please rescan.',
       );
     });
 
@@ -1132,11 +1010,10 @@ class _WhatsappChatState extends State<WhatsappChat>
         isWhatsAppLoading = false; // Stop loading on disconnect
         loadingMessage = '';
       });
-      Get.snackbar(
-        'Disconnected',
-        data['message'] ?? 'WhatsApp disconnected',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+
+      showErrorMessage(
+        context,
+        message: data['message'] ?? data['message'] ?? 'WhatsApp disconnected',
       );
     });
 
@@ -1151,13 +1028,11 @@ class _WhatsappChatState extends State<WhatsappChat>
         messages.clear(); // Clear messages on logout
       });
       // Show a snackbar to inform user about logout
-      Get.snackbar(
-        'WhatsApp Logged Out',
-        data['message'] ??
+      showErrorMessage(
+        context,
+        message:
+            data['message'] ??
             'WhatsApp session has been logged out. Please reconnect.',
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-        duration: Duration(seconds: 4),
       );
     });
 
@@ -1221,12 +1096,7 @@ class _WhatsappChatState extends State<WhatsappChat>
         isWhatsAppLoading = false; // Stop loading on error
         loadingMessage = '';
       });
-      Get.snackbar(
-        'Error',
-        data['error'] ?? 'Unknown error',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      showErrorMessage(context, message: data['error'] ?? 'Unknown error');
     });
 
     socket.on('QrSend', (data) {
@@ -1471,12 +1341,8 @@ class _WhatsappChatState extends State<WhatsappChat>
       });
     } catch (e) {
       print('Error sending video: $e');
-      Get.snackbar(
-        'Error',
-        'Failed to send video',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+
+      showErrorMessage(context, message: 'Failed to send video');
     } finally {
       setState(() {
         isSendingImage = false;
@@ -1593,12 +1459,8 @@ class _WhatsappChatState extends State<WhatsappChat>
       });
     } catch (e) {
       print('Error sending document: $e');
-      Get.snackbar(
-        'Error',
-        'Failed to send document',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+
+      showErrorMessage(context, message: 'Failed to send document');
     } finally {
       setState(() {
         isSendingDocument = false;
@@ -1675,12 +1537,8 @@ class _WhatsappChatState extends State<WhatsappChat>
       });
     } catch (e) {
       print('Error sending image: $e');
-      Get.snackbar(
-        'Error',
-        'Failed to send image',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+
+      showErrorMessage(context, message: 'Failed to send image.');
     } finally {
       setState(() {
         isSendingImage = false;
@@ -1780,12 +1638,6 @@ class _WhatsappChatState extends State<WhatsappChat>
                 if (!isConnected || !isWhatsAppReady) {
                   socket.connect();
                   checkWhatsAppStatus();
-                  // Get.snackbar(
-                  //   'Info',
-                  //   'Reconnecting...',
-                  //   backgroundColor: AppColors.colorsBlue,
-                  //   colorText: Colors.white,
-                  // );
                 }
               },
             ),

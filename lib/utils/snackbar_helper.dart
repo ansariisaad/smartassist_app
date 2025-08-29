@@ -12,7 +12,7 @@ void showErrorMessage(BuildContext context, {required String message}) {
           color: Colors.white,
         ), // Ensure text is readable
       ),
-      duration: Duration(seconds: 2),
+      duration: const Duration(seconds: 2),
       behavior: SnackBarBehavior.floating, // Optional: Makes it float above UI
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10), // Optional: rounded corners

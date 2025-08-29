@@ -1,19 +1,20 @@
 import 'dart:convert';
-import 'package:call_log/call_log.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
+import 'package:smartassist/config/controller/calllogs_channel.dart';
 import 'package:smartassist/config/controller/tab_controller.dart';
 import 'package:smartassist/config/getX/fab.controller.dart';
 import 'package:smartassist/pages/Home/gloabal_search_page/global_search.dart';
 import 'package:smartassist/pages/notification/notification.dart';
 import 'package:smartassist/services/api_srv.dart';
+import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/home_btn.dart/dashboard_analytics_two.dart';
 import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/appointment_popup.dart';
@@ -64,6 +65,8 @@ class _HomeScreenState extends State<HomeScreen> {
   List<dynamic> overdueTestDrives = [];
   bool isDashboardLoading = true;
   String? teamRole;
+  bool _simSelectionChecked = false;
+  String? _selectedSimId;
 
   String? profilePicUrl; // Make nullable
   Map<String, dynamic> dashboardData = {};
@@ -71,6 +74,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<String, dynamic> QtdData = {};
   Map<String, dynamic> YtdData = {};
 
+  bool _permissionsGranted = false;
+  bool _permissionsChecked = false;
   // Search Functionality
   final TextEditingController _searchController = TextEditingController();
   List<dynamic> _searchResults = [];
@@ -101,14 +106,29 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  // Call this method when FAB seems disabled
-  // void debugFabState() {
-  //   fabController.logFabState();
-  //   if (fabController.isFabDisabled.value) {
-  //     print('FAB is disabled - forcing re-enable');
-  //     fabController.isFabDisabled.value = false;
-  //   }
-  // }
+  Future<bool> _checkAndRequestPermissions() async {
+    // If already checked and granted, return true
+    if (_permissionsChecked && _permissionsGranted) {
+      return true;
+    }
+
+    // Check current permission status
+    final hasPermissions = await CalllogChannel.arePermissionsGranted();
+
+    if (hasPermissions) {
+      _permissionsGranted = true;
+      _permissionsChecked = true;
+      return true;
+    }
+
+    // Only request if not checked before
+    if (!_permissionsChecked) {
+      _permissionsGranted = await CalllogChannel.requestPermissions();
+      _permissionsChecked = true;
+    }
+
+    return _permissionsGranted;
+  }
 
   Future<void> _loadDashboardAnalytics() async {
     setState(() {
@@ -147,71 +167,200 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // call log after login
   Future<void> uploadCallLogsAfterLogin() async {
-    // Request permission
-    if (!await Permission.phone.isGranted) {
-      var status = await Permission.phone.request();
-      if (!status.isGranted) {
-        print('Permission denied');
-        return;
-      }
-    }
-
-    // Fetch call logs
-    Iterable<CallLogEntry> entries = await CallLog.get();
-    List<CallLogEntry> callLogs = entries.toList();
-
-    if (callLogs.isEmpty) {
-      print('No call logs to send');
+    // Check permissions first
+    final hasPermissions = await _checkAndRequestPermissions();
+    if (!hasPermissions) {
+      showErrorMessage(
+        context,
+        message: 'Phone permissions required to access call logs',
+      );
       return;
     }
 
-    // Format logs
-    List<Map<String, dynamic>> formattedLogs = callLogs.map((log) {
-      return {
-        'name': log.name ?? 'Unknown',
-        'start_time': log.timestamp?.toString() ?? '',
-        'mobile': log.number ?? '',
-        'call_type': log.callType?.toString().split('.').last ?? '',
-        'call_duration': log.duration?.toString() ?? '',
-        'unique_key':
-            '${log.timestamp?.toString() ?? ''}${log.number ?? ''}${log.callType?.toString()}${log.duration?.toString()}',
-      };
-    }).toList();
-
-    print(jsonEncode(formattedLogs));
-
-    // Send to API
-    final token = await Storage.getToken();
-    const apiUrl = 'https://dev.smartassistapp.in/api/leads/create-call-logs';
-
     try {
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(formattedLogs),
-      );
-      print('hello');
-      if (response.statusCode == 201) {
-        print('Call logs uploaded successfully');
+      // Get available SIMs
+      final sims = await CalllogChannel.listSimAccounts();
 
-        print('this is the response call log ${response.body}');
-      } else {
-        print('Failed: ${response.statusCode}');
-        print('Response: ${response.body}');
+      if (sims.isEmpty) {
+        showErrorMessage(context, message: 'No SIM cards found');
+        return;
+      }
+
+      Map<String, dynamic>? selectedSim;
+      final prefs = await SharedPreferences.getInstance();
+      final storedSimId = prefs.getString('selected_sim_id');
+
+      // Debug: Print SIM data structure to understand available fields
+      print('Available SIMs: $sims');
+
+      // Check if we have a stored SIM selection
+      if (storedSimId != null) {
+        // Find the previously selected SIM using phoneAccountId or other identifier
+        try {
+          selectedSim = sims.firstWhere(
+            (sim) =>
+                (sim['phoneAccountId']?.toString() ??
+                    sim['id']?.toString() ??
+                    sim.toString()) ==
+                storedSimId,
+          );
+          print(
+            'Using stored SIM selection: ${selectedSim['label'] ?? selectedSim['displayName'] ?? 'Unknown SIM'}',
+          );
+        } catch (e) {
+          // Previously selected SIM not found, clear storage and show dialog
+          await prefs.remove('selected_sim_id');
+          selectedSim = null;
+          print('Previously selected SIM not found, will show dialog');
+        }
+      }
+
+      // If no stored selection or stored SIM not found
+      if (selectedSim == null) {
+        if (sims.length == 1) {
+          selectedSim = sims.first;
+          print(
+            'Auto-selected single SIM: ${selectedSim['label'] ?? selectedSim['displayName'] ?? 'Unknown SIM'}',
+          );
+          // Store the selection using the best available identifier
+          final simId =
+              selectedSim['phoneAccountId']?.toString() ??
+              selectedSim['id']?.toString() ??
+              selectedSim.toString();
+          await prefs.setString('selected_sim_id', simId);
+        } else {
+          // Multiple SIMs, show selection dialog
+          selectedSim = await _showSimSelectionDialog(sims);
+          if (selectedSim != null) {
+            // Store the user's choice using the best available identifier
+            final simId =
+                selectedSim['phoneAccountId']?.toString() ??
+                selectedSim['id']?.toString() ??
+                selectedSim.toString();
+            await prefs.setString('selected_sim_id', simId);
+            print(
+              'User selected and stored SIM: ${selectedSim['label'] ?? selectedSim['displayName'] ?? 'Unknown SIM'}',
+            );
+          }
+        }
+      }
+
+      if (selectedSim != null) {
+        await _uploadCallLogsForSim(selectedSim);
       }
     } catch (e) {
-      print('Upload error: $e');
+      print('Error in upload process: $e');
+      showErrorMessage(context, message: 'Error accessing SIM cards: $e');
     }
   }
 
-  // Handle form submission from popups
-  // Future<void> _handleFormSubmit() async {
-  //   print("🔄 Dashboard refresh called from ProfileScreen");
-  //   await fetchDashboardData(isRefresh: true);
-  //   print("✅ Dashboard refresh completed");
+  // Add this helper method anywhere in your class:
+  Future<void> clearStoredSimSelection() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('selected_sim_id');
+    print('Stored SIM selection cleared');
+  }
+  // Future<void> uploadCallLogsAfterLogin() async {
+  //   // Check permissions first
+  //   final hasPermissions = await _checkAndRequestPermissions();
+  //   if (!hasPermissions) {
+  //     showErrorMessage(
+  //       context,
+  //       message: 'Phone permissions required to access call logs',
+  //     );
+  //     return;
+  //   }
+
+  //   try {
+  //     // Get available SIMs
+  //     final sims = await CalllogChannel.listSimAccounts();
+
+  //     if (sims.isEmpty) {
+  //       showErrorMessage(context, message: 'No SIM cards found');
+  //       return;
+  //     }
+
+  //     Map<String, dynamic>? selectedSim;
+
+  //     // Check if we already have a selected SIM stored
+  //     if (_simSelectionChecked && _selectedSimId != null) {
+  //       // Find the previously selected SIM
+  //       selectedSim = sims.firstWhere(
+  //         (sim) => sim['id'] == _selectedSimId,
+  //         orElse: () => sims.first, // Fallback to first SIM if not found
+  //       );
+  //       print('Using previously selected SIM: ${selectedSim['label']}');
+  //     } else {
+  //       // First time selection logic
+  //       if (sims.length == 1) {
+  //         selectedSim = sims.first;
+  //         print('Auto-selected single SIM: ${selectedSim['label']}');
+  //         // Store the selection
+  //         _selectedSimId = selectedSim['id'];
+  //         _simSelectionChecked = true;
+  //       } else {
+  //         // Multiple SIMs, show selection dialog
+  //         selectedSim = await _showSimSelectionDialog(sims);
+  //         if (selectedSim != null) {
+  //           // Store the user's choice
+  //           _selectedSimId = selectedSim['id'];
+  //           _simSelectionChecked = true;
+  //           print('User selected SIM: ${selectedSim['label']}');
+  //         }
+  //       }
+  //     }
+
+  //     if (selectedSim != null) {
+  //       await _uploadCallLogsForSim(selectedSim);
+  //     }
+  //   } catch (e) {
+  //     print('Error in upload process: $e');
+  //     showErrorMessage(context, message: 'Error accessing SIM cards: $e');
+  //   }
+  // }
+
+  void resetSimSelection() {
+    _simSelectionChecked = false;
+    _selectedSimId = null;
+  }
+  // Future<void> uploadCallLogsAfterLogin() async {
+  //   // Check permissions first
+  //   final hasPermissions = await _checkAndRequestPermissions();
+  //   if (!hasPermissions) {
+  //     showErrorMessage(
+  //       context,
+  //       message: 'Phone permissions required to access call logs',
+  //     );
+  //     return;
+  //   }
+
+  //   try {
+  //     // Get available SIMs
+  //     final sims = await CalllogChannel.listSimAccounts();
+
+  //     if (sims.isEmpty) {
+  //       showErrorMessage(context, message: 'No SIM cards found');
+  //       return;
+  //     }
+
+  //     Map<String, dynamic>? selectedSim;
+
+  //     // If only one SIM, auto-select it
+  //     if (sims.length == 1) {
+  //       selectedSim = sims.first;
+  //       print('Auto-selected single SIM: ${selectedSim['label']}');
+  //     } else {
+  //       // Multiple SIMs, show selection dialog
+  //       selectedSim = await _showSimSelectionDialog(sims);
+  //     }
+
+  //     if (selectedSim != null) {
+  //       await _uploadCallLogsForSim(selectedSim);
+  //     }
+  //   } catch (e) {
+  //     print('Error in upload process: $e');
+  //     showErrorMessage(context, message: 'Error accessing SIM cards: $e');
+  //   }
   // }
 
   Future<void> _handleFormSubmit() async {
@@ -403,6 +552,331 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // String? teamRole = await SharedPreferences.getInstance()
   // .then((prefs) => prefs.getString('USER_ROLE'));
+
+  Future<Map<String, dynamic>?> _showSimSelectionDialog(
+    List<Map<String, dynamic>> sims,
+  ) async {
+    return await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppColors.white,
+          title: Text(
+            'Select SIM Card',
+            style: AppFont.appbarfontblack(context),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Choose which SIM to upload call logs from:',
+                  style: AppFont.dropDowmLabel(context),
+                ),
+                SizedBox(height: 16.h),
+                ...sims
+                    .map((sim) => _buildEnhancedSimDialogOption(sim))
+                    .toList(),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(null),
+              child: Text('Cancel', style: AppFont.dropDowmLabel(context)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildEnhancedSimDialogOption(Map<String, dynamic> sim) {
+    final label = sim['label'] ?? 'SIM';
+    final slot = sim['simSlotIndex'];
+    final number = sim['number'];
+    final carrier = sim['carrierName'];
+    final isAllSims = sim['phoneAccountId'] == 'all';
+
+    return Container(
+      margin: EdgeInsets.only(bottom: 8.h),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => Navigator.of(context).pop(sim),
+          borderRadius: BorderRadius.circular(8.r),
+          child: Container(
+            padding: EdgeInsets.all(12.w),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.withOpacity(0.3)),
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(8.w),
+                  decoration: BoxDecoration(
+                    color: AppColors.colorsBlue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: Icon(
+                    isAllSims ? Icons.all_inclusive : Icons.sim_card_rounded,
+                    color: AppColors.colorsBlue,
+                    size: 20.w,
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            label,
+                            style: GoogleFonts.poppins(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w500,
+                              color: const Color(0xFF2D3748),
+                            ),
+                          ),
+                          if (slot != null) ...[
+                            SizedBox(width: 8.w),
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 6.w,
+                                vertical: 2.h,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.colorsBlue.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(4.r),
+                              ),
+                              child: Text(
+                                'Slot ${slot + 1}',
+                                style: AppFont.smallText(context),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      if (number != null && number.toString().isNotEmpty) ...[
+                        SizedBox(height: 4.h),
+                        Text(
+                          number.toString(),
+                          style: AppFont.dropDowmLabel(context),
+                        ),
+                      ],
+                      if (carrier != null &&
+                          carrier != label &&
+                          carrier.toString().isNotEmpty) ...[
+                        SizedBox(height: 2.h),
+                        Text(
+                          carrier.toString(),
+                          style: GoogleFonts.poppins(
+                            fontSize: 12.sp,
+                            color: const Color(0xFF718096),
+                          ),
+                        ),
+                      ],
+                      if (isAllSims) ...[
+                        SizedBox(height: 4.h),
+                        Text(
+                          'Upload logs from all SIM cards',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12.sp,
+                            color: const Color(0xFF718096),
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  bool _isLoading = false;
+
+  Future<void> _uploadCallLogsForSim(Map<String, dynamic> selectedSim) async {
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+
+      List<Map<String, dynamic>> callLogs = [];
+
+      final phoneAccountId = selectedSim['phoneAccountId']?.toString() ?? '';
+      if (phoneAccountId == 'all' || phoneAccountId.isEmpty) {
+        callLogs = await CalllogChannel.getAllCallLogs(limit: 500);
+      } else {
+        callLogs = await CalllogChannel.getCallLogsForAccount(
+          phoneAccountId: phoneAccountId,
+          limit: 500,
+        );
+      }
+
+      if (callLogs.isEmpty) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('No call logs found for selected SIM')),
+        );
+        return;
+      }
+
+      List<Map<String, dynamic>> formattedLogs = callLogs.map((log) {
+        return {
+          'name': log['name'] ?? 'Unknown',
+          'start_time':
+              log['timestamp']?.toString() ?? log['date']?.toString() ?? '',
+          'mobile': log['mobile'] ?? log['number'] ?? '',
+          'call_type':
+              log['call_type'] ??
+              CalllogChannel.getCallTypeFromString(log['type']?.toString()),
+          'call_duration': log['duration']?.toString() ?? '',
+          'unique_key':
+              log['unique_key'] ??
+              '${log['number'] ?? log['mobile']}_${log['date'] ?? log['timestamp']}',
+        };
+      }).toList();
+
+      final token = await Storage.getToken();
+      const apiUrl = 'https://dev.smartassistapp.in/api/leads/create-call-logs';
+
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(formattedLogs),
+      );
+
+      if (response.statusCode == 201) {
+        print('Call logs uploaded successfully');
+      } else {
+        throw Exception('Upload failed: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Upload error: $e');
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Upload failed: $e')));
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  // this is working fine
+
+  // Future<void> _uploadCallLogsForSim(Map<String, dynamic> selectedSim) async {
+  //   try {
+  //     // Show loading dialog
+  //     showDialog(
+  //       context: context,
+  //       barrierDismissible: false,
+  //       builder: (context) => AlertDialog(
+  //         content: Row(
+  //           children: [
+  //             CircularProgressIndicator(),
+  //             SizedBox(width: 16.w),
+  //             Text('Uploading call logs...', style: GoogleFonts.poppins()),
+  //           ],
+  //         ),
+  //       ),
+  //     );
+
+  //     List<Map<String, dynamic>> callLogs = [];
+
+  //     // Get call logs based on selected SIM
+  //     final phoneAccountId = selectedSim['phoneAccountId']?.toString() ?? '';
+  //     if (phoneAccountId == 'all' || phoneAccountId.isEmpty) {
+  //       callLogs = await CalllogChannel.getAllCallLogs(limit: 500);
+  //     } else {
+  //       callLogs = await CalllogChannel.getCallLogsForAccount(
+  //         phoneAccountId: phoneAccountId,
+  //         limit: 500,
+  //       );
+  //     }
+
+  //     if (callLogs.isEmpty) {
+  //       Navigator.pop(context); // Close loading dialog
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(
+  //           content: Text('No call logs found for selected SIM'),
+  //           backgroundColor: Colors.orange,
+  //         ),
+  //       );
+  //       return;
+  //     }
+
+  //     // Format logs for API
+  //     List<Map<String, dynamic>> formattedLogs = callLogs.map((log) {
+  //       return {
+  //         'name': log['name'] ?? 'Unknown',
+  //         'start_time':
+  //             log['timestamp']?.toString() ?? log['date']?.toString() ?? '',
+  //         'mobile': log['mobile'] ?? log['number'] ?? '',
+  //         'call_type':
+  //             log['call_type'] ??
+  //             CalllogChannel.getCallTypeFromString(log['type']?.toString()),
+  //         'call_duration': log['duration']?.toString() ?? '',
+  //         'unique_key':
+  //             log['unique_key'] ??
+  //             '${log['number'] ?? log['mobile']}_${log['date'] ?? log['timestamp']}',
+  //       };
+  //     }).toList();
+
+  //     print(
+  //       'Uploading ${formattedLogs.length} call logs for SIM: ${selectedSim['label']}',
+  //     );
+
+  //     // Send to API
+  //     final token = await Storage.getToken();
+  //     const apiUrl = 'https://dev.smartassistapp.in/api/leads/create-call-logs';
+
+  //     final response = await http.post(
+  //       Uri.parse(apiUrl),
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: jsonEncode(formattedLogs),
+  //     );
+
+  //     Navigator.pop(context); // Close loading dialog
+
+  //     if (response.statusCode == 201) {
+  //       print('Call logs uploaded successfully');
+
+  //       // showErrorMessage(
+  //       //   context,
+  //       //   message:
+  //       //       '${formattedLogs.length} call logs uploaded successfully for ${selectedSim['label']}',
+  //       // );
+  //     } else {
+  //       throw Exception('Upload failed: ${response.statusCode}');
+  //     }
+  //   } catch (e) {
+  //     Navigator.pop(context); // Close loading dialog if still open
+  //     print('Upload error: $e');
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('Upload failed: $e'),
+  //         backgroundColor: Colors.red,
+  //       ),
+  //     );
+  //   }
+  // }
 
   void _showAppointmentPopup(BuildContext context) {
     showDialog(

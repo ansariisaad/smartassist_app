@@ -6,6 +6,7 @@ plugins {
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
     id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 
@@ -79,7 +80,11 @@ dependencies {
     implementation ("com.google.android.gms:play-services-location:21.0.1")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation(kotlin("stdlib-jdk8"))
+    implementation("com.google.firebase:firebase-crashlytics-ndk")
+    implementation("com.google.firebase:firebase-analytics")
 }
+    
+
 
 
 // import java.util.Properties

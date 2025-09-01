@@ -24,7 +24,7 @@ class NavigationController extends GetxController {
     if (userRole.value == "SM") {
       baseScreens.insert(0, const MyTeams());
       baseScreens.insert(2, CalendarSm(leadName: ''));
-      // baseScreens.insert(3, SmartAssistWebView());
+      
     } else {
       // Regular calendar screen for other roles
       baseScreens.add(CalendarWithTimeline(leadName: ''));

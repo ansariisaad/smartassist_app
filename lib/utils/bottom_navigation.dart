@@ -11,6 +11,7 @@ import 'package:smartassist/pages/navbar_page/leads_all.dart';
 import 'package:smartassist/pages/navbar_page/logout_page.dart';
 import 'package:smartassist/pages/Home/reassign_enq.dart';
 import 'package:smartassist/pages/Navigation/feedback_nav.dart';
+import 'package:smartassist/pages/navbar_page/webview_screen.dart';
 import 'package:smartassist/utils/navigation_controller.dart' as nav_utils;
 import 'package:smartassist/pages/navbar_page/bottom_tutorial.dart';
 
@@ -244,6 +245,7 @@ class BottomNavigation extends StatelessWidget {
                   ),
                 );
               }
+
               // int xoxoIndex = controller.userRole.value == "SM" ? 3 : 2;
               // navItems.add(
               //   _buildNavItem(
@@ -498,14 +500,14 @@ class BottomNavigation extends StatelessWidget {
                     onTap: () => Get.to(() => CustomerSupportPage()),
                   ),
 
-                  // ListTile(
-                  //   leading: const Icon(Icons.message, size: 28),
-                  //   title: Text(
-                  //     'Smart Assist Pro',
-                  //     style: GoogleFonts.poppins(fontSize: 18),
-                  //   ),
-                  //   onTap: () => Get.to(() => SmartAssistWebView()),
-                  // ),
+                  ListTile(
+                    leading: const Icon(Icons.android_rounded , size: 28),
+                    title: Text(
+                      'XOXO',
+                      style: GoogleFonts.poppins(fontSize: 18),
+                    ),
+                    onTap: () => Get.to(() => SmartAssistWebView()),
+                  ),
                   ListTile(
                     leading: const Icon(Icons.logout_outlined, size: 28),
                     title: Text(

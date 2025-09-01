@@ -1214,62 +1214,7 @@ class _WhatsappChatState extends State<WhatsappChat>
     );
   }
 
-  // void attachment() async {
-  //   showModalBottomSheet(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return Container(
-  //         height: 220,
-  //         child: Column(
-  //           children: [
-  //             ListTile(
-  //               leading: Icon(Icons.picture_as_pdf),
-  //               title: Text('Document', style: AppFont.dropDowmLabel(context)),
-  //               onTap: () async {
-  //                 Navigator.pop(context);
-  //                 // Use file_picker for documents instead of image_picker
-  //                 FilePickerResult? result = await FilePicker.platform
-  //                     .pickFiles(type: FileType.any, allowMultiple: false);
-
-  //                 if (result != null && result.files.single.path != null) {
-  //                   final file = XFile(result.files.single.path!);
-  //                   await sendDocumentMessage(file);
-  //                 }
-  //               },
-  //             ),
-  //             ListTile(
-  //               leading: Icon(Icons.photo),
-  //               title: Text('Photo', style: AppFont.dropDowmLabel(context)),
-  //               onTap: () async {
-  //                 Navigator.pop(context);
-  //                 final XFile? image = await _picker.pickImage(
-  //                   source: ImageSource.gallery,
-  //                   imageQuality: 70,
-  //                 );
-  //                 if (image != null) {
-  //                   await sendImageMessage(image);
-  //                 }
-  //               },
-  //             ),
-  //             ListTile(
-  //               leading: Icon(Icons.videocam),
-  //               title: Text('Video', style: AppFont.dropDowmLabel(context)),
-  //               onTap: () async {
-  //                 Navigator.pop(context);
-  //                 final XFile? video = await _picker.pickVideo(
-  //                   source: ImageSource.gallery,
-  //                 );
-  //                 if (video != null) {
-  //                   await sendVideoMessage(video);
-  //                 }
-  //               },
-  //             ),
-  //           ],
-  //         ),
-  //       );
-  //     },
-  //   );
-  // }
+   
 
   Future<void> sendVideoMessage(XFile video) async {
     if (!isWhatsAppReady) return;

@@ -613,61 +613,80 @@ class LeadsSrv {
       return false;
     }
   }
-  // static Future<bool> submitAppoinment(
-  //   Map<String, dynamic> followupsData,
-  //   String leadId,
 
-  // ) async {
-  //   final token = await Storage.getToken();
+  static Future<String?> webXoxo(context) async {
+    final token = await Storage.getToken();
 
-  //   // Debugging: print the headers and body
-  //   print(
-  //     'Headers: ${{'Authorization': 'Bearer $token', 'Content-Type': 'application/json', 'recordId': leadId}}',
-  //   );
-  //   print('Request body: ${jsonEncode(followupsData)}');
+    // Debugging: print the headers
+    print(
+      'Headers: ${{'Authorization': 'Bearer $token', 'Content-Type': 'application/json'}}',
+    );
 
-  //   try {
-  //     final response = await http.post(
-  //       Uri.parse('${baseUrl}admin/records/$leadId/tasks/create-appointment'),
-  //       headers: {
-  //         'Authorization': 'Bearer $token',
-  //         'Content-Type': 'application/json',
-  //         'recordId': leadId,
-  //       },
-  //       body: jsonEncode(followupsData),
-  //     );
+    try {
+      final response = await http.post(
+        Uri.parse('https://dev.smartassistapp.in/compass/user-token'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
 
-  //     print('API Response Status: ${response.statusCode}');
-  //     print('API Response Body: ${response.body}');
+      final responseData = jsonDecode(response.body);
 
-  //     if (response.statusCode == 201) {
-  //       return true;
-  //     } else {
-  //       print('Error: ${response.statusCode}');
-  //       print('Error details: ${response.body}');
-  //       showErrorMessageGetx(
-  //         message: 'Submission failed: ${response.statusCode}',
-  //       );
-  //       return false;
-  //     }
-  //   } on SocketException {
-  //     showErrorMessageGetx(
-  //       message: 'No internet connection. Please check your network.',
-  //     );
-  //     // return false;
-  //   } on TimeoutException {
-  //     showErrorMessageGetx(
-  //       message: 'Request timed out. Please try again later.',
-  //     );
-  //     return false;
-  //   } catch (e) {
-  //     print('Unexpected error: $e');
-  //     showErrorMessageGetx(
-  //       message: 'An unexpected error occurred. Please try again.',
-  //     );
-  //     return false;
-  //   }
-  // }
+      print('API Response Status: ${response.statusCode}');
+      print('API Response Body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Extract and return the token from response
+        final xoxoToken =
+            responseData['access_token'] ??
+            responseData['token'] ??
+            responseData['data']?['token'] ??
+            responseData['data']?['access_token'];
+        if (xoxoToken != null) {
+          return xoxoToken.toString();
+        } else {
+          print('Token not found in response');
+          print('Available keys: ${responseData.keys.toList()}');
+          showErrorMessage(
+            context,
+            message: 'Authentication token not received',
+          );
+          return null;
+        }
+      } else {
+        print('Error: ${response.statusCode}');
+        print('Error details: ${response.body}');
+        showErrorMessage(
+          context,
+          message:
+              'Authentication failed: ${responseData['message'] ?? 'Unknown error'}',
+        );
+        return null;
+      }
+    } on SocketException {
+      showErrorMessage(
+        context,
+        message: 'No internet connection. Please check your network.',
+      );
+      return null;
+    } on TimeoutException {
+      showErrorMessage(
+        context,
+        message: 'Request timed out. Please try again later.',
+      );
+      return null;
+    } catch (e) {
+      print('Unexpected error: $e');
+      showErrorMessage(context, message: e.toString());
+      return null;
+    }
+  }
+
+  static String buildXoxoUrl(String xoxoToken) {
+    // Simply return the URL with the token - no need for HTTP call
+    return 'https://m.getcompass.ai/?url=oauth&token=$xoxoToken';
+  }
 
   static Future<bool> submitTestDrive(
     Map<String, dynamic> testdriveData,
@@ -1310,6 +1329,63 @@ class LeadsSrv {
       throw Exception(e.toString());
     }
   }
+
+  static Future<Map<String, dynamic>> fetchXoxoUrl(String xoxoToken) async {
+    try {
+      final response = await http.get(
+        Uri.parse('https://m.getcompass.ai/?url=oauth&token=$xoxoToken'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      print('Fetch URL Response Status: ${response.statusCode}');
+      print('Fetch URL Response Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = json.decode(response.body);
+
+        // Return the response data which should contain the URL
+        return jsonResponse;
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard URL';
+
+        throw Exception(
+          'Failed to load dashboard URL: ${response.statusCode} - $errorMessage',
+        );
+      }
+    } catch (e) {
+      print('Fetch URL error: $e');
+      throw Exception('Failed to fetch dashboard URL: ${e.toString()}');
+    }
+  }
+
+  // static Future<Map<String, dynamic>> fetchXoxoUrl(String? xoxoToken) async {
+  //   final token = await Storage.getToken();
+  //   try {
+  //     final response = await http.get(
+  //       Uri.parse('https://m.getcompass.ai/?url=oauth&&token=$xoxoToken'),
+  //       headers: {'Content-Type': 'application/json'},
+  //     );
+
+  //     if (response.statusCode == 200) {
+  //       final Map<String, dynamic> jsonResponse = json.decode(response.body);
+  //       // Dashboard data is nested under "data"
+  //       final Map<String, dynamic> data = jsonResponse['data'];
+  //       return data;
+  //     } else {
+  //       final Map<String, dynamic> errorData = json.decode(response.body);
+  //       final String errorMessage =
+  //           errorData['message'] ?? 'Failed to load dashboard data';
+  //       await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+  //       throw Exception(
+  //         'Failed to load dashboard data: ${response.statusCode}',
+  //       );
+  //     }
+  //   } catch (e) {
+  //     throw Exception(e.toString());
+  //   }
+  // }
 
   // static Future<Map<String, dynamic>> fetchDashboardDataapi() async {
   //   const url = '${baseUrl}users/dashboard?filterType=MTD&category=Leads';

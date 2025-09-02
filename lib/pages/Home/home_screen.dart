@@ -748,8 +748,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }).toList();
 
       final token = await Storage.getToken();
-      const apiUrl =
-          'https://dev.smartassistapp.in/api/leads/create-call-logs';
+      const apiUrl = 'https://dev.smartassistapp.in/api/leads/create-call-logs';
 
       final response = await http.post(
         Uri.parse(apiUrl),

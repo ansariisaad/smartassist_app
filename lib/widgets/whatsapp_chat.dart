@@ -640,7 +640,6 @@ class WhatsappChat extends StatefulWidget {
   State<WhatsappChat> createState() => _WhatsappChatState();
 }
 
-
 class _WhatsappChatState extends State<WhatsappChat>
     with WidgetsBindingObserver {
   List<Message> messages = [];
@@ -1333,7 +1332,7 @@ class _WhatsappChatState extends State<WhatsappChat>
         showErrorMessage(
           context,
           message: data['message'] ?? 'WhatsApp logged out',
-        ); 
+        );
       }
     });
 

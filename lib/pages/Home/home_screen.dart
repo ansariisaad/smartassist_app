@@ -1364,11 +1364,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   width: MediaQuery.of(context).size.width * .14,
                   height: MediaQuery.of(context).size.height * .08,
                   decoration: BoxDecoration(
-                    color: fabController.isFabDisabled.value
-                        ? Colors.grey.withOpacity(0.5)
-                        : (fabController.isFabExpanded.value
-                              ? Colors.red
-                              : AppColors.colorsBlue),
+                    color:
+                        // fabController.isFabDisabled.value
+                        //     ? Colors.grey.withOpacity(0.5)
+                        //     :
+                        (fabController.isFabExpanded.value
+                        ? Colors.red
+                        : AppColors.colorsBlue),
                     shape: BoxShape.circle,
                   ),
                   child: Center(
@@ -1382,9 +1384,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             ? Icons.add
                             : Icons.add,
                         key: ValueKey(fabController.isFabExpanded.value),
-                        color: fabController.isFabDisabled.value
-                            ? Colors.grey
-                            : Colors.white,
+                        color:
+                            //  fabController.isFabDisabled.value
+                            //     ? Colors.grey
+                            //     :
+                            Colors.white,
                         size: 30,
                       ),
                     ),

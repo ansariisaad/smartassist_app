@@ -236,12 +236,10 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
       // Enable button if any field changed and all validations pass
       isButtonEnabled =
           (statusChanged ||
-              remarksChanged ||
               startDateChanged ||
               startTimeChanged ||
               deferredReasonChanged) &&
-          isDeferredValid &&
-          remarksValid;
+          isDeferredValid;
     });
   }
 
@@ -340,10 +338,10 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
     }
 
     // Validate remarks field
-    if (descriptionController.text.trim().isEmpty) {
-      showErrorMessage(context, message: 'Please enter remarks');
-      return;
-    }
+    // if (descriptionController.text.trim().isEmpty) {
+    //   showErrorMessage(context, message: 'Please enter remarks');
+    //   return;
+    // }
 
     FocusScope.of(context).unfocus();
     submitForm();
@@ -783,7 +781,7 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
               _buildDeferredReasonDropdown(),
               const SizedBox(height: 10),
               EnhancedSpeechTextField(
-                isRequired: true,
+                isRequired: false,
                 error: _hasRemarksError,
                 label: 'Remarks:',
                 controller: descriptionController,

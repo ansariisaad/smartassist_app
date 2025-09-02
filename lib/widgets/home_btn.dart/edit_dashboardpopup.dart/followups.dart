@@ -186,8 +186,8 @@ class _FollowupsEditState extends State<FollowupsEdit> {
   void _checkIfFormIsComplete() {
     setState(() {
       bool statusChanged = selectedValue != _initialStatus;
-      bool remarksChanged =
-          descriptionController.text.trim() != (_initialRemarks ?? '').trim();
+      // bool remarksChanged =
+      //     descriptionController.text.trim() != (_initialRemarks ?? '').trim();
       bool deferredReasonChanged =
           selectedDeferredReason != _initialDeferredReason;
 
@@ -200,9 +200,7 @@ class _FollowupsEditState extends State<FollowupsEdit> {
 
       // Enable button if any field changed and all validations pass
       isButtonEnabled =
-          (statusChanged || remarksChanged || deferredReasonChanged) &&
-          isDeferredValid &&
-          remarksValid;
+          (statusChanged || deferredReasonChanged) && isDeferredValid;
     });
   }
 
@@ -217,10 +215,10 @@ class _FollowupsEditState extends State<FollowupsEdit> {
     }
 
     // Validate remarks field
-    if (descriptionController.text.trim().isEmpty) {
-      showErrorMessage(context, message: 'Please enter remarks');
-      return;
-    }
+    // if (descriptionController.text.trim().isEmpty) {
+    //   showErrorMessage(context, message: 'Please enter remarks');
+    //   return;
+    // }
 
     FocusScope.of(context).unfocus(); // Close keyboard
     submitForm();
@@ -660,7 +658,7 @@ class _FollowupsEditState extends State<FollowupsEdit> {
               _buildDeferredReasonDropdown(),
               const SizedBox(height: 10),
               EnhancedSpeechTextField(
-                isRequired: true,
+                isRequired: false,
                 error: _hasRemarksError,
                 label: 'Remarks :',
                 controller: descriptionController,

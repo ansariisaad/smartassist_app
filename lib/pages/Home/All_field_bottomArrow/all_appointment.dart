@@ -6,7 +6,7 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/buttons/add_btn.dart';
-import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/create_Followups_popups.dart';
+import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/appointment_popup.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smartassist/widgets/oppointment/all_oppintment.dart';
@@ -26,7 +26,7 @@ class AllAppointment extends StatefulWidget {
 
 class _AllAppointmentState extends State<AllAppointment>
     with WidgetsBindingObserver {
-  final Widget _createFollowups = CreateFollowupsPopups(onFormSubmit: () {});
+  final Widget _createFollowups = AppointmentPopup(onFormSubmit: () {});
   List<dynamic> _originalAllTasks = [];
   List<dynamic> _originalUpcomingTasks = [];
   List<dynamic> _originalOverdueTasks = [];

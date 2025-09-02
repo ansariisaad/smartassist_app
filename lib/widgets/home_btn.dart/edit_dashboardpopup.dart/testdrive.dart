@@ -222,11 +222,9 @@ class _TestdriveState extends State<Testdrive> {
       // Enable button if any field changed and all validations pass
       isButtonEnabled =
           (statusChanged ||
-              remarksChanged ||
               // locationChanged ||
               noShowReasonChanged) &&
-          isNoShowValid &&
-          remarksValid
+          isNoShowValid
       // && locationValid
       ;
     });
@@ -257,10 +255,10 @@ class _TestdriveState extends State<Testdrive> {
     }
 
     // Validate remarks field
-    if (descriptionController.text.trim().isEmpty) {
-      showErrorMessage(context, message: 'Please enter remarks');
-      return;
-    }
+    // if (descriptionController.text.trim().isEmpty) {
+    //   showErrorMessage(context, message: 'Please enter remarks');
+    //   return;
+    // }
 
     // Validate location field
     // if (_locationController.text.trim().isEmpty) {
@@ -767,7 +765,7 @@ class _TestdriveState extends State<Testdrive> {
             _buildNoShowReasonDropdown(),
             const SizedBox(height: 10),
             EnhancedSpeechTextField(
-              isRequired: true,
+              isRequired: false,
               error: _hasRemarksError,
               label: 'Remarks:',
               controller: descriptionController,

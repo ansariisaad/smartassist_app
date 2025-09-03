@@ -500,14 +500,14 @@ class BottomNavigation extends StatelessWidget {
                     onTap: () => Get.to(() => CustomerSupportPage()),
                   ),
 
-                  // ListTile(
-                  //   leading: const Icon(Icons.android_rounded , size: 28),
-                  //   title: Text(
-                  //     'XOXO',
-                  //     style: GoogleFonts.poppins(fontSize: 18),
-                  //   ),
-                  //   onTap: () => Get.to(() => SmartAssistWebView()),
-                  // ),
+                  ListTile(
+                    leading: const Icon(Icons.android_rounded, size: 28),
+                    title: Text(
+                      'XOXO',
+                      style: GoogleFonts.poppins(fontSize: 18),
+                    ),
+                    onTap: () => Get.to(() => SmartAssistWebView()),
+                  ),
                   ListTile(
                     leading: const Icon(Icons.logout_outlined, size: 28),
                     title: Text(

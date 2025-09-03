@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
@@ -169,12 +170,16 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> uploadCallLogsAfterLogin() async {
     // Check permissions first
     final hasPermissions = await _checkAndRequestPermissions();
+    // if (!hasPermissions) {
+    //   showErrorMessage(
+    //     context,
+    //     message: 'Phone permissions required to access call logs',
+    //   );
+    //   return;
+    // }
+
     if (!hasPermissions) {
-      showErrorMessage(
-        context,
-        message: 'Phone permissions required to access call logs',
-      );
-      return;
+      _showDialorPermission();
     }
 
     try {
@@ -250,8 +255,90 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     } catch (e) {
       print('Error in upload process: $e');
-      showErrorMessage(context, message: 'Error accessing SIM cards: $e');
+      // showErrorMessage(context, message: 'Error accessing SIM cards: $e');
     }
+  }
+
+  void _showDialorPermission() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppColors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.phone_locked, color: AppColors.colorsBlue),
+              SizedBox(width: 8),
+              Text(
+                'Permission Needed',
+                style: AppFont.appbarfontblack(context),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'To access your call logs, this app requires phone permission. Please follow the steps below:',
+                style: AppFont.dropDowmLabel(context),
+              ),
+              SizedBox(height: 16),
+              Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.blue[200]!),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Steps to Enable Call Logs Permission:',
+                      style: AppFont.dropDowmLabel(
+                        context,
+                      ).copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      '1. Tap "Open Settings" below\n'
+                      '2. In Settings, go to **Permissions**\n'
+                      '3. Find and enable **Phone / Call Logs**\n'
+                      '4. Return to this app and continue',
+                      style: AppFont.dropDowmLabel(context),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancel', style: AppFont.buttons(context)),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await openAppSettings(); // opens app settings
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.colorsBlue,
+                foregroundColor: Colors.white,
+              ),
+              child: Text('Open Settings', style: AppFont.buttons(context)),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   // Add this helper method anywhere in your class:

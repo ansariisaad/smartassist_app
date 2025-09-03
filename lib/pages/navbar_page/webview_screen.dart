@@ -17,7 +17,7 @@ class SmartAssistWebView extends StatefulWidget {
 
 class _SmartAssistWebViewState extends State<SmartAssistWebView> {
   final GlobalKey webViewKey = GlobalKey();
-  InAppWebViewController? webViewController;
+  InAppWebViewController? webViewController; 
 
   // ignore: deprecated_member_use
   InAppWebViewGroupOptions options = InAppWebViewGroupOptions(

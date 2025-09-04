@@ -3,27 +3,27 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:smartassist/config/component/color/colors.dart';
+import 'package:smartassist/superAdmin/widgets/followupsAdmin/followups_admin_all.dart';
+import 'package:smartassist/superAdmin/widgets/followupsAdmin/followups_admin_overdue.dart';
+import 'package:smartassist/superAdmin/widgets/followupsAdmin/followups_admin_upcoming.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
-import 'package:smartassist/utils/storage.dart';
-import 'package:smartassist/widgets/followups/all_followups.dart';
-import 'package:smartassist/widgets/followups/overdue_followup.dart';
-import 'package:smartassist/widgets/followups/upcoming_row.dart';
+import 'package:smartassist/utils/storage.dart'; 
 import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/create_Followups_popups.dart';
 import 'package:smartassist/widgets/buttons/add_btn.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smartassist/widgets/reusable/globle_speechtotext.dart';
 import 'package:smartassist/widgets/reusable/skeleton_card.dart';
- 
-class AddFollowups extends StatefulWidget {
+
+class AdminFollowupsall extends StatefulWidget {
   final Future<void> Function() refreshDashboard;
-  const AddFollowups({super.key, required this.refreshDashboard});
+  const AdminFollowupsall({super.key, required this.refreshDashboard});
 
   @override
-  State<AddFollowups> createState() => _AddFollowupsState();
+  State<AdminFollowupsall> createState() => _AdminFollowupsallState();
 }
 
-class _AddFollowupsState extends State<AddFollowups>
+class _AdminFollowupsallState extends State<AdminFollowupsall>
     with WidgetsBindingObserver {
   final Widget _createFollowups = CreateFollowupsPopups(onFormSubmit: () {});
   List<dynamic> _originalAllTasks = [];
@@ -49,9 +49,6 @@ class _AddFollowupsState extends State<AddFollowups>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     fetchTasks();
-
-    // _speech = stt.SpeechToText();
-    // _initSpeech();
   }
 
   @override
@@ -61,52 +58,6 @@ class _AddFollowupsState extends State<AddFollowups>
     _searchController.dispose();
     super.dispose();
   }
-
-  // Initialize speech recognition
-  // void _initSpeech() async {
-  //   bool available = await _speech.initialize(
-  //     onStatus: (status) {
-  //       if (status == 'done') {
-  //         setState(() {
-  //           _isListening = false;
-  //         });
-  //       }
-  //     },
-  //     onError: (errorNotification) {
-  //       setState(() {
-  //         _isListening = false;
-  //       });
-  //       print('Speech recognition error: ${errorNotification.errorMsg}');
-  //     },
-  //   );
-  // }
-
-  // // Toggle listening
-  // void _toggleListening(TextEditingController controller) async {
-  //   if (_isListening) {
-  //     _speech.stop();
-  //     setState(() {
-  //       _isListening = false;
-  //     });
-  //   } else {
-  //     setState(() {
-  //       _isListening = true;
-  //     });
-  //     await _speech.listen(
-  //       onResult: (result) {
-  //         setState(() {
-  //           controller.text = result.recognizedWords;
-  //           _onSearchChanged(); // Trigger search filtering
-  //         });
-  //       },
-  //       listenFor: Duration(seconds: 30),
-  //       pauseFor: Duration(seconds: 5),
-  //       partialResults: true,
-  //       cancelOnError: true,
-  //       listenMode: stt.ListenMode.confirmation,
-  //     );
-  //   }
-  // }
 
   // Responsive methods
   bool get _isTablet => MediaQuery.of(context).size.width > 768;
@@ -137,63 +88,6 @@ class _AddFollowupsState extends State<AddFollowups>
 
   double _getSubTabFontSize() => 12.0 * _getResponsiveScale();
   double _getSubTabHeight() => 27.0 * _getResponsiveScale();
-  double _getSubTabWidth() {
-    double baseWidth = 240.0 * _getResponsiveScale();
-    if (count > 99) {
-      baseWidth += 30.0 * _getResponsiveScale();
-    } else if (count > 9) {
-      baseWidth += 15.0 * _getResponsiveScale();
-    }
-    return baseWidth;
-  }
-
-  double _getResponsiveFontSize(BuildContext context, bool isTablet) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    if (screenWidth < 360) return 12;
-    if (screenWidth < 400) return 13;
-    if (isTablet) return 16;
-    return 14;
-  }
-
-  double _getResponsiveHintFontSize(BuildContext context, bool isTablet) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    if (screenWidth < 360) return 10;
-    if (screenWidth < 400) return 11;
-    if (isTablet) return 14;
-    return 12;
-  }
-
-  double _getResponsiveIconSize(BuildContext context, bool isTablet) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    if (screenWidth < 360) return 14;
-    if (screenWidth < 400) return 15;
-    if (isTablet) return 18;
-    return 16;
-  }
-
-  double _getResponsiveHorizontalPadding(BuildContext context, bool isTablet) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    if (screenWidth < 360) return 12;
-    if (screenWidth < 400) return 14;
-    if (isTablet) return 20;
-    return 16;
-  }
-
-  double _getResponsiveVerticalPadding(BuildContext context, bool isTablet) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    if (screenWidth < 360) return 10;
-    if (screenWidth < 400) return 12;
-    if (isTablet) return 16;
-    return 14;
-  }
-
-  double _getResponsiveIconContainerWidth(BuildContext context, bool isTablet) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    if (screenWidth < 360) return 40;
-    if (screenWidth < 400) return 45;
-    if (isTablet) return 55;
-    return 50;
-  }
 
   Future<void> fetchTasks() async {
     setState(() => _isLoading = true);
@@ -302,26 +196,6 @@ class _AddFollowupsState extends State<AddFollowups>
     });
   }
 
-  // void _onSearchChanged() {
-  //   final newQuery = _searchController.text.trim();
-  //   if (newQuery == _query) return;
-
-  //   _query = newQuery;
-
-  //   // Cancel previous timer
-  //   _searchDebounceTimer?.cancel();
-
-  //   // Perform local search immediately
-  //   _performLocalSearch(_query);
-
-  //   // Debounce for consistency
-  //   _searchDebounceTimer = Timer(const Duration(milliseconds: 500), () {
-  //     if (_query == _searchController.text.trim() && mounted) {
-  //       _performLocalSearch(_query);
-  //     }
-  //   });
-  // }
-
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
@@ -353,23 +227,7 @@ class _AddFollowupsState extends State<AddFollowups>
         backgroundColor: AppColors.colorsBlue,
         automaticallyImplyLeading: false,
       ),
-      floatingActionButton: CustomFloatingButton(
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (context) {
-              return Dialog(
-                insetPadding: const EdgeInsets.symmetric(horizontal: 10),
-                backgroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: _createFollowups,
-              );
-            },
-          );
-        },
-      ),
+      
       body: RefreshIndicator(
         onRefresh: fetchTasks,
         child: CustomScrollView(
@@ -532,7 +390,7 @@ class _AddFollowupsState extends State<AddFollowups>
                   ),
                 ),
               )
-            : AllFollowup(allFollowups: _filteredAllTasks, isNested: true);
+            : AllFollowupAdmin(allFollowups: _filteredAllTasks, isNested: true);
       case 1: // Upcoming
         return _filteredUpcomingTasks.isEmpty
             ? Center(
@@ -550,7 +408,7 @@ class _AddFollowupsState extends State<AddFollowups>
                   ),
                 ),
               )
-            : FollowupsUpcoming(
+            : FollowupsAdminUpcoming(
                 refreshDashboard: widget.refreshDashboard,
                 upcomingFollowups: _filteredUpcomingTasks,
                 isNested: true,
@@ -572,7 +430,7 @@ class _AddFollowupsState extends State<AddFollowups>
                   ),
                 ),
               )
-            : OverdueFollowup(
+            : FollowupsAdminOverdue(
                 refreshDashboard: widget.refreshDashboard,
                 overdueeFollowups: _filteredOverdueTasks,
                 isNested: true,

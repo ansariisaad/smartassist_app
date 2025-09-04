@@ -3,43 +3,51 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:smartassist/config/component/color/colors.dart';
+import 'package:smartassist/config/component/font/font.dart';
+import 'package:smartassist/superAdmin/widgets/testdrive/testdrive_admin_all.dart';
+import 'package:smartassist/superAdmin/widgets/testdrive/testdrive_admin_overdue.dart';
+import 'package:smartassist/superAdmin/widgets/testdrive/testdrive_admin_upcoming.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
-import 'package:smartassist/widgets/followups/all_followups.dart';
-import 'package:smartassist/widgets/followups/overdue_followup.dart';
-import 'package:smartassist/widgets/followups/upcoming_row.dart';
-import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/create_Followups_popups.dart';
 import 'package:smartassist/widgets/buttons/add_btn.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/create_testDrive.dart';
 import 'package:smartassist/widgets/reusable/globle_speechtotext.dart';
 import 'package:smartassist/widgets/reusable/skeleton_card.dart';
- 
-class AddFollowups extends StatefulWidget {
+import 'package:smartassist/widgets/testdrive/all_testDrive.dart';
+import 'package:smartassist/widgets/testdrive/overdue.dart';
+import 'package:smartassist/widgets/testdrive/upcoming.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
+
+class AdminTestdrive extends StatefulWidget {
   final Future<void> Function() refreshDashboard;
-  const AddFollowups({super.key, required this.refreshDashboard});
+  const AdminTestdrive({super.key, required this.refreshDashboard});
 
   @override
-  State<AddFollowups> createState() => _AddFollowupsState();
+  State<AdminTestdrive> createState() => _AdminTestdriveState();
 }
 
-class _AddFollowupsState extends State<AddFollowups>
+class _AdminTestdriveState extends State<AdminTestdrive>
     with WidgetsBindingObserver {
-  final Widget _createFollowups = CreateFollowupsPopups(onFormSubmit: () {});
+  final Widget _createTestDrive = CreateTestdrive(onFormSubmit: () {});
   List<dynamic> _originalAllTasks = [];
   List<dynamic> _originalUpcomingTasks = [];
   List<dynamic> _originalOverdueTasks = [];
   List<dynamic> _filteredAllTasks = [];
   List<dynamic> _filteredUpcomingTasks = [];
   List<dynamic> _filteredOverdueTasks = [];
+  List<dynamic> _filteredTasks = [];
   bool _isLoadingSearch = false;
   bool _isLoading = true;
+  bool _isListening = false; // Track speech-to-text listening state
   bool _isSearching = false;
   String _query = '';
-  int _upcomingButtonIndex = 0;
+  int _upcomingButtonIndex = 0; // Fixed typo
   int count = 0;
   int upComingCount = 0;
   int allCount = 0;
+  late stt.SpeechToText _speech;
 
   final TextEditingController _searchController = TextEditingController();
   Timer? _searchDebounceTimer;
@@ -49,7 +57,6 @@ class _AddFollowupsState extends State<AddFollowups>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     fetchTasks();
-
     // _speech = stt.SpeechToText();
     // _initSpeech();
   }
@@ -63,50 +70,60 @@ class _AddFollowupsState extends State<AddFollowups>
   }
 
   // Initialize speech recognition
-  // void _initSpeech() async {
-  //   bool available = await _speech.initialize(
-  //     onStatus: (status) {
-  //       if (status == 'done') {
-  //         setState(() {
-  //           _isListening = false;
-  //         });
-  //       }
-  //     },
-  //     onError: (errorNotification) {
-  //       setState(() {
-  //         _isListening = false;
-  //       });
-  //       print('Speech recognition error: ${errorNotification.errorMsg}');
-  //     },
-  //   );
-  // }
+  void _initSpeech() async {
+    bool available = await _speech.initialize(
+      onStatus: (status) {
+        if (status == 'done') {
+          setState(() {
+            _isListening = false;
+          });
+        }
+      },
+      onError: (errorNotification) {
+        setState(() {
+          _isListening = false;
+        });
+        print('Speech recognition error: ${errorNotification.errorMsg}');
+        // showErrorMessage(
+        //   context,
+        //   message: 'Speech recognition error: ${errorNotification.errorMsg}',
+        // );
+      },
+    );
+    // if (!available) {
+    //   showErrorMessage(
+    //     context,
+    //     message: 'Speech recognition not available on this device',
+    //   );
+    // }
+  }
 
-  // // Toggle listening
-  // void _toggleListening(TextEditingController controller) async {
-  //   if (_isListening) {
-  //     _speech.stop();
-  //     setState(() {
-  //       _isListening = false;
-  //     });
-  //   } else {
-  //     setState(() {
-  //       _isListening = true;
-  //     });
-  //     await _speech.listen(
-  //       onResult: (result) {
-  //         setState(() {
-  //           controller.text = result.recognizedWords;
-  //           _onSearchChanged(); // Trigger search filtering
-  //         });
-  //       },
-  //       listenFor: Duration(seconds: 30),
-  //       pauseFor: Duration(seconds: 5),
-  //       partialResults: true,
-  //       cancelOnError: true,
-  //       listenMode: stt.ListenMode.confirmation,
-  //     );
-  //   }
-  // }
+  // Toggle listening
+  void _toggleListening(TextEditingController controller) async {
+    if (_isListening) {
+      _speech.stop();
+      setState(() {
+        _isListening = false;
+      });
+    } else {
+      setState(() {
+        _isListening = true;
+      });
+      await _speech.listen(
+        onResult: (result) {
+          setState(() {
+            controller.text = result.recognizedWords;
+            _onSearchChanged();
+          });
+        },
+        listenFor: Duration(seconds: 30),
+        pauseFor: Duration(seconds: 5),
+        partialResults: true,
+        cancelOnError: true,
+        listenMode: stt.ListenMode.confirmation,
+      );
+    }
+  }
 
   // Responsive methods
   bool get _isTablet => MediaQuery.of(context).size.width > 768;
@@ -199,7 +216,8 @@ class _AddFollowupsState extends State<AddFollowups>
     setState(() => _isLoading = true);
     try {
       final token = await Storage.getToken();
-      const String apiUrl = "https://dev.smartassistapp.in/api/tasks/all-tasks";
+      const String apiUrl =
+          "https://dev.smartassistapp.in/api/events/all-events";
 
       final response = await http.get(
         Uri.parse(apiUrl),
@@ -212,14 +230,13 @@ class _AddFollowupsState extends State<AddFollowups>
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
         setState(() {
-          count = data['data']['overdueWeekTasks']?['count'] ?? 0;
-          upComingCount = data['data']['upcomingWeekTasks']?['count'] ?? 0;
-          allCount = data['data']['allTasks']?['count'] ?? 0;
-          _originalAllTasks = data['data']['allTasks']?['rows'] ?? [];
+          count = data['data']['overdueEvents']?['count'] ?? 0;
+          upComingCount = data['data']['upcomingEvents']?['count'] ?? 0;
+          allCount = data['data']['allEvents']?['count'] ?? 0;
+          _originalAllTasks = data['data']['allEvents']?['rows'] ?? [];
           _originalUpcomingTasks =
-              data['data']['upcomingWeekTasks']?['rows'] ?? [];
-          _originalOverdueTasks =
-              data['data']['overdueWeekTasks']?['rows'] ?? [];
+              data['data']['upcomingEvents']?['rows'] ?? [];
+          _originalOverdueTasks = data['data']['overdueEvents']?['rows'] ?? [];
           _filteredAllTasks = List.from(_originalAllTasks);
           _filteredUpcomingTasks = List.from(_originalUpcomingTasks);
           _filteredOverdueTasks = List.from(_originalOverdueTasks);
@@ -227,12 +244,12 @@ class _AddFollowupsState extends State<AddFollowups>
         });
       } else {
         setState(() => _isLoading = false);
-        showErrorMessage(context, message: 'Failed to fetch follow-ups.');
+        showErrorMessage(context, message: 'Failed to fetch test drives.');
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        showErrorMessage(context, message: 'Error fetching follow-ups.');
+        showErrorMessage(context, message: 'Error fetching test drives.');
       }
     }
   }
@@ -244,6 +261,7 @@ class _AddFollowupsState extends State<AddFollowups>
         _filteredAllTasks = List.from(_originalAllTasks);
         _filteredUpcomingTasks = List.from(_originalUpcomingTasks);
         _filteredOverdueTasks = List.from(_originalOverdueTasks);
+        _filteredTasks = [];
       } else {
         final searchQuery = query.toLowerCase();
 
@@ -258,69 +276,58 @@ class _AddFollowupsState extends State<AddFollowups>
         _filteredOverdueTasks = _originalOverdueTasks.where((item) {
           return _matchesSearchCriteria(item, searchQuery);
         }).toList();
+
+        // Update _filteredTasks for consistency, though not used in UI
+        _filteredTasks = _filteredAllTasks;
       }
     });
   }
-
-  // bool _matchesSearchCriteria(dynamic item, String searchQuery) {
-  //   String name = (item['lead_name'] ?? item['name'] ?? '')
-  //       .toString()
-  //       .toLowerCase();
-  //   String email = (item['email'] ?? '').toString().toLowerCase();
-  //   String phone = (item['mobile'] ?? '').toString().toLowerCase();
-  //   String subject = (item['subject'] ?? '').toString().toLowerCase();
-
-  //   return name.contains(searchQuery) ||
-  //       email.contains(searchQuery) ||
-  //       phone.contains(searchQuery) ||
-  //       subject.contains(searchQuery);
-  // }
 
   bool _matchesSearchCriteria(dynamic item, String searchQuery) {
     String name = (item['lead_name'] ?? item['name'] ?? '')
         .toString()
         .toLowerCase();
     String email = (item['email'] ?? '').toString().toLowerCase();
-    String phone = (item['mobile'] ?? '').toString().toLowerCase();
+    String phone = (item['mobile'] ?? item['phone'] ?? '')
+        .toString()
+        .toLowerCase();
     String subject = (item['subject'] ?? '').toString().toLowerCase();
+    String description = (item['description'] ?? '').toString().toLowerCase();
+    String vehicleModel = (item['vehicle_model'] ?? '')
+        .toString()
+        .toLowerCase();
+    String customerName = (item['customer_name'] ?? '')
+        .toString()
+        .toLowerCase();
+
     return name.contains(searchQuery) ||
         email.contains(searchQuery) ||
         phone.contains(searchQuery) ||
-        subject.contains(searchQuery);
+        subject.contains(searchQuery) ||
+        description.contains(searchQuery) ||
+        vehicleModel.contains(searchQuery) ||
+        customerName.contains(searchQuery);
   }
 
   void _onSearchChanged() {
     final newQuery = _searchController.text.trim();
     if (newQuery == _query) return;
+
     _query = newQuery;
+
+    // Cancel previous timer
     _searchDebounceTimer?.cancel();
+
+    // Perform local search immediately
     _performLocalSearch(_query);
+
+    // Debounce for potential future API calls or heavy processing
     _searchDebounceTimer = Timer(const Duration(milliseconds: 500), () {
       if (_query == _searchController.text.trim() && mounted) {
-        _performLocalSearch(_query);
+        _performLocalSearch(_query); // Re-run for consistency
       }
     });
   }
-
-  // void _onSearchChanged() {
-  //   final newQuery = _searchController.text.trim();
-  //   if (newQuery == _query) return;
-
-  //   _query = newQuery;
-
-  //   // Cancel previous timer
-  //   _searchDebounceTimer?.cancel();
-
-  //   // Perform local search immediately
-  //   _performLocalSearch(_query);
-
-  //   // Debounce for consistency
-  //   _searchDebounceTimer = Timer(const Duration(milliseconds: 500), () {
-  //     if (_query == _searchController.text.trim() && mounted) {
-  //       _performLocalSearch(_query);
-  //     }
-  //   });
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -342,7 +349,7 @@ class _AddFollowupsState extends State<AddFollowups>
         title: Align(
           alignment: Alignment.centerLeft,
           child: Text(
-            'Your Follow ups',
+            'Your Test Drives',
             style: GoogleFonts.poppins(
               fontSize: _titleFontSize,
               fontWeight: FontWeight.w400,
@@ -353,23 +360,7 @@ class _AddFollowupsState extends State<AddFollowups>
         backgroundColor: AppColors.colorsBlue,
         automaticallyImplyLeading: false,
       ),
-      floatingActionButton: CustomFloatingButton(
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (context) {
-              return Dialog(
-                insetPadding: const EdgeInsets.symmetric(horizontal: 10),
-                backgroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: _createFollowups,
-              );
-            },
-          );
-        },
-      ),
+
       body: RefreshIndicator(
         onRefresh: fetchTasks,
         child: CustomScrollView(
@@ -420,7 +411,7 @@ class _AddFollowupsState extends State<AddFollowups>
                                 color: AppColors.colorsBlue,
                                 index: 0,
                                 text: 'All ($allCount)',
-                                activeColor: AppColors.borderblue,
+                                activeColor: AppColors.colorsBlue,
                               ),
                               _buildFilterButton(
                                 color: AppColors.containerGreen,
@@ -444,24 +435,6 @@ class _AddFollowupsState extends State<AddFollowups>
                 ],
               ),
             ),
-            if (_isSearching && _query.isNotEmpty)
-              SliverToBoxAdapter(
-                child: Container(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 15,
-                    vertical: 8,
-                  ),
-                  child: Text(
-                    'Showing results for: "$_query"',
-                    style: GoogleFonts.poppins(
-                      fontSize: _smallFontSize,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.fontColor.withOpacity(0.7),
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ),
-              ),
             SliverToBoxAdapter(
               child: _isLoading ? SkeletonCard() : _buildContentBySelectedTab(),
             ),
@@ -515,24 +488,23 @@ class _AddFollowupsState extends State<AddFollowups>
     }
 
     switch (_upcomingButtonIndex) {
-      case 0: // All Follow-ups
+      case 0: // All Test Drives
         return _filteredAllTasks.isEmpty
             ? Center(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   child: Text(
                     _isSearching
-                        ? "No matching follow-ups found"
-                        : "No follow-ups available",
-                    style: GoogleFonts.poppins(
-                      fontSize: _bodyFontSize,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.fontColor.withOpacity(0.7),
-                    ),
+                        ? "No matching test drives found"
+                        : "No test drives available",
+                    style: AppFont.smallText12(context),
                   ),
                 ),
               )
-            : AllFollowup(allFollowups: _filteredAllTasks, isNested: true);
+            : TestdriveAdminAll(
+                allTestDrive: _filteredAllTasks,
+                isNested: true,
+              );
       case 1: // Upcoming
         return _filteredUpcomingTasks.isEmpty
             ? Center(
@@ -540,19 +512,15 @@ class _AddFollowupsState extends State<AddFollowups>
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   child: Text(
                     _isSearching
-                        ? "No matching upcoming follow-ups found"
-                        : "No upcoming follow-ups available",
-                    style: GoogleFonts.poppins(
-                      fontSize: _bodyFontSize,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.fontColor.withOpacity(0.7),
-                    ),
+                        ? "No matching upcoming test drives found"
+                        : "No upcoming test drives available",
+                    style: AppFont.smallText12(context),
                   ),
                 ),
               )
-            : FollowupsUpcoming(
+            : TestdriveAdminUpcoming(
                 refreshDashboard: widget.refreshDashboard,
-                upcomingFollowups: _filteredUpcomingTasks,
+                upcomingTestDrive: _filteredUpcomingTasks,
                 isNested: true,
               );
       case 2: // Overdue
@@ -562,19 +530,15 @@ class _AddFollowupsState extends State<AddFollowups>
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   child: Text(
                     _isSearching
-                        ? "No matching overdue follow-ups found"
-                        : "No overdue follow-ups available",
-                    style: GoogleFonts.poppins(
-                      fontSize: _bodyFontSize,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.fontColor.withOpacity(0.7),
-                    ),
+                        ? "No matching overdue test drives found"
+                        : "No overdue test drives available",
+                    style: AppFont.smallText12(context),
                   ),
                 ),
               )
-            : OverdueFollowup(
+            : TestdriveAdminOverdue(
                 refreshDashboard: widget.refreshDashboard,
-                overdueeFollowups: _filteredOverdueTasks,
+                overdueTestDrive: _filteredOverdueTasks,
                 isNested: true,
               );
       default:
@@ -598,7 +562,7 @@ class _AddFollowupsState extends State<AddFollowups>
           foregroundColor: isActive ? Colors.white : Colors.black,
           padding: EdgeInsets.symmetric(
             vertical: 5.0 * _getResponsiveScale(),
-            horizontal: 4.0 * _getResponsiveScale(),
+            horizontal: 0.0 * _getResponsiveScale(),
           ),
           side: BorderSide(
             color: isActive ? activeColor : Colors.transparent,

@@ -3,29 +3,33 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:smartassist/config/component/color/colors.dart';
+import 'package:smartassist/superAdmin/widgets/appointmentAdmin/appointment_admin_all.dart';
+import 'package:smartassist/superAdmin/widgets/appointmentAdmin/appointment_admin_overdue.dart';
+import 'package:smartassist/superAdmin/widgets/appointmentAdmin/appointment_admin_upcoming.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
-import 'package:smartassist/widgets/followups/all_followups.dart';
-import 'package:smartassist/widgets/followups/overdue_followup.dart';
-import 'package:smartassist/widgets/followups/upcoming_row.dart';
-import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/create_Followups_popups.dart';
 import 'package:smartassist/widgets/buttons/add_btn.dart';
+import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/appointment_popup.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:smartassist/widgets/oppointment/all_oppintment.dart';
+import 'package:smartassist/widgets/oppointment/overdue.dart';
+import 'package:smartassist/widgets/oppointment/upcoming.dart';
 import 'package:smartassist/widgets/reusable/globle_speechtotext.dart';
 import 'package:smartassist/widgets/reusable/skeleton_card.dart';
- 
-class AddFollowups extends StatefulWidget {
+import 'package:speech_to_text/speech_to_text.dart' as stt;
+
+class AdminAppointment extends StatefulWidget {
   final Future<void> Function() refreshDashboard;
-  const AddFollowups({super.key, required this.refreshDashboard});
+  const AdminAppointment({super.key, required this.refreshDashboard});
 
   @override
-  State<AddFollowups> createState() => _AddFollowupsState();
+  State<AdminAppointment> createState() => _AdminAppointmentState();
 }
 
-class _AddFollowupsState extends State<AddFollowups>
+class _AdminAppointmentState extends State<AdminAppointment>
     with WidgetsBindingObserver {
-  final Widget _createFollowups = CreateFollowupsPopups(onFormSubmit: () {});
+  final Widget _createFollowups = AppointmentPopup(onFormSubmit: () {});
   List<dynamic> _originalAllTasks = [];
   List<dynamic> _originalUpcomingTasks = [];
   List<dynamic> _originalOverdueTasks = [];
@@ -34,12 +38,14 @@ class _AddFollowupsState extends State<AddFollowups>
   List<dynamic> _filteredOverdueTasks = [];
   bool _isLoadingSearch = false;
   bool _isLoading = true;
+  bool _isListening = false; // Track speech-to-text listening state
   bool _isSearching = false;
   String _query = '';
-  int _upcomingButtonIndex = 0;
+  int _upcomingButtonIndex = 0; // Fixed typo
   int count = 0;
-  int upComingCount = 0;
+  int upcomingCount = 0;
   int allCount = 0;
+  late stt.SpeechToText _speech;
 
   final TextEditingController _searchController = TextEditingController();
   Timer? _searchDebounceTimer;
@@ -49,7 +55,6 @@ class _AddFollowupsState extends State<AddFollowups>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     fetchTasks();
-
     // _speech = stt.SpeechToText();
     // _initSpeech();
   }
@@ -63,50 +68,60 @@ class _AddFollowupsState extends State<AddFollowups>
   }
 
   // Initialize speech recognition
-  // void _initSpeech() async {
-  //   bool available = await _speech.initialize(
-  //     onStatus: (status) {
-  //       if (status == 'done') {
-  //         setState(() {
-  //           _isListening = false;
-  //         });
-  //       }
-  //     },
-  //     onError: (errorNotification) {
-  //       setState(() {
-  //         _isListening = false;
-  //       });
-  //       print('Speech recognition error: ${errorNotification.errorMsg}');
-  //     },
-  //   );
-  // }
+  void _initSpeech() async {
+    bool available = await _speech.initialize(
+      onStatus: (status) {
+        if (status == 'done') {
+          setState(() {
+            _isListening = false;
+          });
+        }
+      },
+      onError: (errorNotification) {
+        setState(() {
+          _isListening = false;
+        });
+        print('Speech recognition error: ${errorNotification.errorMsg}');
+        // showErrorMessage(
+        //   context,
+        //   message: 'Speech recognition error: ${errorNotification.errorMsg}',
+        // );
+      },
+    );
+    // if (!available) {
+    //   showErrorMessage(
+    //     context,
+    //     message: 'Speech recognition not available on this device',
+    //   );
+    // }
+  }
 
-  // // Toggle listening
-  // void _toggleListening(TextEditingController controller) async {
-  //   if (_isListening) {
-  //     _speech.stop();
-  //     setState(() {
-  //       _isListening = false;
-  //     });
-  //   } else {
-  //     setState(() {
-  //       _isListening = true;
-  //     });
-  //     await _speech.listen(
-  //       onResult: (result) {
-  //         setState(() {
-  //           controller.text = result.recognizedWords;
-  //           _onSearchChanged(); // Trigger search filtering
-  //         });
-  //       },
-  //       listenFor: Duration(seconds: 30),
-  //       pauseFor: Duration(seconds: 5),
-  //       partialResults: true,
-  //       cancelOnError: true,
-  //       listenMode: stt.ListenMode.confirmation,
-  //     );
-  //   }
-  // }
+  // Toggle listening
+  void _toggleListening(TextEditingController controller) async {
+    if (_isListening) {
+      _speech.stop();
+      setState(() {
+        _isListening = false;
+      });
+    } else {
+      setState(() {
+        _isListening = true;
+      });
+      await _speech.listen(
+        onResult: (result) {
+          setState(() {
+            controller.text = result.recognizedWords;
+            _onSearchChanged(); // Trigger search filtering
+          });
+        },
+        listenFor: Duration(seconds: 30),
+        pauseFor: Duration(seconds: 5),
+        partialResults: true,
+        cancelOnError: true,
+        listenMode: stt.ListenMode.confirmation,
+      );
+    }
+  }
 
   // Responsive methods
   bool get _isTablet => MediaQuery.of(context).size.width > 768;
@@ -199,7 +214,8 @@ class _AddFollowupsState extends State<AddFollowups>
     setState(() => _isLoading = true);
     try {
       final token = await Storage.getToken();
-      const String apiUrl = "https://dev.smartassistapp.in/api/tasks/all-tasks";
+      const String apiUrl =
+          "https://dev.smartassistapp.in/api/tasks/all-appointments";
 
       final response = await http.get(
         Uri.parse(apiUrl),
@@ -213,7 +229,7 @@ class _AddFollowupsState extends State<AddFollowups>
         final Map<String, dynamic> data = json.decode(response.body);
         setState(() {
           count = data['data']['overdueWeekTasks']?['count'] ?? 0;
-          upComingCount = data['data']['upcomingWeekTasks']?['count'] ?? 0;
+          upcomingCount = data['data']['upcomingWeekTasks']?['count'] ?? 0;
           allCount = data['data']['allTasks']?['count'] ?? 0;
           _originalAllTasks = data['data']['allTasks']?['rows'] ?? [];
           _originalUpcomingTasks =
@@ -227,12 +243,12 @@ class _AddFollowupsState extends State<AddFollowups>
         });
       } else {
         setState(() => _isLoading = false);
-        showErrorMessage(context, message: 'Failed to fetch follow-ups.');
+        showErrorMessage(context, message: 'Failed to fetch appointments.');
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        showErrorMessage(context, message: 'Error fetching follow-ups.');
+        showErrorMessage(context, message: 'Error fetching appointments.');
       }
     }
   }
@@ -262,20 +278,6 @@ class _AddFollowupsState extends State<AddFollowups>
     });
   }
 
-  // bool _matchesSearchCriteria(dynamic item, String searchQuery) {
-  //   String name = (item['lead_name'] ?? item['name'] ?? '')
-  //       .toString()
-  //       .toLowerCase();
-  //   String email = (item['email'] ?? '').toString().toLowerCase();
-  //   String phone = (item['mobile'] ?? '').toString().toLowerCase();
-  //   String subject = (item['subject'] ?? '').toString().toLowerCase();
-
-  //   return name.contains(searchQuery) ||
-  //       email.contains(searchQuery) ||
-  //       phone.contains(searchQuery) ||
-  //       subject.contains(searchQuery);
-  // }
-
   bool _matchesSearchCriteria(dynamic item, String searchQuery) {
     String name = (item['lead_name'] ?? item['name'] ?? '')
         .toString()
@@ -283,6 +285,7 @@ class _AddFollowupsState extends State<AddFollowups>
     String email = (item['email'] ?? '').toString().toLowerCase();
     String phone = (item['mobile'] ?? '').toString().toLowerCase();
     String subject = (item['subject'] ?? '').toString().toLowerCase();
+
     return name.contains(searchQuery) ||
         email.contains(searchQuery) ||
         phone.contains(searchQuery) ||
@@ -292,35 +295,22 @@ class _AddFollowupsState extends State<AddFollowups>
   void _onSearchChanged() {
     final newQuery = _searchController.text.trim();
     if (newQuery == _query) return;
+
     _query = newQuery;
+
+    // Cancel previous timer
     _searchDebounceTimer?.cancel();
+
+    // Perform local search immediately
     _performLocalSearch(_query);
+
+    // Debounce for consistency
     _searchDebounceTimer = Timer(const Duration(milliseconds: 500), () {
       if (_query == _searchController.text.trim() && mounted) {
         _performLocalSearch(_query);
       }
     });
   }
-
-  // void _onSearchChanged() {
-  //   final newQuery = _searchController.text.trim();
-  //   if (newQuery == _query) return;
-
-  //   _query = newQuery;
-
-  //   // Cancel previous timer
-  //   _searchDebounceTimer?.cancel();
-
-  //   // Perform local search immediately
-  //   _performLocalSearch(_query);
-
-  //   // Debounce for consistency
-  //   _searchDebounceTimer = Timer(const Duration(milliseconds: 500), () {
-  //     if (_query == _searchController.text.trim() && mounted) {
-  //       _performLocalSearch(_query);
-  //     }
-  //   });
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -342,7 +332,7 @@ class _AddFollowupsState extends State<AddFollowups>
         title: Align(
           alignment: Alignment.centerLeft,
           child: Text(
-            'Your Follow ups',
+            'Your Appointments',
             style: GoogleFonts.poppins(
               fontSize: _titleFontSize,
               fontWeight: FontWeight.w400,
@@ -352,24 +342,7 @@ class _AddFollowupsState extends State<AddFollowups>
         ),
         backgroundColor: AppColors.colorsBlue,
         automaticallyImplyLeading: false,
-      ),
-      floatingActionButton: CustomFloatingButton(
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (context) {
-              return Dialog(
-                insetPadding: const EdgeInsets.symmetric(horizontal: 10),
-                backgroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: _createFollowups,
-              );
-            },
-          );
-        },
-      ),
+      ), 
       body: RefreshIndicator(
         onRefresh: fetchTasks,
         child: CustomScrollView(
@@ -386,7 +359,7 @@ class _AddFollowupsState extends State<AddFollowups>
                     borderRadius: 30.0,
                     prefixIcon: Icon(Icons.search, color: AppColors.fontColor),
                   ),
-
+                   
                   if (_isLoadingSearch)
                     Container(
                       margin: const EdgeInsets.symmetric(horizontal: 15),
@@ -403,7 +376,7 @@ class _AddFollowupsState extends State<AddFollowups>
                         Container(
                           constraints: const BoxConstraints(
                             minWidth: 240,
-                            maxWidth: 320,
+                            maxWidth: 300,
                           ),
                           // width: _getSubTabWidth(),
                           height: _getSubTabHeight(),
@@ -425,7 +398,7 @@ class _AddFollowupsState extends State<AddFollowups>
                               _buildFilterButton(
                                 color: AppColors.containerGreen,
                                 index: 1,
-                                text: 'Upcoming ($upComingCount)',
+                                text: 'Upcoming ($upcomingCount)',
                                 activeColor: AppColors.borderGreen,
                               ),
                               _buildFilterButton(
@@ -443,25 +416,7 @@ class _AddFollowupsState extends State<AddFollowups>
                   const SizedBox(height: 5),
                 ],
               ),
-            ),
-            if (_isSearching && _query.isNotEmpty)
-              SliverToBoxAdapter(
-                child: Container(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 15,
-                    vertical: 8,
-                  ),
-                  child: Text(
-                    'Showing results for: "$_query"',
-                    style: GoogleFonts.poppins(
-                      fontSize: _smallFontSize,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.fontColor.withOpacity(0.7),
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ),
-              ),
+            ), 
             SliverToBoxAdapter(
               child: _isLoading ? SkeletonCard() : _buildContentBySelectedTab(),
             ),
@@ -515,66 +470,42 @@ class _AddFollowupsState extends State<AddFollowups>
     }
 
     switch (_upcomingButtonIndex) {
-      case 0: // All Follow-ups
+      case 0: // All Appointments
         return _filteredAllTasks.isEmpty
-            ? Center(
+            ? const Center(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  child: Text(
-                    _isSearching
-                        ? "No matching follow-ups found"
-                        : "No follow-ups available",
-                    style: GoogleFonts.poppins(
-                      fontSize: _bodyFontSize,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.fontColor.withOpacity(0.7),
-                    ),
-                  ),
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: Text("No appointments available"),
                 ),
               )
-            : AllFollowup(allFollowups: _filteredAllTasks, isNested: true);
+            : AllOppintmentAdmin(
+                allFollowups: _filteredAllTasks,
+                isNested: true,
+              ); // Renamed for clarity
       case 1: // Upcoming
         return _filteredUpcomingTasks.isEmpty
-            ? Center(
+            ? const Center(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  child: Text(
-                    _isSearching
-                        ? "No matching upcoming follow-ups found"
-                        : "No upcoming follow-ups available",
-                    style: GoogleFonts.poppins(
-                      fontSize: _bodyFontSize,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.fontColor.withOpacity(0.7),
-                    ),
-                  ),
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: Text("No upcoming appointments available"),
                 ),
               )
-            : FollowupsUpcoming(
+            : AppointmentAdminUpcoming(
                 refreshDashboard: widget.refreshDashboard,
-                upcomingFollowups: _filteredUpcomingTasks,
+                upcomingOpp: _filteredUpcomingTasks,
                 isNested: true,
               );
       case 2: // Overdue
         return _filteredOverdueTasks.isEmpty
-            ? Center(
+            ? const Center(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  child: Text(
-                    _isSearching
-                        ? "No matching overdue follow-ups found"
-                        : "No overdue follow-ups available",
-                    style: GoogleFonts.poppins(
-                      fontSize: _bodyFontSize,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.fontColor.withOpacity(0.7),
-                    ),
-                  ),
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: Text("No overdue appointments available"),
                 ),
               )
-            : OverdueFollowup(
+            : AppointmentAdminOverdue(
                 refreshDashboard: widget.refreshDashboard,
-                overdueeFollowups: _filteredOverdueTasks,
+                overdueeOpp: _filteredOverdueTasks,
                 isNested: true,
               );
       default:
@@ -620,3 +551,4 @@ class _AddFollowupsState extends State<AddFollowups>
     );
   }
 }
+ 

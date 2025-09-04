@@ -6,7 +6,8 @@ class TokenManager {
   static const String TOKEN_KEY = 'auth_token';
   static const String USER_ID_KEY = 'user_id';
   static const String USER_ROLE = 'user_role';
-  static const String USER_EMAIL = 'email'; // Fixed key name to be consistent
+  static const String USER_EMAIL = 'email';
+  static const String USER_ADMIN = 'admin';
 
   // Add this debugging method to check what's stored
   static Future<void> debugStoredValues() async {
@@ -15,11 +16,13 @@ class TokenManager {
     String? userId = prefs.getString(USER_ID_KEY);
     String? role = prefs.getString(USER_ROLE);
     String? email = prefs.getString(USER_EMAIL);
+    String? isAdmin = prefs.getString(USER_ADMIN);
 
     print("DEBUG - Stored Values:");
     print("Token exists: ${token != null}");
     print("User ID: $userId");
     print("User Role: $role");
+    print("User Role: $isAdmin");
 
     // Also check all keys in preferences to find mismatches
     print("All keys in SharedPreferences:");
@@ -50,15 +53,18 @@ class TokenManager {
     String userId,
     String userRole,
     String userEmail,
+    String isAdmin,
   ) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString(TOKEN_KEY, token);
     await prefs.setString(USER_ID_KEY, userId);
     await prefs.setString(USER_ROLE, userRole); // Fixed key usage
     await prefs.setString(USER_EMAIL, userEmail);
+    await prefs.setString(USER_ADMIN, isAdmin);
 
     // Verify it was saved
     print("Saved role: ${prefs.getString(USER_ROLE)}");
+    print("Saved admin: ${prefs.getString(USER_ADMIN)}");
   }
 
   static Future<void> clearAuthData() async {
@@ -91,5 +97,10 @@ class TokenManager {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString(USER_EMAIL);
   }
+
+  // Get user ID
+  static Future<String?> getAdmin() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString(USER_ADMIN);
+  }
 }
- 

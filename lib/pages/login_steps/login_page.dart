@@ -406,7 +406,7 @@ class _LoginPageState extends State<LoginPage>
         final authToken = response['token'];
         final userRole = user['user_role'];
         final userEmail = user['email'] ?? emailOrExcellence;
-        final isAdmin = user['admin'];
+        final isAdmin = user['admin'] ?? '';
 
         if (userId != null && authToken != null) {
           // Save authentication data
@@ -415,7 +415,7 @@ class _LoginPageState extends State<LoginPage>
             userId,
             userRole,
             userEmail,
-            isAdmin
+            isAdmin,
           );
           String successMessage =
               response['message']?.toString() ?? 'Login Successful';

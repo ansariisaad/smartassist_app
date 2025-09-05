@@ -1,8 +1,7 @@
 import 'package:get/get.dart';
-import 'package:flutter/material.dart';
-import 'package:smartassist/pages/Home/home_screen.dart';
-import 'package:smartassist/pages/navbar_page/my_teams.dart';
-import 'package:smartassist/pages/navbar_page/webview_screen.dart';
+import 'package:flutter/material.dart'; 
+import 'package:smartassist/pages/navbar_page/my_teams.dart'; 
+import 'package:smartassist/superAdmin/pages/home_admin.dart';
 import 'package:smartassist/utils/token_manager.dart';
 import 'package:smartassist/widgets/timeline_view_calender.dart';
 import 'package:smartassist/pages/Calendar/calendar_sm.dart';
@@ -15,7 +14,10 @@ class NavigationController extends GetxController {
   List<Widget> get screens {
     // Base screens that everyone sees
     List<Widget> baseScreens = [
-      HomeScreen(greeting: '', leadId: ''),
+
+      // HomeScreen(greeting: '', leadId: ''),
+
+      HomeAdmin(greeting: '', leadId: ''),
       // MyTeams screen is conditionally included below
       CalendarWithTimeline(leadName: ''),
     ];

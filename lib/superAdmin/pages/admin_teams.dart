@@ -11,20 +11,21 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/config/controller/tab_controller.dart';
 import 'package:smartassist/config/getX/fab.controller.dart';
-import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
+// import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
 import 'package:smartassist/pages/Home/single_details_pages/teams_enquiryIds.dart';
-import 'package:smartassist/pages/navbar_page/call_analytics.dart';
-import 'package:smartassist/utils/storage.dart';
-import 'package:smartassist/widgets/team_calllog_userid.dart';
+import 'package:smartassist/superAdmin/pages/bottombar/admin_callanalysis.dart';
+import 'package:smartassist/superAdmin/pages/single_id_view.dart/admin_singlelead_followups.dart'; 
+import 'package:smartassist/superAdmin/widgets/teams/admin_teamscalllogs.dart';
+import 'package:smartassist/utils/storage.dart'; 
 
-class MyTeams extends StatefulWidget {
-  const MyTeams({super.key});
+class AdminTeams extends StatefulWidget {
+  const AdminTeams({super.key});
 
   @override
-  State<MyTeams> createState() => _MyTeamsState();
+  State<AdminTeams> createState() => _AdminTeamsState();
 }
 
-class _MyTeamsState extends State<MyTeams> {
+class _AdminTeamsState extends State<AdminTeams> {
   static const int _decrementCount = 10;
 
   List<dynamic> _teamComparisonData = [];
@@ -1802,7 +1803,7 @@ class _MyTeamsState extends State<MyTeams> {
   }
 
   Widget _buildSingleuserCalllog(BuildContext context) {
-    return TeamCalllogUserid(
+    return AdminTeamscalllogs(
       key: ValueKey(selectedTimeRange),
       dashboardData: _dashboardData,
       enquiryData: _enquiryData,
@@ -1947,7 +1948,7 @@ class _MyTeamsState extends State<MyTeams> {
             )
           : const Center(child: Text('No data available')),
     );
-  } 
+  }
   // Widget _buildIndividualPerformanceMetrics(BuildContext context) {
   //   // Determine selection state
   //   final bool isSpecificUserSelected = _selectedProfileIndex > 0;
@@ -2941,7 +2942,7 @@ class _MyTeamsState extends State<MyTeams> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => CallAnalytics(
+                builder: (context) => AdminCallanalysis(
                   userName: member['name'].toString(),
                   userId: member['user_id']?.toString() ?? '',
                   isFromSM: true,
@@ -3762,7 +3763,7 @@ class _MyTeamsState extends State<MyTeams> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => FollowupsDetails(
+                    builder: (context) => AdminSingleleadFollowups(
                       leadId: leadId,
                       isFromFreshlead: false,
                       isFromManager: true,

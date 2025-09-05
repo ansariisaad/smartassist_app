@@ -3,17 +3,17 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:smartassist/config/component/color/colors.dart'; 
+import 'package:smartassist/config/component/color/colors.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:smartassist/pages/navbar_page/call_logs.dart';
 import 'package:smartassist/utils/storage.dart';
 
-class CallAnalytics extends StatefulWidget {
+class AdminCallanalysis extends StatefulWidget {
   final String userId;
   final String userName;
   final bool isFromSM;
-  const CallAnalytics({
+  const AdminCallanalysis({
     super.key,
     required this.userId,
     this.isFromSM = false,
@@ -21,10 +21,10 @@ class CallAnalytics extends StatefulWidget {
   });
 
   @override
-  State<CallAnalytics> createState() => _CallAnalyticsState();
+  State<AdminCallanalysis> createState() => _CallAnalyticsState();
 }
 
-class _CallAnalyticsState extends State<CallAnalytics>
+class _CallAnalyticsState extends State<AdminCallanalysis>
     with TickerProviderStateMixin {
   late TabController _tabController;
   final List<String> tabTitles = ['Enquiry', 'Cold Calls'];
@@ -403,34 +403,34 @@ class _CallAnalyticsState extends State<CallAnalytics>
                 },
               ),
       ),
-      floatingActionButton: !widget.isFromSM
-          ? Container(
-              width: _isTablet ? 150 : (_isSmallScreen ? 100 : 120),
-              height: _isTablet ? 60 : (_isSmallScreen ? 45 : 56),
-              child: FloatingActionButton(
-                backgroundColor: AppColors.colorsBlue,
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const CallLogs()),
-                  );
-                },
-                tooltip: 'Exclude unwanted numbers',
-                child: Text(
-                  'Exclude',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: _isTablet ? 14 : (_isSmallScreen ? 14 : 16),
-                    fontWeight: FontWeight.w500,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            )
-          : null,
-      floatingActionButtonLocation: _isTablet
-          ? FloatingActionButtonLocation.endFloat
-          : FloatingActionButtonLocation.endFloat,
+    //   floatingActionButton: !widget.isFromSM
+    //       ? Container(
+    //           width: _isTablet ? 150 : (_isSmallScreen ? 100 : 120),
+    //           height: _isTablet ? 60 : (_isSmallScreen ? 45 : 56),
+    //           child: FloatingActionButton(
+    //             backgroundColor: AppColors.colorsBlue,
+    //             onPressed: () {
+    //               Navigator.push(
+    //                 context,
+    //                 MaterialPageRoute(builder: (context) => const CallLogs()),
+    //               );
+    //             },
+    //             tooltip: 'Exclude unwanted numbers',
+    //             child: Text(
+    //               'Exclude',
+    //               style: TextStyle(
+    //                 color: Colors.white,
+    //                 fontSize: _isTablet ? 14 : (_isSmallScreen ? 14 : 16),
+    //                 fontWeight: FontWeight.w500,
+    //               ),
+    //               textAlign: TextAlign.center,
+    //             ),
+    //           ),
+    //         )
+    //       : null,
+    //   floatingActionButtonLocation: _isTablet
+    //       ? FloatingActionButtonLocation.endFloat
+    //       : FloatingActionButtonLocation.endFloat,
     );
   }
 

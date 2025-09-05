@@ -12,11 +12,12 @@ import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/config/controller/tab_controller.dart';
 import 'package:smartassist/config/getX/fab.controller.dart';
 // import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
-import 'package:smartassist/pages/Home/single_details_pages/teams_enquiryIds.dart';
+// import 'package:smartassist/pages/Home/single_details_pages/teams_enquiryIds.dart';
 import 'package:smartassist/superAdmin/pages/bottombar/admin_callanalysis.dart';
-import 'package:smartassist/superAdmin/pages/single_id_view.dart/admin_singlelead_followups.dart'; 
+import 'package:smartassist/superAdmin/pages/single_id_view.dart/admin_singleleId_teams.dart';
+import 'package:smartassist/superAdmin/pages/single_id_view.dart/admin_singlelead_followups.dart';
 import 'package:smartassist/superAdmin/widgets/teams/admin_teamscalllogs.dart';
-import 'package:smartassist/utils/storage.dart'; 
+import 'package:smartassist/utils/storage.dart';
 
 class AdminTeams extends StatefulWidget {
   const AdminTeams({super.key});
@@ -3534,7 +3535,7 @@ class _AdminTeamsState extends State<AdminTeams> {
             context,
             MaterialPageRoute(
               builder: (context) =>
-                  TeamsEnquiryids(leadId: leadId, userId: _selectedUserId),
+                  AdminSingleleidTeams(leadId: leadId, userId: _selectedUserId),
             ),
           );
         } else {
@@ -3619,7 +3620,7 @@ class _AdminTeamsState extends State<AdminTeams> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => TeamsEnquiryids(
+                      builder: (context) => AdminSingleleidTeams(
                         leadId: leadId,
                         userId: _selectedUserId,
                       ),

@@ -2,13 +2,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:local_auth/local_auth.dart'; 
+import 'package:local_auth/local_auth.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/services/notifacation_srv.dart';
+import 'package:smartassist/superAdmin/pages/admin_dealerall.dart';
+import 'package:smartassist/utils/admin_bottomnavigation.dart';
 import 'package:smartassist/utils/biometric_prefrence.dart';
 import 'package:smartassist/utils/bottom_navigation.dart';
 import 'package:smartassist/pages/login_steps/login_page.dart';
+import 'package:smartassist/utils/token_manager.dart';
 
 class BiometricScreen extends StatefulWidget {
   final bool isFirstTime;
@@ -420,6 +423,8 @@ class _BiometricScreenState extends State<BiometricScreen> {
     }
   }
 
+  // Replace these methods in your BiometricScreen:
+
   void _proceedToHome() async {
     try {
       await NotificationService.instance.initialize();
@@ -429,7 +434,15 @@ class _BiometricScreenState extends State<BiometricScreen> {
     }
 
     if (_mounted) {
-      Get.offAll(() => BottomNavigation());
+      // ✅ Check admin status before navigation
+      bool isAdmin = await TokenManager.getIsAdmin();
+
+      if (isAdmin) {
+        // Get.offAll(() => AdminBottomnavigation());
+        Get.offAll(() => AdminDealerall());
+      } else {
+        Get.offAll(() => BottomNavigation());
+      }
     }
   }
 
@@ -438,8 +451,16 @@ class _BiometricScreenState extends State<BiometricScreen> {
     if (_mounted) {
       Get.offAll(
         () => LoginPage(
-          onLoginSuccess: () {
-            Get.off(() => BottomNavigation());
+          onLoginSuccess: () async {
+            // ✅ Check admin status in login success callback too
+            bool isAdmin = await TokenManager.getIsAdmin();
+
+            if (isAdmin) {
+              // Get.off(() => AdminBottomnavigation());
+              Get.off(() => AdminDealerall());
+            } else {
+              Get.off(() => BottomNavigation());
+            }
           },
           email: '',
         ),
@@ -452,14 +473,63 @@ class _BiometricScreenState extends State<BiometricScreen> {
     if (_mounted) {
       Get.offAll(
         () => LoginPage(
-          onLoginSuccess: () {
-            Get.off(() => BottomNavigation());
+          onLoginSuccess: () async {
+            // ✅ Check admin status in login success callback too
+            bool isAdmin = await TokenManager.getIsAdmin();
+
+            if (isAdmin) {
+              // Get.off(() => AdminBottomnavigation());
+              Get.off(() => AdminDealerall());
+            } else {
+              Get.off(() => BottomNavigation());
+            }
           },
           email: '',
         ),
       );
     }
   }
+
+  // void _proceedToHome() async {
+  //   try {
+  //     await NotificationService.instance.initialize();
+  //     print("Proceeding to home screen");
+  //   } catch (e) {
+  //     print("Error initializing notifications: $e");
+  //   }
+
+  //   if (_mounted) {
+  //     Get.offAll(() => BottomNavigation());
+  //   }
+  // }
+
+  // void _redirectToLogin() {
+  //   // Navigate to login screen
+  //   if (_mounted) {
+  //     Get.offAll(
+  //       () => LoginPage(
+  //         onLoginSuccess: () {
+  //           Get.off(() => BottomNavigation());
+  //         },
+  //         email: '',
+  //       ),
+  //     );
+  //   }
+  // }
+
+  // void _skipAndLogin() async {
+  //   // Navigate to login screen
+  //   if (_mounted) {
+  //     Get.offAll(
+  //       () => LoginPage(
+  //         onLoginSuccess: () {
+  //           Get.off(() => BottomNavigation());
+  //         },
+  //         email: '',
+  //       ),
+  //     );
+  //   }
+  // }
 
   Widget _buildBiometricChoiceUI() {
     return Padding(

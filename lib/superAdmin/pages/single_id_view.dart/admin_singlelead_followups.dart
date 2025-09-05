@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -11,6 +10,9 @@ import 'package:http/http.dart' as http;
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/config/getX/fab.controller.dart';
 import 'package:smartassist/services/api_srv.dart';
+import 'package:smartassist/superAdmin/widgets/timeline/admin_completedTimeline.dart';
+import 'package:smartassist/superAdmin/widgets/timeline/admin_overdueTimeline.dart';
+import 'package:smartassist/superAdmin/widgets/timeline/admin_upcomingTimeline.dart';
 import 'package:smartassist/utils/bottom_navigation.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
@@ -18,10 +20,7 @@ import 'package:smartassist/widgets/call_history.dart';
 import 'package:smartassist/widgets/home_btn.dart/single_ids_popup/appointment_ids.dart';
 import 'package:smartassist/widgets/home_btn.dart/single_ids_popup/followups_ids.dart';
 import 'package:smartassist/widgets/home_btn.dart/single_ids_popup/testdrive_ids.dart';
-import 'package:smartassist/widgets/remarks_field.dart';
-import 'package:smartassist/widgets/timeline/timeline_overdue.dart';
-import 'package:smartassist/widgets/timeline/timeline_tasks.dart';
-import 'package:smartassist/widgets/timeline/timeline_completed.dart';
+import 'package:smartassist/widgets/remarks_field.dart'; 
 import 'package:smartassist/widgets/whatsapp_chat.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
@@ -44,7 +43,8 @@ class AdminSingleleadFollowups extends StatefulWidget {
   });
 
   @override
-  State<AdminSingleleadFollowups> createState() => _AdminSingleleadFollowupsState();
+  State<AdminSingleleadFollowups> createState() =>
+      _AdminSingleleadFollowupsState();
 }
 
 class _AdminSingleleadFollowupsState extends State<AdminSingleleadFollowups> {
@@ -122,13 +122,13 @@ class _AdminSingleleadFollowupsState extends State<AdminSingleleadFollowups> {
     });
 
     // Initially, set the selected widget
-    _selectedTaskWidget = TimelineUpcoming(
+    _selectedTaskWidget = AdminUpcomingtimeline(
       isFromTeams: false,
       tasks: upcomingTasks,
       upcomingEvents: upcomingEvents,
     );
 
-    _selectedTaskWidget = timelineOverdue(
+    _selectedTaskWidget = AdminOverduetimeline(
       tasks: overdueTasks,
       overdueEvents: overdueEvents,
       isFromTeams: false,
@@ -371,7 +371,7 @@ class _AdminSingleleadFollowupsState extends State<AdminSingleleadFollowups> {
         );
 
         // Now you can safely pass the upcomingTasks and completedTasks to the widgets.
-        _selectedTaskWidget = TimelineUpcoming(
+        _selectedTaskWidget = AdminUpcomingtimeline(
           isFromTeams: false,
           tasks: upcomingTasks,
           upcomingEvents: upcomingEvents,
@@ -389,18 +389,18 @@ class _AdminSingleleadFollowupsState extends State<AdminSingleleadFollowups> {
       _childButtonIndex = index;
       if (index == 0) {
         // Show upcoming tasks
-        _selectedTaskWidget = TimelineUpcoming(
+        _selectedTaskWidget = AdminUpcomingtimeline(
           isFromTeams: false,
           tasks: upcomingTasks,
           upcomingEvents: upcomingEvents,
         );
       } else if (index == 1) {
-        _selectedTaskWidget = TimelineCompleted(
+        _selectedTaskWidget = AdminCompletedtimeline(
           events: completedTasks,
           completedEvents: completedEvents,
         );
       } else {
-        _selectedTaskWidget = timelineOverdue(
+        _selectedTaskWidget = AdminOverduetimeline(
           tasks: overdueTasks,
           overdueEvents: overdueEvents,
           isFromTeams: false,
@@ -1552,94 +1552,94 @@ class _AdminSingleleadFollowupsState extends State<AdminSingleleadFollowups> {
         ],
       ),
       // floatingActionButton: _buildFloatingActionButton(context),
-      bottomNavigationBar: widget.isFromManager
-          ? null
-          : SafeArea(
-              child: Stack(
-                alignment: Alignment.bottomCenter,
-                children: [
-                  Container(
-                    height: 80,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(20),
-                        topRight: Radius.circular(20),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 10,
-                          offset: Offset(0, -2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        // Lost Button
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () =>
-                                _showFollowupPopup(context, widget.leadId),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              decoration: BoxDecoration(
-                                color: AppColors.colorsBlue,
-                                // Green color from image
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                'Follow up?',
-                                style: AppFont.mediumText14White(context),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
+      //   bottomNavigationBar: widget.isFromManager
+      //       ? null
+      //       : SafeArea(
+      //           child: Stack(
+      //             alignment: Alignment.bottomCenter,
+      //             children: [
+      //               Container(
+      //                 height: 80,
+      //                 padding: const EdgeInsets.symmetric(
+      //                   horizontal: 16,
+      //                   vertical: 10,
+      //                 ),
+      //                 decoration: BoxDecoration(
+      //                   color: Colors.white,
+      //                   borderRadius: const BorderRadius.only(
+      //                     topLeft: Radius.circular(20),
+      //                     topRight: Radius.circular(20),
+      //                   ),
+      //                   boxShadow: [
+      //                     BoxShadow(
+      //                       color: Colors.black.withOpacity(0.1),
+      //                       blurRadius: 10,
+      //                       offset: Offset(0, -2),
+      //                     ),
+      //                   ],
+      //                 ),
+      //                 child: Row(
+      //                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      //                   children: [
+      //                     // Lost Button
+      //                     Expanded(
+      //                       child: GestureDetector(
+      //                         onTap: () =>
+      //                             _showFollowupPopup(context, widget.leadId),
+      //                         child: Container(
+      //                           padding: const EdgeInsets.symmetric(vertical: 12),
+      //                           decoration: BoxDecoration(
+      //                             color: AppColors.colorsBlue,
+      //                             // Green color from image
+      //                             borderRadius: BorderRadius.circular(12),
+      //                           ),
+      //                           child: Text(
+      //                             'Follow up?',
+      //                             style: AppFont.mediumText14White(context),
+      //                             textAlign: TextAlign.center,
+      //                           ),
+      //                         ),
+      //                       ),
+      //                     ),
+      //                     const SizedBox(width: 10),
 
-                        // Qualify Button
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () {
-                              if (areButtonsEnabled()) {
-                                handleQualifyAction();
-                              } else {
-                                showTaskRequiredDialog(context);
-                              }
-                            },
-                            child: Container(
-                              padding: EdgeInsets.symmetric(vertical: 12),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF35CB64),
-                                // Green color from image
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                'Qualify',
-                                style: AppFont.mediumText14white(context),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        SizedBox(
-                          width: 60,
-                          height: 45,
-                          child: _buildFloatingActionButton(context),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
+      //                     // Qualify Button
+      //                     Expanded(
+      //                       child: GestureDetector(
+      //                         onTap: () {
+      //                           if (areButtonsEnabled()) {
+      //                             handleQualifyAction();
+      //                           } else {
+      //                             showTaskRequiredDialog(context);
+      //                           }
+      //                         },
+      //                         child: Container(
+      //                           padding: EdgeInsets.symmetric(vertical: 12),
+      //                           decoration: BoxDecoration(
+      //                             color: const Color(0xFF35CB64),
+      //                             // Green color from image
+      //                             borderRadius: BorderRadius.circular(12),
+      //                           ),
+      //                           child: Text(
+      //                             'Qualify',
+      //                             style: AppFont.mediumText14white(context),
+      //                             textAlign: TextAlign.center,
+      //                           ),
+      //                         ),
+      //                       ),
+      //                     ),
+      //                     const SizedBox(width: 10),
+      //                     SizedBox(
+      //                       width: 60,
+      //                       height: 45,
+      //                       child: _buildFloatingActionButton(context),
+      //                     ),
+      //                   ],
+      //                 ),
+      //               ),
+      //             ],
+      //           ),
+      //         ),
     );
   }
 

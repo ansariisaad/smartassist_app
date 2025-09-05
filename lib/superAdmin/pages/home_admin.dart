@@ -11,9 +11,11 @@ import 'package:smartassist/config/getX/fab.controller.dart';
 import 'package:smartassist/pages/Home/gloabal_search_page/global_search.dart';
 import 'package:smartassist/pages/notification/notification.dart';
 import 'package:smartassist/services/api_srv.dart';
+import 'package:smartassist/superAdmin/pages/admin_dealerall.dart';
 import 'package:smartassist/superAdmin/widgets/home_analysis_admin_performance.dart';
 import 'package:smartassist/superAdmin/widgets/home_analysisc_admin.dart';
 import 'package:smartassist/superAdmin/widgets/threebtn_admin.dart';
+import 'package:smartassist/utils/admin_is_manager.dart';
 import 'package:smartassist/widgets/home_btn.dart/dashboard_analytics_one.dart';
 import 'package:smartassist/widgets/internet_exception.dart';
 import 'package:smartassist/widgets/profile_screen.dart';
@@ -36,6 +38,7 @@ class _HomeAdminState extends State<HomeAdmin> {
     _bottomBtnSecondKey.currentState?.refreshData();
   }
 
+  bool _isLoading = false;
   bool hasInternet = true;
   bool isRefreshing = false;
   int _currentTabIndex = 0; // Track which tab is active
@@ -165,7 +168,7 @@ class _HomeAdminState extends State<HomeAdmin> {
       });
     }
     try {
-      final data = await LeadsSrv.fetchDashboardData();
+      final data = await LeadsSrv.adminFetchDashboardData();
       if (mounted) {
         setState(() {
           hasInternet = true;
@@ -223,10 +226,6 @@ class _HomeAdminState extends State<HomeAdmin> {
               profilePicUrl = userData['profile_pic'];
             }
           }
-
-          // if (upcomingFollowups.isNotEmpty) {
-          //   leadId = upcomingFollowups[0]['lead_id'];
-          // }
         });
       }
     } catch (e) {
@@ -287,13 +286,48 @@ class _HomeAdminState extends State<HomeAdmin> {
                 backgroundColor: AppColors.colorsBlue,
                 title: Align(
                   alignment: Alignment.centerLeft,
-                  child: Text(
-                    ' $greeting',
-                    textAlign: TextAlign.start,
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                      color: Colors.white,
+                  child: InkWell(
+                    // onTap: () async {
+                    //   await AdminUserIdManager.clearAdminUserId();
+
+                    //   Navigator.pushReplacement(
+                    //     context,
+                    //     MaterialPageRoute(
+                    //       builder: (context) => const AdminDealerall(),
+                    //     ),
+                    //   );
+                    // },
+                    onTap: () async {
+                      setState(() {
+                        _isLoading = true; // Step 1: show loader
+                      });
+
+                      await AdminUserIdManager.clearAdminUserId(); // Step 2: clear ID
+
+                      if (!mounted) return;
+
+                      Navigator.pushReplacement(
+                        // Step 3: navigate
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AdminDealerall(),
+                        ),
+                      );
+                    },
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          color: AppColors.white,
+                        ),
+
+                        SizedBox(width: 10),
+                        Text(
+                          "Back to dealer's",
+                          textAlign: TextAlign.start,
+                          style: AppFont.dropDowmLabelWhite(context),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -358,178 +392,181 @@ class _HomeAdminState extends State<HomeAdmin> {
                                 ScrollViewKeyboardDismissBehavior.onDrag,
                             child: Column(
                               children: [
+                                SizedBox(height: 10),
+
                                 /// ✅ Row with Menu, Search Bar, and Microphone
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Container(
-                                        margin: const EdgeInsets.symmetric(
-                                          horizontal: 15,
-                                          vertical: 10,
-                                        ),
-                                        child: SizedBox(
-                                          height: 40,
-                                          child: TextField(
-                                            readOnly: true,
-                                            onTap: () {
-                                              Get.to(
-                                                () => const GlobalSearch(),
-                                              );
-                                            },
-                                            textAlignVertical:
-                                                TextAlignVertical.center,
-                                            decoration: InputDecoration(
-                                              enabledBorder: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(30),
-                                                borderSide: BorderSide.none,
-                                              ),
-                                              contentPadding: EdgeInsets.zero,
-                                              filled: true,
-                                              fillColor: AppColors.containerBg,
-                                              hintText:
-                                                  'Search by name, email or phone',
-                                              hintStyle: GoogleFonts.poppins(
-                                                fontSize: responsiveFontSize,
-                                                color: AppColors.fontColor,
-                                                fontWeight: FontWeight.w400,
-                                              ),
-                                              prefixIcon: const Icon(
-                                                FontAwesomeIcons
-                                                    .magnifyingGlass,
-                                                color: AppColors.iconGrey,
-                                                size: 15,
-                                              ),
-                                              border: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(30),
-                                                borderSide: BorderSide.none,
-                                              ),
-                                              suffixIcon: Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      vertical: 2,
-                                                    ),
-                                                child: GestureDetector(
-                                                  onTap: () {
-                                                    Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                        builder: (context) =>
-                                                            ProfileScreen(
-                                                              refreshDashboard:
-                                                                  _handleFormSubmit,
-                                                            ),
-                                                      ),
-                                                    );
-                                                  },
-                                                  child: Container(
-                                                    width: 28,
-                                                    height: 28,
-                                                    // decoration: BoxDecoration(
-                                                    //   color: AppColors
-                                                    //       .backgroundLightGrey,
-                                                    //   shape: BoxShape.circle,
-                                                    // ),
-                                                    alignment: Alignment.center,
-                                                    child:
-                                                        profilePicUrl != null &&
-                                                            profilePicUrl!
-                                                                .isNotEmpty
-                                                        ? ClipOval(
-                                                            child: Image.network(
-                                                              profilePicUrl!,
-                                                              width: 28,
-                                                              height: 28,
-                                                              fit: BoxFit.cover,
-                                                              errorBuilder:
-                                                                  (
-                                                                    context,
-                                                                    error,
-                                                                    stackTrace,
-                                                                  ) {
-                                                                    return Container(
-                                                                      width: 28,
-                                                                      height:
-                                                                          28,
-                                                                      decoration: BoxDecoration(
-                                                                        shape: BoxShape
-                                                                            .circle,
-                                                                        color: Theme.of(
-                                                                          context,
-                                                                        ).colorScheme.primary.withOpacity(0.1),
-                                                                      ),
-                                                                      child: Center(
-                                                                        child: Text(
-                                                                          (name?.isNotEmpty ??
-                                                                                  false)
-                                                                              ? name!
-                                                                                    .substring(
-                                                                                      0,
-                                                                                      1,
-                                                                                    )
-                                                                                    .toUpperCase()
-                                                                              : 'N/A',
-                                                                          style:
-                                                                              AppFont.mediumText14bluebold(
-                                                                                context,
-                                                                              ).copyWith(
-                                                                                fontSize: 10,
-                                                                              ),
-                                                                        ),
-                                                                      ),
-                                                                    );
-                                                                  },
-                                                            ),
-                                                          )
-                                                        : Container(
-                                                            width:
-                                                                MediaQuery.of(
-                                                                  context,
-                                                                ).size.width *
-                                                                0.08,
-                                                            height:
-                                                                MediaQuery.of(
-                                                                  context,
-                                                                ).size.width *
-                                                                0.08,
-                                                            alignment: Alignment
-                                                                .center,
-                                                            decoration: BoxDecoration(
-                                                              color: AppColors
-                                                                  .backgroundLightGrey,
-                                                              shape: BoxShape
-                                                                  .circle,
-                                                            ),
-                                                            child: Text(
-                                                              (name?.isNotEmpty ??
-                                                                      false)
-                                                                  ? name!
-                                                                        .substring(
-                                                                          0,
-                                                                          1,
-                                                                        )
-                                                                        .toUpperCase()
-                                                                  : 'N/A',
-                                                              style:
-                                                                  AppFont.mediumText14bluebold(
-                                                                    context,
-                                                                  ).copyWith(
-                                                                    fontSize:
-                                                                        14,
-                                                                  ),
-                                                            ),
-                                                          ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                // Row(
+                                //   children: [
+                                //     Expanded(
+                                //       child: Container(
+                                //         margin: const EdgeInsets.symmetric(
+                                //           horizontal: 15,
+                                //           vertical: 10,
+                                //         ),
+                                //         child: SizedBox(
+                                //           height: 40,
+                                //           child: TextField(
+                                //             readOnly: true,
+                                //             onTap: () {
+                                //               Get.to(
+                                //                 () => const GlobalSearch(),
+                                //               );
+                                //             },
+                                //             textAlignVertical:
+                                //                 TextAlignVertical.center,
+                                //             decoration: InputDecoration(
+                                //               enabledBorder: OutlineInputBorder(
+                                //                 borderRadius:
+                                //                     BorderRadius.circular(30),
+                                //                 borderSide: BorderSide.none,
+                                //               ),
+                                //               contentPadding: EdgeInsets.zero,
+                                //               filled: true,
+                                //               fillColor: AppColors.containerBg,
+                                //               hintText:
+                                //                   'Search by name, email or phone',
+                                //               hintStyle: GoogleFonts.poppins(
+                                //                 fontSize: responsiveFontSize,
+                                //                 color: AppColors.fontColor,
+                                //                 fontWeight: FontWeight.w400,
+                                //               ),
+                                //               prefixIcon: const Icon(
+                                //                 FontAwesomeIcons
+                                //                     .magnifyingGlass,
+                                //                 color: AppColors.iconGrey,
+                                //                 size: 15,
+                                //               ),
+                                //               border: OutlineInputBorder(
+                                //                 borderRadius:
+                                //                     BorderRadius.circular(30),
+                                //                 borderSide: BorderSide.none,
+                                //               ),
+                                //               suffixIcon: Padding(
+                                //                 padding:
+                                //                     const EdgeInsets.symmetric(
+                                //                       vertical: 2,
+                                //                     ),
+                                //                 child: GestureDetector(
+                                //                   onTap: () {
+                                //                     Navigator.push(
+                                //                       context,
+                                //                       MaterialPageRoute(
+                                //                         builder: (context) =>
+                                //                             ProfileScreen(
+                                //                               refreshDashboard:
+                                //                                   _handleFormSubmit,
+                                //                             ),
+                                //                       ),
+                                //                     );
+                                //                   },
+                                //                   child: Container(
+                                //                     width: 28,
+                                //                     height: 28,
+                                //                     // decoration: BoxDecoration(
+                                //                     //   color: AppColors
+                                //                     //       .backgroundLightGrey,
+                                //                     //   shape: BoxShape.circle,
+                                //                     // ),
+                                //                     alignment: Alignment.center,
+                                //                     child:
+                                //                         profilePicUrl != null &&
+                                //                             profilePicUrl!
+                                //                                 .isNotEmpty
+                                //                         ? ClipOval(
+                                //                             child: Image.network(
+                                //                               profilePicUrl!,
+                                //                               width: 28,
+                                //                               height: 28,
+                                //                               fit: BoxFit.cover,
+                                //                               errorBuilder:
+                                //                                   (
+                                //                                     context,
+                                //                                     error,
+                                //                                     stackTrace,
+                                //                                   ) {
+                                //                                     return Container(
+                                //                                       width: 28,
+                                //                                       height:
+                                //                                           28,
+                                //                                       decoration: BoxDecoration(
+                                //                                         shape: BoxShape
+                                //                                             .circle,
+                                //                                         color: Theme.of(
+                                //                                           context,
+                                //                                         ).colorScheme.primary.withOpacity(0.1),
+                                //                                       ),
+                                //                                       child: Center(
+                                //                                         child: Text(
+                                //                                           (name?.isNotEmpty ??
+                                //                                                   false)
+                                //                                               ? name!
+                                //                                                     .substring(
+                                //                                                       0,
+                                //                                                       1,
+                                //                                                     )
+                                //                                                     .toUpperCase()
+                                //                                               : 'N/A',
+                                //                                           style:
+                                //                                               AppFont.mediumText14bluebold(
+                                //                                                 context,
+                                //                                               ).copyWith(
+                                //                                                 fontSize: 10,
+                                //                                               ),
+                                //                                         ),
+                                //                                       ),
+                                //                                     );
+                                //                                   },
+                                //                             ),
+                                //                           )
+                                //                         : Container(
+                                //                             width:
+                                //                                 MediaQuery.of(
+                                //                                   context,
+                                //                                 ).size.width *
+                                //                                 0.08,
+                                //                             height:
+                                //                                 MediaQuery.of(
+                                //                                   context,
+                                //                                 ).size.width *
+                                //                                 0.08,
+                                //                             alignment: Alignment
+                                //                                 .center,
+                                //                             decoration: BoxDecoration(
+                                //                               color: AppColors
+                                //                                   .backgroundLightGrey,
+                                //                               shape: BoxShape
+                                //                                   .circle,
+                                //                             ),
+                                //                             child: Text(
+                                //                               (name?.isNotEmpty ??
+                                //                                       false)
+                                //                                   ? name!
+                                //                                         .substring(
+                                //                                           0,
+                                //                                           1,
+                                //                                         )
+                                //                                         .toUpperCase()
+                                //                                   : 'N/A',
+                                //                               style:
+                                //                                   AppFont.mediumText14bluebold(
+                                //                                     context,
+                                //                                   ).copyWith(
+                                //                                     fontSize:
+                                //                                         14,
+                                //                                   ),
+                                //                             ),
+                                //                           ),
+                                //                   ),
+                                //                 ),
+                                //               ),
+                                //             ),
+                                //           ),
+                                //         ),
+                                //       ),
+                                //     ),
+
+                                //   ],
+                                // ),
 
                                 // const SizedBox(height: 3),
                                 ThreebtnAdmin(
@@ -552,6 +589,12 @@ class _HomeAdminState extends State<HomeAdmin> {
                                         ?.handleExternalTabChange(index);
                                   },
                                 ),
+                                // IconButton(
+                                //   onPressed: () async {
+                                //     await AdminUserIdManager.clearAdminUserId();
+                                //   },
+                                //   icon: Icon(Icons.delete),
+                                // ),
                                 HomeAnalysiscAdmin(key: _bottomBtnSecondKey),
 
                                 Padding(
@@ -687,8 +730,10 @@ class _HomeAdminState extends State<HomeAdmin> {
                       // Exit button (Blue)
                       Expanded(
                         child: ElevatedButton(
-                          onPressed: () {
-                            SystemNavigator.pop(); // Exit the app
+                          onPressed: () async {
+                            await AdminUserIdManager.clearAdminUserId();
+                            // Navigator.of(context).pop();
+                            SystemNavigator.pop();
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.colorsBlue,

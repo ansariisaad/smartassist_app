@@ -10,6 +10,8 @@ import 'package:smartassist/pages/login_steps/first_screen.dart';
 import 'package:smartassist/pages/login_steps/forget_password.dart';
 import 'package:smartassist/services/api_srv.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:smartassist/superAdmin/pages/admin_dealerall.dart';
+import 'package:smartassist/utils/admin_bottomnavigation.dart';
 import 'package:smartassist/utils/biometric_prefrence.dart';
 import 'package:smartassist/utils/bottom_navigation.dart';
 import 'package:smartassist/utils/connection_service.dart';
@@ -406,7 +408,12 @@ class _LoginPageState extends State<LoginPage>
         final authToken = response['token'];
         final userRole = user['user_role'];
         final userEmail = user['email'] ?? emailOrExcellence;
-        final isAdmin = user['admin'] ?? '';
+        final accessToken = user['access_token'];
+        // final isAdmin = user['admin'] ?? '';
+        final rawAdmin = user['isAdmin'];
+        final isAdmin = (rawAdmin is bool)
+            ? rawAdmin
+            : (rawAdmin.toString().toLowerCase() == "true");
 
         if (userId != null && authToken != null) {
           // Save authentication data
@@ -415,6 +422,7 @@ class _LoginPageState extends State<LoginPage>
             userId,
             userRole,
             userEmail,
+            accessToken,
             isAdmin,
           );
           String successMessage =
@@ -446,8 +454,14 @@ class _LoginPageState extends State<LoginPage>
             // Navigate to BiometricScreen with isFirstTime flag
             Get.offAll(() => const BiometricScreen(isFirstTime: true));
           } else {
-            await BiometricPreference.setUseBiometric(false);
-            Get.offAll(() => BottomNavigation());
+            await BiometricPreference.setUseBiometric(false); 
+            if (isAdmin == true) {
+              Get.offAll(() => AdminBottomnavigation());
+            } else {
+              // Get.offAll(() => BottomNavigation());
+              Get.offAll(() => AdminDealerall()
+              );
+            }
           }
 
           widget.onLoginSuccess?.call();

@@ -7,6 +7,8 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/route/route_name.dart';
 import 'package:smartassist/pages/login_steps/login_page.dart';
+import 'package:smartassist/utils/admin_is_manager.dart'
+    show AdminUserIdManager;
 import 'package:smartassist/utils/connection_service.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
@@ -1305,6 +1307,70 @@ class LeadsSrv {
     try {
       final response = await http.get(
         Uri.parse('${baseUrl}users/dashboard?filterType=MTD&category=Leads'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = json.decode(response.body);
+        // Dashboard data is nested under "data"
+        final Map<String, dynamic> data = jsonResponse['data'];
+        return data;
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+        throw Exception(
+          'Failed to load dashboard data: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  static Future<Map<String, dynamic>> adminFetchDashboardData() async {
+    final token = await Storage.getToken();
+    final adminId = await AdminUserIdManager.getAdminUserId();
+    try {
+      final url = Uri.parse('${baseUrl}app-admin/dashboard?userId=$adminId');
+
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = json.decode(response.body);
+        // Dashboard data is nested under "data"
+        final Map<String, dynamic> data = jsonResponse['data'];
+        print('this is the url $url');
+        return data;
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+        throw Exception(
+          'Failed to load dashboard data: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  static Future<Map<String, dynamic>> fetchDealer() async {
+    final token = await Storage.getToken();
+    try {
+      final response = await http.get(
+        Uri.parse('${baseUrl}app-admin/all-dealerships'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',

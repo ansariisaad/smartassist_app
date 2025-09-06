@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:smartassist/config/component/color/colors.dart'; 
+import 'package:smartassist/config/component/color/colors.dart';
+import 'package:smartassist/config/component/font/font.dart';
+import 'package:smartassist/superAdmin/pages/admin_dealerall.dart';
 import 'package:smartassist/superAdmin/pages/favoritesbtns/admin_fav_appointment.dart';
 import 'package:smartassist/superAdmin/pages/favoritesbtns/admin_fav_followups.dart';
 import 'package:smartassist/superAdmin/pages/favoritesbtns/admin_fav_lead.dart';
 import 'package:smartassist/superAdmin/pages/favoritesbtns/admin_fav_testdrive.dart';
+import 'package:smartassist/utils/admin_is_manager.dart';
 
 class AdminFavourites extends StatefulWidget {
   final String leadId;
@@ -17,6 +20,7 @@ class AdminFavourites extends StatefulWidget {
 
 class _AdminFavouritesState extends State<AdminFavourites> {
   int _selectedButtonIndex = 0;
+  bool _isLoading = false;
   List<Map<String, dynamic>> followupData = [];
   List<Map<String, dynamic>> appointmentData = [];
   List<Map<String, dynamic>> testDriveData = [];
@@ -80,30 +84,67 @@ class _AdminFavouritesState extends State<AdminFavourites> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          icon: Icon(
-            FontAwesomeIcons.angleLeft,
-            color: Colors.white,
-            size: _isSmallScreen(context) ? 18 : 20,
-          ),
-        ),
+        automaticallyImplyLeading: false,
+        backgroundColor: AppColors.colorsBlue,
         title: Align(
           alignment: Alignment.centerLeft,
-          child: Text(
-            'Favourites',
-            style: GoogleFonts.poppins(
-              fontSize: _titleFontSize(context),
-              fontWeight: FontWeight.w400,
-              color: Colors.white,
+          child: InkWell(
+            onTap: () async {
+              setState(() {
+                _isLoading = true; // Step 1: show loader
+              });
+
+              await AdminUserIdManager.clearAll(); // Step 2: clear ID
+
+              if (!mounted) return;
+
+              Navigator.pushReplacement(
+                // Step 3: navigate
+                context,
+                MaterialPageRoute(builder: (context) => const AdminDealerall()),
+              );
+            },
+            child: Row(
+              children: [
+                Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.white),
+
+                SizedBox(width: 10),
+                Text(
+                  "Back to dealer's",
+                  textAlign: TextAlign.start,
+                  style: AppFont.dropDowmLabelWhite(context),
+                ),
+              ],
             ),
           ),
         ),
-        backgroundColor: AppColors.colorsBlue,
-        automaticallyImplyLeading: false,
       ),
+
+      // appBar: AppBar(
+      //   leading: IconButton(
+      //     onPressed: () {
+      //       Navigator.pop(context);
+      //     },
+      //     icon: Icon(
+      //       FontAwesomeIcons.angleLeft,
+      //       color: Colors.white,
+      //       size: _isSmallScreen(context) ? 18 : 20,
+      //     ),
+      //   ),
+      //   title: Align(
+      //     alignment: Alignment.centerLeft,
+      //     child: Text(
+      //       'Favourites',
+      //       style: GoogleFonts.poppins(
+      //         fontSize: _titleFontSize(context),
+      //         fontWeight: FontWeight.w400,
+      //         color: Colors.white,
+      //       ),
+      //     ),
+      //   ),
+      //   backgroundColor: AppColors.colorsBlue,
+      //   automaticallyImplyLeading: false,
+      // ),
       body: SingleChildScrollView(
         child: Column(
           children: [

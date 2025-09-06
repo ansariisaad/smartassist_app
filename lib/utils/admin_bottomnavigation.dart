@@ -14,6 +14,7 @@ import 'package:smartassist/pages/Navigation/feedback_nav.dart';
 import 'package:smartassist/superAdmin/pages/admin_favourites.dart';
 import 'package:smartassist/superAdmin/pages/bottombar/admin_callanalysis.dart';
 import 'package:smartassist/superAdmin/pages/bottombar/admin_myenquiries.dart';
+import 'package:smartassist/superAdmin/widgets/admin_raiseticket.dart';
 import 'package:smartassist/utils/admin_navigation_controller.dart'
     as nav_utils;
 import 'package:smartassist/pages/navbar_page/bottom_tutorial.dart';
@@ -440,15 +441,15 @@ class AdminBottomnavigation extends StatelessWidget {
                       () => const AdminCallanalysis(userId: '', userName: ''),
                     ),
                   ),
-                  if (teamRole == "SM")
-                    ListTile(
-                      leading: const Icon(Icons.group, size: 28),
-                      title: Text(
-                        'Reassign Enquiries ',
-                        style: GoogleFonts.poppins(fontSize: 18),
-                      ),
-                      onTap: () => Get.to(() => const AllEnq()),
-                    ),
+                  // if (teamRole == "SM")
+                  //   ListTile(
+                  //     leading: const Icon(Icons.group, size: 28),
+                  //     title: Text(
+                  //       'Reassign Enquiries ',
+                  //       style: GoogleFonts.poppins(fontSize: 18),
+                  //     ),
+                  //     onTap: () => Get.to(() => const AllEnq()),
+                  //   ),
                   ListTile(
                     leading: const Icon(Icons.star_border_rounded, size: 28),
                     title: Text(
@@ -464,8 +465,9 @@ class AdminBottomnavigation extends StatelessWidget {
                       'Raise a ticket',
                       style: GoogleFonts.poppins(fontSize: 18),
                     ),
-                    onTap: () =>
-                        Get.to(() => FeedbackForm(userId: '', userName: '')),
+                    onTap: () => Get.to(
+                      () => AdminRaiseticket(userId: '', userName: ''),
+                    ),
                   ),
                   ListTile(
                     leading: const Icon(Icons.video_collection, size: 28),

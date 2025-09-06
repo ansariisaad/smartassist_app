@@ -86,6 +86,7 @@ class _HomeAdminState extends State<HomeAdmin> {
 
     // Move async operations to after controller initialization
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      debugPrint("🔄 setState called in ${this.runtimeType}");
       fetchDashboardData();
       _loadDashboardAnalytics();
       _loadTeamRole();
@@ -288,16 +289,6 @@ class _HomeAdminState extends State<HomeAdmin> {
                 title: Align(
                   alignment: Alignment.centerLeft,
                   child: InkWell(
-                    // onTap: () async {
-                    //   await AdminUserIdManager.clearAdminUserId();
-
-                    //   Navigator.pushReplacement(
-                    //     context,
-                    //     MaterialPageRoute(
-                    //       builder: (context) => const AdminDealerall(),
-                    //     ),
-                    //   );
-                    // },
                     onTap: () async {
                       setState(() {
                         _isLoading = true; // Step 1: show loader

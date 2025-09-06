@@ -1,12 +1,14 @@
- 
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
+import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/config/getX/fab.controller.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
+import 'package:smartassist/superAdmin/pages/admin_dealerall.dart';
+import 'package:smartassist/utils/admin_is_manager.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/calender/calender.dart';
 import 'package:smartassist/widgets/reusable/skeleton_calendar_card.dart';
@@ -40,9 +42,10 @@ class _AdminCalendarTimelineState extends State<AdminCalendarTimeline> {
   void initState() {
     super.initState();
     _selectedDay = _focusedDay;
-    _fetchActivitiesData();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToCurrentHour();
+      _fetchActivitiesData();
     });
   }
 
@@ -68,13 +71,15 @@ class _AdminCalendarTimelineState extends State<AdminCalendarTimeline> {
     if (mounted) setState(() => _isLoading = true);
     try {
       final token = await Storage.getToken();
+      final adminId = await AdminUserIdManager.getAdminUserId();
       String formattedDate = DateFormat(
         'dd-MM-yyyy',
       ).format(_selectedDay ?? _focusedDay);
 
       final Map<String, String> queryParams = {'date': formattedDate};
       final baseUrl = Uri.parse(
-        "https://dev.smartassistapp.in/api/calendar/activities/all/asondate",
+        // "https://dev.smartassistapp.in/api/calendar/activities/all/asondate",
+        "https://dev.smartassistapp.in/api/app-admin/calendar/activities?userId=$adminId",
       );
       final uri = baseUrl.replace(queryParameters: queryParams);
 
@@ -162,46 +167,84 @@ class _AdminCalendarTimelineState extends State<AdminCalendarTimeline> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+
+      // appBar: AppBar(
+      //   backgroundColor: AppColors.colorsBlue,
+      //   automaticallyImplyLeading: false,
+      //   title: Align(
+      //     alignment: Alignment.centerLeft,
+      //     child: Text(
+      //       'Calendar',
+      //       style: GoogleFonts.poppins(
+      //         fontSize: 18,
+      //         fontWeight: FontWeight.w500,
+      //         color: Colors.white,
+      //       ),
+      //     ),
+      //   ),
+      //   actions: [
+      //     IconButton(
+      //       onPressed: () {
+      //         setState(() {
+      //           _calendarFormat = _isMonthView
+      //               ? CalendarFormat.week
+      //               : CalendarFormat.month;
+      //           _isMonthView = !_isMonthView;
+      //         });
+      //       },
+      //       icon: _isMonthView
+      //           ? Image.asset(
+      //               'assets/week.png',
+      //               width: 24,
+      //               height: 24,
+      //               color: Colors.white,
+      //             )
+      //           : Image.asset(
+      //               'assets/calendar.png',
+      //               width: 24,
+      //               height: 24,
+      //               color: Colors.white,
+      //             ),
+      //     ),
+      //   ],
+      // ),
       appBar: AppBar(
-        backgroundColor: AppColors.colorsBlue,
         automaticallyImplyLeading: false,
+        backgroundColor: AppColors.colorsBlue,
         title: Align(
           alignment: Alignment.centerLeft,
-          child: Text(
-            'Calendar',
-            style: GoogleFonts.poppins(
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-              color: Colors.white,
+          child: InkWell(
+            onTap: () async {
+              setState(() {
+                _isLoading = true; // Step 1: show loader
+              });
+
+              await AdminUserIdManager.clearAll(); // Step 2: clear ID
+
+              if (!mounted) return;
+
+              Navigator.pushReplacement(
+                // Step 3: navigate
+                context,
+                MaterialPageRoute(builder: (context) => const AdminDealerall()),
+              );
+            },
+            child: Row(
+              children: [
+                Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.white),
+
+                SizedBox(width: 10),
+                Text(
+                  "Back to dealer's",
+                  textAlign: TextAlign.start,
+                  style: AppFont.dropDowmLabelWhite(context),
+                ),
+              ],
             ),
           ),
         ),
-        actions: [
-          IconButton(
-            onPressed: () {
-              setState(() {
-                _calendarFormat = _isMonthView
-                    ? CalendarFormat.week
-                    : CalendarFormat.month;
-                _isMonthView = !_isMonthView;
-              });
-            },
-            icon: _isMonthView
-                ? Image.asset(
-                    'assets/week.png',
-                    width: 24,
-                    height: 24,
-                    color: Colors.white,
-                  )
-                : Image.asset(
-                    'assets/calendar.png',
-                    width: 24,
-                    height: 24,
-                    color: Colors.white,
-                  ),
-          ),
-        ],
       ),
+
       body: Column(
         children: [
           CalenderWidget(

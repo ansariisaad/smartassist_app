@@ -6,6 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:smartassist/config/component/font/font.dart';
+import 'package:smartassist/superAdmin/pages/admin_dealerall.dart';
 import 'package:smartassist/utils/admin_is_manager.dart';
 import 'package:smartassist/utils/storage.dart';
 
@@ -352,31 +354,69 @@ class _CallAnalyticsState extends State<AdminCallanalysis>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          icon: Icon(
-            FontAwesomeIcons.angleLeft,
-            color: Colors.white,
-            size: _isSmallScreen ? 18 : 20,
-          ),
-        ),
+       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: AppColors.colorsBlue,
         title: Align(
           alignment: Alignment.centerLeft,
-          child: Text(
-            widget.isFromSM ? widget.userName : 'Call Analysis',
-            style: GoogleFonts.poppins(
-              fontSize: _titleFontSize,
-              fontWeight: FontWeight.w400,
-              color: Colors.white,
+          child: InkWell(
+            onTap: () async {
+              setState(() {
+                _isLoading = true; // Step 1: show loader
+              });
+
+              await AdminUserIdManager.clearAll(); // Step 2: clear ID
+
+              if (!mounted) return;
+
+              Navigator.pushReplacement(
+                // Step 3: navigate
+                context,
+                MaterialPageRoute(builder: (context) => const AdminDealerall()),
+              );
+            },
+            child: Row(
+              children: [
+                Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.white),
+
+                SizedBox(width: 10),
+                Text(
+                  "Back to dealer's",
+                  textAlign: TextAlign.start,
+                  style: AppFont.dropDowmLabelWhite(context),
+                ),
+              ],
             ),
           ),
         ),
-        backgroundColor: AppColors.colorsBlue,
-        automaticallyImplyLeading: false,
       ),
+
+      // appBar: AppBar(
+      //   leading: IconButton(
+      //     onPressed: () {
+      //       Navigator.pop(context);
+      //     },
+      //     icon: Icon(
+      //       FontAwesomeIcons.angleLeft,
+      //       color: Colors.white,
+      //       size: _isSmallScreen ? 18 : 20,
+      //     ),
+      //   ),
+      //   title: Align(
+      //     alignment: Alignment.centerLeft,
+      //     child: Text(
+      //       widget.isFromSM ? widget.userName : 'Call Analysis',
+      //       style: GoogleFonts.poppins(
+      //         fontSize: _titleFontSize,
+      //         fontWeight: FontWeight.w400,
+      //         color: Colors.white,
+      //       ),
+      //     ),
+      //   ),
+      //   backgroundColor: AppColors.colorsBlue,
+      //   automaticallyImplyLeading: false,
+      // ),
+      
       body: SafeArea(
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())

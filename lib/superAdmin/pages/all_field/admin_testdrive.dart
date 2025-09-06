@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
+import 'package:smartassist/superAdmin/pages/admin_dealerall.dart';
 import 'package:smartassist/superAdmin/widgets/testdrive/testdrive_admin_all.dart';
 import 'package:smartassist/superAdmin/widgets/testdrive/testdrive_admin_overdue.dart';
 import 'package:smartassist/superAdmin/widgets/testdrive/testdrive_admin_upcoming.dart';
@@ -338,32 +339,68 @@ class _AdminTestdriveState extends State<AdminTestdrive>
     final isTablet = screenSize.width > 600;
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          onPressed: () {
-            Navigator.pop(context);
-            widget.refreshDashboard();
-          },
-          icon: Icon(
-            FontAwesomeIcons.angleLeft,
-            color: Colors.white,
-            size: _isSmallScreen ? 18 : 20,
-          ),
-        ),
+        automaticallyImplyLeading: false,
+        backgroundColor: AppColors.colorsBlue,
         title: Align(
           alignment: Alignment.centerLeft,
-          child: Text(
-            'Your Test Drives',
-            style: GoogleFonts.poppins(
-              fontSize: _titleFontSize,
-              fontWeight: FontWeight.w400,
-              color: Colors.white,
+          child: InkWell(
+            onTap: () async {
+              setState(() {
+                _isLoading = true; // Step 1: show loader
+              });
+
+              await AdminUserIdManager.clearAll(); // Step 2: clear ID
+
+              if (!mounted) return;
+
+              Navigator.pushReplacement(
+                // Step 3: navigate
+                context,
+                MaterialPageRoute(builder: (context) => const AdminDealerall()),
+              );
+            },
+            child: Row(
+              children: [
+                Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.white),
+
+                SizedBox(width: 10),
+                Text(
+                  "Back to dealer's",
+                  textAlign: TextAlign.start,
+                  style: AppFont.dropDowmLabelWhite(context),
+                ),
+              ],
             ),
           ),
         ),
-        backgroundColor: AppColors.colorsBlue,
-        automaticallyImplyLeading: false,
       ),
 
+      // appBar: AppBar(
+      //   leading: IconButton(
+      //     onPressed: () {
+      //       Navigator.pop(context);
+      //       widget.refreshDashboard();
+      //     },
+      //     icon: Icon(
+      //       FontAwesomeIcons.angleLeft,
+      //       color: Colors.white,
+      //       size: _isSmallScreen ? 18 : 20,
+      //     ),
+      //   ),
+      //   title: Align(
+      //     alignment: Alignment.centerLeft,
+      //     child: Text(
+      //       'Your Test Drives',
+      //       style: GoogleFonts.poppins(
+      //         fontSize: _titleFontSize,
+      //         fontWeight: FontWeight.w400,
+      //         color: Colors.white,
+      //       ),
+      //     ),
+      //   ),
+      //   backgroundColor: AppColors.colorsBlue,
+      //   automaticallyImplyLeading: false,
+      // ),
       body: RefreshIndicator(
         onRefresh: fetchTasks,
         child: CustomScrollView(
@@ -372,6 +409,7 @@ class _AdminTestdriveState extends State<AdminTestdrive>
               child: Column(
                 children: [
                   SizedBox(height: 10),
+
                   // SpeechSearchWidget(
                   //   controller: _searchController,
                   //   hintText: "Search by name, email or phone",
@@ -381,7 +419,6 @@ class _AdminTestdriveState extends State<AdminTestdrive>
                   //   borderRadius: 30.0,
                   //   prefixIcon: Icon(Icons.search, color: AppColors.fontColor),
                   // ),
-
                   if (_isLoadingSearch)
                     Container(
                       margin: const EdgeInsets.symmetric(horizontal: 15),

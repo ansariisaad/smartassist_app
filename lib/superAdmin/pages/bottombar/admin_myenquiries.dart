@@ -8,6 +8,7 @@ import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:smartassist/superAdmin/pages/admin_dealerall.dart';
 import 'package:smartassist/utils/admin_is_manager.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/buttons/add_btn.dart';
@@ -25,6 +26,7 @@ class AdminMyenquiries extends StatefulWidget {
 
 class _AdminMyenquiriesState extends State<AdminMyenquiries> {
   bool isLoading = true;
+  
   final Widget _createLeads = CreateLeads(onFormSubmit: () {});
   final Map<String, double> _swipeOffsets = {};
   final ScrollController _scrollController = ScrollController();
@@ -603,31 +605,69 @@ class _AdminMyenquiriesState extends State<AdminMyenquiries> {
     final isTablet = screenSize.width > 600;
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          icon: Icon(
-            FontAwesomeIcons.angleLeft,
-            color: Colors.white,
-            size: _isSmallScreen(context) ? 18 : 20,
-          ),
-        ),
+       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: AppColors.colorsBlue,
         title: Align(
           alignment: Alignment.centerLeft,
-          child: Text(
-            'My Enquiries',
-            style: GoogleFonts.poppins(
-              fontSize: _titleFontSize(context),
-              fontWeight: FontWeight.w400,
-              color: Colors.white,
+          child: InkWell(
+            onTap: () async {
+              setState(() {
+                isLoading = true; // Step 1: show loader
+              });
+
+              await AdminUserIdManager.clearAll(); // Step 2: clear ID
+
+              if (!mounted) return;
+
+              Navigator.pushReplacement(
+                // Step 3: navigate
+                context,
+                MaterialPageRoute(builder: (context) => const AdminDealerall()),
+              );
+            },
+            child: Row(
+              children: [
+                Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.white),
+
+                SizedBox(width: 10),
+                Text(
+                  "Back to dealer's",
+                  textAlign: TextAlign.start,
+                  style: AppFont.dropDowmLabelWhite(context),
+                ),
+              ],
             ),
           ),
         ),
-        backgroundColor: AppColors.colorsBlue,
-        automaticallyImplyLeading: false,
       ),
+
+      // appBar: AppBar(
+      //   leading: IconButton(
+      //     onPressed: () {
+      //       Navigator.pop(context);
+      //     },
+      //     icon: Icon(
+      //       FontAwesomeIcons.angleLeft,
+      //       color: Colors.white,
+      //       size: _isSmallScreen(context) ? 18 : 20,
+      //     ),
+      //   ),
+      //   title: Align(
+      //     alignment: Alignment.centerLeft,
+      //     child: Text(
+      //       'My Enquiries',
+      //       style: GoogleFonts.poppins(
+      //         fontSize: _titleFontSize(context),
+      //         fontWeight: FontWeight.w400,
+      //         color: Colors.white,
+      //       ),
+      //     ),
+      //   ),
+      //   backgroundColor: AppColors.colorsBlue,
+      //   automaticallyImplyLeading: false,
+      // ),
+     
       // floatingActionButton: CustomFloatingButton(
       //   onPressed: () {
       //     showDialog(

@@ -1,12 +1,10 @@
 import 'package:get/get.dart';
-import 'package:flutter/material.dart';
-import 'package:smartassist/pages/navbar_page/my_teams.dart';
+import 'package:flutter/material.dart'; 
 import 'package:smartassist/superAdmin/pages/admin_teams.dart';
 import 'package:smartassist/superAdmin/pages/calendar/admin_calendar_sm.dart';
 import 'package:smartassist/superAdmin/pages/calendar/admin_calendar_timeline.dart';
 import 'package:smartassist/superAdmin/pages/home_admin.dart';
-import 'package:smartassist/utils/admin_is_manager.dart';
-import 'package:smartassist/pages/Calendar/calendar_sm.dart';
+import 'package:smartassist/utils/admin_is_manager.dart'; 
 
 class AdminNavigationController extends GetxController {
   var selectedIndex = 0.obs;
@@ -26,6 +24,9 @@ class AdminNavigationController extends GetxController {
     if (userRole.value == "SM") {
       baseScreens.insert(0, const AdminTeams());
       baseScreens.insert(2, AdminCalendarSm(leadName: ''));
+    } else {
+      // Regular calendar screen for other roles
+      baseScreens.add(AdminCalendarTimeline(leadName: ''));
     }
 
     return baseScreens;

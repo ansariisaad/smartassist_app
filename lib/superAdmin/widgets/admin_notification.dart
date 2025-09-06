@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smartassist/config/component/color/colors.dart';
+import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:smartassist/services/api_srv.dart';
+import 'package:smartassist/superAdmin/pages/admin_dealerall.dart';
 import 'package:smartassist/superAdmin/pages/single_id_view.dart/admin_singlelead_followups.dart';
 import 'package:smartassist/utils/admin_bottomnavigation.dart';
 import 'package:smartassist/utils/admin_is_manager.dart';
@@ -23,6 +25,7 @@ class _AdminNotificationState extends State<AdminNotification> {
   int _selectedButtonIndex = 0;
   List<dynamic> notifications = [];
   Map<String, DateTime> arrivalTimes = {};
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -235,75 +238,113 @@ class _AdminNotificationState extends State<AdminNotification> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        leading: IconButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => AdminBottomnavigation()),
-            );
-          },
-          icon: const Icon(FontAwesomeIcons.angleLeft, color: Colors.white),
-        ),
-        title: const Text(
-          'Notifications',
-          style: TextStyle(fontSize: 18, color: Colors.white),
-        ),
-        backgroundColor: AppColors.colorsBlue,
 
-        // actions: [
-        //   IconButton(
-        //     onPressed: () async {
-        //       final has = notifications.any((n) => n['read'] == false);
-        //       if (!has) {
-        //         ScaffoldMessenger.of(context).showSnackBar(
-        //           SnackBar(
-        //             content: Text(
-        //               'Nothing to read',
-        //               style: GoogleFonts.poppins(color: Colors.white),
-        //             ),
-        //             backgroundColor: const Color.fromARGB(255, 132, 132, 132),
-        //             duration: Duration(seconds: 2),
-        //             behavior: SnackBarBehavior.floating,
-        //             shape: RoundedRectangleBorder(
-        //               borderRadius: BorderRadius.circular(10),
-        //             ),
-        //           ),
-        //         );
-        //         return;
-        //       }
-        //       final confirm = await showDialog<bool>(
-        //         context: context,
-        //         builder: (_) => AlertDialog(
-        //           shape: RoundedRectangleBorder(
-        //             borderRadius: BorderRadius.circular(10),
-        //           ),
-        //           title: Text(
-        //             'Mark all as read?',
-        //             style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-        //           ),
-        //           content: Text(
-        //             'Are you sure you want to mark all notifications as read?',
-        //             style: GoogleFonts.poppins(),
-        //           ),
-        //           actions: [
-        //             TextButton(
-        //               onPressed: () => Navigator.of(context).pop(false),
-        //               child: Text('No', style: GoogleFonts.poppins()),
-        //             ),
-        //             TextButton(
-        //               onPressed: () => Navigator.of(context).pop(true),
-        //               child: Text('Yes', style: GoogleFonts.poppins()),
-        //             ),
-        //           ],
-        //         ),
-        //       );
-        //       if (confirm == true) await markAllAsRead();
-        //     },
-        //     icon: const Icon(Icons.done_all, color: Colors.white),
-        //   ),
-        // ],
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: AppColors.colorsBlue,
+        title: Align(
+          alignment: Alignment.centerLeft,
+          child: InkWell(
+            onTap: () async {
+              setState(() {
+                _isLoading = true; // Step 1: show loader
+              });
+
+              await AdminUserIdManager.clearAll(); // Step 2: clear ID
+
+              if (!mounted) return;
+
+              Navigator.pushReplacement(
+                // Step 3: navigate
+                context,
+                MaterialPageRoute(builder: (context) => const AdminDealerall()),
+              );
+            },
+            child: Row(
+              children: [
+                Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.white),
+
+                SizedBox(width: 10),
+                Text(
+                  "Back to dealer's",
+                  textAlign: TextAlign.start,
+                  style: AppFont.dropDowmLabelWhite(context),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
+
+      // appBar: AppBar(
+      //   leading: IconButton(
+      //     onPressed: () {
+      //       Navigator.push(
+      //         context,
+      //         MaterialPageRoute(builder: (_) => AdminBottomnavigation()),
+      //       );
+      //     },
+      //     icon: const Icon(FontAwesomeIcons.angleLeft, color: Colors.white),
+      //   ),
+      //   title: const Text(
+      //     'Notifications',
+      //     style: TextStyle(fontSize: 18, color: Colors.white),
+      //   ),
+      //   backgroundColor: AppColors.colorsBlue,
+
+      //   // actions: [
+      //   //   IconButton(
+      //   //     onPressed: () async {
+      //   //       final has = notifications.any((n) => n['read'] == false);
+      //   //       if (!has) {
+      //   //         ScaffoldMessenger.of(context).showSnackBar(
+      //   //           SnackBar(
+      //   //             content: Text(
+      //   //               'Nothing to read',
+      //   //               style: GoogleFonts.poppins(color: Colors.white),
+      //   //             ),
+      //   //             backgroundColor: const Color.fromARGB(255, 132, 132, 132),
+      //   //             duration: Duration(seconds: 2),
+      //   //             behavior: SnackBarBehavior.floating,
+      //   //             shape: RoundedRectangleBorder(
+      //   //               borderRadius: BorderRadius.circular(10),
+      //   //             ),
+      //   //           ),
+      //   //         );
+      //   //         return;
+      //   //       }
+      //   //       final confirm = await showDialog<bool>(
+      //   //         context: context,
+      //   //         builder: (_) => AlertDialog(
+      //   //           shape: RoundedRectangleBorder(
+      //   //             borderRadius: BorderRadius.circular(10),
+      //   //           ),
+      //   //           title: Text(
+      //   //             'Mark all as read?',
+      //   //             style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+      //   //           ),
+      //   //           content: Text(
+      //   //             'Are you sure you want to mark all notifications as read?',
+      //   //             style: GoogleFonts.poppins(),
+      //   //           ),
+      //   //           actions: [
+      //   //             TextButton(
+      //   //               onPressed: () => Navigator.of(context).pop(false),
+      //   //               child: Text('No', style: GoogleFonts.poppins()),
+      //   //             ),
+      //   //             TextButton(
+      //   //               onPressed: () => Navigator.of(context).pop(true),
+      //   //               child: Text('Yes', style: GoogleFonts.poppins()),
+      //   //             ),
+      //   //           ],
+      //   //         ),
+      //   //       );
+      //   //       if (confirm == true) await markAllAsRead();
+      //   //     },
+      //   //     icon: const Icon(Icons.done_all, color: Colors.white),
+      //   //   ),
+      //   // ],
+      // ),
       body: Column(
         children: [
           const SizedBox(height: 5),

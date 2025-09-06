@@ -8,7 +8,7 @@ import 'package:smartassist/superAdmin/widgets/followupsAdmin/followups_admin_ov
 import 'package:smartassist/superAdmin/widgets/followupsAdmin/followups_admin_upcoming.dart';
 import 'package:smartassist/utils/admin_is_manager.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
-import 'package:smartassist/utils/storage.dart'; 
+import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/create_Followups_popups.dart';
 import 'package:smartassist/widgets/buttons/add_btn.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -95,7 +95,8 @@ class _AdminFollowupsallState extends State<AdminFollowupsall>
     try {
       final token = await Storage.getToken();
       final adminId = await AdminUserIdManager.getAdminUserId();
-      final String apiUrl = "https://dev.smartassistapp.in/api/app-admin/tasks/all-tasks$adminId";
+      final String apiUrl =
+          "https://dev.smartassistapp.in/api/app-admin/followups/all?userId=$adminId";
 
       final response = await http.get(
         Uri.parse(apiUrl),
@@ -104,7 +105,7 @@ class _AdminFollowupsallState extends State<AdminFollowupsall>
           'Content-Type': 'application/json',
         },
       );
-
+      print('this is the url followups $apiUrl');
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
         setState(() {
@@ -229,7 +230,7 @@ class _AdminFollowupsallState extends State<AdminFollowupsall>
         backgroundColor: AppColors.colorsBlue,
         automaticallyImplyLeading: false,
       ),
-      
+
       body: RefreshIndicator(
         onRefresh: fetchTasks,
         child: CustomScrollView(
@@ -237,16 +238,16 @@ class _AdminFollowupsallState extends State<AdminFollowupsall>
             SliverToBoxAdapter(
               child: Column(
                 children: [
-                  SpeechSearchWidget(
-                    controller: _searchController,
-                    hintText: "Search by name, email or phone",
-                    onChanged: (value) => _onSearchChanged(),
-                    primaryColor: AppColors.fontColor,
-                    backgroundColor: Colors.grey.shade100,
-                    borderRadius: 30.0,
-                    prefixIcon: Icon(Icons.search, color: AppColors.fontColor),
-                  ),
-
+                  SizedBox(height: 10),
+                  // SpeechSearchWidget(
+                  //   controller: _searchController,
+                  //   hintText: "Search by name, email or phone",
+                  //   onChanged: (value) => _onSearchChanged(),
+                  //   primaryColor: AppColors.fontColor,
+                  //   backgroundColor: Colors.grey.shade100,
+                  //   borderRadius: 30.0,
+                  //   prefixIcon: Icon(Icons.search, color: AppColors.fontColor),
+                  // ),
                   if (_isLoadingSearch)
                     Container(
                       margin: const EdgeInsets.symmetric(horizontal: 15),

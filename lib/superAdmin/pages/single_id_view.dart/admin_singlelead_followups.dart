@@ -10,17 +10,19 @@ import 'package:http/http.dart' as http;
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/config/getX/fab.controller.dart';
 import 'package:smartassist/services/api_srv.dart';
+import 'package:smartassist/superAdmin/widgets/admin_single_callhistory.dart';
 import 'package:smartassist/superAdmin/widgets/timeline/admin_completedTimeline.dart';
 import 'package:smartassist/superAdmin/widgets/timeline/admin_overdueTimeline.dart';
 import 'package:smartassist/superAdmin/widgets/timeline/admin_upcomingTimeline.dart';
+import 'package:smartassist/utils/admin_bottomnavigation.dart';
+import 'package:smartassist/utils/admin_is_manager.dart';
 import 'package:smartassist/utils/bottom_navigation.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
-import 'package:smartassist/widgets/call_history.dart';
 import 'package:smartassist/widgets/home_btn.dart/single_ids_popup/appointment_ids.dart';
 import 'package:smartassist/widgets/home_btn.dart/single_ids_popup/followups_ids.dart';
 import 'package:smartassist/widgets/home_btn.dart/single_ids_popup/testdrive_ids.dart';
-import 'package:smartassist/widgets/remarks_field.dart'; 
+import 'package:smartassist/widgets/remarks_field.dart';
 import 'package:smartassist/widgets/whatsapp_chat.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
@@ -271,7 +273,7 @@ class _AdminSingleleadFollowupsState extends State<AdminSingleleadFollowups> {
 
   Future<void> fetchSingleIdData(String leadId) async {
     try {
-      final leadData = await LeadsSrv.singleFollowupsById(leadId);
+      final leadData = await LeadsSrv.adminSingleFollowupsIds(leadId);
       setState(() {
         mobile = leadData['data']['mobile'] ?? 'N/A';
         chatId = leadData['data']['chat_id'] ?? 'N/A';
@@ -298,8 +300,12 @@ class _AdminSingleleadFollowupsState extends State<AdminSingleleadFollowups> {
   }
 
   static Future<Map<String, int>> fetchCallLogs(String mobile) async {
-    const String apiUrl =
-        "https://dev.smartassistapp.in/api/leads/call-logs/all";
+    // const String apiUrl =
+    //     "https://dev.smartassistapp.in/api/leads/call-logs/all";
+
+    final adminId = await AdminUserIdManager.getAdminUserId();
+    final String apiUrl =
+        "https://dev.smartassistapp.in/api/app-admin/calls/all?userId=$adminId";
     final token = await Storage.getToken();
 
     try {
@@ -316,6 +322,7 @@ class _AdminSingleleadFollowupsState extends State<AdminSingleleadFollowups> {
       );
 
       if (response.statusCode == 200) {
+        print('thisi is call logs ${response.statusCode}');
         final Map<String, dynamic> jsonResponse = json.decode(response.body);
         final Map<String, dynamic> data = jsonResponse['data'];
         print('$apiUrl?mobile=$encodedMobile');
@@ -350,7 +357,7 @@ class _AdminSingleleadFollowupsState extends State<AdminSingleleadFollowups> {
     setState(() => isLoading = true);
     try {
       print('this is fetch leadid ${widget.leadId}');
-      final data = await LeadsSrv.eventTaskByLead(leadId);
+      final data = await LeadsSrv.adminEventTaskByLead(leadId);
 
       setState(() {
         // Ensure that upcomingTasks and completedTasks are correctly cast to List<Map<String, dynamic>>.
@@ -621,7 +628,7 @@ class _AdminSingleleadFollowupsState extends State<AdminSingleleadFollowups> {
               context,
               MaterialPageRoute(
                 builder: (context) =>
-                    CallHistory(category: category, mobile: mobile),
+                    AdminSingleCallhistory(category: category, mobile: mobile),
               ),
             );
           },
@@ -1113,7 +1120,9 @@ class _AdminSingleleadFollowupsState extends State<AdminSingleleadFollowups> {
             if (widget.isFromTestdriveOverview == true) {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => BottomNavigation()),
+                MaterialPageRoute(
+                  builder: (context) => AdminBottomnavigation(),
+                ),
               );
             } else {
               Navigator.pop(context);
@@ -1481,33 +1490,33 @@ class _AdminSingleleadFollowupsState extends State<AdminSingleleadFollowups> {
                                             ),
                                           ),
                                         ),
-                                        Tooltip(
-                                          // decoration: BoxDecoration(),
-                                          message: 'Send message WhatsApp',
-                                          child: TextButton(
-                                            style: TextButton.styleFrom(
-                                              padding: EdgeInsets.symmetric(
-                                                horizontal: 10,
-                                              ),
-                                            ),
-                                            onPressed: () async {
-                                              Get.to(
-                                                WhatsappChat(
-                                                  chatId: chatId,
-                                                  userName: lead_name,
-                                                ),
-                                              );
-                                            },
-                                            child: Text(
-                                              'Whatsapp',
-                                              style: GoogleFonts.poppins(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w400,
-                                                color: Colors.grey,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
+                                        // Tooltip(
+                                        //   // decoration: BoxDecoration(),
+                                        //   message: 'Send message WhatsApp',
+                                        //   child: TextButton(
+                                        //     style: TextButton.styleFrom(
+                                        //       padding: EdgeInsets.symmetric(
+                                        //         horizontal: 10,
+                                        //       ),
+                                        //     ),
+                                        //     onPressed: () async {
+                                        //       Get.to(
+                                        //         WhatsappChat(
+                                        //           chatId: chatId,
+                                        //           userName: lead_name,
+                                        //         ),
+                                        //       );
+                                        //     },
+                                        //     child: Text(
+                                        //       'Whatsapp',
+                                        //       style: GoogleFonts.poppins(
+                                        //         fontSize: 12,
+                                        //         fontWeight: FontWeight.w400,
+                                        //         color: Colors.grey,
+                                        //       ),
+                                        //     ),
+                                        //   ),
+                                        // ),
                                       ],
                                     ),
                                   ),
@@ -1544,11 +1553,11 @@ class _AdminSingleleadFollowupsState extends State<AdminSingleleadFollowups> {
           ),
 
           // Floating Action Button
-          Obx(
-            () => fabController.isFabExpanded.value
-                ? _buildPopupMenu(context)
-                : SizedBox.shrink(),
-          ),
+          // Obx(
+          //   () => fabController.isFabExpanded.value
+          //       ? _buildPopupMenu(context)
+          //       : SizedBox.shrink(),
+          // ),
         ],
       ),
       // floatingActionButton: _buildFloatingActionButton(context),
@@ -1929,7 +1938,7 @@ class _ContactRowState extends State<ContactRow> {
 
   Future<void> fetchSingleIdData(String taskId) async {
     try {
-      final leadData = await LeadsSrv.singleFollowupsById(taskId);
+      final leadData = await LeadsSrv.adminSingleFollowupsIds(taskId);
       setState(() {
         phoneNumber = leadData['data']['mobile'] ?? 'N/A';
         email = leadData['data']['lead_email'] ?? 'N/A';

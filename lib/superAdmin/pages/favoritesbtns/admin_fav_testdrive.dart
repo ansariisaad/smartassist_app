@@ -1,78 +1,30 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
 import 'package:smartassist/services/api_srv.dart';
-import 'package:smartassist/superAdmin/pages/single_id_view.dart/admin_singlelead_followups.dart';
+import 'package:smartassist/utils/admin_is_manager.dart';
+import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/testdrive.dart';
-import 'package:smartassist/widgets/testdrive_verifyotp.dart';
+import 'package:smartassist/widgets/reusable/skeleton_card.dart';
 
-class TestdriveAdminUpcoming extends StatefulWidget {
-  final Future<void> Function() refreshDashboard;
-  final List<dynamic> upcomingTestDrive;
-  final bool isNested;
-  final Function(String, bool)? onFavoriteToggle;
-  const TestdriveAdminUpcoming({
-    super.key,
-    required this.upcomingTestDrive,
-    required this.isNested,
-    this.onFavoriteToggle,
-    required this.refreshDashboard,
-  });
+class AdminFavTestdrive extends StatefulWidget {
+  const AdminFavTestdrive({super.key});
 
   @override
-  State<TestdriveAdminUpcoming> createState() => _TestdriveAdminUpcomingState();
+  State<AdminFavTestdrive> createState() => _AdminFavTestdriveState();
 }
 
-class _TestdriveAdminUpcomingState extends State<TestdriveAdminUpcoming> {
-  List<dynamic> upcomingTestDrives = [];
+class _AdminFavTestdriveState extends State<AdminFavTestdrive> {
+  bool isLoading = true;
   final Map<String, double> _swipeOffsets = {};
-  int _currentDisplayCount = 10;
-  final int _incrementCount = 10;
-  @override
-  void initState() {
-    super.initState();
-    upcomingTestDrives = widget.upcomingTestDrive;
-    print('this is testdrive');
-    print(widget.upcomingTestDrive);
-    _currentDisplayCount = math.min(
-      _incrementCount,
-      widget.upcomingTestDrive.length,
-    );
-  }
-
-  @override
-  void didUpdateWidget(oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.upcomingTestDrive != oldWidget.upcomingTestDrive) {
-      // _initializeFavorites();
-      _currentDisplayCount = math.min(
-        _incrementCount,
-        widget.upcomingTestDrive.length,
-      );
-    }
-  }
-
-  void _loadLessRecords() {
-    setState(() {
-      _currentDisplayCount = _incrementCount;
-      print(
-        '📊 Loading less records. New display count: $_currentDisplayCount',
-      );
-    });
-  }
-
-  void _loadAllRecords() {
-    setState(() {
-      // Show all records at once
-      _currentDisplayCount = widget.upcomingTestDrive.length;
-      print('📊 Loading all records. New display count: $_currentDisplayCount');
-    });
-  }
+  List<dynamic> upcomingTasks = [];
+  List<dynamic> overdueTasks = [];
 
   void _onHorizontalDragUpdate(DragUpdateDetails details, String eventId) {
     setState(() {
@@ -83,7 +35,6 @@ class _TestdriveAdminUpcomingState extends State<TestdriveAdminUpcoming> {
 
   void _onHorizontalDragEnd(DragEndDetails details, dynamic item, int index) {
     String eventId = item['event_id'];
-
     double swipeOffset = _swipeOffsets[eventId] ?? 0;
 
     if (swipeOffset > 100) {
@@ -91,7 +42,7 @@ class _TestdriveAdminUpcomingState extends State<TestdriveAdminUpcoming> {
       _toggleFavorite(eventId, index);
     } else if (swipeOffset < -100) {
       // Left Swipe (Call)
-      _handleTestDrive(item);
+      _handleCall(item);
     }
 
     // Reset animation
@@ -100,39 +51,111 @@ class _TestdriveAdminUpcomingState extends State<TestdriveAdminUpcoming> {
     });
   }
 
-  void _handleTestDrive(dynamic item) {
-    String email = item['updated_by'] ?? '';
-    String mobile = item['mobile'] ?? '';
-    String eventId = item['event_id'] ?? '';
-    String leadId = item['lead_id'] ?? '';
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => TestdriveVerifyotp(
-          email: email,
-          mobile: mobile,
-          leadId: leadId,
-          eventId: eventId,
-        ),
-      ),
-    );
-    print("Call action triggered for ${item['name']}");
-  }
+  // Alternative simpler approach - replace your _toggleFavorite method:
 
   Future<void> _toggleFavorite(String eventId, int index) async {
-    bool currentStatus = widget.upcomingTestDrive[index]['favourite'] ?? false;
-    bool newFavoriteStatus = !currentStatus;
+    final token = await Storage.getToken();
+    try {
+      // Find the current favorite status by searching for the event
+      bool currentStatus = false;
 
-    final success = await LeadsSrv.favoriteTestDrive(eventId: eventId);
-
-    if (success) {
-      setState(() {
-        widget.upcomingTestDrive[index]['favourite'] = newFavoriteStatus;
-      });
-
-      if (widget.onFavoriteToggle != null) {
-        widget.onFavoriteToggle!(eventId, newFavoriteStatus);
+      // Search in both lists to find the current status
+      for (var task in [...upcomingTasks, ...overdueTasks]) {
+        if (task['event_id'] == eventId) {
+          currentStatus = task['favourite'] ?? false;
+          break;
+        }
       }
+
+      bool newFavoriteStatus = !currentStatus;
+
+      final response = await http.put(
+        Uri.parse(
+          'https://dev.smartassistapp.in/api/favourites/mark-fav/event/$eventId',
+        ),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        // Parse the response to get the updated favorite status
+        final responseData = json.decode(response.body);
+
+        // Update the task in both lists if it exists
+        setState(() {
+          // Update in upcoming tasks
+          for (int i = 0; i < upcomingTasks.length; i++) {
+            if (upcomingTasks[i]['event_id'] == eventId) {
+              upcomingTasks[i]['favourite'] = newFavoriteStatus;
+              break;
+            }
+          }
+
+          // Update in overdue tasks
+          for (int i = 0; i < overdueTasks.length; i++) {
+            if (overdueTasks[i]['event_id'] == eventId) {
+              overdueTasks[i]['favourite'] = newFavoriteStatus;
+              break;
+            }
+          }
+        });
+
+        print('✅ Favorite toggled successfully');
+        print('upcomingTasks length: ${upcomingTasks.length}');
+        print('overdueTasks length: ${overdueTasks.length}');
+        await fetchTasksData();
+      } else {
+        print('❌ Failed to toggle favorite: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ Error toggling favorite: $e');
+    }
+  }
+
+  void _handleCall(dynamic item) {
+    print("Call action triggered for ${item['name']}");
+    // Implement actual call functionality here
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchTasksData();
+  }
+
+  Future<void> fetchTasksData() async {
+    final token = await Storage.getToken();
+    final adminId = await AdminUserIdManager.getAdminUserId();
+    try {
+      final response = await http.get(
+        Uri.parse(
+          'https://dev.smartassistapp.in/api/app-admin/fav-events/all?userId=$adminId',
+        ),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        print('status code11 ${response.statusCode}');
+        final data = json.decode(response.body);
+        setState(() {
+          upcomingTasks = data['data']['upcomingDrives']['rows'] ?? [];
+          overdueTasks = data['data']['overdueDrives']['rows'] ?? [];
+          isLoading = false;
+          print('this is from FOppointment ${Uri.parse}');
+        });
+      } else {
+        print("Failed to load data: ${response.statusCode}");
+        print('this is the api appoinment${Uri}');
+        setState(() => isLoading = false);
+      }
+    } catch (e) {
+      print("Error fetching data: $e");
+      setState(() => isLoading = false);
     }
   }
 
@@ -150,202 +173,137 @@ class _TestdriveAdminUpcomingState extends State<TestdriveAdminUpcoming> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.upcomingTestDrive.isEmpty) {
-      return SizedBox(
-        height: 80,
+    if (isLoading) {
+      return SkeletonCard();
+    }
+
+    if (upcomingTasks.isEmpty && overdueTasks.isEmpty) {
+      return Padding(
+        padding: EdgeInsets.only(top: 10.0),
+        child: Center(
+          child: Text('No data found', style: AppFont.dropDowmLabel(context)),
+        ),
+      );
+    }
+
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildTasksList(upcomingTasks, isUpcoming: true),
+          _buildTasksList(overdueTasks, isUpcoming: false),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTasksList(List<dynamic> tasks, {required bool isUpcoming}) {
+    // if (upcomingTasks.isEmpty && overdueTasks.isEmpty) {
+    //   return const Center(child: Text('No data found'));
+    // }
+
+    if (upcomingTasks.isEmpty && overdueTasks.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(horizontal: 0.15, vertical: 20),
         child: Center(
           child: Text(
-            'No upcoming TestDrive available',
-            style: AppFont.smallText12(context),
+            'No data found',
+            style: AppFont.dropDowmLabel(context),
+            textAlign: TextAlign.center,
           ),
         ),
       );
     }
 
-    // Get the items to display based on current count
-    List<dynamic> itemsToDisplay = widget.upcomingTestDrive
-        .take(_currentDisplayCount)
-        .toList();
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: tasks.length,
+      itemBuilder: (context, index) {
+        var item = tasks[index];
 
-    return Column(
-      children: [
-        ListView.builder(
-          padding: EdgeInsets.zero,
-          shrinkWrap: true,
-          physics: widget.isNested
-              ? const NeverScrollableScrollPhysics()
-              : const AlwaysScrollableScrollPhysics(),
-          // itemCount: widget.upcomingTestDrive.length,
-          itemCount: _currentDisplayCount,
-          itemBuilder: (context, index) {
-            var item = widget.upcomingTestDrive[index];
+        if (!(item.containsKey('assigned_to') &&
+            item.containsKey('start_date') &&
+            item.containsKey('lead_id') &&
+            item.containsKey('event_id'))) {
+          return ListTile(title: Text('Invalid data at index $index'));
+        }
 
-            if (!(item.containsKey('assigned_to') &&
-                item.containsKey('start_date') &&
-                item.containsKey('lead_id') &&
-                item.containsKey('event_id'))) {
-              return ListTile(title: Text('Invalid data at index $index'));
-            }
+        String eventId = item['event_id'];
+        double swipeOffset = _swipeOffsets[eventId] ?? 0;
 
-            String eventId = item['event_id'];
-            double swipeOffset = _swipeOffsets[eventId] ?? 0;
-
-            return GestureDetector(
-              onHorizontalDragUpdate: (details) =>
-                  _onHorizontalDragUpdate(details, eventId),
-              onHorizontalDragEnd: (details) =>
-                  _onHorizontalDragEnd(details, item, index),
-              child: upcomingTestDrivesItem(
-                key: ValueKey(item['event_id']),
-                name: item['name'] ?? '',
-                vehicle: item['PMI'] ?? 'Range Rover Velar',
-                subject: item['subject'] ?? 'Meeting',
-                date: item['start_date'] ?? '',
-                email: item['updated_by'] ?? '',
-                leadId: item['lead_id'],
-                // isCompleted : item['completed'] ?? false ;
-                startTime:
-                    (item['start_time'] != null &&
-                        item['start_time'].toString().isNotEmpty)
-                    ? item['start_time'].toString()
-                    : "00:00:00",
-                eventId: item['event_id'] ?? '',
-                isFavorite: item['favourite'] ?? false,
-                swipeOffset: swipeOffset,
-                onToggleFavorite: () {
-                  _toggleFavorite(eventId, index);
-                },
-                otpTrigger: () {
-                  _getOtp(eventId);
-                },
-                fetchDashboardData: () {},
-                handleTestDrive: () {
-                  _handleTestDrive(item);
-                },
-                refreshDashboard: widget.refreshDashboard,
-                isCompleted: item['completed'] ?? false,
-
-                // Placeholder, replace with actual method
-              ),
-            );
-          },
-        ), // Add the show more/less button
-        _buildShowMoreButton(),
-      ],
-    );
-  }
-
-  Widget _buildShowMoreButton() {
-    // If no data, don't show anything
-    if (widget.upcomingTestDrive.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    // Fix invalid display count
-    if (_currentDisplayCount <= 0 ||
-        _currentDisplayCount > widget.upcomingTestDrive.length) {
-      _currentDisplayCount = math.min(
-        _incrementCount,
-        widget.upcomingTestDrive.length,
-      );
-    }
-
-    // Check if we can show more records
-    bool hasMoreRecords =
-        _currentDisplayCount < widget.upcomingTestDrive.length;
-
-    // Check if we can show less records - only if we're showing more than initial count
-    bool canShowLess = _currentDisplayCount > _incrementCount;
-
-    // If no action is possible, don't show button
-    if (!hasMoreRecords && !canShowLess) {
-      return const SizedBox.shrink();
-    }
-
-    return Container(
-      // padding: EdgeInsets.only(bottom: 20),
-      margin: EdgeInsets.only(bottom: 20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          if (canShowLess)
-            TextButton(
-              onPressed: _loadLessRecords,
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.grey[600],
-                textStyle: const TextStyle(fontSize: 12),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('Show Less'),
-                  SizedBox(width: 4),
-                  Icon(Icons.keyboard_arrow_up, size: 16),
-                ],
-              ),
-            ),
-
-          // Show More button - only when there are more records to show
-          if (hasMoreRecords)
-            TextButton(
-              onPressed: _loadAllRecords, // Changed method name
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.colorsBlue,
-                textStyle: const TextStyle(fontSize: 12),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Show All (${widget.upcomingTestDrive.length - _currentDisplayCount} more)', // Updated text
-                  ),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.keyboard_arrow_down, size: 16),
-                ],
-              ),
-            ),
-        ],
-      ),
+        return GestureDetector(
+          onHorizontalDragUpdate: (details) =>
+              _onHorizontalDragUpdate(details, eventId),
+          onHorizontalDragEnd: (details) =>
+              _onHorizontalDragEnd(details, item, index),
+          child: TaskItem(
+            key: ValueKey(item['event_id']),
+            name: item['name'],
+            vehicle: item['PMI'] ?? 'Discovery Sport',
+            subject: item['subject'] ?? 'Meeting',
+            date: item['start_date'],
+            leadId: item['lead_id'],
+            startTime: item['start_time'],
+            eventId: item['event_id'],
+            isFavorite: item['favourite'] ?? false,
+            swipeOffset: swipeOffset,
+            fetchDashboardData: () {},
+            onFavoriteToggled: () {},
+            onToggleFavorite: () {
+              _toggleFavorite(eventId, index);
+            },
+            isUpcoming: isUpcoming,
+            // handleTestDrive: () {
+            //   _handleTestDrive(item);
+            // },
+            otpTrigger: () {
+              _getOtp(eventId);
+            },
+          ),
+        );
+      },
     );
   }
 }
 
-class upcomingTestDrivesItem extends StatefulWidget {
-  final String name, date, vehicle, subject, leadId, eventId, startTime, email;
-  final bool isFavorite, isCompleted;
-  final Future<void> Function() refreshDashboard;
+class TaskItem extends StatefulWidget {
+  final String name, date, vehicle, leadId, eventId, startTime, subject;
+  final bool isFavorite;
   final VoidCallback fetchDashboardData;
+  final bool isUpcoming;
+  final VoidCallback onFavoriteToggled;
   final double swipeOffset;
   final VoidCallback onToggleFavorite;
-  final VoidCallback handleTestDrive;
+
+  // final VoidCallback handleTestDrive;
   final dynamic item;
   final VoidCallback otpTrigger;
-  const upcomingTestDrivesItem({
+  const TaskItem({
     super.key,
     required this.name,
     required this.date,
     required this.vehicle,
     required this.leadId,
     required this.isFavorite,
-    required this.fetchDashboardData,
     required this.eventId,
     required this.startTime,
+    required this.fetchDashboardData,
+    required this.isUpcoming,
     required this.subject,
+    required this.onFavoriteToggled,
     required this.swipeOffset,
-    required this.email,
     required this.onToggleFavorite,
-    required this.handleTestDrive,
     this.item,
     required this.otpTrigger,
-    required this.refreshDashboard,
-    required this.isCompleted,
   });
 
   @override
-  State<upcomingTestDrivesItem> createState() => _upcomingTestDrivesItemState();
+  State<TaskItem> createState() => _TaskItemState();
 }
 
-class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
+class _TaskItemState extends State<TaskItem>
     with SingleTickerProviderStateMixin {
   late SlidableController _slidableController;
   @override
@@ -378,12 +336,12 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => AdminSingleleadFollowups(
+                builder: (context) => FollowupsDetails(
                   leadId: widget.leadId,
                   isFromFreshlead: false,
                   isFromManager: false,
                   isFromTestdriveOverview: false,
-                  refreshDashboard: widget.refreshDashboard,
+                  refreshDashboard: () async {},
                 ),
               ),
             );

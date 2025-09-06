@@ -14,6 +14,7 @@ import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/superAdmin/widgets/timeline/admin_completedTimeline.dart';
 import 'package:smartassist/superAdmin/widgets/timeline/admin_overdueTimeline.dart';
 import 'package:smartassist/superAdmin/widgets/timeline/admin_upcomingTimeline.dart';
+import 'package:smartassist/utils/admin_bottomnavigation.dart';
 import 'package:smartassist/utils/bottom_navigation.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
@@ -213,7 +214,7 @@ class _AdminSingleleidTeamsState extends State<AdminSingleleidTeams> {
 
   Future<void> fetchSingleIdData(String leadId) async {
     try {
-      final leadData = await LeadsSrv.singleFollowupsById(leadId);
+      final leadData = await LeadsSrv.adminSingleFollowupsIds(leadId);
       setState(() {
         mobile = leadData['data']['mobile'] ?? 'N/A';
         chatId = leadData['data']['chat_id'] ?? 'N/A';
@@ -293,8 +294,8 @@ class _AdminSingleleidTeamsState extends State<AdminSingleleidTeams> {
   Future<void> eventandtask(String leadId, userId) async {
     setState(() => isLoading = true);
     try {
-      final data = await LeadsSrv.eventTaskByLeadTeams(leadId, userId);
-
+      final data = await LeadsSrv.AdmineventTaskByLeadTeams(leadId, userId);
+// adminEventTaskByLead
       setState(() {
         // Ensure that upcomingTasks and completedTasks are correctly cast to List<Map<String, dynamic>>.
         overdueTasks = List<Map<String, dynamic>>.from(data['overdueTasks']);
@@ -1013,7 +1014,7 @@ class _AdminSingleleidTeamsState extends State<AdminSingleleidTeams> {
             // Navigator.pop(context, true);
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => BottomNavigation()),
+              MaterialPageRoute(builder: (context) => AdminBottomnavigation()),
             );
           },
         ),

@@ -11,6 +11,7 @@ import 'package:smartassist/pages/navbar_page/leads_all.dart';
 import 'package:smartassist/pages/navbar_page/logout_page.dart';
 import 'package:smartassist/pages/Home/reassign_enq.dart';
 import 'package:smartassist/pages/Navigation/feedback_nav.dart';
+import 'package:smartassist/superAdmin/pages/admin_favourites.dart';
 import 'package:smartassist/superAdmin/pages/bottombar/admin_callanalysis.dart';
 import 'package:smartassist/superAdmin/pages/bottombar/admin_myenquiries.dart';
 import 'package:smartassist/utils/admin_navigation_controller.dart'
@@ -454,7 +455,8 @@ class AdminBottomnavigation extends StatelessWidget {
                       'Favourites',
                       style: GoogleFonts.poppins(fontSize: 18),
                     ),
-                    onTap: () => Get.to(() => const FavoritePage(leadId: '')),
+                    onTap: () =>
+                        Get.to(() => const AdminFavourites(leadId: '')),
                   ),
                   ListTile(
                     leading: const Icon(Icons.receipt_outlined, size: 28),

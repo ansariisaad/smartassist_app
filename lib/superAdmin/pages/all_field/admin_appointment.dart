@@ -217,7 +217,8 @@ class _AdminAppointmentState extends State<AdminAppointment>
       final token = await Storage.getToken();
       final adminId = await AdminUserIdManager.getAdminUserId();
       final String apiUrl =
-          "https://dev.smartassistapp.in/api/tasks/all-appointments$adminId";
+          // "https://dev.smartassistapp.in/api/tasks/all-appointments$adminId";
+          "https://dev.smartassistapp.in/api/app-admin/appointments/all?userId=$adminId";
 
       final response = await http.get(
         Uri.parse(apiUrl),
@@ -227,7 +228,9 @@ class _AdminAppointmentState extends State<AdminAppointment>
         },
       );
 
+      print('this is the url appointment $apiUrl');
       if (response.statusCode == 200) {
+        print('status code33 ${response.statusCode}');
         final Map<String, dynamic> data = json.decode(response.body);
         setState(() {
           count = data['data']['overdueWeekTasks']?['count'] ?? 0;
@@ -352,16 +355,17 @@ class _AdminAppointmentState extends State<AdminAppointment>
             SliverToBoxAdapter(
               child: Column(
                 children: [
-                  SpeechSearchWidget(
-                    controller: _searchController,
-                    hintText: "Search by name, email or phone",
-                    onChanged: (value) => _onSearchChanged(),
-                    primaryColor: AppColors.fontColor,
-                    backgroundColor: Colors.grey.shade100,
-                    borderRadius: 30.0,
-                    prefixIcon: Icon(Icons.search, color: AppColors.fontColor),
-                  ),
+                  SizedBox(height: 10),
 
+                  // SpeechSearchWidget(
+                  //   controller: _searchController,
+                  //   hintText: "Search by name, email or phone",
+                  //   onChanged: (value) => _onSearchChanged(),
+                  //   primaryColor: AppColors.fontColor,
+                  //   backgroundColor: Colors.grey.shade100,
+                  //   borderRadius: 30.0,
+                  //   prefixIcon: Icon(Icons.search, color: AppColors.fontColor),
+                  // ),
                   if (_isLoadingSearch)
                     Container(
                       margin: const EdgeInsets.symmetric(horizontal: 15),

@@ -12,6 +12,7 @@ import 'package:smartassist/pages/Home/gloabal_search_page/global_search.dart';
 import 'package:smartassist/pages/notification/notification.dart';
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/superAdmin/pages/admin_dealerall.dart';
+import 'package:smartassist/superAdmin/widgets/admin_notification.dart';
 import 'package:smartassist/superAdmin/widgets/home_analysis_admin_performance.dart';
 import 'package:smartassist/superAdmin/widgets/home_analysisc_admin.dart';
 import 'package:smartassist/superAdmin/widgets/threebtn_admin.dart';
@@ -339,7 +340,7 @@ class _HomeAdminState extends State<HomeAdmin> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const NotificationPage(),
+                              builder: (context) => const AdminNotification(),
                             ),
                           );
                         },

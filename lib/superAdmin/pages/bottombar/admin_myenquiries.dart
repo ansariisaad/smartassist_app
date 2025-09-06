@@ -12,7 +12,7 @@ import 'package:smartassist/utils/admin_is_manager.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/buttons/add_btn.dart';
 import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/create_leads.dart';
-import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/lead_update.dart'; 
+import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/lead_update.dart';
 import 'package:smartassist/widgets/reusable/globle_speechtotext.dart';
 import 'package:smartassist/widgets/reusable/skeleton_globle_search_card.dart';
 
@@ -238,15 +238,22 @@ class _AdminMyenquiriesState extends State<AdminMyenquiries> {
     final token = await Storage.getToken();
     final adminId = await AdminUserIdManager.getAdminUserId();
     try {
+      final url =
+          'https://dev.smartassistapp.in/api/app-admin/leads-data/all?userId=$adminId';
       final response = await http.get(
-        Uri.parse('https://dev.smartassistapp.in/api/leads/fetch/all'),
+        Uri.parse(
+          // 'https://dev.smartassistapp.in/api/leads/fetch/all'
+          url,
+        ),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
       );
-
+      print('this is the url $url');
       if (response.statusCode == 200) {
+        print('this is the status ${response.statusCode}');
+
         final data = json.decode(response.body);
         setState(() {
           upcomingTasks = data['data']['rows'] ?? [];
@@ -621,23 +628,23 @@ class _AdminMyenquiriesState extends State<AdminMyenquiries> {
         backgroundColor: AppColors.colorsBlue,
         automaticallyImplyLeading: false,
       ),
-      floatingActionButton: CustomFloatingButton(
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (context) {
-              return Dialog(
-                insetPadding: const EdgeInsets.symmetric(horizontal: 10),
-                backgroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: _createLeads,
-              );
-            },
-          );
-        },
-      ),
+      // floatingActionButton: CustomFloatingButton(
+      //   onPressed: () {
+      //     showDialog(
+      //       context: context,
+      //       builder: (context) {
+      //         return Dialog(
+      //           insetPadding: const EdgeInsets.symmetric(horizontal: 10),
+      //           backgroundColor: Colors.white,
+      //           shape: RoundedRectangleBorder(
+      //             borderRadius: BorderRadius.circular(10),
+      //           ),
+      //           child: _createLeads,
+      //         );
+      //       },
+      //     );
+      //   },
+      // ),
       body: isLoading
           ? SkeletonGlobleSearchCard()
           : Column(

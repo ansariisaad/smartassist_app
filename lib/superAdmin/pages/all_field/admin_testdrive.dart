@@ -219,7 +219,8 @@ class _AdminTestdriveState extends State<AdminTestdrive>
       final token = await Storage.getToken();
       final adminId = await AdminUserIdManager.getAdminUserId();
       final String apiUrl =
-          "https://dev.smartassistapp.in/api/events/all-events$adminId";
+          // "https://dev.smartassistapp.in/api/events/all-events$adminId";
+          "https://dev.smartassistapp.in/api/app-admin/events/all?userId=$adminId";
       final response = await http.get(
         Uri.parse(apiUrl),
         headers: {
@@ -228,6 +229,7 @@ class _AdminTestdriveState extends State<AdminTestdrive>
         },
       );
 
+      print('this is the url testdrive $apiUrl');
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
         setState(() {
@@ -369,15 +371,16 @@ class _AdminTestdriveState extends State<AdminTestdrive>
             SliverToBoxAdapter(
               child: Column(
                 children: [
-                  SpeechSearchWidget(
-                    controller: _searchController,
-                    hintText: "Search by name, email or phone",
-                    onChanged: (value) => _onSearchChanged(),
-                    primaryColor: AppColors.fontColor,
-                    backgroundColor: Colors.grey.shade100,
-                    borderRadius: 30.0,
-                    prefixIcon: Icon(Icons.search, color: AppColors.fontColor),
-                  ),
+                  SizedBox(height: 10),
+                  // SpeechSearchWidget(
+                  //   controller: _searchController,
+                  //   hintText: "Search by name, email or phone",
+                  //   onChanged: (value) => _onSearchChanged(),
+                  //   primaryColor: AppColors.fontColor,
+                  //   backgroundColor: Colors.grey.shade100,
+                  //   borderRadius: 30.0,
+                  //   prefixIcon: Icon(Icons.search, color: AppColors.fontColor),
+                  // ),
 
                   if (_isLoadingSearch)
                     Container(

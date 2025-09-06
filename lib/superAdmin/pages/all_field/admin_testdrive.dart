@@ -7,6 +7,7 @@ import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/superAdmin/widgets/testdrive/testdrive_admin_all.dart';
 import 'package:smartassist/superAdmin/widgets/testdrive/testdrive_admin_overdue.dart';
 import 'package:smartassist/superAdmin/widgets/testdrive/testdrive_admin_upcoming.dart';
+import 'package:smartassist/utils/admin_is_manager.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/buttons/add_btn.dart';
@@ -216,9 +217,9 @@ class _AdminTestdriveState extends State<AdminTestdrive>
     setState(() => _isLoading = true);
     try {
       final token = await Storage.getToken();
-      const String apiUrl =
-          "https://dev.smartassistapp.in/api/events/all-events";
-
+      final adminId = await AdminUserIdManager.getAdminUserId();
+      final String apiUrl =
+          "https://dev.smartassistapp.in/api/events/all-events$adminId";
       final response = await http.get(
         Uri.parse(apiUrl),
         headers: {

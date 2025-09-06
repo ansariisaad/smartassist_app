@@ -70,7 +70,6 @@ class _AdminDealerallState extends State<AdminDealerall> {
     );
   }
 
-  
   // void onUserSelected(
   //   Map<String, dynamic> user,
   //   Map<String, dynamic> dealer,
@@ -79,9 +78,52 @@ class _AdminDealerallState extends State<AdminDealerall> {
 
   //   // ✅ Save the admin ID BEFORE navigation
   //   await AdminUserIdManager.saveAdminUserId(user['user_id']);
+  //   await AdminUserIdManager.saveAdminRole(user['user_role']);
 
   //   // Now navigate
   //   navigateToUserDetails(user, dealer);
+  // }
+
+  void onUserSelected(
+    Map<String, dynamic> user,
+    Map<String, dynamic> dealer,
+  ) async {
+    Navigator.of(context).pop();
+
+    // Save ID + Role, and WAIT until both are stored
+    await AdminUserIdManager.saveAdminUserId(user['user_id']);
+    await AdminUserIdManager.saveAdminRole(user['user_role']);
+
+    // ✅ Only navigate after saving completes
+    navigateToUserDetails(user, dealer);
+  }
+
+  void navigateToUserDetails(
+    Map<String, dynamic> user,
+    Map<String, dynamic> dealer,
+  ) async {
+    final adminId = await AdminUserIdManager.getAdminUserId();
+    final role = await AdminUserIdManager.getAdminRole();
+    print("mustafa chor: $adminId $role");
+
+    print('Navigating to user: ${user['name']} from ${dealer['dealer_name']}');
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AdminBottomnavigation(role: user['user_role']),
+      ),
+    );
+  }
+
+  // void onUserSelected(
+  //   Map<String, dynamic> user,
+  //   Map<String, dynamic> dealer,
+  // ) async {
+  //   Navigator.of(context).pop(); // Close the modal
+  //   navigateToUserDetails(user, dealer);
+  //   // ✅ Save the actual dealer_id (or user_id if you prefer)
+  //   await AdminUserIdManager.saveAdminUserId(user['user_id']);
   // }
 
   // void navigateToUserDetails(
@@ -92,36 +134,12 @@ class _AdminDealerallState extends State<AdminDealerall> {
   //   print("Admin ID used in API: $adminId");
   //   print('Navigating to user: ${user['name']} from ${dealer['dealer_name']}');
 
+  //   // TODO: Replace with your actual navigation
   //   Navigator.push(
   //     context,
   //     MaterialPageRoute(builder: (context) => AdminBottomnavigation()),
   //   );
   // }
-
-  void onUserSelected(
-    Map<String, dynamic> user,
-    Map<String, dynamic> dealer,
-  ) async {
-    Navigator.of(context).pop(); // Close the modal
-    navigateToUserDetails(user, dealer);
-    // ✅ Save the actual dealer_id (or user_id if you prefer)
-    await AdminUserIdManager.saveAdminUserId(user['user_id']);
-  }
-
-  void navigateToUserDetails(
-    Map<String, dynamic> user,
-    Map<String, dynamic> dealer,
-  ) async {
-    final adminId = await AdminUserIdManager.getAdminUserId();
-    print("Admin ID used in API: $adminId");
-    print('Navigating to user: ${user['name']} from ${dealer['dealer_name']}');
-
-    // TODO: Replace with your actual navigation
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => AdminBottomnavigation()),
-    );
-  }
 
   // void onUserSelected(
   //   Map<String, dynamic> user,

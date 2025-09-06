@@ -5,16 +5,19 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:smartassist/utils/admin_is_manager.dart';
 import 'package:smartassist/utils/storage.dart';
 
 class HomeAnalysisAdminPerformance extends StatefulWidget {
   const HomeAnalysisAdminPerformance({super.key});
 
   @override
-  State<HomeAnalysisAdminPerformance> createState() => _HomeAnalysisAdminPerformanceState();
+  State<HomeAnalysisAdminPerformance> createState() =>
+      _HomeAnalysisAdminPerformanceState();
 }
 
-class _HomeAnalysisAdminPerformanceState extends State<HomeAnalysisAdminPerformance> {
+class _HomeAnalysisAdminPerformanceState
+    extends State<HomeAnalysisAdminPerformance> {
   int _periodIndex = 0;
   int _childButtonIndex = 0;
   bool _isLoading = true;
@@ -45,6 +48,8 @@ class _HomeAnalysisAdminPerformanceState extends State<HomeAnalysisAdminPerforma
 
       final token = await Storage.getToken();
 
+      final adminId = await AdminUserIdManager.getAdminUserId();
+
       // Determine period parameter based on selection
       String periodParam = '';
       switch (_childButtonIndex) {
@@ -62,7 +67,8 @@ class _HomeAnalysisAdminPerformanceState extends State<HomeAnalysisAdminPerforma
       }
 
       final uri = Uri.parse(
-        'https://dev.smartassistapp.in/api/users/analytics$periodParam',
+        // 'https://dev.smartassistapp.in/api/users/analytics$periodParam',
+        'https://dev.smartassistapp.in/api/app-admin/dashboard/analytics$periodParam&userId=$adminId',
       );
 
       final response = await http.get(
@@ -73,7 +79,7 @@ class _HomeAnalysisAdminPerformanceState extends State<HomeAnalysisAdminPerforma
         },
       );
 
-      print('this is the ${uri}');
+      print('this is the offfffffffff ${uri}');
       print(response.body);
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);

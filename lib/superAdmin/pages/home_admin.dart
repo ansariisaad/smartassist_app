@@ -302,7 +302,7 @@ class _HomeAdminState extends State<HomeAdmin> {
                         _isLoading = true; // Step 1: show loader
                       });
 
-                      await AdminUserIdManager.clearAdminUserId(); // Step 2: clear ID
+                      await AdminUserIdManager.clearAll(); // Step 2: clear ID
 
                       if (!mounted) return;
 
@@ -731,8 +731,6 @@ class _HomeAdminState extends State<HomeAdmin> {
                       Expanded(
                         child: ElevatedButton(
                           onPressed: () async {
-                            await AdminUserIdManager.clearAdminUserId();
-                            // Navigator.of(context).pop();
                             SystemNavigator.pop();
                           },
                           style: ElevatedButton.styleFrom(

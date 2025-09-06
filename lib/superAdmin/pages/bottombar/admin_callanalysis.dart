@@ -5,7 +5,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'dart:convert';
-import 'package:http/http.dart' as http; 
+import 'package:http/http.dart' as http;
+import 'package:smartassist/utils/admin_is_manager.dart';
 import 'package:smartassist/utils/storage.dart';
 
 class AdminCallanalysis extends StatefulWidget {
@@ -66,6 +67,7 @@ class _CallAnalyticsState extends State<AdminCallanalysis>
       });
 
       final token = await Storage.getToken();
+      final adminId = await AdminUserIdManager.getAdminUserId();
 
       String periodParam = '';
       switch (selectedTimeRange) {
@@ -92,11 +94,11 @@ class _CallAnalyticsState extends State<AdminCallanalysis>
 
       if (widget.isFromSM) {
         uri = Uri.parse(
-          'https://dev.smartassistapp.in/api/users/ps/dashboard/call-analytics$periodParam&user_id=${widget.userId}',
+          'https://dev.smartassistapp.in/api/app-admin/call/analytics?userId=$adminId$periodParam&user_id=${widget.userId}$adminId',
         );
       } else {
         uri = Uri.parse(
-          'https://dev.smartassistapp.in/api/users/ps/dashboard/call-analytics$periodParam',
+          'https://dev.smartassistapp.in/api/app-admin/call/analytics?userId=$adminId$periodParam$adminId',
         );
       }
 
@@ -402,34 +404,34 @@ class _CallAnalyticsState extends State<AdminCallanalysis>
                 },
               ),
       ),
-    //   floatingActionButton: !widget.isFromSM
-    //       ? Container(
-    //           width: _isTablet ? 150 : (_isSmallScreen ? 100 : 120),
-    //           height: _isTablet ? 60 : (_isSmallScreen ? 45 : 56),
-    //           child: FloatingActionButton(
-    //             backgroundColor: AppColors.colorsBlue,
-    //             onPressed: () {
-    //               Navigator.push(
-    //                 context,
-    //                 MaterialPageRoute(builder: (context) => const CallLogs()),
-    //               );
-    //             },
-    //             tooltip: 'Exclude unwanted numbers',
-    //             child: Text(
-    //               'Exclude',
-    //               style: TextStyle(
-    //                 color: Colors.white,
-    //                 fontSize: _isTablet ? 14 : (_isSmallScreen ? 14 : 16),
-    //                 fontWeight: FontWeight.w500,
-    //               ),
-    //               textAlign: TextAlign.center,
-    //             ),
-    //           ),
-    //         )
-    //       : null,
-    //   floatingActionButtonLocation: _isTablet
-    //       ? FloatingActionButtonLocation.endFloat
-    //       : FloatingActionButtonLocation.endFloat,
+      //   floatingActionButton: !widget.isFromSM
+      //       ? Container(
+      //           width: _isTablet ? 150 : (_isSmallScreen ? 100 : 120),
+      //           height: _isTablet ? 60 : (_isSmallScreen ? 45 : 56),
+      //           child: FloatingActionButton(
+      //             backgroundColor: AppColors.colorsBlue,
+      //             onPressed: () {
+      //               Navigator.push(
+      //                 context,
+      //                 MaterialPageRoute(builder: (context) => const CallLogs()),
+      //               );
+      //             },
+      //             tooltip: 'Exclude unwanted numbers',
+      //             child: Text(
+      //               'Exclude',
+      //               style: TextStyle(
+      //                 color: Colors.white,
+      //                 fontSize: _isTablet ? 14 : (_isSmallScreen ? 14 : 16),
+      //                 fontWeight: FontWeight.w500,
+      //               ),
+      //               textAlign: TextAlign.center,
+      //             ),
+      //           ),
+      //         )
+      //       : null,
+      //   floatingActionButtonLocation: _isTablet
+      //       ? FloatingActionButtonLocation.endFloat
+      //       : FloatingActionButtonLocation.endFloat,
     );
   }
 

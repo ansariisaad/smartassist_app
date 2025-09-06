@@ -17,6 +17,7 @@ import 'package:smartassist/superAdmin/pages/bottombar/admin_callanalysis.dart';
 import 'package:smartassist/superAdmin/pages/single_id_view.dart/admin_singleleId_teams.dart';
 import 'package:smartassist/superAdmin/pages/single_id_view.dart/admin_singlelead_followups.dart';
 import 'package:smartassist/superAdmin/widgets/teams/admin_teamscalllogs.dart';
+import 'package:smartassist/utils/admin_is_manager.dart';
 import 'package:smartassist/utils/storage.dart';
 
 class AdminTeams extends StatefulWidget {
@@ -271,6 +272,7 @@ class _AdminTeamsState extends State<AdminTeams> {
       });
 
       final token = await Storage.getToken();
+      final userId = await AdminUserIdManager.getAdminUserId();
 
       String periodParam = '';
       switch (selectedTimeRange) {
@@ -303,7 +305,7 @@ class _AdminTeamsState extends State<AdminTeams> {
       }
 
       final baseUri = Uri.parse(
-        'https://dev.smartassistapp.in/api/users/ps/dashboard/call-analytics',
+        'https://dev.smartassistapp.in/api/app-admin/call/analytics?userId=$userId',
       );
 
       final uri = baseUri.replace(queryParameters: queryParams);
@@ -354,6 +356,8 @@ class _AdminTeamsState extends State<AdminTeams> {
 
     try {
       final token = await Storage.getToken();
+
+      final userId = await AdminUserIdManager.getAdminUserId();
       // Build period parameter
       String? periodParam;
       switch (_periodIndex) {
@@ -376,7 +380,8 @@ class _AdminTeamsState extends State<AdminTeams> {
       }
 
       final baseUri = Uri.parse(
-        'https://dev.smartassistapp.in/api/users/sm/dashboard/call-analytics',
+        // 'https://dev.smartassistapp.in/api/users/sm/dashboard/call-analytics',
+        'https://dev.smartassistapp.in/api/app-admin/SM/team-calls?userId=$userId',
       );
 
       final uri = baseUri.replace(queryParameters: queryParams);
@@ -387,6 +392,8 @@ class _AdminTeamsState extends State<AdminTeams> {
           'Content-Type': 'application/json',
         },
       );
+
+      print('this is theh $uri');
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
@@ -471,9 +478,9 @@ class _AdminTeamsState extends State<AdminTeams> {
         return; // Exit early
       }
 
-      // if(_isFabVisible)
-
       final token = await Storage.getToken();
+      final adminId = await AdminUserIdManager.getAdminUserId();
+
       // Build period parameter
       String? periodParam;
       switch (_periodIndex) {
@@ -490,20 +497,18 @@ class _AdminTeamsState extends State<AdminTeams> {
           periodParam = 'QTD';
       }
 
-      final Map<String, String> queryParams = {};
+      // ✅ Always build all query params in one place
+      final Map<String, String> queryParams = {
+        'userId': adminId ?? '', // ✅ FIXED: always include adminId
+        'type': periodParam ?? 'QTD',
+      };
 
-      if (periodParam != null) {
-        queryParams['type'] = periodParam;
-      }
-
-      // 🔥 MODIFIED LOGIC: Handle user selection based on comparison mode
+      // 🔥 Handle user selection based on comparison mode
       if (_isComparing && selectedUserIds.isNotEmpty) {
-        // ✅ If comparison mode is ON, ONLY pass userIds (NO user_id)
         queryParams['userIds'] = selectedUserIds.join(',');
       } else if (!_isComparing &&
           _selectedProfileIndex != 0 &&
           _selectedUserId.isNotEmpty) {
-        // ✅ If comparison mode is OFF and specific user is selected, pass user_id
         queryParams['user_id'] = _selectedUserId;
       }
 
@@ -511,17 +516,12 @@ class _AdminTeamsState extends State<AdminTeams> {
         queryParams['total_performance'] = totalPerformanceIds.join(',');
       }
 
-      // if (_avatarAll && logStatusAlphabet.isNotEmpty) {
-      //   queryParams['logs_userIds'] = logStatusAlphabet.join(',');
-      // }
       if (_isAlphabetLogsMode && logStatusAlphabet.isNotEmpty) {
         queryParams['logs_userIds'] = logStatusAlphabet.join(',');
         print('📤 Sending logs_userIds: ${logStatusAlphabet.join(',')}');
-      }
 
-      if (_isAlphabetLogsMode && logStatusAlphabet.isNotEmpty) {
+        // NOTE: You had duplicated logic for total_performance
         queryParams['total_performance'] = logStatusAlphabet.join(',');
-        print('📤 Sending logs_userIds: ${logStatusAlphabet.join(',')}');
       }
 
       if (_isComparing && selectedUserIds.isEmpty) {
@@ -533,10 +533,12 @@ class _AdminTeamsState extends State<AdminTeams> {
         return;
       }
 
+      // ✅ Base URL without query params
       final baseUri = Uri.parse(
-        'https://dev.smartassistapp.in/api/users/sm/analytics/team-dashboard',
+        'https://dev.smartassistapp.in/api/app-admin/SM/dashboard',
       );
 
+      // ✅ Now attach params safely
       final uri = baseUri.replace(queryParameters: queryParams);
 
       print('📤 Fetching from: $uri');
@@ -548,8 +550,11 @@ class _AdminTeamsState extends State<AdminTeams> {
           'Content-Type': 'application/json',
         },
       );
+
+      print('this is the url of the request $uri');
       print('📥 Status Code: ${response.statusCode}');
       print('📥 Response: ${response.body}');
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
 
@@ -561,14 +566,12 @@ class _AdminTeamsState extends State<AdminTeams> {
             _teamComparisonData = [];
           }
 
-          // Team comparison data
           if (_teamData.containsKey('teamComparsion')) {
             _teamComparisonData = List<dynamic>.from(
               _teamData['teamComparsion'] ?? [],
             );
             print('📊 Team Comparison Data Updated: $_teamComparisonData');
 
-            // 🔥 FIX: Reset display count to show all comparison data
             if (_isComparing && _teamComparisonData.isNotEmpty) {
               _currentDisplayCount = math.max(
                 _teamComparisonData.length,
@@ -586,14 +589,11 @@ class _AdminTeamsState extends State<AdminTeams> {
             _initialAlphabetData?['logs_status'] = _teamData['logs_status'];
           }
 
-          // added this one also for new logic
-
           if (_teamData.containsKey('total_performance')) {
             _initialAlphabetData?['total_performance'] =
                 _teamData['total_performance'];
           }
 
-          // Save total performance
           if (_teamData.containsKey('totalPerformance')) {
             _selectedUserData?['totalPerformance'] =
                 _teamData['totalPerformance'];
@@ -615,12 +615,10 @@ class _AdminTeamsState extends State<AdminTeams> {
           }
 
           if (_selectedProfileIndex == 0) {
-            // Summary data
             _selectedUserData = _teamData['summary'] ?? {};
             _selectedUserData?['totalPerformance'] =
                 _teamData['totalPerformance'] ?? {};
           } else if (_selectedProfileIndex - 1 < _teamMembers.length) {
-            // Specific user selected
             final selectedMember = _teamMembers[_selectedProfileIndex - 1];
             _selectedUserData = selectedMember;
 
@@ -657,7 +655,7 @@ class _AdminTeamsState extends State<AdminTeams> {
             }
           }
 
-          isLoading = false; // Clear loading state
+          isLoading = false; // ✅ Clear loading state
         });
       } else {
         throw Exception('Failed to fetch team details: ${response.statusCode}');
@@ -665,10 +663,228 @@ class _AdminTeamsState extends State<AdminTeams> {
     } catch (e) {
       print('Error fetching team details: $e');
       setState(() {
-        isLoading = false; // Clear loading state on error
+        isLoading = false; // ✅ Clear loading state on error
       });
     }
   }
+
+  // Future<void> _fetchTeamDetails() async {
+  //   try {
+  //     setState(() {
+  //       isLoading = true;
+  //     });
+
+  //     if (_isComparing && selectedUserIds.isEmpty) {
+  //       setState(() {
+  //         _isComparing = false;
+  //         _teamComparisonData = [];
+  //         isLoading = false;
+  //       });
+  //       return; // Exit early
+  //     }
+
+  //     // if(_isFabVisible)
+
+  //     final token = await Storage.getToken();
+
+  //     final adminId = await AdminUserIdManager.getAdminUserId();
+  //     // Build period parameter
+  //     String? periodParam;
+  //     switch (_periodIndex) {
+  //       case 1:
+  //         periodParam = 'MTD';
+  //         break;
+  //       case 0:
+  //         periodParam = 'QTD';
+  //         break;
+  //       case 2:
+  //         periodParam = 'YTD';
+  //         break;
+  //       default:
+  //         periodParam = 'QTD';
+  //     }
+
+  //     final Map<String, String> queryParams = {};
+
+  //     if (periodParam != null) {
+  //       queryParams['type'] = periodParam;
+  //     }
+
+  //     // 🔥 MODIFIED LOGIC: Handle user selection based on comparison mode
+  //     if (_isComparing && selectedUserIds.isNotEmpty) {
+  //       // ✅ If comparison mode is ON, ONLY pass userIds (NO user_id)
+  //       queryParams['userIds'] = selectedUserIds.join(',');
+  //     } else if (!_isComparing &&
+  //         _selectedProfileIndex != 0 &&
+  //         _selectedUserId.isNotEmpty) {
+  //       // ✅ If comparison mode is OFF and specific user is selected, pass user_id
+  //       queryParams['user_id'] = _selectedUserId;
+  //     }
+
+  //     if (_avatarAll && totalPerformanceIds.isNotEmpty) {
+  //       queryParams['total_performance'] = totalPerformanceIds.join(',');
+  //     }
+
+  //     // if (_avatarAll && logStatusAlphabet.isNotEmpty) {
+  //     //   queryParams['logs_userIds'] = logStatusAlphabet.join(',');
+  //     // }
+  //     if (_isAlphabetLogsMode && logStatusAlphabet.isNotEmpty) {
+  //       queryParams['logs_userIds'] = logStatusAlphabet.join(',');
+  //       print('📤 Sending logs_userIds: ${logStatusAlphabet.join(',')}');
+  //     }
+
+  //     if (_isAlphabetLogsMode && logStatusAlphabet.isNotEmpty) {
+  //       queryParams['total_performance'] = logStatusAlphabet.join(',');
+  //       print('📤 Sending logs_userIds: ${logStatusAlphabet.join(',')}');
+  //     }
+
+  //     if (_isComparing && selectedUserIds.isEmpty) {
+  //       setState(() {
+  //         _isComparing = false;
+  //         _teamComparisonData = [];
+  //         _membersData = [];
+  //       });
+  //       return;
+  //     }
+
+  //     final baseUri = Uri.parse(
+  //       // 'https://dev.smartassistapp.in/api/users/sm/analytics/team-dashboard',
+  //       'https://dev.smartassistapp.in/api/app-admin/SM/dashboard?userId=$adminId',
+  //     );
+
+  //     final uri = baseUri.replace(queryParameters: queryParams);
+
+  //     print('📤 Fetching from: $uri');
+
+  //     final response = await http.get(
+  //       uri,
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+  //     print('this is the url of th e error coming $uri');
+  //     print('📥 Status Code: ${response.statusCode}');
+  //     print('📥 Response: ${response.body}');
+  //     if (response.statusCode == 200) {
+  //       final data = json.decode(response.body);
+
+  //       setState(() {
+  //         _teamData = data['data'] ?? {};
+
+  //         // Team comparison data
+  //         if (_isComparing) {
+  //           _teamComparisonData = [];
+  //         }
+
+  //         // Team comparison data
+  //         if (_teamData.containsKey('teamComparsion')) {
+  //           _teamComparisonData = List<dynamic>.from(
+  //             _teamData['teamComparsion'] ?? [],
+  //           );
+  //           print('📊 Team Comparison Data Updated: $_teamComparisonData');
+
+  //           // 🔥 FIX: Reset display count to show all comparison data
+  //           if (_isComparing && _teamComparisonData.isNotEmpty) {
+  //             _currentDisplayCount = math.max(
+  //               _teamComparisonData.length,
+  //               _incrementCount,
+  //             );
+  //             print(
+  //               '📊 Reset display count for comparison: $_currentDisplayCount',
+  //             );
+  //           }
+  //         } else {
+  //           _teamComparisonData = [];
+  //         }
+
+  //         if (_teamData.containsKey('logs_status')) {
+  //           _initialAlphabetData?['logs_status'] = _teamData['logs_status'];
+  //         }
+
+  //         // added this one also for new logic
+
+  //         if (_teamData.containsKey('total_performance')) {
+  //           _initialAlphabetData?['total_performance'] =
+  //               _teamData['total_performance'];
+  //         }
+
+  //         // Save total performance
+  //         if (_teamData.containsKey('totalPerformance')) {
+  //           _selectedUserData?['totalPerformance'] =
+  //               _teamData['totalPerformance'];
+  //         }
+
+  //         if (_teamData.containsKey('allMember') &&
+  //             _teamData['allMember'].isNotEmpty) {
+  //           _teamMembers = [];
+
+  //           for (var member in _teamData['allMember']) {
+  //             _teamMembers.add({
+  //               'fname': member['fname'] ?? '',
+  //               'lname': member['lname'] ?? '',
+  //               'user_id': member['user_id'] ?? '',
+  //               'profile': member['profile'],
+  //               'initials': member['initials'] ?? '',
+  //             });
+  //           }
+  //         }
+
+  //         if (_selectedProfileIndex == 0) {
+  //           // Summary data
+  //           _selectedUserData = _teamData['summary'] ?? {};
+  //           _selectedUserData?['totalPerformance'] =
+  //               _teamData['totalPerformance'] ?? {};
+  //         } else if (_selectedProfileIndex - 1 < _teamMembers.length) {
+  //           // Specific user selected
+  //           final selectedMember = _teamMembers[_selectedProfileIndex - 1];
+  //           _selectedUserData = selectedMember;
+
+  //           final selectedUserPerformance =
+  //               _teamData['selectedUserPerformance'] ?? {};
+  //           final upcoming = selectedUserPerformance['Upcoming'] ?? {};
+  //           final overdue = selectedUserPerformance['Overdue'] ?? {};
+
+  //           if (_upcommingButtonIndex == 0) {
+  //             _upcomingFollowups = List<Map<String, dynamic>>.from(
+  //               upcoming['upComingFollowups'] ?? [],
+  //             );
+  //             _upcomingAppointments = List<Map<String, dynamic>>.from(
+  //               upcoming['upComingAppointment'] ?? [],
+  //             );
+  //             _upcomingTestDrives = List<Map<String, dynamic>>.from(
+  //               upcoming['upComingTestDrive'] ?? [],
+  //             );
+  //           } else {
+  //             _upcomingFollowups = List<Map<String, dynamic>>.from(
+  //               overdue['overdueFollowups'] ?? [],
+  //             );
+  //             _upcomingAppointments = List<Map<String, dynamic>>.from(
+  //               overdue['overdueAppointments'] ?? [],
+  //             );
+  //             _upcomingTestDrives = List<Map<String, dynamic>>.from(
+  //               overdue['overdueTestDrives'] ?? [],
+  //             );
+
+  //             overdueCount =
+  //                 _upcomingFollowups.length +
+  //                 _upcomingAppointments.length +
+  //                 _upcomingTestDrives.length;
+  //           }
+  //         }
+
+  //         isLoading = false; // Clear loading state
+  //       });
+  //     } else {
+  //       throw Exception('Failed to fetch team details: ${response.statusCode}');
+  //     }
+  //   } catch (e) {
+  //     print('Error fetching team details: $e');
+  //     setState(() {
+  //       isLoading = false; // Clear loading state on error
+  //     });
+  //   }
+  // }
 
   // Process team data for team comparison display
   List<Map<String, dynamic>> _processTeamComparisonData() {
@@ -787,7 +1003,7 @@ class _AdminTeamsState extends State<AdminTeams> {
                       ),
                     ),
                   )
-                : Text('My Team', style: AppFont.appbarfontWhite(context)),
+                : Text('My Teamssss', style: AppFont.appbarfontWhite(context)),
 
             // _buildCompareButton(),
             if (selectedUserIds.length >= 2)

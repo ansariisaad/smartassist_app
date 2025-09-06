@@ -11,12 +11,15 @@ import 'package:smartassist/pages/navbar_page/leads_all.dart';
 import 'package:smartassist/pages/navbar_page/logout_page.dart';
 import 'package:smartassist/pages/Home/reassign_enq.dart';
 import 'package:smartassist/pages/Navigation/feedback_nav.dart';
+import 'package:smartassist/superAdmin/pages/bottombar/admin_callanalysis.dart';
+import 'package:smartassist/superAdmin/pages/bottombar/admin_myenquiries.dart';
 import 'package:smartassist/utils/admin_navigation_controller.dart'
     as nav_utils;
 import 'package:smartassist/pages/navbar_page/bottom_tutorial.dart';
 
 class AdminBottomnavigation extends StatelessWidget {
-  AdminBottomnavigation({super.key});
+  final String? role;
+  AdminBottomnavigation({super.key, this.role});
 
   final nav_utils.AdminNavigationController controller = Get.put(
     nav_utils.AdminNavigationController(),
@@ -24,6 +27,9 @@ class AdminBottomnavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (role != null && role!.isNotEmpty) {
+      controller.userRole.value = role!; // ✅ Set instantly
+    }
     return Scaffold(
       body: Stack(
         children: [
@@ -421,7 +427,7 @@ class AdminBottomnavigation extends StatelessWidget {
                       'My Enquiries',
                       style: GoogleFonts.poppins(fontSize: 18),
                     ),
-                    onTap: () => Get.to(() => const AllLeads()),
+                    onTap: () => Get.to(() => const AdminMyenquiries()),
                   ),
                   ListTile(
                     leading: const Icon(Icons.call_outlined, size: 28),
@@ -430,7 +436,7 @@ class AdminBottomnavigation extends StatelessWidget {
                       style: GoogleFonts.poppins(fontSize: 18),
                     ),
                     onTap: () => Get.to(
-                      () => const CallAnalytics(userId: '', userName: ''),
+                      () => const AdminCallanalysis(userId: '', userName: ''),
                     ),
                   ),
                   if (teamRole == "SM")

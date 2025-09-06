@@ -6,6 +6,7 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/superAdmin/widgets/followupsAdmin/followups_admin_all.dart';
 import 'package:smartassist/superAdmin/widgets/followupsAdmin/followups_admin_overdue.dart';
 import 'package:smartassist/superAdmin/widgets/followupsAdmin/followups_admin_upcoming.dart';
+import 'package:smartassist/utils/admin_is_manager.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart'; 
 import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/create_Followups_popups.dart';
@@ -93,7 +94,8 @@ class _AdminFollowupsallState extends State<AdminFollowupsall>
     setState(() => _isLoading = true);
     try {
       final token = await Storage.getToken();
-      const String apiUrl = "https://dev.smartassistapp.in/api/tasks/all-tasks";
+      final adminId = await AdminUserIdManager.getAdminUserId();
+      final String apiUrl = "https://dev.smartassistapp.in/api/app-admin/tasks/all-tasks$adminId";
 
       final response = await http.get(
         Uri.parse(apiUrl),

@@ -6,7 +6,8 @@ import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/superAdmin/pages/analysis/admin_leads.dart';
 import 'package:smartassist/superAdmin/pages/analysis/admin_orders.dart';
 import 'package:smartassist/superAdmin/pages/analysis/admin_testdrive.dart';
-import 'package:smartassist/utils/storage.dart'; 
+import 'package:smartassist/utils/admin_is_manager.dart';
+import 'package:smartassist/utils/storage.dart';
 import 'package:http/http.dart' as http;
 
 class HomeAnalysiscAdmin extends StatefulWidget {
@@ -94,9 +95,15 @@ class HomeAnalysiscAdminState extends State<HomeAnalysiscAdmin> {
     try {
       // this is new one
       final token = await Storage.getToken();
+      
+      final adminId = await AdminUserIdManager.getAdminUserId();
+
+      // final uri = Uri.parse(
+      //   'https://dev.smartassistapp.in/api/app-admin/dashboard/analytics?adminIduserId?type=$period',
+      // );
 
       final uri = Uri.parse(
-        'https://dev.smartassistapp.in/api/users/analytics?type=$period',
+        'https://dev.smartassistapp.in/api/app-admin/dashboard/analytics?userId=$adminId&type=$period',
       );
 
       final response = await http.get(
@@ -107,7 +114,7 @@ class HomeAnalysiscAdminState extends State<HomeAnalysiscAdmin> {
         },
       );
 
-      print('this the url fo the dashboard_one ${uri}');
+      print('this the url fo the dashboard_one ghhhhh ${uri}');
 
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);

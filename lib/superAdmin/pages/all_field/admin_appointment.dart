@@ -6,6 +6,7 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/superAdmin/widgets/appointmentAdmin/appointment_admin_all.dart';
 import 'package:smartassist/superAdmin/widgets/appointmentAdmin/appointment_admin_overdue.dart';
 import 'package:smartassist/superAdmin/widgets/appointmentAdmin/appointment_admin_upcoming.dart';
+import 'package:smartassist/utils/admin_is_manager.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/buttons/add_btn.dart';
@@ -214,8 +215,9 @@ class _AdminAppointmentState extends State<AdminAppointment>
     setState(() => _isLoading = true);
     try {
       final token = await Storage.getToken();
-      const String apiUrl =
-          "https://dev.smartassistapp.in/api/tasks/all-appointments";
+      final adminId = await AdminUserIdManager.getAdminUserId();
+      final String apiUrl =
+          "https://dev.smartassistapp.in/api/tasks/all-appointments$adminId";
 
       final response = await http.get(
         Uri.parse(apiUrl),
@@ -342,7 +344,7 @@ class _AdminAppointmentState extends State<AdminAppointment>
         ),
         backgroundColor: AppColors.colorsBlue,
         automaticallyImplyLeading: false,
-      ), 
+      ),
       body: RefreshIndicator(
         onRefresh: fetchTasks,
         child: CustomScrollView(
@@ -359,7 +361,7 @@ class _AdminAppointmentState extends State<AdminAppointment>
                     borderRadius: 30.0,
                     prefixIcon: Icon(Icons.search, color: AppColors.fontColor),
                   ),
-                   
+
                   if (_isLoadingSearch)
                     Container(
                       margin: const EdgeInsets.symmetric(horizontal: 15),
@@ -416,7 +418,7 @@ class _AdminAppointmentState extends State<AdminAppointment>
                   const SizedBox(height: 5),
                 ],
               ),
-            ), 
+            ),
             SliverToBoxAdapter(
               child: _isLoading ? SkeletonCard() : _buildContentBySelectedTab(),
             ),
@@ -551,4 +553,3 @@ class _AdminAppointmentState extends State<AdminAppointment>
     );
   }
 }
- 

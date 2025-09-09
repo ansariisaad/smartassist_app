@@ -355,7 +355,7 @@ class _CallAnalyticsState extends State<AdminCallanalysis>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-       appBar: AppBar(
+      appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: AppColors.colorsBlue,
         title: Align(
@@ -370,15 +370,14 @@ class _CallAnalyticsState extends State<AdminCallanalysis>
 
               if (!mounted) return;
 
-          Get.offAll(() => AdminDealerall());
-
+              Get.offAll(() => AdminDealerall());
             },
             child: Row(
               children: [
                 Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.white),
 
                 SizedBox(width: 10),
-              Text(
+                Text(
                   AdminUserIdManager.adminNameSync ?? "No Name",
                   style: AppFont.dropDowmLabelWhite(context),
                 ),
@@ -413,7 +412,6 @@ class _CallAnalyticsState extends State<AdminCallanalysis>
       //   backgroundColor: AppColors.colorsBlue,
       //   automaticallyImplyLeading: false,
       // ),
-      
       body: SafeArea(
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())

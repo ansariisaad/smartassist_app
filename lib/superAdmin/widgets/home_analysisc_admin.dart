@@ -95,7 +95,7 @@ class HomeAnalysiscAdminState extends State<HomeAnalysiscAdmin> {
     try {
       // this is new one
       final token = await Storage.getToken();
-      
+
       final adminId = await AdminUserIdManager.getAdminUserId();
 
       // final uri = Uri.parse(

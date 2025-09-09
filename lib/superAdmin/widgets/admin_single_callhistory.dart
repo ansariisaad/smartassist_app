@@ -13,7 +13,11 @@ import 'package:http/http.dart' as http;
 class AdminSingleCallhistory extends StatefulWidget {
   final String category;
   final String mobile;
-  const AdminSingleCallhistory({super.key, required this.category, required this.mobile});
+  const AdminSingleCallhistory({
+    super.key,
+    required this.category,
+    required this.mobile,
+  });
 
   @override
   State<AdminSingleCallhistory> createState() => _AdminSingleCallhistoryState();

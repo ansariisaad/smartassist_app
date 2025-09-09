@@ -14,8 +14,6 @@ import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/superAdmin/widgets/timeline/admin_completedTimeline.dart';
 import 'package:smartassist/superAdmin/widgets/timeline/admin_overdueTimeline.dart';
 import 'package:smartassist/superAdmin/widgets/timeline/admin_upcomingTimeline.dart';
-import 'package:smartassist/utils/admin_bottomnavigation.dart';
-import 'package:smartassist/utils/bottom_navigation.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/call_history.dart';
@@ -2076,15 +2074,6 @@ class _AdminSingleleidTeamsState extends State<AdminSingleleidTeams> {
                 style: AppFont.mediumText14blue(context),
               ),
             ),
-            // TextButton(
-            //   onPressed: () {
-            //     submitQualify(context); // Pass context to submit
-            //   },
-            //   child: Text(
-            //     'Submit',
-            //     style: AppFont.mediumText14blue(context),
-            //   ),
-            // ),
           ],
         );
       },

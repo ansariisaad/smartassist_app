@@ -207,7 +207,7 @@ class _AdminFollowupsallState extends State<AdminFollowupsall>
     final screenSize = MediaQuery.of(context).size;
     final isTablet = screenSize.width > 600;
     return Scaffold(
-        appBar: AppBar(
+      appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: AppColors.colorsBlue,
         title: Align(
@@ -222,8 +222,7 @@ class _AdminFollowupsallState extends State<AdminFollowupsall>
 
               if (!mounted) return;
 
-            Get.offAll(() => AdminDealerall());
-
+              Get.offAll(() => AdminDealerall());
             },
             child: Row(
               children: [
@@ -266,7 +265,6 @@ class _AdminFollowupsallState extends State<AdminFollowupsall>
       //   backgroundColor: AppColors.colorsBlue,
       //   automaticallyImplyLeading: false,
       // ),
-
       body: RefreshIndicator(
         onRefresh: fetchTasks,
         child: CustomScrollView(

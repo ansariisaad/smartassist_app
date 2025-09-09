@@ -251,7 +251,7 @@ class _AdminNotificationState extends State<AdminNotification> {
                 _isLoading = true;
               });
 
-              await AdminUserIdManager.clearAll(); 
+              await AdminUserIdManager.clearAll();
 
               if (!mounted) return;
 

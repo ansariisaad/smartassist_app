@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smartassist/config/component/color/colors.dart';
@@ -98,15 +97,14 @@ class _AdminFavouritesState extends State<AdminFavourites> {
               await AdminUserIdManager.clearAll(); // Step 2: clear ID
 
               if (!mounted) return;
-Get.offAll(() => AdminDealerall());
-
+              Get.offAll(() => AdminDealerall());
             },
             child: Row(
               children: [
                 Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.white),
 
                 SizedBox(width: 10),
-               Text(
+                Text(
                   AdminUserIdManager.adminNameSync ?? "No Name",
                   style: AppFont.dropDowmLabelWhite(context),
                 ),
@@ -147,7 +145,7 @@ Get.offAll(() => AdminDealerall());
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 10),
               child: Wrap(
-                spacing: 1, // Space between buttons
+                spacing: 1, 
                 children: [
                   FlexibleButton(
                     title: 'Leads',
@@ -235,8 +233,7 @@ Get.offAll(() => AdminDealerall());
                   ),
                 ],
               ),
-            ),
-            // const SizedBox(height: 5),
+            ), 
             _buildContent(), // Load follow-ups or other data based on selection
           ],
         ),

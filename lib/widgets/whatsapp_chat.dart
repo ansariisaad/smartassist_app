@@ -810,7 +810,8 @@ class _WhatsappChatState extends State<WhatsappChat>
   }
 
   void _handleConnectionError(String message) {
-    showErrorMessage(context, message: message);
+    // showErrorMessage(context, message: message);
+    print(message);
     setState(() {
       isLoggedOut = true;
       isWhatsAppLoading = false;
@@ -1113,7 +1114,8 @@ class _WhatsappChatState extends State<WhatsappChat>
           errorMessage = 'WhatsApp is not installed on this device';
           _showInstallWhatsAppDialog();
         } else {
-          showErrorMessage(context, message: errorMessage);
+          print(errorMessage);
+          // showErrorMessage(context, message: errorMessage);
         }
       }
     }
@@ -1144,10 +1146,11 @@ class _WhatsappChatState extends State<WhatsappChat>
                         'https://play.google.com/store/apps/details?id=com.whatsapp',
                   );
                 } catch (e) {
-                  showErrorMessage(
-                    context,
-                    message: 'Could not open Play Store',
-                  );
+                  print(e.toString());
+                  // showErrorMessage(
+                  //   context,
+                  //   message: 'Could not open Play Store',
+                  // );
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -1780,9 +1783,9 @@ class _WhatsappChatState extends State<WhatsappChat>
       _scrollToBottomDelayed();
     } catch (e) {
       print('Error sending video: $e');
-      if (mounted) {
-        showErrorMessage(context, message: 'Failed to send video');
-      }
+      // if (mounted) {
+      //   // showErrorMessage(context, message: 'Failed to send video');
+      // }
     } finally {
       setState(() {
         isSendingImage = false;
@@ -1837,9 +1840,9 @@ class _WhatsappChatState extends State<WhatsappChat>
       _scrollToBottomDelayed();
     } catch (e) {
       print('Error sending document: $e');
-      if (mounted) {
-        showErrorMessage(context, message: 'Failed to send document');
-      }
+      // if (mounted) {
+      //   showErrorMessage(context, message: 'Failed to send document');
+      // }
     } finally {
       setState(() {
         isSendingDocument = false;
@@ -1921,9 +1924,9 @@ class _WhatsappChatState extends State<WhatsappChat>
       _scrollToBottomDelayed();
     } catch (e) {
       print('Error sending image: $e');
-      if (mounted) {
-        showErrorMessage(context, message: 'Failed to send image.');
-      }
+      // if (mounted) {
+      //   showErrorMessage(context, message: 'Failed to send image.');
+      // }
     } finally {
       setState(() {
         isSendingImage = false;

@@ -16,6 +16,7 @@ import 'package:smartassist/config/route/route.dart';
 import 'package:smartassist/config/route/route_name.dart';
 import 'package:smartassist/services/notifacation_srv.dart';
 import 'package:smartassist/utils/connection_service.dart';
+import 'package:smartassist/utils/token_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,8 +25,8 @@ void main() async {
     await Firebase.initializeApp();
     await Environment.init();
     Environment.validateConfig();
-
     // Request location permissions
+
     await _requestLocationPermissions();
 
     SystemChrome.setPreferredOrientations([

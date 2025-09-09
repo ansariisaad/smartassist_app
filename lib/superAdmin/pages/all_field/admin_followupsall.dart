@@ -231,8 +231,7 @@ class _AdminFollowupsallState extends State<AdminFollowupsall>
 
                 SizedBox(width: 10),
                 Text(
-                  "Back to dealer's",
-                  textAlign: TextAlign.start,
+                  AdminUserIdManager.adminNameSync ?? "No Name",
                   style: AppFont.dropDowmLabelWhite(context),
                 ),
               ],

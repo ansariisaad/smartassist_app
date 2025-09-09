@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/config/getX/fab.controller.dart';
 import 'package:smartassist/services/api_srv.dart';
+import 'package:smartassist/superAdmin/pages/admin_dealerall.dart';
 import 'package:smartassist/superAdmin/widgets/admin_single_callhistory.dart';
 import 'package:smartassist/superAdmin/widgets/timeline/admin_completedTimeline.dart';
 import 'package:smartassist/superAdmin/widgets/timeline/admin_overdueTimeline.dart';
@@ -321,8 +322,8 @@ class _AdminSingleleadFollowupsState extends State<AdminSingleleadFollowups> {
         },
       );
 
+      print('thisi is call logs ${response.statusCode}');
       if (response.statusCode == 200) {
-        print('thisi is call logs ${response.statusCode}');
         final Map<String, dynamic> jsonResponse = json.decode(response.body);
         final Map<String, dynamic> data = jsonResponse['data'];
         print('$apiUrl?mobile=$encodedMobile');
@@ -1093,9 +1094,8 @@ class _AdminSingleleadFollowupsState extends State<AdminSingleleadFollowups> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // backgroundColor: AppColors.backgroundLightGrey,
       appBar: AppBar(
-        backgroundColor: AppColors.colorsBlue,
+        backgroundColor: AppColors.colorsBlueButton,
         // title: Text('Enquiry', style: AppFont.appbarfontWhite(context)),
         title: Align(
           alignment: Alignment.centerLeft,
@@ -1103,10 +1103,10 @@ class _AdminSingleleadFollowupsState extends State<AdminSingleleadFollowups> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Enquiry', style: AppFont.appbarfontWhite(context)),
-              Text(
-                'Opportunity Status : $lead_status',
-                style: AppFont.smallTextWhite1(context),
-              ),
+              // Text(
+              //   'Opportunity Status : $lead_status',
+              //   style: AppFont.smallTextWhite1(context),
+              // ),
             ],
           ),
         ),
@@ -1117,25 +1117,55 @@ class _AdminSingleleadFollowupsState extends State<AdminSingleleadFollowups> {
           ),
           onPressed: () {
             // Navigator.pop(context, true);
-            if (widget.isFromTestdriveOverview == true) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => AdminBottomnavigation(),
-                ),
-              );
-            } else {
-              Navigator.pop(context);
-              widget.refreshDashboard();
-            }
-            // Navigator.push(
-            //   context,
-            //   MaterialPageRoute(builder: (context) => BottomNavigation()),
-            // );
+            Navigator.pop(context);
           },
         ),
         elevation: 0,
       ),
+
+      // backgroundColor: AppColors.backgroundLightGrey,
+      // appBar: AppBar(
+      //   backgroundColor: AppColors.colorsBlue,
+      //   // title: Text('Enquiry', style: AppFont.appbarfontWhite(context)),
+      //   title: Align(
+      //     alignment: Alignment.centerLeft,
+      //     child: Column(
+      //       crossAxisAlignment: CrossAxisAlignment.start,
+      //       children: [
+      //         Text('Enquiry', style: AppFont.appbarfontWhite(context)),
+      //         Text(
+      //           'Opportunity Status : $lead_status',
+      //           style: AppFont.smallTextWhite1(context),
+      //         ),
+      //       ],
+      //     ),
+      //   ),
+      //   leading: IconButton(
+      //     icon: const Icon(
+      //       Icons.arrow_back_ios_new_outlined,
+      //       color: AppColors.white,
+      //     ),
+      //     onPressed: () {
+      //       // Navigator.pop(context, true);
+      //       if (widget.isFromTestdriveOverview == true) {
+      //         Navigator.push(
+      //           context,
+      //           MaterialPageRoute(
+      //             builder: (context) => AdminBottomnavigation(),
+      //           ),
+      //         );
+      //       } else {
+      //         Navigator.pop(context);
+      //         widget.refreshDashboard();
+      //       }
+      //       // Navigator.push(
+      //       //   context,
+      //       //   MaterialPageRoute(builder: (context) => BottomNavigation()),
+      //       // );
+      //     },
+      //   ),
+      //   elevation: 0,
+      // ),
       body: Stack(
         children: [
           Scaffold(

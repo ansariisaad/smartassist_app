@@ -6,40 +6,36 @@ import 'package:http/http.dart' as http;
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/superAdmin/pages/admin_dealerall.dart';
-import 'package:smartassist/superAdmin/widgets/appointmentAdmin/appointment_admin_all.dart';
-import 'package:smartassist/superAdmin/widgets/appointmentAdmin/appointment_admin_overdue.dart';
-import 'package:smartassist/superAdmin/widgets/appointmentAdmin/appointment_admin_upcoming.dart';
+import 'package:smartassist/superAdmin/widgets/testdrive/testdrive_admin_all.dart';
+import 'package:smartassist/superAdmin/widgets/testdrive/testdrive_admin_overdue.dart';
+import 'package:smartassist/superAdmin/widgets/testdrive/testdrive_admin_upcoming.dart';
 import 'package:smartassist/utils/admin_is_manager.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
-import 'package:smartassist/widgets/buttons/add_btn.dart';
-import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/appointment_popup.dart';
+import 'package:smartassist/widgets/home_btn.dart/dashboard_popups/create_testDrive.dart';
+import 'package:smartassist/widgets/reusable/skeleton_card.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:smartassist/widgets/oppointment/all_oppintment.dart';
-import 'package:smartassist/widgets/oppointment/overdue.dart';
-import 'package:smartassist/widgets/oppointment/upcoming.dart';
-import 'package:smartassist/widgets/reusable/globle_speechtotext.dart';
-import 'package:smartassist/widgets/reusable/skeleton_card.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
-class AdminAppointment extends StatefulWidget {
+class AdminTestdriveall extends StatefulWidget {
   final Future<void> Function() refreshDashboard;
-  const AdminAppointment({super.key, required this.refreshDashboard});
+  const AdminTestdriveall({super.key, required this.refreshDashboard});
 
   @override
-  State<AdminAppointment> createState() => _AdminAppointmentState();
+  State<AdminTestdriveall> createState() => _AdminTestdriveallState();
 }
 
-class _AdminAppointmentState extends State<AdminAppointment>
+class _AdminTestdriveallState extends State<AdminTestdriveall>
     with WidgetsBindingObserver {
-  final Widget _createFollowups = AppointmentPopup(onFormSubmit: () {});
+  final Widget _createTestDrive = CreateTestdrive(onFormSubmit: () {});
   List<dynamic> _originalAllTasks = [];
   List<dynamic> _originalUpcomingTasks = [];
   List<dynamic> _originalOverdueTasks = [];
   List<dynamic> _filteredAllTasks = [];
   List<dynamic> _filteredUpcomingTasks = [];
   List<dynamic> _filteredOverdueTasks = [];
+  List<dynamic> _filteredTasks = [];
   bool _isLoadingSearch = false;
   bool _isLoading = true;
   bool _isListening = false; // Track speech-to-text listening state
@@ -47,7 +43,7 @@ class _AdminAppointmentState extends State<AdminAppointment>
   String _query = '';
   int _upcomingButtonIndex = 0; // Fixed typo
   int count = 0;
-  int upcomingCount = 0;
+  int upComingCount = 0;
   int allCount = 0;
   late stt.SpeechToText _speech;
 
@@ -115,7 +111,7 @@ class _AdminAppointmentState extends State<AdminAppointment>
         onResult: (result) {
           setState(() {
             controller.text = result.recognizedWords;
-            _onSearchChanged(); // Trigger search filtering
+            _onSearchChanged();
           });
         },
         listenFor: Duration(seconds: 30),
@@ -220,9 +216,8 @@ class _AdminAppointmentState extends State<AdminAppointment>
       final token = await Storage.getToken();
       final adminId = await AdminUserIdManager.getAdminUserId();
       final String apiUrl =
-          // "https://dev.smartassistapp.in/api/tasks/all-appointments$adminId";
-          "https://dev.smartassistapp.in/api/app-admin/appointments/all?userId=$adminId";
-
+          // "https://dev.smartassistapp.in/api/events/all-events$adminId";
+          "https://dev.smartassistapp.in/api/app-admin/events/all?userId=$adminId";
       final response = await http.get(
         Uri.parse(apiUrl),
         headers: {
@@ -231,19 +226,17 @@ class _AdminAppointmentState extends State<AdminAppointment>
         },
       );
 
-      print('this is the url appointment $apiUrl');
+      print('this is the url testdrive $apiUrl');
       if (response.statusCode == 200) {
-        print('status code33 ${response.statusCode}');
         final Map<String, dynamic> data = json.decode(response.body);
         setState(() {
-          count = data['data']['overdueWeekTasks']?['count'] ?? 0;
-          upcomingCount = data['data']['upcomingWeekTasks']?['count'] ?? 0;
-          allCount = data['data']['allTasks']?['count'] ?? 0;
-          _originalAllTasks = data['data']['allTasks']?['rows'] ?? [];
+          count = data['data']['overdueEvents']?['count'] ?? 0;
+          upComingCount = data['data']['upcomingEvents']?['count'] ?? 0;
+          allCount = data['data']['allEvents']?['count'] ?? 0;
+          _originalAllTasks = data['data']['allEvents']?['rows'] ?? [];
           _originalUpcomingTasks =
-              data['data']['upcomingWeekTasks']?['rows'] ?? [];
-          _originalOverdueTasks =
-              data['data']['overdueWeekTasks']?['rows'] ?? [];
+              data['data']['upcomingEvents']?['rows'] ?? [];
+          _originalOverdueTasks = data['data']['overdueEvents']?['rows'] ?? [];
           _filteredAllTasks = List.from(_originalAllTasks);
           _filteredUpcomingTasks = List.from(_originalUpcomingTasks);
           _filteredOverdueTasks = List.from(_originalOverdueTasks);
@@ -251,12 +244,12 @@ class _AdminAppointmentState extends State<AdminAppointment>
         });
       } else {
         setState(() => _isLoading = false);
-        showErrorMessage(context, message: 'Failed to fetch appointments.');
+        showErrorMessage(context, message: 'Failed to fetch test drives.');
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        showErrorMessage(context, message: 'Error fetching appointments.');
+        showErrorMessage(context, message: 'Error fetching test drives.');
       }
     }
   }
@@ -268,6 +261,7 @@ class _AdminAppointmentState extends State<AdminAppointment>
         _filteredAllTasks = List.from(_originalAllTasks);
         _filteredUpcomingTasks = List.from(_originalUpcomingTasks);
         _filteredOverdueTasks = List.from(_originalOverdueTasks);
+        _filteredTasks = [];
       } else {
         final searchQuery = query.toLowerCase();
 
@@ -282,6 +276,9 @@ class _AdminAppointmentState extends State<AdminAppointment>
         _filteredOverdueTasks = _originalOverdueTasks.where((item) {
           return _matchesSearchCriteria(item, searchQuery);
         }).toList();
+
+        // Update _filteredTasks for consistency, though not used in UI
+        _filteredTasks = _filteredAllTasks;
       }
     });
   }
@@ -291,13 +288,25 @@ class _AdminAppointmentState extends State<AdminAppointment>
         .toString()
         .toLowerCase();
     String email = (item['email'] ?? '').toString().toLowerCase();
-    String phone = (item['mobile'] ?? '').toString().toLowerCase();
+    String phone = (item['mobile'] ?? item['phone'] ?? '')
+        .toString()
+        .toLowerCase();
     String subject = (item['subject'] ?? '').toString().toLowerCase();
+    String description = (item['description'] ?? '').toString().toLowerCase();
+    String vehicleModel = (item['vehicle_model'] ?? '')
+        .toString()
+        .toLowerCase();
+    String customerName = (item['customer_name'] ?? '')
+        .toString()
+        .toLowerCase();
 
     return name.contains(searchQuery) ||
         email.contains(searchQuery) ||
         phone.contains(searchQuery) ||
-        subject.contains(searchQuery);
+        subject.contains(searchQuery) ||
+        description.contains(searchQuery) ||
+        vehicleModel.contains(searchQuery) ||
+        customerName.contains(searchQuery);
   }
 
   void _onSearchChanged() {
@@ -312,10 +321,10 @@ class _AdminAppointmentState extends State<AdminAppointment>
     // Perform local search immediately
     _performLocalSearch(_query);
 
-    // Debounce for consistency
+    // Debounce for potential future API calls or heavy processing
     _searchDebounceTimer = Timer(const Duration(milliseconds: 500), () {
       if (_query == _searchController.text.trim() && mounted) {
-        _performLocalSearch(_query);
+        _performLocalSearch(_query); // Re-run for consistency
       }
     });
   }
@@ -348,8 +357,7 @@ class _AdminAppointmentState extends State<AdminAppointment>
 
                 SizedBox(width: 10),
                 Text(
-                  "Back to dealer's",
-                  textAlign: TextAlign.start,
+                  AdminUserIdManager.adminNameSync ?? "No Name",
                   style: AppFont.dropDowmLabelWhite(context),
                 ),
               ],
@@ -373,7 +381,7 @@ class _AdminAppointmentState extends State<AdminAppointment>
       //   title: Align(
       //     alignment: Alignment.centerLeft,
       //     child: Text(
-      //       'Your Appointments',
+      //       'Your Test Drives',
       //       style: GoogleFonts.poppins(
       //         fontSize: _titleFontSize,
       //         fontWeight: FontWeight.w400,
@@ -418,7 +426,7 @@ class _AdminAppointmentState extends State<AdminAppointment>
                         Container(
                           constraints: const BoxConstraints(
                             minWidth: 240,
-                            maxWidth: 300,
+                            maxWidth: 320,
                           ),
                           // width: _getSubTabWidth(),
                           height: _getSubTabHeight(),
@@ -435,12 +443,12 @@ class _AdminAppointmentState extends State<AdminAppointment>
                                 color: AppColors.colorsBlue,
                                 index: 0,
                                 text: 'All ($allCount)',
-                                activeColor: AppColors.borderblue,
+                                activeColor: AppColors.colorsBlue,
                               ),
                               _buildFilterButton(
                                 color: AppColors.containerGreen,
                                 index: 1,
-                                text: 'Upcoming ($upcomingCount)',
+                                text: 'Upcoming ($upComingCount)',
                                 activeColor: AppColors.borderGreen,
                               ),
                               _buildFilterButton(
@@ -512,42 +520,57 @@ class _AdminAppointmentState extends State<AdminAppointment>
     }
 
     switch (_upcomingButtonIndex) {
-      case 0: // All Appointments
+      case 0: // All Test Drives
         return _filteredAllTasks.isEmpty
-            ? const Center(
+            ? Center(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Text("No appointments available"),
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: Text(
+                    _isSearching
+                        ? "No matching test drives found"
+                        : "No test drives available",
+                    style: AppFont.smallText12(context),
+                  ),
                 ),
               )
-            : AllOppintmentAdmin(
-                allFollowups: _filteredAllTasks,
+            : TestdriveAdminAll(
+                allTestDrive: _filteredAllTasks,
                 isNested: true,
-              ); // Renamed for clarity
+              );
       case 1: // Upcoming
         return _filteredUpcomingTasks.isEmpty
-            ? const Center(
+            ? Center(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Text("No upcoming appointments available"),
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: Text(
+                    _isSearching
+                        ? "No matching upcoming test drives found"
+                        : "No upcoming test drives available",
+                    style: AppFont.smallText12(context),
+                  ),
                 ),
               )
-            : AppointmentAdminUpcoming(
+            : TestdriveAdminUpcoming(
                 refreshDashboard: widget.refreshDashboard,
-                upcomingOpp: _filteredUpcomingTasks,
+                upcomingTestDrive: _filteredUpcomingTasks,
                 isNested: true,
               );
       case 2: // Overdue
         return _filteredOverdueTasks.isEmpty
-            ? const Center(
+            ? Center(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Text("No overdue appointments available"),
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: Text(
+                    _isSearching
+                        ? "No matching overdue test drives found"
+                        : "No overdue test drives available",
+                    style: AppFont.smallText12(context),
+                  ),
                 ),
               )
-            : AppointmentAdminOverdue(
+            : TestdriveAdminOverdue(
                 refreshDashboard: widget.refreshDashboard,
-                overdueeOpp: _filteredOverdueTasks,
+                overdueTestDrive: _filteredOverdueTasks,
                 isNested: true,
               );
       default:
@@ -571,7 +594,7 @@ class _AdminAppointmentState extends State<AdminAppointment>
           foregroundColor: isActive ? Colors.white : Colors.black,
           padding: EdgeInsets.symmetric(
             vertical: 5.0 * _getResponsiveScale(),
-            horizontal: 4.0 * _getResponsiveScale(),
+            horizontal: 0.0 * _getResponsiveScale(),
           ),
           side: BorderSide(
             color: isActive ? activeColor : Colors.transparent,

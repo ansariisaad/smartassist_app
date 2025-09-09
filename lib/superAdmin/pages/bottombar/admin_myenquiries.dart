@@ -10,6 +10,7 @@ import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:smartassist/superAdmin/pages/admin_dealerall.dart';
+import 'package:smartassist/superAdmin/pages/single_id_view.dart/admin_singlelead_followups.dart';
 import 'package:smartassist/utils/admin_is_manager.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/buttons/add_btn.dart';
@@ -27,7 +28,7 @@ class AdminMyenquiries extends StatefulWidget {
 
 class _AdminMyenquiriesState extends State<AdminMyenquiries> {
   bool isLoading = true;
-  
+
   final Widget _createLeads = CreateLeads(onFormSubmit: () {});
   final Map<String, double> _swipeOffsets = {};
   final ScrollController _scrollController = ScrollController();
@@ -606,7 +607,7 @@ class _AdminMyenquiriesState extends State<AdminMyenquiries> {
     final isTablet = screenSize.width > 600;
 
     return Scaffold(
-       appBar: AppBar(
+      appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: AppColors.colorsBlue,
         title: Align(
@@ -621,8 +622,7 @@ class _AdminMyenquiriesState extends State<AdminMyenquiries> {
 
               if (!mounted) return;
 
-            Get.offAll(() => AdminDealerall());
-
+              Get.offAll(() => AdminDealerall());
             },
             child: Row(
               children: [
@@ -630,8 +630,7 @@ class _AdminMyenquiriesState extends State<AdminMyenquiries> {
 
                 SizedBox(width: 10),
                 Text(
-                  "Back to dealer's",
-                  textAlign: TextAlign.start,
+                  AdminUserIdManager.adminNameSync ?? "No Name",
                   style: AppFont.dropDowmLabelWhite(context),
                 ),
               ],
@@ -665,7 +664,7 @@ class _AdminMyenquiriesState extends State<AdminMyenquiries> {
       //   backgroundColor: AppColors.colorsBlue,
       //   automaticallyImplyLeading: false,
       // ),
-     
+
       // floatingActionButton: CustomFloatingButton(
       //   onPressed: () {
       //     showDialog(
@@ -1027,8 +1026,8 @@ class _TaskItemState extends State<TaskItem>
   Widget _buildFollowupCard(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final isTablet = screenSize.width > 600;
-    bool isFavoriteSwipe = widget.swipeOffset > 50;
-    bool isCallSwipe = widget.swipeOffset < -50;
+    // bool isFavoriteSwipe = widget.swipeOffset > 50;
+    // bool isCallSwipe = widget.swipeOffset < -50;
 
     return GestureDetector(
       onTap:
@@ -1039,7 +1038,7 @@ class _TaskItemState extends State<TaskItem>
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => FollowupsDetails(
+                  builder: (context) => AdminSingleleadFollowups(
                     leadId: widget.leadId,
                     isFromFreshlead: false,
                     isFromManager: false,
@@ -1055,84 +1054,84 @@ class _TaskItemState extends State<TaskItem>
       child: Stack(
         children: [
           // Favorite Swipe Overlay
-          if (isFavoriteSwipe)
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.yellow.withOpacity(0.2),
-                      Colors.yellow.withOpacity(0.8),
-                    ],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      SizedBox(width: isTablet ? 20 : 15),
-                      Icon(
-                        isFav ? Icons.star_outline_rounded : Icons.star_rounded,
-                        color: const Color.fromRGBO(226, 195, 34, 1),
-                        size: isTablet ? 50 : 40,
-                      ),
-                      SizedBox(width: isTablet ? 15 : 10),
-                      Text(
-                        isFav ? 'Unfavorite' : 'Favorite',
-                        style: GoogleFonts.poppins(
-                          color: const Color.fromRGBO(187, 158, 0, 1),
-                          fontSize: isTablet ? 20 : 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+          // if (isFavoriteSwipe)
+          // Positioned.fill(
+          //   child: Container(
+          //     decoration: BoxDecoration(
+          //       gradient: LinearGradient(
+          //         colors: [
+          //           Colors.yellow.withOpacity(0.2),
+          //           Colors.yellow.withOpacity(0.8),
+          //         ],
+          //         begin: Alignment.centerLeft,
+          //         end: Alignment.centerRight,
+          //       ),
+          //       borderRadius: BorderRadius.circular(10),
+          //     ),
+          //     child: Center(
+          //       child: Row(
+          //         mainAxisAlignment: MainAxisAlignment.start,
+          //         children: [
+          //           SizedBox(width: isTablet ? 20 : 15),
+          //           Icon(
+          //             isFav ? Icons.star_outline_rounded : Icons.star_rounded,
+          //             color: const Color.fromRGBO(226, 195, 34, 1),
+          //             size: isTablet ? 50 : 40,
+          //           ),
+          //           SizedBox(width: isTablet ? 15 : 10),
+          //           Text(
+          //             isFav ? 'Unfavorite' : 'Favorite',
+          //             style: GoogleFonts.poppins(
+          //               color: const Color.fromRGBO(187, 158, 0, 1),
+          //               fontSize: isTablet ? 20 : 18,
+          //               fontWeight: FontWeight.bold,
+          //             ),
+          //           ),
+          //         ],
+          //       ),
+          //     ),
+          //   ),
+          // ),
 
           // Call Swipe Overlay
-          if (isCallSwipe)
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.green.withOpacity(0.2),
-                      Colors.green.withOpacity(0.8),
-                    ],
-                    begin: Alignment.centerRight,
-                    end: Alignment.centerLeft,
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      SizedBox(width: isTablet ? 15 : 10),
-                      Icon(
-                        Icons.phone_in_talk,
-                        color: Colors.white,
-                        size: isTablet ? 35 : 30,
-                      ),
-                      SizedBox(width: isTablet ? 15 : 10),
-                      Text(
-                        'Call',
-                        style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontSize: isTablet ? 20 : 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+          // if (isCallSwipe)
+          // Positioned.fill(
+          //   child: Container(
+          //     decoration: BoxDecoration(
+          //       gradient: LinearGradient(
+          //         colors: [
+          //           Colors.green.withOpacity(0.2),
+          //           Colors.green.withOpacity(0.8),
+          //         ],
+          //         begin: Alignment.centerRight,
+          //         end: Alignment.centerLeft,
+          //       ),
+          //       borderRadius: BorderRadius.circular(10),
+          //     ),
+          //     child: Center(
+          //       child: Row(
+          //         mainAxisAlignment: MainAxisAlignment.start,
+          //         children: [
+          //           SizedBox(width: isTablet ? 15 : 10),
+          //           Icon(
+          //             Icons.phone_in_talk,
+          //             color: Colors.white,
+          //             size: isTablet ? 35 : 30,
+          //           ),
+          //           SizedBox(width: isTablet ? 15 : 10),
+          //           Text(
+          //             'Call',
+          //             style: GoogleFonts.poppins(
+          //               color: Colors.white,
+          //               fontSize: isTablet ? 20 : 18,
+          //               fontWeight: FontWeight.bold,
+          //             ),
+          //           ),
+          //         ],
+          //       ),
+          //     ),
+          //   ),
+          // ),
 
           // Main Container
           Container(
@@ -1146,69 +1145,64 @@ class _TaskItemState extends State<TaskItem>
               border: Border(
                 left: BorderSide(
                   width: isTablet ? 10.0 : 8.0,
-                  color: isFav
-                      // ? (isCallSwipe
-                      //       ? AppColors.colorsBlue.withOpacity(0.9)
-                      //       : Colors.yellow.withOpacity(
-                      //           isFavoriteSwipe ? 0.1 : 0.9,
-                      //         ))
-                      // : (isFavoriteSwipe
-                      //       ? Colors.yellow.withOpacity(0.1)
-                      //       : (isCallSwipe
-                      //             ? Colors.green.withOpacity(0.1)
-                      //             : AppColors.colorsBlue)),
-                      ? (isCallSwipe
-                            ? AppColors.colorsBlue.withOpacity(0.9)
-                            : Colors.yellow.withOpacity(
-                                isFavoriteSwipe ? 0.1 : 0.9,
-                              ))
-                      : (isFavoriteSwipe
-                            ? Colors.yellow.withOpacity(0.1)
-                            : (isCallSwipe
-                                  ? Colors.green.withOpacity(0.1)
-                                  : _getStatusBorderColor())), // Modified this line
+                  color: AppColors.colorsBlue,
+                  // ? (isCallSwipe
+                  //       ? AppColors.colorsBlue.withOpacity(0.9)
+                  //       : Colors.yellow.withOpacity(
+                  //           isFavoriteSwipe ? 0.1 : 0.9,
+                  //         ))
+                  // : (isFavoriteSwipe
+                  //       ? Colors.yellow.withOpacity(0.1)
+                  //       : (isCallSwipe
+                  //             ? Colors.green.withOpacity(0.1)
+                  //             : AppColors.colorsBlue)),
+                  // ? (isCallSwipe
+                  //       ? AppColors.colorsBlue.withOpacity(0.9)
+                  //       : Colors.yellow.withOpacity(
+                  //           isFavoriteSwipe ? 0.1 : 0.9,
+                  //         ))
+                  // : (isFavoriteSwipe
+                  //       ? Colors.yellow.withOpacity(0.1)
+                  //       : (isCallSwipe
+                  //             ? Colors.green.withOpacity(0.1)
+                  //             : _getStatusBorderColor())), // Modified this line
                 ),
               ),
             ),
-            child: Opacity(
-              opacity: (isFavoriteSwipe || isCallSwipe) ? 0 : 1.0,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: Row(
-                      children: [
-                        SizedBox(width: isTablet ? 12 : 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Flexible(child: _buildUserDetails(context)),
-                                  _buildVerticalDivider(isTablet ? 18 : 15),
-                                  Flexible(
-                                    child: _buildSubjectDetails(context),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: isTablet ? 6 : 4),
-                              Row(
-                                children: [
-                                  Flexible(child: _buildCarModel(context)),
-                                ],
-                              ),
-                            ],
-                          ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      SizedBox(width: isTablet ? 12 : 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Flexible(child: _buildUserDetails(context)),
+                                _buildVerticalDivider(isTablet ? 18 : 15),
+                                Flexible(child: _buildSubjectDetails(context)),
+                              ],
+                            ),
+                            SizedBox(height: isTablet ? 6 : 4),
+                            Row(
+                              children: [
+                                Flexible(child: _buildCarModel(context)),
+                              ],
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  _buildNavigationButton(context),
-                ],
-              ),
+                ),
+                _buildNavigationButton(context),
+              ],
             ),
           ),
         ],

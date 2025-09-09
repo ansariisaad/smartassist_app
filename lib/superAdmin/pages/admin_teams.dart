@@ -323,7 +323,8 @@ class _AdminTeamsState extends State<AdminTeams> {
       }
 
       final Map<String, String> queryParams = {
-        'type': periodParam, // CHANGE THIS LINE
+        'type': periodParam,
+        'userId': userId ?? '',
       };
 
       // Add userId to query parameters if it's available
@@ -332,7 +333,7 @@ class _AdminTeamsState extends State<AdminTeams> {
       }
 
       final baseUri = Uri.parse(
-        'https://dev.smartassistapp.in/api/app-admin/call/analytics?userId=$userId',
+        'https://dev.smartassistapp.in/api/app-admin/call/analytics',
       );
 
       final uri = baseUri.replace(queryParameters: queryParams);
@@ -927,182 +928,202 @@ class _AdminTeamsState extends State<AdminTeams> {
     double screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: AppColors.colorsBlue,
-        title: Align(
-          alignment: Alignment.centerLeft,
-          child: InkWell(
-            onTap: () async {
-              setState(() {
-                isLoading = true;
-              });
-
-              await AdminUserIdManager.clearAll(); // Step 2: clear ID
-
-              if (!mounted) return;
-
-Get.offAll(() => AdminDealerall());
-
-            },
-            child: Row(
-              children: [
-                Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.white),
-
-                SizedBox(width: 10),
-                Text(
-                  "Back to dealer's",
-                  textAlign: TextAlign.start,
-                  style: AppFont.dropDowmLabelWhite(context),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-
       // appBar: AppBar(
       //   automaticallyImplyLeading: false,
       //   backgroundColor: AppColors.colorsBlue,
-      //   title: Row(
-      //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      //     children: [
-      //       selectedUserIds.length >= 2
-      //           ? InkWell(
-      //               onTap: () {
-      //                 HapticFeedback.lightImpact();
-      //                 setState(() {
-      //                   bool allSelected =
-      //                       selectedUserIds.length == _teamMembers.length;
+      //   title: Align(
+      //     alignment: Alignment.centerLeft,
+      //     child: InkWell(
+      //       onTap: () async {
+      //         setState(() {
+      //           isLoading = true;
+      //         });
 
-      //                   if (allSelected) {
-      //                     // If already selected all, unselect all
-      //                     selectedUserIds.clear();
-      //                     _selectedLetters.clear();
-      //                     _selectedType = '';
-      //                   } else {
-      //                     // Select all
-      //                     _isMultiSelectMode = true;
-      //                     selectedUserIds.clear();
-      //                     selectedUserIds.addAll(
-      //                       _teamMembers.map(
-      //                         (member) => member['user_id'].toString(),
-      //                       ),
-      //                     );
-      //                     _selectedLetters.clear();
-      //                     for (var member in _teamMembers) {
-      //                       String firstLetter = (member['fname'] ?? '')
-      //                           .toString()
-      //                           .toUpperCase();
-      //                       if (firstLetter.isNotEmpty) {
-      //                         _selectedLetters.add(firstLetter[0]);
-      //                       }
-      //                     }
-      //                     _selectedType = 'Letter';
-      //                   }
-      //                 });
-      //               },
-      //               borderRadius: BorderRadius.circular(8),
-      //               child: Container(
-      //                 padding: const EdgeInsets.symmetric(
-      //                   horizontal: 8,
-      //                   vertical: 4,
-      //                 ),
-      //                 decoration: BoxDecoration(
-      //                   borderRadius: BorderRadius.circular(6),
-      //                   color: selectedUserIds.length == _teamMembers.length
-      //                       ? Colors.green.withOpacity(0.1)
-      //                       : Colors.transparent,
-      //                 ),
-      //                 child: Row(
-      //                   children: [
-      //                     Checkbox(
-      //                       side: BorderSide(color: Colors.white),
-      //                       activeColor: Colors.white,
+      //         await AdminUserIdManager.clearAll(); // Step 2: clear ID
 
-      //                       checkColor: AppColors.colorsBlue,
-      //                       value:
-      //                           selectedUserIds.length == _teamMembers.length,
-      //                       onChanged: (_) {
-      //                         HapticFeedback.lightImpact();
-      //                         setState(() {
-      //                           bool allSelected =
-      //                               selectedUserIds.length ==
-      //                               _teamMembers.length;
+      //         if (!mounted) return;
 
-      //                           if (allSelected) {
-      //                             selectedUserIds.clear();
-      //                             _selectedLetters.clear();
-      //                             _selectedType = '';
-      //                           } else {
-      //                             _isMultiSelectMode = true;
-      //                             selectedUserIds.clear();
-      //                             selectedUserIds.addAll(
-      //                               _teamMembers.map(
-      //                                 (member) => member['user_id'].toString(),
-      //                               ),
-      //                             );
-      //                             _selectedLetters.clear();
-      //                             for (var member in _teamMembers) {
-      //                               String firstLetter = (member['fname'] ?? '')
-      //                                   .toString()
-      //                                   .toUpperCase();
-      //                               if (firstLetter.isNotEmpty) {
-      //                                 _selectedLetters.add(firstLetter[0]);
-      //                               }
-      //                             }
-      //                             _selectedType = 'Letter';
-      //                           }
-      //                         });
-      //                       },
-      //                     ),
-      //                     Text(
-      //                       'Select All',
-      //                       style: AppFont.appbarfontWhite(context),
-      //                     ),
-      //                   ],
-      //                 ),
-      //               ),
-      //             )
-      //           : Text('My Team', style: AppFont.appbarfontWhite(context)),
+      //         Get.offAll(() => AdminDealerall());
+      //       },
+      //       child: Row(
+      //         children: [
+      //           Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.white),
 
-      //       // _buildCompareButton(),
-      //       if (selectedUserIds.length >= 2)
-      //         Container(
-      //           padding: const EdgeInsets.symmetric(
-      //             horizontal: 10,
-      //             vertical: 0,
+      //           SizedBox(width: 10),
+      //           Text(
+      //             AdminUserIdManager.adminNameSync ?? "No Name",
+      //             style: AppFont.dropDowmLabelWhite(context),
       //           ),
-      //           decoration: BoxDecoration(
-      //             color: Colors.transparent,
-      //             borderRadius: BorderRadius.circular(10),
-      //           ),
-      //           child: InkWell(
-      //             onTap: () async {
-      //               setState(() {
-      //                 _isComparing = true;
-      //                 _isLoadingComparison = true;
-      //                 _teamComparisonData = []; // 🔥 ADD THIS
-      //                 _currentDisplayCount = math.max(
-      //                   selectedUserIds.length,
-      //                   _incrementCount,
-      //                 );
-      //               });
-      //               await Future.delayed(
-      //                 Duration(milliseconds: 50),
-      //               ); // 🔥 ADD THIS
-      //               await Future.delayed(Duration(milliseconds: 100));
-      //               await _fetchTeamDetails();
-      //             },
-      //             child: Text(
-      //               'Compare',
-      //               style: AppFont.mediumText14white(context),
-      //             ),
-      //           ),
-      //         ),
-      //     ],
+      //         ],
+      //       ),
+      //     ),
       //   ),
       // ),
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: AppColors.colorsBlue,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            selectedUserIds.length >= 2
+                ? InkWell(
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      setState(() {
+                        bool allSelected =
+                            selectedUserIds.length == _teamMembers.length;
+
+                        if (allSelected) {
+                          // If already selected all, unselect all
+                          selectedUserIds.clear();
+                          _selectedLetters.clear();
+                          _selectedType = '';
+                        } else {
+                          // Select all
+                          _isMultiSelectMode = true;
+                          selectedUserIds.clear();
+                          selectedUserIds.addAll(
+                            _teamMembers.map(
+                              (member) => member['user_id'].toString(),
+                            ),
+                          );
+                          _selectedLetters.clear();
+                          for (var member in _teamMembers) {
+                            String firstLetter = (member['fname'] ?? '')
+                                .toString()
+                                .toUpperCase();
+                            if (firstLetter.isNotEmpty) {
+                              _selectedLetters.add(firstLetter[0]);
+                            }
+                          }
+                          _selectedType = 'Letter';
+                        }
+                      });
+                    },
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(6),
+                        color: selectedUserIds.length == _teamMembers.length
+                            ? Colors.green.withOpacity(0.1)
+                            : Colors.transparent,
+                      ),
+                      child: Row(
+                        children: [
+                          Checkbox(
+                            side: BorderSide(color: Colors.white),
+                            activeColor: Colors.white,
+
+                            checkColor: AppColors.colorsBlue,
+                            value:
+                                selectedUserIds.length == _teamMembers.length,
+                            onChanged: (_) {
+                              HapticFeedback.lightImpact();
+                              setState(() {
+                                bool allSelected =
+                                    selectedUserIds.length ==
+                                    _teamMembers.length;
+
+                                if (allSelected) {
+                                  selectedUserIds.clear();
+                                  _selectedLetters.clear();
+                                  _selectedType = '';
+                                } else {
+                                  _isMultiSelectMode = true;
+                                  selectedUserIds.clear();
+                                  selectedUserIds.addAll(
+                                    _teamMembers.map(
+                                      (member) => member['user_id'].toString(),
+                                    ),
+                                  );
+                                  _selectedLetters.clear();
+                                  for (var member in _teamMembers) {
+                                    String firstLetter = (member['fname'] ?? '')
+                                        .toString()
+                                        .toUpperCase();
+                                    if (firstLetter.isNotEmpty) {
+                                      _selectedLetters.add(firstLetter[0]);
+                                    }
+                                  }
+                                  _selectedType = 'Letter';
+                                }
+                              });
+                            },
+                          ),
+                          Text(
+                            'Select All',
+                            style: AppFont.appbarfontWhite(context),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : InkWell(
+                    onTap: () async {
+                      setState(() {
+                        isLoading = true;
+                      });
+                      await AdminUserIdManager.clearAll();
+                      if (!mounted) return;
+                      Get.offAll(() => AdminDealerall());
+                    },
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          color: AppColors.white,
+                        ),
+
+                        SizedBox(width: 10),
+                        Text(
+                          AdminUserIdManager.adminNameSync ?? "No Name",
+                          style: AppFont.appbarfontWhite(context),
+                        ),
+                      ],
+                    ),
+                  ),
+
+            // _buildCompareButton(),
+            if (selectedUserIds.length >= 2)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 0,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: InkWell(
+                  onTap: () async {
+                    setState(() {
+                      _isComparing = true;
+                      _isLoadingComparison = true;
+                      _teamComparisonData = []; // 🔥 ADD THIS
+                      _currentDisplayCount = math.max(
+                        selectedUserIds.length,
+                        _incrementCount,
+                      );
+                    });
+                    await Future.delayed(
+                      Duration(milliseconds: 50),
+                    ); // 🔥 ADD THIS
+                    await Future.delayed(Duration(milliseconds: 100));
+                    await _fetchTeamDetails();
+                  },
+                  child: Text(
+                    'Compare',
+                    style: AppFont.mediumText14white(context),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
       body: NotificationListener<ScrollNotification>(
         onNotification: (ScrollNotification notification) {
           if (notification is UserScrollNotification) {

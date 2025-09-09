@@ -4,6 +4,7 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/login_steps/login_page.dart';
 import 'package:smartassist/services/api_srv.dart' show LeadsSrv;
+import 'package:smartassist/superAdmin/pages/admin_userlist.dart';
 import 'package:smartassist/utils/admin_bottomnavigation.dart';
 import 'package:smartassist/utils/admin_is_manager.dart';
 
@@ -60,14 +61,24 @@ class _AdminDealerallState extends State<AdminDealerall> {
     }
   }
 
+  // void onDealerTapped(Map<String, dynamic> dealer) {
+  //   final users = List<Map<String, dynamic>>.from(dealer['Users'] ?? []);
+
+  //   showModalBottomSheet(
+  //     context: context,
+  //     isScrollControlled: true,
+  //     backgroundColor: Colors.transparent,
+  //     builder: (context) => _buildUserSelectionModal(dealer, users),
+  //   );
+  // }
   void onDealerTapped(Map<String, dynamic> dealer) {
     final users = List<Map<String, dynamic>>.from(dealer['Users'] ?? []);
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _buildUserSelectionModal(dealer, users),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AdminUserlist(dealer: dealer, users: users),
+      ),
     );
   }
 
@@ -116,58 +127,6 @@ class _AdminDealerallState extends State<AdminDealerall> {
       ),
     );
   }
-
-  // void onUserSelected(
-  //   Map<String, dynamic> user,
-  //   Map<String, dynamic> dealer,
-  // ) async {
-  //   Navigator.of(context).pop(); // Close the modal
-  //   navigateToUserDetails(user, dealer);
-  //   // ✅ Save the actual dealer_id (or user_id if you prefer)
-  //   await AdminUserIdManager.saveAdminUserId(user['user_id']);
-  // }
-
-  // void navigateToUserDetails(
-  //   Map<String, dynamic> user,
-  //   Map<String, dynamic> dealer,
-  // ) async {
-  //   final adminId = await AdminUserIdManager.getAdminUserId();
-  //   print("Admin ID used in API: $adminId");
-  //   print('Navigating to user: ${user['name']} from ${dealer['dealer_name']}');
-
-  //   // TODO: Replace with your actual navigation
-  //   Navigator.push(
-  //     context,
-  //     MaterialPageRoute(builder: (context) => AdminBottomnavigation()),
-  //   );
-  // }
-
-  // void onUserSelected(
-  //   Map<String, dynamic> user,
-  //   Map<String, dynamic> dealer,
-  // ) async {
-  //   Navigator.of(context).pop(); // Close modal
-
-  //   // Save admin ID first
-  //   await AdminUserIdManager.saveAdminUserId(dealer['user_id']);
-
-  //   // Now navigate
-  //   navigateToUserDetails(user, dealer);
-  // }
-
-  // void navigateToUserDetails(
-  //   Map<String, dynamic> user,
-  //   Map<String, dynamic> dealer,
-  // ) async {
-  //   final adminId = await AdminUserIdManager.getAdminUserId();
-  //   print("Admin ID used in API: $adminId"); // ✅ now never null
-  //   print('Navigating to user: ${user['name']} from ${dealer['dealer_name']}');
-
-  //   Navigator.push(
-  //     context,
-  //     MaterialPageRoute(builder: (context) => AdminBottomnavigation()),
-  //   );
-  // }
 
   Widget _buildUserSelectionModal(
     Map<String, dynamic> dealer,
@@ -377,86 +336,6 @@ class _AdminDealerallState extends State<AdminDealerall> {
     );
   }
 
-  // Widget _buildUserListItem(
-  //   Map<String, dynamic> user,
-  //   Map<String, dynamic> dealer,
-  //   bool isLast,
-  // ) {
-  //   return InkWell(
-  //     onTap: () => onUserSelected(user, dealer),
-  //     borderRadius: BorderRadius.circular(12),
-  //     child: Container(
-  //       margin: EdgeInsets.only(top: 8, bottom: isLast ? 16 : 8),
-  //       padding: const EdgeInsets.all(16),
-  //       decoration: BoxDecoration(
-  //         color: Colors.white,
-  //         borderRadius: BorderRadius.circular(12),
-  //         border: Border.all(color: Colors.grey[200]!),
-  //         boxShadow: [
-  //           BoxShadow(
-  //             color: Colors.black.withOpacity(0.05),
-  //             blurRadius: 4,
-  //             offset: const Offset(0, 2),
-  //           ),
-  //         ],
-  //       ),
-  //       child: Row(
-  //         children: [
-  //           // Avatar
-  //           Container(
-  //             width: 48,
-  //             height: 48,
-  //             decoration: BoxDecoration(
-  //               color: AppColors.colorsBlue.withOpacity(0.1),
-  //               borderRadius: BorderRadius.circular(24),
-  //             ),
-  //             child: Center(
-  //               child: Text(
-  //                 // (user['name'] ?? 'U').substring(0, 1).toUpperCase(),
-  //                 (user['user_role'] ?? 'U').toString().toUpperCase(),
-  //                 style: GoogleFonts.poppins(
-  //                   fontSize: 20,
-  //                   fontWeight: FontWeight.w600,
-  //                   color: AppColors.colorsBlue,
-  //                 ),
-  //               ),
-  //             ),
-  //           ),
-  //           const SizedBox(width: 16),
-
-  //           // User info
-  //           Expanded(
-  //             child: Column(
-  //               crossAxisAlignment: CrossAxisAlignment.start,
-  //               children: [
-  //                 Text(
-  //                   user['name'] ?? 'Unknown User',
-  //                   style: GoogleFonts.poppins(
-  //                     fontSize: 16,
-  //                     fontWeight: FontWeight.w600,
-  //                     color: Colors.black87,
-  //                   ),
-  //                 ),
-  //                 const SizedBox(height: 4),
-  //                 Text(
-  //                   user['email'] ?? 'No email',
-  //                   style: GoogleFonts.poppins(
-  //                     fontSize: 14,
-  //                     color: Colors.grey[600],
-  //                   ),
-  //                 ),
-  //               ],
-  //             ),
-  //           ),
-
-  //           // Arrow icon
-  //           Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[400]),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
-
   Widget _buildDealerListItem(Map<String, dynamic> dealer, bool isLast) {
     final userCount = (dealer['Users'] as List?)?.length ?? 0;
 
@@ -592,22 +471,6 @@ class _AdminDealerallState extends State<AdminDealerall> {
         backgroundColor: AppColors.colorsBlue,
         title: Text('Dealers & Users', style: AppFont.appbarfontWhite(context)),
         actions: [
-          // if (!isDashboardLoading)
-          //   IconButton(
-          //     icon: isRefreshing
-          //         ? const SizedBox(
-          //             width: 20,
-          //             height: 20,
-          //             child: CircularProgressIndicator(
-          //               color: Colors.white,
-          //               strokeWidth: 2,
-          //             ),
-          //           )
-          //         : const Icon(Icons.refresh, color: Colors.white),
-          //     onPressed: isRefreshing
-          //         ? null
-          //         : () => fetchDealer(isRefresh: true),
-          //   ),
           IconButton(
             onPressed: () async {
               await AdminUserIdManager.clearAll(); // Step 2: clear ID

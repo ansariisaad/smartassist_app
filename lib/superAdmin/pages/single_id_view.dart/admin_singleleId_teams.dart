@@ -23,7 +23,7 @@ import 'package:smartassist/widgets/home_btn.dart/single_ids_popup/appointment_i
 import 'package:smartassist/widgets/home_btn.dart/single_ids_popup/followups_ids.dart';
 import 'package:smartassist/widgets/home_btn.dart/single_ids_popup/testdrive_ids.dart';
 import 'package:smartassist/widgets/leads_details_popup/create_appointment.dart';
-import 'package:smartassist/widgets/leads_details_popup/create_followups.dart'; 
+import 'package:smartassist/widgets/leads_details_popup/create_followups.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class AdminSingleleidTeams extends StatefulWidget {
@@ -105,8 +105,8 @@ class _AdminSingleleidTeamsState extends State<AdminSingleleidTeams> {
     fetchSingleIdData(widget.leadId).then((_) {
       fetchCallLogs(mobile);
       // _fetchCallLogs();
-      _speech = stt.SpeechToText();
-      _initSpeech();
+      // _speech = stt.SpeechToText();
+      // _initSpeech();
     });
 
     // Initially, set the selected widget
@@ -295,7 +295,7 @@ class _AdminSingleleidTeamsState extends State<AdminSingleleidTeams> {
     setState(() => isLoading = true);
     try {
       final data = await LeadsSrv.AdmineventTaskByLeadTeams(leadId, userId);
-// adminEventTaskByLead
+      // adminEventTaskByLead
       setState(() {
         // Ensure that upcomingTasks and completedTasks are correctly cast to List<Map<String, dynamic>>.
         overdueTasks = List<Map<String, dynamic>>.from(data['overdueTasks']);
@@ -986,25 +986,13 @@ class _AdminSingleleidTeamsState extends State<AdminSingleleidTeams> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Enquiry', style: AppFont.appbarfontWhite(context)),
-              Text(
-                'Opportunity Status : $lead_status',
-                style: AppFont.smallTextWhite1(context),
-              ),
+              // Text(
+              //   'Opportunity Status : $lead_status',
+              //   style: AppFont.smallTextWhite1(context),
+              // ),
             ],
           ),
         ),
-        // actions: [
-        // Align(
-        //   alignment: Alignment.centerLeft,
-        //   child: Column(
-        //     mainAxisAlignment: MainAxisAlignment.start,
-        //     children: [
-        //       Text('Enquiry', style: AppFont.appbarfontWhite(context)),
-        //       Text('data', style: AppFont.mediumText14white(context))
-        //     ],
-        //   ),
-        // ),
-        // ],
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back_ios_new_outlined,
@@ -1012,10 +1000,7 @@ class _AdminSingleleidTeamsState extends State<AdminSingleleidTeams> {
           ),
           onPressed: () {
             // Navigator.pop(context, true);
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => AdminBottomnavigation()),
-            );
+            Navigator.pop(context);
           },
         ),
         elevation: 0,

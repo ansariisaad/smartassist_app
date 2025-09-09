@@ -248,7 +248,7 @@ class _AdminNotificationState extends State<AdminNotification> {
           child: InkWell(
             onTap: () async {
               setState(() {
-                _isLoading = true; // Step 1: show loader
+                _isLoading = true;
               });
 
               await AdminUserIdManager.clearAll(); 
@@ -263,8 +263,7 @@ class _AdminNotificationState extends State<AdminNotification> {
 
                 SizedBox(width: 10),
                 Text(
-                  "Back to dealer's",
-                  textAlign: TextAlign.start,
+                  AdminUserIdManager.adminNameSync ?? "No Name",
                   style: AppFont.dropDowmLabelWhite(context),
                 ),
               ],

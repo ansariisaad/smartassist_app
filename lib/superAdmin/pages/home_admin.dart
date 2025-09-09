@@ -305,10 +305,15 @@ class _HomeAdminState extends State<HomeAdmin> {
 
                         SizedBox(width: 10),
                         Text(
-                          "Back to dealer's",
-                          textAlign: TextAlign.start,
+                          AdminUserIdManager.adminNameSync ?? "No Name",
                           style: AppFont.dropDowmLabelWhite(context),
                         ),
+
+                        // Text(
+                        //   "${AdminUserIdManager.getAdminName().toString()}",
+                        //   textAlign: TextAlign.start,
+                        //   style: AppFont.dropDowmLabelWhite(context),
+                        // ),
                       ],
                     ),
                   ),

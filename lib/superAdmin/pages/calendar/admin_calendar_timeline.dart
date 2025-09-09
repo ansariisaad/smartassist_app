@@ -231,9 +231,8 @@ class _AdminCalendarTimelineState extends State<AdminCalendarTimeline> {
                 Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.white),
 
                 SizedBox(width: 10),
-                Text(
-                  "Back to dealer's",
-                  textAlign: TextAlign.start,
+               Text(
+                  AdminUserIdManager.adminNameSync ?? "No Name",
                   style: AppFont.dropDowmLabelWhite(context),
                 ),
               ],

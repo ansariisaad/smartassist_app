@@ -124,7 +124,7 @@ class _AdminCalendarSmState extends State<AdminCalendarSm> {
 
       final userId = await AdminUserIdManager.getAdminUserId();
       final baseUri = Uri.parse(
-        'https://dev.smartassistapp.in/api/app-admin/call/analytics?userId=$userId',
+        'https://dev.smartassistapp.in/api/app-admin/SM/dashboard?userId=$userId',
       );
       final response = await http.get(
         baseUri,
@@ -134,7 +134,7 @@ class _AdminCalendarSmState extends State<AdminCalendarSm> {
         },
       );
 
-      print('this is the url sm $baseUri');
+      print('this is the url smsssss $baseUri');
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
@@ -221,7 +221,7 @@ class _AdminCalendarSmState extends State<AdminCalendarSm> {
       //   },
       // );
 
-      print('this is calender url $uri');
+      print('this is calenderrrrrr url $uri');
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
@@ -383,8 +383,7 @@ class _AdminCalendarSmState extends State<AdminCalendarSm> {
 
                 SizedBox(width: 10),
                 Text(
-                  "Back to dealer's",
-                  textAlign: TextAlign.start,
+                  AdminUserIdManager.adminNameSync ?? "No Name",
                   style: AppFont.dropDowmLabelWhite(context),
                 ),
               ],

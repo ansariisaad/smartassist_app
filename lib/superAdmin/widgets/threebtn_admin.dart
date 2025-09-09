@@ -3,21 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smartassist/config/controller/tab_controller.dart';
-import 'package:smartassist/superAdmin/pages/all_field/admin_appointment.dart';
+import 'package:smartassist/superAdmin/pages/all_field/admin_appointmentall.dart';
 import 'package:smartassist/superAdmin/pages/all_field/admin_followupsall.dart';
-import 'package:smartassist/superAdmin/pages/all_field/admin_testdrive.dart';
+import 'package:smartassist/superAdmin/pages/all_field/admin_testdriveall.dart';
 import 'package:smartassist/superAdmin/widgets/appointmentAdmin/appointment_admin_overdue.dart';
 import 'package:smartassist/superAdmin/widgets/appointmentAdmin/appointment_admin_upcoming.dart';
 import 'package:smartassist/superAdmin/widgets/followupsAdmin/followups_admin_overdue.dart';
 import 'package:smartassist/superAdmin/widgets/followupsAdmin/followups_admin_upcoming.dart';
 import 'package:smartassist/superAdmin/widgets/testdrive/testdrive_admin_overdue.dart';
 import 'package:smartassist/superAdmin/widgets/testdrive/testdrive_admin_upcoming.dart';
-import 'package:smartassist/widgets/followups/overdue_followup.dart';
-import 'package:smartassist/widgets/followups/upcoming_row.dart';
-import 'package:smartassist/widgets/oppointment/overdue.dart';
-import 'package:smartassist/widgets/oppointment/upcoming.dart';
-import 'package:smartassist/widgets/testdrive/overdue.dart';
-import 'package:smartassist/widgets/testdrive/upcoming.dart';
 
 class ThreebtnAdmin extends StatefulWidget {
   final String leadId;
@@ -509,13 +503,15 @@ class _ThreebtnAdminState extends State<ThreebtnAdmin> {
         );
         break;
       case 1:
-        targetPage = AdminAppointment(
+        targetPage = AdminAppointmentall(
           refreshDashboard: widget.refreshDashboard,
         );
 
         break;
       case 2:
-        targetPage = AdminTestdrive(refreshDashboard: widget.refreshDashboard);
+        targetPage = AdminTestdriveall(
+          refreshDashboard: widget.refreshDashboard,
+        );
         break;
       default:
         return;

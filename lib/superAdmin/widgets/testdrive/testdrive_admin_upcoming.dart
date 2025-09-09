@@ -1,11 +1,10 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
+// import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
-import 'package:smartassist/config/component/font/font.dart';
-import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
+import 'package:smartassist/config/component/font/font.dart'; 
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/superAdmin/pages/single_id_view.dart/admin_singlelead_followups.dart';
 import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/testdrive.dart';
@@ -347,24 +346,22 @@ class upcomingTestDrivesItem extends StatefulWidget {
 
 class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
     with SingleTickerProviderStateMixin {
-  late SlidableController _slidableController;
   @override
   void initState() {
     super.initState();
-    _slidableController = SlidableController(this);
-    _slidableController.animation.addListener(() {
-      final isOpen = _slidableController.ratio != 0;
-      if (_isActionPaneOpen != isOpen) {
-        setState(() {
-          _isActionPaneOpen = isOpen;
-        });
-      }
-    });
+    // _slidableController.animation.addListener(() {
+    //   final isOpen = _slidableController.ratio != 0;
+    //   if (_isActionPaneOpen != isOpen) {
+    //     setState(() {
+    //       _isActionPaneOpen = isOpen;
+    //     });
+    //   }
+    // });
   }
 
   @override
   void dispose() {
-    _slidableController.dispose();
+    // _slidableController.dispose();
     super.dispose();
   }
 
@@ -615,18 +612,18 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
     return GestureDetector(
       onTap: () {
         if (_isActionPaneOpen) {
-          _slidableController.close();
+          // _slidableController.close();
           setState(() {
             _isActionPaneOpen = false;
           });
         } else {
-          _slidableController.close();
-          Future.delayed(Duration(milliseconds: 100), () {
-            _slidableController.openEndActionPane();
-            setState(() {
-              _isActionPaneOpen = true;
-            });
-          });
+          // _slidableController.close();
+          // Future.delayed(Duration(milliseconds: 100), () {
+          //   _slidableController.openEndActionPane();
+          //   setState(() {
+          //     _isActionPaneOpen = true;
+          //   });
+          // });
         }
       },
 
@@ -646,32 +643,6 @@ class _upcomingTestDrivesItemState extends State<upcomingTestDrivesItem>
           color: Colors.white,
         ),
       ),
-    );
-  }
-}
-
-class ReusableSlidableAction extends StatelessWidget {
-  final VoidCallback onPressed;
-  final Color backgroundColor;
-  final IconData icon;
-  final Color? foregroundColor;
-  final double iconSize;
-
-  const ReusableSlidableAction({
-    Key? key,
-    required this.onPressed,
-    required this.backgroundColor,
-    required this.icon,
-    this.foregroundColor,
-    this.iconSize = 40.0,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomSlidableAction(
-      onPressed: (context) => onPressed(),
-      backgroundColor: backgroundColor,
-      child: Icon(icon, size: iconSize, color: foregroundColor ?? Colors.white),
     );
   }
 }

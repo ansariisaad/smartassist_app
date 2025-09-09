@@ -1,16 +1,14 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
+// import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
-import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/superAdmin/pages/single_id_view.dart/admin_singlelead_followups.dart';
 import 'package:smartassist/widgets/testdrive/upcoming.dart';
-import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/testdrive.dart';
 // import 'package:smartassist/widgets/testdrive/overdue.dart';
 import 'package:smartassist/widgets/testdrive_verifyotp.dart';
 
@@ -46,25 +44,14 @@ class _AllFollowupsItemState extends State<TestdriveAdminAlls>
     with SingleTickerProviderStateMixin {
   bool _wasCallingPhone = false;
 
-  late SlidableController _slidableController;
+  // late SlidableController _slidableController;
   @override
   void initState() {
     super.initState();
-    _slidableController = SlidableController(this);
-
-    _slidableController.animation.addListener(() {
-      final isOpen = _slidableController.ratio != 0;
-      if (_isActionPaneOpen != isOpen) {
-        setState(() {
-          _isActionPaneOpen = isOpen;
-        });
-      }
-    });
   }
 
   @override
   void dispose() {
-    _slidableController.dispose();
     super.dispose();
   }
 
@@ -178,96 +165,6 @@ class _AllFollowupsItemState extends State<TestdriveAdminAlls>
           ),
         ),
       ],
-    );
-  }
-
-  Future<void> _showAleart() async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false, // User must tap button to close dialog
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: AppColors.containerBg,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          title: Text(
-            'Ready to start test drive?',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-          ),
-          content: Text(
-            'Please make sure you have all the necessary documents(license) and permissions(OTP) ready before starting test drive.',
-            style: GoogleFonts.poppins(),
-          ),
-          actions: [
-            TextButton(
-              style: TextButton.styleFrom(
-                overlayColor: Colors.grey.withOpacity(0.1),
-                foregroundColor: Colors.grey,
-              ),
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text('No', style: GoogleFonts.poppins(color: Colors.grey)),
-            ),
-            TextButton(
-              style: TextButton.styleFrom(
-                overlayColor: AppColors.colorsBlue.withOpacity(0.1),
-                foregroundColor: AppColors.colorsBlue,
-              ),
-              // onPressed: () => Navigator.of(context).pop(
-              // true),
-              onPressed: () {
-                // initwhatsappChat(context); // Pass context to submit
-                widget.handleTestDrive();
-                widget.otpTrigger();
-              },
-              child: Text(
-                'Yes',
-                style: GoogleFonts.poppins(color: AppColors.colorsBlue),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _showAleart1() async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false, // User must tap button to close dialog
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: AppColors.containerBg,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          title: Text(
-            'Test Drive has already been completed',
-
-            // style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-            style: AppFont.appbarfontblack(context),
-          ),
-          content: Text(
-            'If you wish to initiate test drive again for this client, kindly create a new one',
-
-            // style: GoogleFonts.poppins(),
-            style: AppFont.dropDown(context),
-          ),
-          actions: [
-            TextButton(
-              style: TextButton.styleFrom(
-                overlayColor: Colors.grey.withOpacity(0.1),
-                foregroundColor: Colors.grey,
-              ),
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text(
-                'Cancel',
-                style: GoogleFonts.poppins(color: AppColors.colorsBlue),
-              ),
-            ),
-          ],
-        );
-      },
     );
   }
 
@@ -407,19 +304,10 @@ class _AllFollowupsItemState extends State<TestdriveAdminAlls>
     return GestureDetector(
       onTap: () {
         if (_isActionPaneOpen) {
-          _slidableController.close();
           setState(() {
             _isActionPaneOpen = false;
           });
-        } else {
-          _slidableController.close();
-          Future.delayed(Duration(milliseconds: 100), () {
-            _slidableController.openEndActionPane();
-            setState(() {
-              _isActionPaneOpen = true;
-            });
-          });
-        }
+        } else {}
       },
 
       child: Container(
@@ -477,60 +365,6 @@ class _AllFollowupsItemState extends State<TestdriveAdminAlls>
   //     }
   //   }
   // }
-
-  void _messageAction() {
-    print("Message action triggered");
-  }
-
-  void _mailAction() {
-    print("Mail action triggered");
-
-    showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder: (context) {
-        return Dialog(
-          insetPadding: const EdgeInsets.symmetric(horizontal: 10),
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Testdrive(onFormSubmit: () {}, eventId: widget.eventId),
-        );
-      },
-    );
-  }
-}
-
-class ReusableSlidableAction extends StatelessWidget {
-  final VoidCallback onPressed;
-  final Color backgroundColor;
-  final IconData icon;
-  final Color? foregroundColor;
-  final double iconSize;
-  final String handleTestDrive;
-  final String otpTrigger;
-
-  const ReusableSlidableAction({
-    Key? key,
-    required this.onPressed,
-    required this.backgroundColor,
-    required this.icon,
-    required this.handleTestDrive,
-    required this.otpTrigger,
-    this.foregroundColor,
-    this.iconSize = 40.0,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomSlidableAction(
-      padding: EdgeInsets.zero,
-      onPressed: (context) => onPressed(),
-      backgroundColor: backgroundColor,
-      child: Icon(icon, size: iconSize, color: foregroundColor ?? Colors.white),
-    );
-  }
 }
 
 class TestdriveAdminAll extends StatefulWidget {
@@ -719,10 +553,6 @@ class _TestdriveAdminAllState extends State<TestdriveAdminAll> {
       setState(() {
         widget.allTestDrive[index]['favourite'] = newFavoriteStatus;
       });
-
-      // if (widget.onFavoriteToggle != null) {
-      //   widget.onFavoriteToggle!(eventId, newFavoriteStatus);
-      // }
     }
   }
 
@@ -829,7 +659,7 @@ class _TestdriveAdminAllState extends State<TestdriveAdminAll> {
             // double swipeOffset = _swipeOffsets[eventId] ?? 0;
 
             return GestureDetector(
-              child: upcomingTestDrivesItem(
+              child: TestdriveAdminAlls(
                 key: ValueKey(item['event_id']),
                 name: item['name'] ?? '',
                 vehicle: item['PMI'] ?? 'Range Rover Velar',
@@ -854,13 +684,10 @@ class _TestdriveAdminAllState extends State<TestdriveAdminAll> {
                 otpTrigger: () {
                   _getOtp(eventId);
                 },
-                fetchDashboardData: () {},
+                // fetchDashboardData: () {},
                 handleTestDrive: () {
                   _handleTestDrive(item);
                 },
-                swipeOffset: 0,
-                // taskId: '',
-                refreshDashboard: () async {},
                 email: '',
                 isCompleted: item['completed'] ?? false,
               ),

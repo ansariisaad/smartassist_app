@@ -15,11 +15,12 @@ import 'package:smartassist/utils/token_manager.dart';
 
 class BiometricScreen extends StatefulWidget {
   final bool isFirstTime;
+  // final bool isAdmin;
 
   const BiometricScreen({
     super.key,
-    this.isFirstTime =
-        false, // Flag to indicate if this is the first time after login
+    this.isFirstTime = false,
+    // required this.isAdmin, // Flag to indicate if this is the first time after login
   });
 
   @override
@@ -438,7 +439,6 @@ class _BiometricScreenState extends State<BiometricScreen> {
       bool isAdmin = await TokenManager.getIsAdmin();
 
       if (isAdmin) {
-        // Get.offAll(() => AdminBottomnavigation());
         Get.offAll(() => AdminDealerall());
       } else {
         Get.offAll(() => BottomNavigation());
@@ -478,7 +478,6 @@ class _BiometricScreenState extends State<BiometricScreen> {
             bool isAdmin = await TokenManager.getIsAdmin();
 
             if (isAdmin) {
-              // Get.off(() => AdminBottomnavigation());
               Get.off(() => AdminDealerall());
             } else {
               Get.off(() => BottomNavigation());
@@ -489,47 +488,6 @@ class _BiometricScreenState extends State<BiometricScreen> {
       );
     }
   }
-
-  // void _proceedToHome() async {
-  //   try {
-  //     await NotificationService.instance.initialize();
-  //     print("Proceeding to home screen");
-  //   } catch (e) {
-  //     print("Error initializing notifications: $e");
-  //   }
-
-  //   if (_mounted) {
-  //     Get.offAll(() => BottomNavigation());
-  //   }
-  // }
-
-  // void _redirectToLogin() {
-  //   // Navigate to login screen
-  //   if (_mounted) {
-  //     Get.offAll(
-  //       () => LoginPage(
-  //         onLoginSuccess: () {
-  //           Get.off(() => BottomNavigation());
-  //         },
-  //         email: '',
-  //       ),
-  //     );
-  //   }
-  // }
-
-  // void _skipAndLogin() async {
-  //   // Navigate to login screen
-  //   if (_mounted) {
-  //     Get.offAll(
-  //       () => LoginPage(
-  //         onLoginSuccess: () {
-  //           Get.off(() => BottomNavigation());
-  //         },
-  //         email: '',
-  //       ),
-  //     );
-  //   }
-  // }
 
   Widget _buildBiometricChoiceUI() {
     return Padding(

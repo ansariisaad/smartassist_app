@@ -42,6 +42,7 @@ class _LoginPageState extends State<LoginPage>
   bool isLoading = false;
   late AnimationController _controller;
   late Animation<Offset> _slideAnimation;
+  // bool isAdmin = false;
 
   @override
   void initState() {
@@ -329,7 +330,6 @@ class _LoginPageState extends State<LoginPage>
     );
   }
 
-  // login page
   Future<void> submitBtn() async {
     if (!mounted) return;
     final emailOrExcellence = newEmailController.text.trim();
@@ -408,22 +408,26 @@ class _LoginPageState extends State<LoginPage>
         final authToken = response['token'];
         final userRole = user['user_role'];
         final userEmail = user['email'] ?? emailOrExcellence;
-        final accessToken = user['access_token'];
-        // final isAdmin = user['admin'] ?? '';
         final rawAdmin = user['isAdmin'];
-        final isAdmin = (rawAdmin is bool)
+        final bool isAdmin = rawAdmin is bool
             ? rawAdmin
             : (rawAdmin.toString().toLowerCase() == "true");
 
         if (userId != null && authToken != null) {
           // Save authentication data
+          // await TokenManager.saveAuthData(
+          //   authToken,
+          //   userId,
+          //   userRole,
+          //   userEmail,
+          //   isAdmin,
+          // );
           await TokenManager.saveAuthData(
-            authToken,
-            userId,
-            userRole,
-            userEmail,
-            accessToken,
-            isAdmin,
+            token: authToken,
+            userId: userId,
+            userRole: userRole,
+            email: userEmail,
+            isAdmin: isAdmin,
           );
           String successMessage =
               response['message']?.toString() ?? 'Login Successful';
@@ -452,15 +456,13 @@ class _LoginPageState extends State<LoginPage>
 
           if (canCheckBiometrics) {
             // Navigate to BiometricScreen with isFirstTime flag
-            Get.offAll(() => const BiometricScreen(isFirstTime: true));
+            Get.offAll(() => BiometricScreen(isFirstTime: true));
           } else {
-            await BiometricPreference.setUseBiometric(false); 
+            await BiometricPreference.setUseBiometric(false);
             if (isAdmin == true) {
-              Get.offAll(() => AdminBottomnavigation());
+              Get.offAll(() => AdminDealerall());
             } else {
-              // Get.offAll(() => BottomNavigation());
-              Get.offAll(() => AdminDealerall()
-              );
+              Get.offAll(() => BottomNavigation());
             }
           }
 
@@ -493,7 +495,7 @@ class _LoginPageState extends State<LoginPage>
 
       Get.snackbar(
         'Error',
-        'Oops server is done...!',
+        '${error.toString()}',
         backgroundColor: Colors.red[500],
         colorText: Colors.white,
       );

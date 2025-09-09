@@ -40,19 +40,6 @@ class AdminUserIdManager {
     return _cachedAdminUserId;
   }
 
-  //   static Future<String?> getAdminUserId() async {
-  //   if (_cachedAdminUserId != null) return _cachedAdminUserId;
-  //   final prefs = await SharedPreferences.getInstance();
-  //   _cachedAdminUserId = prefs.getString(ADMIN_USER_ID_KEY);
-  //   return _cachedAdminUserId;
-  // }
-
-  /// Clear admin user ID
-  // static Future<void> clearAdminUserId() async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   await prefs.remove(ADMIN_USER_ID_KEY);
-  //   _cachedAdminUserId = null;
-  // }
   static Future<void> clearAll() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(ADMIN_USER_ID_KEY);
@@ -60,10 +47,4 @@ class AdminUserIdManager {
     _cachedAdminUserId = null;
     _cachedAdminRole = null;
   }
-
-  //  static Future<void> clearAdminRole() async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   await prefs.remove(USER_ROLE);
-  //   _cachedAdminRole = null;
-  // }
 }

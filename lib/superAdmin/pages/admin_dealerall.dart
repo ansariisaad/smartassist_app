@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
+import 'package:smartassist/pages/login_steps/login_page.dart';
 import 'package:smartassist/services/api_srv.dart' show LeadsSrv;
 import 'package:smartassist/utils/admin_bottomnavigation.dart';
 import 'package:smartassist/utils/admin_is_manager.dart';
@@ -591,22 +592,39 @@ class _AdminDealerallState extends State<AdminDealerall> {
         backgroundColor: AppColors.colorsBlue,
         title: Text('Dealers & Users', style: AppFont.appbarfontWhite(context)),
         actions: [
-          if (!isDashboardLoading)
-            IconButton(
-              icon: isRefreshing
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : const Icon(Icons.refresh, color: Colors.white),
-              onPressed: isRefreshing
-                  ? null
-                  : () => fetchDealer(isRefresh: true),
-            ),
+          // if (!isDashboardLoading)
+          //   IconButton(
+          //     icon: isRefreshing
+          //         ? const SizedBox(
+          //             width: 20,
+          //             height: 20,
+          //             child: CircularProgressIndicator(
+          //               color: Colors.white,
+          //               strokeWidth: 2,
+          //             ),
+          //           )
+          //         : const Icon(Icons.refresh, color: Colors.white),
+          //     onPressed: isRefreshing
+          //         ? null
+          //         : () => fetchDealer(isRefresh: true),
+          //   ),
+          IconButton(
+            onPressed: () async {
+              await AdminUserIdManager.clearAll(); // Step 2: clear ID
+
+              if (!mounted) return;
+
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      LoginPage(email: '', onLoginSuccess: () {}),
+                ),
+              );
+            },
+            tooltip: "Logout",
+            icon: Icon(Icons.logout, color: Colors.white),
+          ),
         ],
       ),
       body: isDashboardLoading

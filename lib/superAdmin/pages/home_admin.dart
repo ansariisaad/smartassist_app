@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:flutter/services.dart'; 
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/config/controller/tab_controller.dart';
-import 'package:smartassist/config/getX/fab.controller.dart';
-import 'package:smartassist/pages/Home/gloabal_search_page/global_search.dart';
-import 'package:smartassist/pages/notification/notification.dart';
+import 'package:smartassist/config/getX/fab.controller.dart'; 
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/superAdmin/pages/admin_dealerall.dart';
 import 'package:smartassist/superAdmin/widgets/admin_notification.dart';
@@ -18,8 +15,7 @@ import 'package:smartassist/superAdmin/widgets/home_analysisc_admin.dart';
 import 'package:smartassist/superAdmin/widgets/threebtn_admin.dart';
 import 'package:smartassist/utils/admin_is_manager.dart';
 import 'package:smartassist/widgets/home_btn.dart/dashboard_analytics_one.dart';
-import 'package:smartassist/widgets/internet_exception.dart';
-import 'package:smartassist/widgets/profile_screen.dart';
+import 'package:smartassist/widgets/internet_exception.dart'; 
 
 class HomeAdmin extends StatefulWidget {
   final String greeting;

@@ -24,7 +24,7 @@ class LeadsSrv {
   ) async {
     if (statusCode == 401 ||
         errorMessage.toLowerCase().contains("unauthorized")) {
-      await TokenManager.clearAuthData();
+      await TokenManager.clearAll();
       await Future.delayed(Duration(seconds: 2));
       Get.offAll(() => LoginPage(email: '', onLoginSuccess: () {}));
       showErrorMessageGetx(
@@ -77,7 +77,7 @@ class LeadsSrv {
 
     // Handle 401 here for ALL API calls
     if (response.statusCode == 401) {
-      await TokenManager.clearAuthData();
+      await TokenManager.clearAll();
       Get.offAllNamed(RoutesName.login);
 
       Future.delayed(Duration(milliseconds: 300), () {

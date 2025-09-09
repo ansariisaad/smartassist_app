@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
@@ -324,7 +325,7 @@ class _AdminAppointmentState extends State<AdminAppointment>
     final screenSize = MediaQuery.of(context).size;
     final isTablet = screenSize.width > 600;
     return Scaffold(
-        appBar: AppBar(
+      appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: AppColors.colorsBlue,
         title: Align(
@@ -339,11 +340,7 @@ class _AdminAppointmentState extends State<AdminAppointment>
 
               if (!mounted) return;
 
-              Navigator.pushReplacement(
-                // Step 3: navigate
-                context,
-                MaterialPageRoute(builder: (context) => const AdminDealerall()),
-              );
+              Get.offAll(() => AdminDealerall());
             },
             child: Row(
               children: [
@@ -387,7 +384,6 @@ class _AdminAppointmentState extends State<AdminAppointment>
       //   backgroundColor: AppColors.colorsBlue,
       //   automaticallyImplyLeading: false,
       // ),
-      
       body: RefreshIndicator(
         onRefresh: fetchTasks,
         child: CustomScrollView(

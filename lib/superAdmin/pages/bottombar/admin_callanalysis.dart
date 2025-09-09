@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'dart:convert';
@@ -369,11 +370,8 @@ class _CallAnalyticsState extends State<AdminCallanalysis>
 
               if (!mounted) return;
 
-              Navigator.pushReplacement(
-                // Step 3: navigate
-                context,
-                MaterialPageRoute(builder: (context) => const AdminDealerall()),
-              );
+          Get.offAll(() => AdminDealerall());
+
             },
             child: Row(
               children: [

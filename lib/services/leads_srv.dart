@@ -966,7 +966,7 @@ class LeadsSrv {
         // Check if unauthorized: status 401 or error message includes "unauthorized"
         if (response.statusCode == 401 ||
             errorMessage.toLowerCase().contains("unauthorized")) {
-          await TokenManager.clearAuthData();
+          await TokenManager.clearAll();
           // Navigate to the login page using GetX
           Get.offAll(() => LoginPage(email: '', onLoginSuccess: () {}));
           throw Exception('Unauthorized. Redirecting to login.');
@@ -1003,7 +1003,7 @@ class LeadsSrv {
         // Check if unauthorized: status 401 or error message includes "unauthorized"
         if (response.statusCode == 401 ||
             errorMessage.toLowerCase().contains("unauthorized")) {
-          await TokenManager.clearAuthData();
+          await TokenManager.clearAll();
           // Navigate to the login page using GetX
           Get.offAll(() => LoginPage(email: '', onLoginSuccess: () {}));
           throw Exception('Unauthorized. Redirecting to login.');

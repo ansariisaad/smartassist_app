@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
@@ -97,12 +98,8 @@ class _AdminFavouritesState extends State<AdminFavourites> {
               await AdminUserIdManager.clearAll(); // Step 2: clear ID
 
               if (!mounted) return;
+Get.offAll(() => AdminDealerall());
 
-              Navigator.pushReplacement(
-                // Step 3: navigate
-                context,
-                MaterialPageRoute(builder: (context) => const AdminDealerall()),
-              );
             },
             child: Row(
               children: [

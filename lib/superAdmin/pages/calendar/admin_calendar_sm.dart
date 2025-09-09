@@ -124,7 +124,6 @@ class _AdminCalendarSmState extends State<AdminCalendarSm> {
 
       final userId = await AdminUserIdManager.getAdminUserId();
       final baseUri = Uri.parse(
-        // 'https://dev.smartassistapp.in/api/users/sm/analytics/team-dashboard',
         'https://dev.smartassistapp.in/api/app-admin/call/analytics?userId=$userId',
       );
       final response = await http.get(
@@ -134,6 +133,8 @@ class _AdminCalendarSmState extends State<AdminCalendarSm> {
           'Content-Type': 'application/json',
         },
       );
+
+      print('this is the url sm $baseUri');
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
@@ -170,21 +171,27 @@ class _AdminCalendarSmState extends State<AdminCalendarSm> {
     if (mounted) setState(() => _isLoading = true);
     try {
       final token = await Storage.getToken();
-
       final adminId = await AdminUserIdManager.getAdminUserId();
+
       String formattedDate = DateFormat(
         'dd-MM-yyyy',
       ).format(_selectedDay ?? _focusedDay);
 
-      final Map<String, String> queryParams = {'date': formattedDate};
+      final Map<String, String> queryParams = {
+        'userId': adminId ?? '',
+        'date': formattedDate,
+      };
+
       if (_selectedType == 'team' && _selectedUserId.isNotEmpty) {
         queryParams['user_id'] = _selectedUserId;
       }
-      final baseUrl = Uri.parse(
-        // "https://dev.smartassistapp.in/api/calendar/activities/all/asondate",
-        "https://dev.smartassistapp.in/api/app-admin/calendar/activities?userId=$adminId",
+
+      final uri = Uri.https(
+        "dev.smartassistapp.in",
+        "/api/app-admin/calendar/activities",
+        queryParams,
       );
-      final uri = baseUrl.replace(queryParameters: queryParams);
+
       final response = await http.get(
         uri,
         headers: {
@@ -192,6 +199,29 @@ class _AdminCalendarSmState extends State<AdminCalendarSm> {
           'Content-Type': 'application/json',
         },
       );
+
+      // final adminId = await AdminUserIdManager.getAdminUserId();
+      // String formattedDate = DateFormat(
+      //   'dd-MM-yyyy',
+      // ).format(_selectedDay ?? _focusedDay);
+
+      // final Map<String, String> queryParams = {'date': formattedDate};
+      // if (_selectedType == 'team' && _selectedUserId.isNotEmpty) {
+      //   queryParams['user_id'] = _selectedUserId;
+      // }
+      // final baseUrl = Uri.parse(
+      //   "https://dev.smartassistapp.in/api/app-admin/calendar/activities?userId=$adminId",
+      // );
+      // final uri = baseUrl.replace(queryParameters: queryParams);
+      // final response = await http.get(
+      //   uri,
+      //   headers: {
+      //     'Authorization': 'Bearer $token',
+      //     'Content-Type': 'application/json',
+      //   },
+      // );
+
+      print('this is calender url $uri');
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
@@ -341,18 +371,11 @@ class _AdminCalendarSmState extends State<AdminCalendarSm> {
           child: InkWell(
             onTap: () async {
               setState(() {
-                _isLoading = true; // Step 1: show loader
+                _isLoading = true;
               });
-
-              await AdminUserIdManager.clearAll(); // Step 2: clear ID
-
+              await AdminUserIdManager.clearAll();
               if (!mounted) return;
-
-              Navigator.pushReplacement(
-                // Step 3: navigate
-                context,
-                MaterialPageRoute(builder: (context) => const AdminDealerall()),
-              );
+              Get.offAll(() => AdminDealerall());
             },
             child: Row(
               children: [

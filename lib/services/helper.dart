@@ -29,7 +29,7 @@ Future<T> processResponse<T>(
 ) async {
   if (response.statusCode == 401) {
     // Clear auth data first
-    await TokenManager.clearAuthData();
+    await TokenManager.clearAll();
 
     // Navigate to login
     Get.offAllNamed(RoutesName.login);

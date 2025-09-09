@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
@@ -250,15 +251,11 @@ class _AdminNotificationState extends State<AdminNotification> {
                 _isLoading = true; // Step 1: show loader
               });
 
-              await AdminUserIdManager.clearAll(); // Step 2: clear ID
+              await AdminUserIdManager.clearAll(); 
 
               if (!mounted) return;
 
-              Navigator.pushReplacement(
-                // Step 3: navigate
-                context,
-                MaterialPageRoute(builder: (context) => const AdminDealerall()),
-              );
+              Get.offAll(() => AdminDealerall());
             },
             child: Row(
               children: [

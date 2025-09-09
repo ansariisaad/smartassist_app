@@ -167,7 +167,6 @@ class _AdminTeamsState extends State<AdminTeams> {
     });
   }
 
-
   Future<void> _initialize() async {
     setState(() {
       isLoading = true;
@@ -943,11 +942,8 @@ class _AdminTeamsState extends State<AdminTeams> {
 
               if (!mounted) return;
 
-              Navigator.pushReplacement(
-                // Step 3: navigate
-                context,
-                MaterialPageRoute(builder: (context) => const AdminDealerall()),
-              );
+Get.offAll(() => AdminDealerall());
+
             },
             child: Row(
               children: [

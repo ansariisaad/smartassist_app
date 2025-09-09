@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
@@ -353,11 +354,8 @@ class _AdminTestdriveState extends State<AdminTestdrive>
 
               if (!mounted) return;
 
-              Navigator.pushReplacement(
-                // Step 3: navigate
-                context,
-                MaterialPageRoute(builder: (context) => const AdminDealerall()),
-              );
+         Get.offAll(() => AdminDealerall());
+
             },
             child: Row(
               children: [

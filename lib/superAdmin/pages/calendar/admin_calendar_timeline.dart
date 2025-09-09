@@ -223,11 +223,8 @@ class _AdminCalendarTimelineState extends State<AdminCalendarTimeline> {
 
               if (!mounted) return;
 
-              Navigator.pushReplacement(
-                // Step 3: navigate
-                context,
-                MaterialPageRoute(builder: (context) => const AdminDealerall()),
-              );
+            Get.offAll(() => AdminDealerall());
+
             },
             child: Row(
               children: [

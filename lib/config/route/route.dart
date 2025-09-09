@@ -5,6 +5,7 @@ import 'package:smartassist/pages/login_steps/biometric_screen.dart'
     as loginStep;
 import 'package:smartassist/pages/login_steps/login_page.dart';
 import 'package:smartassist/pages/login_steps/splash_screen.dart';
+import 'package:smartassist/superAdmin/pages/admin_dealerall.dart';
 import 'package:smartassist/utils/admin_bottomnavigation.dart';
 import 'package:smartassist/utils/bottom_navigation.dart';
 import 'package:smartassist/utils/token_manager.dart';
@@ -120,12 +121,29 @@ class Routes {
       case RoutesName.login:
         return MaterialPageRoute(
           builder: (context) => LoginPage(
-            onLoginSuccess: () {
-              Get.off(() => BottomNavigation());
+            onLoginSuccess: () async {
+              // Check admin status and navigate accordingly
+              bool isAdmin = await TokenManager.getIsAdmin();
+
+              if (isAdmin) {
+                Get.off(() => AdminDealerall());
+              } else {
+                Get.off(() => BottomNavigation());
+              }
             },
             email: '',
           ),
-        );
+        );  
+
+      // case RoutesName.login:
+      //   return MaterialPageRoute(
+      //     builder: (context) => LoginPage(
+      //       onLoginSuccess: () {
+      //         Get.off(() => BottomNavigation());
+      //       },
+      //       email: '',
+      //     ),
+      //   );
 
       // Add settings screen route
       case RoutesName.biometricSettings:

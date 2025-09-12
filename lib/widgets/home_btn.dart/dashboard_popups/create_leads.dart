@@ -145,7 +145,7 @@ class _CreateLeadsState extends State<CreateLeads> {
 
     try {
       final response = await http.get(
-        Uri.parse('https://dev.smartassistapp.in/api/leads/campaigns/all'),
+        Uri.parse('https://api.smartassistapp.in/api/leads/campaigns/all'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -254,7 +254,7 @@ class _CreateLeadsState extends State<CreateLeads> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://dev.smartassistapp.in/api/search/vehicles?vehicle=${Uri.encodeComponent(query)}',
+          'https://api.smartassistapp.in/api/search/vehicles?vehicle=${Uri.encodeComponent(query)}',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -321,7 +321,7 @@ class _CreateLeadsState extends State<CreateLeads> {
       final token = await Storage.getToken();
 
       final apiUrl =
-          'https://dev.smartassistapp.in/api/search/vehicle-color?color=$query';
+          'https://api.smartassistapp.in/api/search/vehicle-color?color=$query';
       print("API URL: $apiUrl");
 
       final response = await http.get(
@@ -383,7 +383,7 @@ class _CreateLeadsState extends State<CreateLeads> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://dev.smartassistapp.in/api/leads/existing-check?mobile=$encodedMobile',
+          'https://api.smartassistapp.in/api/leads/existing-check?mobile=$encodedMobile',
         ),
         headers: {
           'Authorization': 'Bearer $token',

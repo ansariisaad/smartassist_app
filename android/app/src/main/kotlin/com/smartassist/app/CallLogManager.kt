@@ -161,6 +161,7 @@ class CallLogManager(private val context: Context) {
                 CallLog.Calls.NEW
             )
 
+            // Replace the readCursor function in getCallLogsForAccount method with this:
             fun readCursor(c: Cursor?) {
                 c?.use { cur ->
                     val idxNumber = cur.getColumnIndex(CallLog.Calls.NUMBER)
@@ -173,20 +174,60 @@ class CallLogManager(private val context: Context) {
                     val idxNew = cur.getColumnIndex(CallLog.Calls.NEW)
 
                     while (cur.moveToNext() && logs.size < limit) {
+                        val callType = if (idxType >= 0) cur.getInt(idxType) else 0
+                        val typeString = when (callType) {
+                            CallLog.Calls.INCOMING_TYPE -> "incoming"
+                            CallLog.Calls.OUTGOING_TYPE -> "outgoing"
+                            CallLog.Calls.MISSED_TYPE -> "missed"
+                            CallLog.Calls.REJECTED_TYPE -> "rejected"
+                            else -> "other"
+                        }
+
                         val map = mapOf(
+                            "unique_key" to "${if (idxNumber >= 0) cur.getString(idxNumber) else "unknown"}_${if (idxDate >= 0) cur.getLong(idxDate) else System.currentTimeMillis()}",
+                            "name" to (if (idxName >= 0) cur.getString(idxName) else null),
+                            "mobile" to (if (idxNumber >= 0) cur.getString(idxNumber) else null),
                             "number" to (if (idxNumber >= 0) cur.getString(idxNumber) else null),
                             "date" to (if (idxDate >= 0) cur.getLong(idxDate) else null),
-                            "duration" to (if (idxDuration >= 0) cur.getLong(idxDuration) else null),
-                            "type" to (if (idxType >= 0) cur.getInt(idxType) else null), // 1=incoming,2=outgoing,3=missed,5=rejected
-                            "name" to (if (idxName >= 0) cur.getString(idxName) else null),
+                            "timestamp" to (if (idxDate >= 0) cur.getLong(idxDate).toString() else null),
+                            "duration" to (if (idxDuration >= 0) cur.getLong(idxDuration).toString() else null),
+                            "type" to callType,
+                            "call_type" to typeString, // Add this line
                             "phoneAccountId" to (if (idxAcc >= 0) cur.getString(idxAcc) else null),
                             "phoneAccountComponent" to (if (idxComp >= 0) cur.getString(idxComp) else null),
-                            "isNew" to (if (idxNew >= 0) cur.getInt(idxNew) else null)
+                            "isNew" to (if (idxNew >= 0) cur.getInt(idxNew) else null),
+                            "is_excluded" to false
                         )
                         logs.add(map)
                     }
                 }
             }
+            // fun readCursor(c: Cursor?) {
+            //     c?.use { cur ->
+            //         val idxNumber = cur.getColumnIndex(CallLog.Calls.NUMBER)
+            //         val idxDate = cur.getColumnIndex(CallLog.Calls.DATE)
+            //         val idxDuration = cur.getColumnIndex(CallLog.Calls.DURATION)
+            //         val idxType = cur.getColumnIndex(CallLog.Calls.TYPE)
+            //         val idxName = cur.getColumnIndex(CallLog.Calls.CACHED_NAME)
+            //         val idxAcc = cur.getColumnIndex(CallLog.Calls.PHONE_ACCOUNT_ID)
+            //         val idxComp = cur.getColumnIndex(CallLog.Calls.PHONE_ACCOUNT_COMPONENT_NAME)
+            //         val idxNew = cur.getColumnIndex(CallLog.Calls.NEW)
+
+            //         while (cur.moveToNext() && logs.size < limit) {
+            //             val map = mapOf(
+            //                 "number" to (if (idxNumber >= 0) cur.getString(idxNumber) else null),
+            //                 "date" to (if (idxDate >= 0) cur.getLong(idxDate) else null),
+            //                 "duration" to (if (idxDuration >= 0) cur.getLong(idxDuration) else null),
+            //                 "type" to (if (idxType >= 0) cur.getInt(idxType) else null), // 1=incoming,2=outgoing,3=missed,5=rejected
+            //                 "name" to (if (idxName >= 0) cur.getString(idxName) else null),
+            //                 "phoneAccountId" to (if (idxAcc >= 0) cur.getString(idxAcc) else null),
+            //                 "phoneAccountComponent" to (if (idxComp >= 0) cur.getString(idxComp) else null),
+            //                 "isNew" to (if (idxNew >= 0) cur.getInt(idxNew) else null)
+            //             )
+            //             logs.add(map)
+            //         }
+            //     }
+            // }
 
             // Try query by PHONE_ACCOUNT_ID
             try {

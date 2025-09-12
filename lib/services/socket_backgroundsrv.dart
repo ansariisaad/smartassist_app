@@ -184,7 +184,7 @@ import 'package:smartassist/utils/testdrive_notification_helper.dart';
 //     String eventId,
 //   ) async {
 //     try {
-//       final socket = IO.io('https://dev.smartassistapp.in', <String, dynamic>{
+//       final socket = IO.io('https://api.smartassistapp.in', <String, dynamic>{
 //         'transports': ['websocket'],
 //         'autoConnect': false,
 //         'reconnection': true,
@@ -579,7 +579,7 @@ class BackgroundLocationService {
     try {
       print('🔌 Creating background socket connection');
 
-      final socket = IO.io('https://dev.smartassistapp.in', <String, dynamic>{
+      final socket = IO.io('https://api.smartassistapp.in', <String, dynamic>{
         'transports': ['websocket'],
         'autoConnect': false,
         'reconnection': true,
@@ -1006,7 +1006,7 @@ class BackgroundLocationService {
 //     String eventId,
 //   ) async {
 //     try {
-//       final socket = IO.io('https://dev.smartassistapp.in', <String, dynamic>{
+//       final socket = IO.io('https://api.smartassistapp.in', <String, dynamic>{
 //         'transports': ['websocket'],
 //         'autoConnect': false,
 //         'reconnection': true,

@@ -515,7 +515,7 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://dev.smartassistapp.in/api/search/global?query=$query',
+          'https://api.smartassistapp.in/api/search/global?query=$query',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -732,14 +732,26 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       List<Map<String, dynamic>> formattedLogs = callLogs.map((log) {
+        // Get call type - prioritize the string version from native code
+        String callType = 'unknown';
+
+        // First check if we have the string version from native code
+        if (log['call_type'] != null &&
+            log['call_type'].toString().isNotEmpty) {
+          callType = log['call_type'].toString().toLowerCase();
+        }
+        // If not, convert from numeric type
+        else if (log['type'] != null) {
+          int typeInt = int.tryParse(log['type'].toString()) ?? 0;
+          callType = _getCallTypeString(typeInt);
+        }
+
         return {
           'name': log['name'] ?? 'Unknown',
           'start_time':
               log['timestamp']?.toString() ?? log['date']?.toString() ?? '',
           'mobile': log['mobile'] ?? log['number'] ?? '',
-          'call_type':
-              log['call_type'] ??
-              CalllogChannel.getCallTypeFromString(log['type']?.toString()),
+          'call_type': callType,
           'call_duration': log['duration']?.toString() ?? '',
           'unique_key':
               log['unique_key'] ??
@@ -748,7 +760,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }).toList();
 
       final token = await Storage.getToken();
-      const apiUrl = 'https://dev.smartassistapp.in/api/leads/create-call-logs';
+      const apiUrl = 'https://api.smartassistapp.in/api/leads/create-call-logs';
 
       final response = await http.post(
         Uri.parse(apiUrl),
@@ -759,22 +771,115 @@ class _HomeScreenState extends State<HomeScreen> {
         body: jsonEncode(formattedLogs),
       );
 
+      print('Call logs data: $formattedLogs');
+
       if (response.statusCode == 201) {
         print('Call logs uploaded successfully');
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   SnackBar(content: Text('Call logs uploaded successfully')),
+        // );
       } else {
         throw Exception('Upload failed: ${response.statusCode}');
       }
     } catch (e) {
       print('Upload error: $e');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Upload failed: $e')));
+      // ScaffoldMessenger.of(
+      //   context,
+      // ).showSnackBar(SnackBar(content: Text('Upload failed: $e')));
     } finally {
       setState(() {
         _isLoading = false;
       });
     }
   }
+
+  // Helper method to convert numeric call type to string
+  String _getCallTypeString(int type) {
+    switch (type) {
+      case 1: // CallLog.Calls.INCOMING_TYPE
+        return 'incoming';
+      case 2: // CallLog.Calls.OUTGOING_TYPE
+        return 'outgoing';
+      case 3: // CallLog.Calls.MISSED_TYPE
+        return 'missed';
+      case 5: // CallLog.Calls.REJECTED_TYPE
+        return 'rejected';
+      default:
+        return 'other';
+    }
+  }
+  // Future<void> _uploadCallLogsForSim(Map<String, dynamic> selectedSim) async {
+  //   try {
+  //     setState(() {
+  //       _isLoading = true;
+  //     });
+
+  //     List<Map<String, dynamic>> callLogs = [];
+
+  //     final phoneAccountId = selectedSim['phoneAccountId']?.toString() ?? '';
+  //     if (phoneAccountId == 'all' || phoneAccountId.isEmpty) {
+  //       callLogs = await CalllogChannel.getAllCallLogs(limit: 500);
+  //     } else {
+  //       callLogs = await CalllogChannel.getCallLogsForAccount(
+  //         phoneAccountId: phoneAccountId,
+  //         limit: 500,
+  //       );
+  //     }
+
+  //     if (callLogs.isEmpty) {
+  //       setState(() {
+  //         _isLoading = false;
+  //       });
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(content: Text('No call logs found for selected SIM')),
+  //       );
+  //       return;
+  //     }
+
+  //     List<Map<String, dynamic>> formattedLogs = callLogs.map((log) {
+  //       return {
+  //         'name': log['name'] ?? 'Unknown',
+  //         'start_time':
+  //             log['timestamp']?.toString() ?? log['date']?.toString() ?? '',
+  //         'mobile': log['mobile'] ?? log['number'] ?? '',
+  //         'call_type':
+  //             log['call_type'] ??
+  //             CalllogChannel.getCallTypeFromString(log['type']?.toString()),
+  //         'call_duration': log['duration']?.toString() ?? '',
+  //         'unique_key':
+  //             log['unique_key'] ??
+  //             '${log['number'] ?? log['mobile']}_${log['date'] ?? log['timestamp']}',
+  //       };
+  //     }).toList();
+
+  //     final token = await Storage.getToken();
+  //     const apiUrl = 'https://api.smartassistapp.in/api/leads/create-call-logs';
+
+  //     final response = await http.post(
+  //       Uri.parse(apiUrl),
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: jsonEncode(formattedLogs),
+  //     );
+
+  //     if (response.statusCode == 201) {
+  //       print('Call logs uploaded successfully');
+  //     } else {
+  //       throw Exception('Upload failed: ${response.statusCode}');
+  //     }
+  //   } catch (e) {
+  //     print('Upload error: $e');
+  //     ScaffoldMessenger.of(
+  //       context,
+  //     ).showSnackBar(SnackBar(content: Text('Upload failed: $e')));
+  //   } finally {
+  //     setState(() {
+  //       _isLoading = false;
+  //     });
+  //   }
+  // }
 
   // this is working fine
 
@@ -842,7 +947,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   //     // Send to API
   //     final token = await Storage.getToken();
-  //     const apiUrl = 'https://dev.smartassistapp.in/api/leads/create-call-logs';
+  //     const apiUrl = 'https://api.smartassistapp.in/api/leads/create-call-logs';
 
   //     final response = await http.post(
   //       Uri.parse(apiUrl),

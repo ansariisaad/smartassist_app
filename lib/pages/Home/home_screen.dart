@@ -168,13 +168,25 @@ class _HomeScreenState extends State<HomeScreen> {
   // call log after login
   Future<void> uploadCallLogsAfterLogin() async {
     // Check permissions first
-    final hasPermissions = await _checkAndRequestPermissions();
+    // final hasPermissions = await _checkAndRequestPermissions();
+    // if (!hasPermissions) {
+    //   showErrorMessage(
+    //     context,
+    //     message: 'Phone permissions required to access call logs',
+    //   );
+    //   return;
+    // }
+     final hasPermissions = await _checkAndRequestPermissions();
+    // if (!hasPermissions) {
+    //   showErrorMessage(
+    //     context,
+    //     message: 'Phone permissions required to access call logs',
+    //   );
+    //   return;
+    // }
+
     if (!hasPermissions) {
-      showErrorMessage(
-        context,
-        message: 'Phone permissions required to access call logs',
-      );
-      return;
+      // _showDialorPermission();
     }
 
     try {

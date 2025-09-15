@@ -92,7 +92,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   Future<void> fetchProfileData() async {
     final token = await Storage.getToken();
     final response = await http.get(
-      Uri.parse('https://dev.smartassistapp.in/api/users/show-profile'),
+      Uri.parse('https://api.smartassistapp.in/api/users/show-profile'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -239,7 +239,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   Future<void> _updateMobileOnly() async {
     final token = await Storage.getToken();
     final uri = Uri.parse(
-      'https://dev.smartassistapp.in/api/users/profile/set',
+      'https://api.smartassistapp.in/api/users/profile/set',
     );
 
     final request = http.MultipartRequest('POST', uri)
@@ -289,7 +289,7 @@ class _ProfileScreenState extends State<ProfileScreen>
 
     final token = await Storage.getToken();
     final uri = Uri.parse(
-      'https://dev.smartassistapp.in/api/users/profile/set',
+      'https://api.smartassistapp.in/api/users/profile/set',
     );
 
     final request = http.MultipartRequest('POST', uri)
@@ -338,7 +338,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   Future<void> deleteImg(BuildContext context) async {
     try {
       final url = Uri.parse(
-        'https://dev.smartassistapp.in/api/users/profile/remove-pic',
+        'https://api.smartassistapp.in/api/users/profile/remove-pic',
       );
       final token = await Storage.getToken();
 

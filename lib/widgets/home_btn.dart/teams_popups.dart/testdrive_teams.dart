@@ -112,7 +112,7 @@ class _TestdriveTeamsState extends State<TestdriveTeams> {
       ); // Debug token presence
 
       final apiUrl =
-          'https://dev.smartassistapp.in/api/search/users?user=$query';
+          'https://api.smartassistapp.in/api/search/users?user=$query';
       print("API URL: $apiUrl"); // Debug URL
 
       final response = await http.get(
@@ -237,7 +237,7 @@ class _TestdriveTeamsState extends State<TestdriveTeams> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://dev.smartassistapp.in/api/search/vehicles?vehicle=${Uri.encodeComponent(query)}',
+          'https://api.smartassistapp.in/api/search/vehicles?vehicle=${Uri.encodeComponent(query)}',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -282,7 +282,7 @@ class _TestdriveTeamsState extends State<TestdriveTeams> {
     final encodedName = Uri.encodeComponent(vehicleName);
 
     final url =
-        'https://dev.smartassistapp.in/api/users/vehicles/all?vehicle_name=$encodedName';
+        'https://api.smartassistapp.in/api/users/vehicles/all?vehicle_name=$encodedName';
 
     try {
       final response = await http.get(
@@ -339,7 +339,7 @@ class _TestdriveTeamsState extends State<TestdriveTeams> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://dev.smartassistapp.in/api/search/global?query=$query',
+          'https://api.smartassistapp.in/api/search/global?query=$query',
         ),
         headers: {
           'Authorization': 'Bearer $token',

@@ -78,8 +78,8 @@ class _AdminCalendarTimelineState extends State<AdminCalendarTimeline> {
 
       final Map<String, String> queryParams = {'date': formattedDate};
       final baseUrl = Uri.parse(
-        // "https://dev.smartassistapp.in/api/calendar/activities/all/asondate",
-        "https://dev.smartassistapp.in/api/app-admin/calendar/activities?userId=$adminId",
+        // "https://api.smartassistapp.in/api/calendar/activities/all/asondate",
+        "https://api.smartassistapp.in/api/app-admin/calendar/activities?userId=$adminId",
       );
       final uri = baseUrl.replace(queryParameters: queryParams);
 

@@ -333,7 +333,7 @@ class _AdminTeamsState extends State<AdminTeams> {
       }
 
       final baseUri = Uri.parse(
-        'https://dev.smartassistapp.in/api/app-admin/call/analytics',
+        'https://api.smartassistapp.in/api/app-admin/call/analytics',
       );
 
       final uri = baseUri.replace(queryParameters: queryParams);
@@ -408,8 +408,8 @@ class _AdminTeamsState extends State<AdminTeams> {
       }
 
       final baseUri = Uri.parse(
-        // 'https://dev.smartassistapp.in/api/users/sm/dashboard/call-analytics',
-        'https://dev.smartassistapp.in/api/app-admin/SM/team-calls?userId=$userId',
+        // 'https://api.smartassistapp.in/api/users/sm/dashboard/call-analytics',
+        'https://api.smartassistapp.in/api/app-admin/SM/team-calls?userId=$userId',
       );
 
       final uri = baseUri.replace(queryParameters: queryParams);
@@ -563,7 +563,7 @@ class _AdminTeamsState extends State<AdminTeams> {
 
       // ✅ Base URL without query params
       final baseUri = Uri.parse(
-        'https://dev.smartassistapp.in/api/app-admin/SM/dashboard',
+        'https://api.smartassistapp.in/api/app-admin/SM/dashboard',
       );
 
       // ✅ Now attach params safely
@@ -776,8 +776,8 @@ class _AdminTeamsState extends State<AdminTeams> {
   //     }
 
   //     final baseUri = Uri.parse(
-  //       // 'https://dev.smartassistapp.in/api/users/sm/analytics/team-dashboard',
-  //       'https://dev.smartassistapp.in/api/app-admin/SM/dashboard?userId=$adminId',
+  //       // 'https://api.smartassistapp.in/api/users/sm/analytics/team-dashboard',
+  //       'https://api.smartassistapp.in/api/app-admin/SM/dashboard?userId=$adminId',
   //     );
 
   //     final uri = baseUri.replace(queryParameters: queryParams);

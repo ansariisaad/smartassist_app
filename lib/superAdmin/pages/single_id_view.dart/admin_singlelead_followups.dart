@@ -302,11 +302,11 @@ class _AdminSingleleadFollowupsState extends State<AdminSingleleadFollowups> {
 
   static Future<Map<String, int>> fetchCallLogs(String mobile) async {
     // const String apiUrl =
-    //     "https://dev.smartassistapp.in/api/leads/call-logs/all";
+    //     "https://api.smartassistapp.in/api/leads/call-logs/all";
 
     final adminId = await AdminUserIdManager.getAdminUserId();
     final String apiUrl =
-        "https://dev.smartassistapp.in/api/app-admin/calls/all?userId=$adminId";
+        "https://api.smartassistapp.in/api/app-admin/calls/all?userId=$adminId";
     final token = await Storage.getToken();
 
     try {
@@ -881,7 +881,7 @@ class _AdminSingleleadFollowupsState extends State<AdminSingleleadFollowups> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? spId = prefs.getString('user_id');
       final url = Uri.parse(
-        'https://dev.smartassistapp.in/api/leads/mark-lost/${widget.leadId}',
+        'https://api.smartassistapp.in/api/leads/mark-lost/${widget.leadId}',
       );
       final token = await Storage.getToken();
 
@@ -1018,7 +1018,7 @@ class _AdminSingleleadFollowupsState extends State<AdminSingleleadFollowups> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? spId = prefs.getString('user_id');
       final url = Uri.parse(
-        'https://dev.smartassistapp.in/api/leads/convert-to-opp/${widget.leadId}',
+        'https://api.smartassistapp.in/api/leads/convert-to-opp/${widget.leadId}',
       );
       final token = await Storage.getToken();
 

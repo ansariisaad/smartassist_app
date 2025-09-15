@@ -1032,7 +1032,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
               titlePadding: EdgeInsets.zero,
               insetPadding: EdgeInsets.symmetric(horizontal: 10),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
+                borderRadius: BorderRadius.circular(10),
               ),
               backgroundColor: Colors.white,
               contentPadding: EdgeInsets.zero,
@@ -1047,7 +1047,7 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                           alignment: Alignment.bottomLeft,
                           child: Text(
                             'Qualify as individual account ?',
-                            style: AppFont.appbarfontblack(context),
+                            style: AppFont.mediumText14(context),
                           ),
                         ),
                         Align(

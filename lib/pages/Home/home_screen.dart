@@ -262,8 +262,7 @@ class _HomeScreenState extends State<HomeScreen> {
         await _uploadCallLogsForSim(selectedSim);
       }
     } catch (e) {
-      print('Error in upload process: $e');
-      // showErrorMessage(context, message: 'Error accessing SIM cards: $e');
+      print('Error in upload process: $e'); 
     }
   }
 

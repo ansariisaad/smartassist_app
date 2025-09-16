@@ -157,7 +157,7 @@ class _StartDriveMapState extends State<StartDriveMap>
     driveStartTime = DateTime.now();
     totalDistance = 0.0;
     WidgetsBinding.instance.addObserver(this);
-    _requestBatteryOptimization();
+    // _requestBatteryOptimization();
     _setupiOSLocationListener();
     _initializeBackgroundService();
     _determinePosition(); // This starts the permission flow
@@ -1494,8 +1494,7 @@ class _StartDriveMapState extends State<StartDriveMap>
                 ),
               )
             : Stack(
-                children: [
-                  // Fullscreen Google Map
+                children: [ 
                   GoogleMap(
                     onMapCreated: (GoogleMapController controller) {
                       mapController = controller;

@@ -1,8 +1,6 @@
 import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
@@ -109,13 +107,16 @@ class _TestUpcomingState extends State<TestUpcoming> {
     String leadId = item['lead_id'] ?? '';
     Navigator.push(
       context,
+      // MaterialPageRoute(
+      //   builder: (context) => TestdriveVerifyotp(
+      //     email: email,
+      //     mobile: mobile,
+      //     leadId: leadId,
+      //     eventId: eventId,
+      //   ),
+      // ),
       MaterialPageRoute(
-        builder: (context) => TestdriveVerifyotp(
-          email: email,
-          mobile: mobile,
-          leadId: leadId,
-          eventId: eventId,
-        ),
+        builder: (context) => StartDriveMap(leadId: leadId, eventId: eventId),
       ),
     );
     print("Call action triggered for ${item['name']}");

@@ -9,8 +9,7 @@ import 'package:smartassist/config/component/color/colors.dart';
 import 'package:http/http.dart' as http;
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/config/getX/fab.controller.dart';
-import 'package:smartassist/services/api_srv.dart';
-import 'package:smartassist/superAdmin/pages/admin_dealerall.dart';
+import 'package:smartassist/services/api_srv.dart'; 
 import 'package:smartassist/superAdmin/widgets/admin_single_callhistory.dart';
 import 'package:smartassist/superAdmin/widgets/timeline/admin_completedTimeline.dart';
 import 'package:smartassist/superAdmin/widgets/timeline/admin_overdueTimeline.dart';
@@ -301,44 +300,40 @@ class _AdminSingleleadFollowupsState extends State<AdminSingleleadFollowups> {
   }
 
   static Future<Map<String, int>> fetchCallLogs(String mobile) async {
-    // const String apiUrl =
-    //     "https://api.smartassistapp.in/api/leads/call-logs/all";
-
     final adminId = await AdminUserIdManager.getAdminUserId();
-    final String apiUrl =
-        "https://api.smartassistapp.in/api/app-admin/calls/all?userId=$adminId";
     final token = await Storage.getToken();
 
     try {
-      final encodedMobile = Uri.encodeComponent(mobile);
+      final uri = Uri.https(
+        "api.smartassistapp.in",
+        "/api/app-admin/calls/all",
+        {"userId": adminId, "mobile": mobile},
+      );
 
       final response = await http.get(
-        Uri.parse(
-          '$apiUrl?mobile=$encodedMobile',
-        ), // Correct query parameter format
+        uri,
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
       );
 
-      print('thisi is call logs ${response.statusCode}');
+      print('this is call logs ${response.statusCode}');
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonResponse = json.decode(response.body);
         final Map<String, dynamic> data = jsonResponse['data'];
-        print('$apiUrl?mobile=$encodedMobile');
+        print(uri.toString());
+
         final Map<String, dynamic> categoryCounts = data['category_counts'];
 
-        // Update the class variable with the category counts
         _callLogs = {
           'all': categoryCounts['all'] ?? 0,
           'outgoing': categoryCounts['outgoing'] ?? 0,
           'incoming': categoryCounts['incoming'] ?? 0,
           'missed': categoryCounts['missed'] ?? 0,
-          'rejected':
-              categoryCounts['rejected'] ??
-              0, // Added this as it's in your API response
+          'rejected': categoryCounts['rejected'] ?? 0,
         };
+
         return _callLogs;
       } else {
         print('Error: ${response.statusCode}');
@@ -349,6 +344,54 @@ class _AdminSingleleadFollowupsState extends State<AdminSingleleadFollowups> {
       throw Exception('Error fetching data: $e');
     }
   }
+
+  // static Future<Map<String, int>> fetchCallLogs(String mobile) async {
+
+  //   final adminId = await AdminUserIdManager.getAdminUserId();
+  //   final String apiUrl =
+  //       "https://api.smartassistapp.in/api/app-admin/calls/all?userId=$adminId";
+  //   final token = await Storage.getToken();
+
+  //   try {
+  //     final encodedMobile = Uri.encodeComponent(mobile);
+
+  //     final response = await http.get(
+  //       Uri.parse(
+  //         '$apiUrl?mobile=$encodedMobile',
+  //       ),
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+
+  //     print('thisi is call logs ${response.statusCode}');
+  //     if (response.statusCode == 200) {
+  //       final Map<String, dynamic> jsonResponse = json.decode(response.body);
+  //       final Map<String, dynamic> data = jsonResponse['data'];
+  //       print('$apiUrl?mobile=$encodedMobile');
+  //       final Map<String, dynamic> categoryCounts = data['category_counts'];
+
+  //       // Update the class variable with the category counts
+  //       _callLogs = {
+  //         'all': categoryCounts['all'] ?? 0,
+  //         'outgoing': categoryCounts['outgoing'] ?? 0,
+  //         'incoming': categoryCounts['incoming'] ?? 0,
+  //         'missed': categoryCounts['missed'] ?? 0,
+  //         'rejected':
+  //             categoryCounts['rejected'] ??
+  //             0, // Added this as it's in your API response
+  //       };
+  //       return _callLogs;
+  //     } else {
+  //       print('Error: ${response.statusCode}');
+  //       print('Response body: ${response.body}');
+  //       throw Exception('Failed to load data: ${response.statusCode}');
+  //     }
+  //   } catch (e) {
+  //     throw Exception('Error fetching data: $e');
+  //   }
+  // }
 
   List<Map<String, dynamic>> allEvents = [];
   List<Map<String, dynamic>> allTasks = [];

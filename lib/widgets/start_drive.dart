@@ -11,6 +11,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
+import 'package:image/image.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:smartassist/config/component/color/colors.dart';
@@ -22,16 +23,96 @@ import 'package:smartassist/widgets/testdrive_summary.dart';
 import 'package:geolocator/geolocator.dart';
 
 // Improved distance calculation with better accuracy
-class DistanceCalculator {
-  // Minimum distance threshold to avoid GPS noise (increased for accuracy)
-  static const double MIN_DISTANCE_THRESHOLD = 0.010; // 10 meters minimum
-  static const double MAX_SPEED_THRESHOLD =
-      150.0; // 150 km/h max realistic speed
-  static const double MIN_ACCURACY_THRESHOLD = 20.0; // 20 meters max accuracy
+// class DistanceCalculator {
+//   // Minimum distance threshold to avoid GPS noise (increased for accuracy)
+//   static const double MIN_DISTANCE_THRESHOLD = 0.030; // 10 meters minimum
+//   static const double MAX_SPEED_THRESHOLD =
+//       150.0; // 150 km/h max realistic speed
+//   static const double MIN_ACCURACY_THRESHOLD = 10.0; // 20 meters max accuracy
 
-  // Calculate distance using Haversine formula for better accuracy
+//   // Calculate distance using Haversine formula for better accuracy
+//   static double calculateDistanceHaversine(LatLng point1, LatLng point2) {
+//     const double earthRadius = 6371.0; // Earth's radius in kilometers
+
+//     double lat1Rad = point1.latitude * (pi / 180.0);
+//     double lat2Rad = point2.latitude * (pi / 180.0);
+//     double deltaLatRad = (point2.latitude - point1.latitude) * (pi / 180.0);
+//     double deltaLngRad = (point2.longitude - point1.longitude) * (pi / 180.0);
+
+//     double a =
+//         sin(deltaLatRad / 2) * sin(deltaLatRad / 2) +
+//         cos(lat1Rad) *
+//             cos(lat2Rad) *
+//             sin(deltaLngRad / 2) *
+//             sin(deltaLngRad / 2);
+//     double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+
+//     return earthRadius * c; // Distance in kilometers
+//   }
+
+//   // Validate if location update should be counted
+//   static bool isValidLocationUpdate(
+//     Position position,
+//     LatLng? lastLocation,
+//     DateTime? lastTime,
+//   ) {
+//     // Check GPS accuracy
+//     if (position.accuracy > MIN_ACCURACY_THRESHOLD) {
+//       print('❌ Location accuracy too low: ${position.accuracy}m');
+//       return false;
+//     }
+
+//     if (lastLocation == null || lastTime == null) {
+//       return true; // First location is always valid
+//     }
+
+//     LatLng currentLocation = LatLng(position.latitude, position.longitude);
+
+//     // Calculate distance moved
+//     double distance = calculateDistanceHaversine(lastLocation, currentLocation);
+
+//     // Check minimum distance threshold
+//     if (distance < MIN_DISTANCE_THRESHOLD) {
+//       print('❌ Distance too small: ${(distance * 1000).toStringAsFixed(1)}m');
+//       return false;
+//     }
+
+//     // Check for unrealistic speed (GPS jumps)
+//     double timeElapsed = DateTime.now()
+//         .difference(lastTime)
+//         .inSeconds
+//         .toDouble();
+//     if (timeElapsed > 0) {
+//       double speed = (distance / timeElapsed) * 3600; // km/h
+//       if (speed > MAX_SPEED_THRESHOLD) {
+//         print('❌ Unrealistic speed detected: ${speed.toStringAsFixed(1)} km/h');
+//         return false;
+//       }
+//     }
+
+//     return true;
+//   }
+// }
+
+// Enhanced Distance Calculator with better accuracy
+class ImprovedDistanceCalculator {
+  // Enhanced constants for better accuracy
+  static const double MIN_ACCURACY_THRESHOLD =
+      20.0; // 20 meters max GPS accuracy
+  static const double MAX_SPEED_THRESHOLD =
+      120.0; // 120 km/h max realistic speed
+  static const double MIN_MOVEMENT_THRESHOLD =
+      2.0; // 2 meters minimum movement in meters
+  static const int MAX_LOCATION_AGE_SECONDS = 15; // 15 seconds max age
+  static const double NOISE_FILTER_RADIUS = 5.0; // 5 meters noise filter
+
+  // Track accumulated small movements
+  static double _accumulatedSmallMovements = 0.0;
+  static LatLng? _lastAccumulatedPosition;
+
+  // Calculate distance using Haversine formula (most accurate)
   static double calculateDistanceHaversine(LatLng point1, LatLng point2) {
-    const double earthRadius = 6371.0; // Earth's radius in kilometers
+    const double earthRadius = 6371000.0; // Earth's radius in meters
 
     double lat1Rad = point1.latitude * (pi / 180.0);
     double lat2Rad = point2.latitude * (pi / 180.0);
@@ -46,51 +127,150 @@ class DistanceCalculator {
             sin(deltaLngRad / 2);
     double c = 2 * atan2(sqrt(a), sqrt(1 - a));
 
-    return earthRadius * c; // Distance in kilometers
+    return earthRadius * c; // Distance in meters
   }
 
-  // Validate if location update should be counted
-  static bool isValidLocationUpdate(
+  // Enhanced validation with better logic
+  static LocationValidationResult validateLocationUpdate(
     Position position,
     LatLng? lastLocation,
     DateTime? lastTime,
   ) {
-    // Check GPS accuracy
-    if (position.accuracy > MIN_ACCURACY_THRESHOLD) {
-      print('❌ Location accuracy too low: ${position.accuracy}m');
-      return false;
-    }
-
-    if (lastLocation == null || lastTime == null) {
-      return true; // First location is always valid
-    }
-
     LatLng currentLocation = LatLng(position.latitude, position.longitude);
 
-    // Calculate distance moved
-    double distance = calculateDistanceHaversine(lastLocation, currentLocation);
-
-    // Check minimum distance threshold
-    if (distance < MIN_DISTANCE_THRESHOLD) {
-      print('❌ Distance too small: ${(distance * 1000).toStringAsFixed(1)}m');
-      return false;
+    // Check GPS accuracy first
+    if (position.accuracy > MIN_ACCURACY_THRESHOLD) {
+      return LocationValidationResult(
+        isValid: false,
+        reason: 'Poor GPS accuracy: ${position.accuracy.toStringAsFixed(1)}m',
+        distanceMeters: 0,
+      );
     }
 
-    // Check for unrealistic speed (GPS jumps)
-    double timeElapsed = DateTime.now()
-        .difference(lastTime)
-        .inSeconds
-        .toDouble();
-    if (timeElapsed > 0) {
-      double speed = (distance / timeElapsed) * 3600; // km/h
-      if (speed > MAX_SPEED_THRESHOLD) {
-        print('❌ Unrealistic speed detected: ${speed.toStringAsFixed(1)} km/h');
-        return false;
+    // Check location age
+    if (position.timestamp != null) {
+      int locationAge = DateTime.now()
+          .difference(position.timestamp!)
+          .inSeconds;
+      if (locationAge > MAX_LOCATION_AGE_SECONDS) {
+        return LocationValidationResult(
+          isValid: false,
+          reason: 'Location too old: ${locationAge}s',
+          distanceMeters: 0,
+        );
       }
     }
 
-    return true;
+    // First location is always valid
+    if (lastLocation == null || lastTime == null) {
+      return LocationValidationResult(
+        isValid: true,
+        reason: 'First location',
+        distanceMeters: 0,
+      );
+    }
+
+    // Calculate distance moved
+    double distanceMeters = calculateDistanceHaversine(
+      lastLocation,
+      currentLocation,
+    );
+
+    // Check for unrealistic speed (GPS jumps)
+    double timeElapsedSeconds = DateTime.now()
+        .difference(lastTime)
+        .inSeconds
+        .toDouble();
+    if (timeElapsedSeconds > 0) {
+      double speedKmh = (distanceMeters / timeElapsedSeconds) * 3.6;
+      if (speedKmh > MAX_SPEED_THRESHOLD) {
+        return LocationValidationResult(
+          isValid: false,
+          reason: 'Unrealistic speed: ${speedKmh.toStringAsFixed(1)} km/h',
+          distanceMeters: distanceMeters,
+        );
+      }
+    }
+
+    // Handle small movements with accumulation
+    if (distanceMeters < MIN_MOVEMENT_THRESHOLD) {
+      _accumulatedSmallMovements += distanceMeters;
+      _lastAccumulatedPosition = currentLocation;
+
+      return LocationValidationResult(
+        isValid: false,
+        reason:
+            'Small movement accumulated: ${distanceMeters.toStringAsFixed(1)}m (total: ${_accumulatedSmallMovements.toStringAsFixed(1)}m)',
+        distanceMeters: distanceMeters,
+        accumulatedDistance: _accumulatedSmallMovements,
+      );
+    }
+
+    // Valid movement - add any accumulated small movements
+    double totalDistance = distanceMeters + _accumulatedSmallMovements;
+    _accumulatedSmallMovements = 0.0; // Reset accumulation
+    _lastAccumulatedPosition = null;
+
+    return LocationValidationResult(
+      isValid: true,
+      reason: 'Valid movement: ${distanceMeters.toStringAsFixed(1)}m',
+      distanceMeters: totalDistance,
+    );
   }
+
+  // Check if accumulated small movements should be added
+  static LocationValidationResult checkAccumulatedMovements(
+    LatLng? lastValidLocation,
+  ) {
+    if (_accumulatedSmallMovements >= MIN_MOVEMENT_THRESHOLD &&
+        _lastAccumulatedPosition != null &&
+        lastValidLocation != null) {
+      double totalAccumulated = _accumulatedSmallMovements;
+      _accumulatedSmallMovements = 0.0;
+      _lastAccumulatedPosition = null;
+
+      return LocationValidationResult(
+        isValid: true,
+        reason:
+            'Accumulated movements released: ${totalAccumulated.toStringAsFixed(1)}m',
+        distanceMeters: totalAccumulated,
+      );
+    }
+
+    return LocationValidationResult(
+      isValid: false,
+      reason: 'No accumulated movements to release',
+      distanceMeters: 0,
+    );
+  }
+
+  // Reset accumulation (call when drive ends)
+  static void resetAccumulation() {
+    _accumulatedSmallMovements = 0.0;
+    _lastAccumulatedPosition = null;
+  }
+
+  // Get current accumulated distance
+  static double getCurrentAccumulation() {
+    return _accumulatedSmallMovements;
+  }
+}
+
+// Result class for validation
+class LocationValidationResult {
+  final bool isValid;
+  final String reason;
+  final double distanceMeters;
+  final double? accumulatedDistance;
+
+  const LocationValidationResult({
+    required this.isValid,
+    required this.reason,
+    required this.distanceMeters,
+    this.accumulatedDistance,
+  });
+
+  double get distanceKm => distanceMeters / 1000.0;
 }
 
 class StartDriveMap extends StatefulWidget {
@@ -171,54 +351,6 @@ class _StartDriveMapState extends State<StartDriveMap>
     );
   }
 
-  Future<void> _requestBatteryOptimization() async {
-    try {
-      final bool isDisabled = await platform.invokeMethod(
-        'isBatteryOptimizationDisabled',
-      );
-      if (!isDisabled) {
-        _showBatteryOptimizationDialog();
-      }
-    } catch (e) {
-      print('❌ Failed to check battery optimization: $e');
-    }
-  }
-
-  void _showBatteryOptimizationDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            'Battery Optimization',
-            style: AppFont.dropDowmLabel(context),
-          ),
-          content: Text(
-            'To ensure accurate test drive tracking in the background, please disable battery optimization for this app.',
-            style: AppFont.smallText12(context),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Skip'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-                try {
-                  await platform.invokeMethod('requestBatteryOptimization');
-                } catch (e) {
-                  print('❌ Failed to request battery optimization: $e');
-                }
-              },
-              child: Text('Open Settings'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   void _startServiceHealthCheck() {
     _serviceHealthCheck = Timer.periodic(Duration(seconds: 60), (timer) {
       if (_backgroundServiceStarted) {
@@ -242,168 +374,6 @@ class _StartDriveMapState extends State<StartDriveMap>
   void _restartBackgroundService() {
     if (!isDriveEnded) {
       _startBackgroundService();
-    }
-  }
-
-  // Missing complete iOS handling:
-  Future<void> _handleiOSPermissions() async {
-    print('📍 Handling iOS permissions...');
-    try {
-      LocationPermission permission = await Geolocator.checkPermission();
-      print('📍 Current iOS permission status: $permission');
-
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        print('📍 iOS permission after request: $permission');
-      }
-
-      if (permission == LocationPermission.denied) {
-        setState(() {
-          error =
-              'Location permissions are denied. Please allow access to your location.';
-          isLoading = false;
-        });
-        _showPermissionDialog();
-        return;
-      }
-
-      if (permission == LocationPermission.deniedForever) {
-        setState(() {
-          error =
-              'Location permissions are permanently denied. Please enable them in app settings.';
-          isLoading = false;
-        });
-        _showPermanentlyDeniedDialog();
-        return;
-      }
-
-      if (permission == LocationPermission.whileInUse ||
-          permission == LocationPermission.always) {
-        print(
-          '✅ iOS basic permission granted, requesting always permission...',
-        );
-        await _requestiOSAlwaysPermission();
-        await _getiOSLocation();
-      }
-    } catch (e) {
-      print('❌ Error handling iOS permissions: $e');
-      setState(() {
-        error = 'Error handling iOS permissions: $e';
-        isLoading = false;
-      });
-    }
-  }
-
-  // Missing platform-specific instructions in _showPermissionDialog():
-  void _showPermissionDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Row(
-            children: [
-              Icon(Icons.location_on, color: Colors.orange),
-              SizedBox(width: 8),
-              Text('Location Permission Required'),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'This app needs location access to track your test drive.',
-                style: TextStyle(fontSize: 16),
-              ),
-              SizedBox(height: 12),
-              if (Platform.isIOS) ...[
-                Text(
-                  'iOS Instructions:\n'
-                  '• Tap "Grant Permission" below\n'
-                  '• Choose "Allow While Using App" first\n'
-                  '• Later you\'ll be asked to "Change to Always Allow" for background tracking',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                ),
-              ] else if (Platform.isAndroid) ...[
-                Text(
-                  'Android Instructions:\n'
-                  '• Tap "Grant Permission" below\n'
-                  '• Choose "While using the app" or "Only this time"\n'
-                  '• You can change this later in settings',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                ),
-              ],
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _showExitOrRetryDialog(); // Add this
-              },
-              child: Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-                if (Platform.isIOS) {
-                  await _handleiOSPermissions();
-                } else if (Platform.isAndroid) {
-                  await _handleAndroidPermissions();
-                }
-              },
-              child: Text('Grant Permission'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _handleAndroidPermissions() async {
-    print('📍 Handling Android permissions...');
-    try {
-      LocationPermission permission = await Geolocator.checkPermission();
-      print('📍 Current Android permission status: $permission');
-
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        print('📍 Android permission after request: $permission');
-      }
-
-      if (permission == LocationPermission.denied) {
-        setState(() {
-          error =
-              'Location permissions are denied. Please allow access to your location.';
-          isLoading = false;
-        });
-        _showPermissionDialog();
-        return;
-      }
-
-      if (permission == LocationPermission.deniedForever) {
-        setState(() {
-          error =
-              'Location permissions are permanently denied. Please enable them in app settings.';
-          isLoading = false;
-        });
-        _showPermanentlyDeniedDialog();
-        return;
-      }
-
-      if (permission == LocationPermission.whileInUse ||
-          permission == LocationPermission.always) {
-        print('✅ Android basic permission granted');
-        await _tryRequestAndroidBackgroundPermission();
-        await _getAndroidLocation();
-      }
-    } catch (e) {
-      print('❌ Error handling Android permissions: $e');
-      setState(() {
-        error = 'Error handling Android permissions: $e';
-        isLoading = false;
-      });
     }
   }
 
@@ -1130,11 +1100,16 @@ class _StartDriveMapState extends State<StartDriveMap>
     final DateTime now = DateTime.now();
 
     // Use improved validation
-    if (!_isValidLocationUpdate(newLocation, position, now)) {
-      print('❌ Location update rejected: accuracy=${position.accuracy}m');
-      return;
-    }
+    LocationValidationResult validationResult =
+        ImprovedDistanceCalculator.validateLocationUpdate(
+          position,
+          _lastValidLocation,
+          _lastLocationTime,
+        );
 
+    print('📍 Location validation: ${validationResult.reason}');
+
+    // Always update visual marker for user feedback (even for invalid locations)
     setState(() {
       userMarker = Marker(
         markerId: const MarkerId('user'),
@@ -1143,40 +1118,68 @@ class _StartDriveMapState extends State<StartDriveMap>
           title: 'Current Location',
           snippet: 'Accuracy: ${position.accuracy.toStringAsFixed(1)}m',
         ),
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+        icon: BitmapDescriptor.defaultMarkerWithHue(
+          validationResult.isValid
+              ? BitmapDescriptor.hueAzure
+              : BitmapDescriptor.hueOrange,
+        ),
       );
-
-      if (_lastValidLocation != null) {
-        double segmentDistance = _calculateAccurateDistance(
-          _lastValidLocation!,
-          newLocation,
-        );
-
-        // Only add distance if movement is significant (5+ meters)
-        if (segmentDistance >= 0.005) {
-          _totalDistanceAccumulator += segmentDistance;
-          totalDistance = _totalDistanceAccumulator;
-          routePoints.add(newLocation);
-
-          print(
-            '✅ Valid movement: ${(segmentDistance * 1000).toStringAsFixed(0)}m, Total: ${totalDistance.toStringAsFixed(2)} km',
-          );
-        } else {
-          print(
-            '⏸️ Movement too small: ${(segmentDistance * 1000).toStringAsFixed(1)}m',
-          );
-          return; // Don't update markers for tiny movements
-        }
-      } else {
-        routePoints.add(newLocation);
-      }
-
-      _lastValidLocation = newLocation;
-      _lastLocationTime = now;
     });
 
-    if (mapController != null) {
-      mapController.animateCamera(CameraUpdate.newLatLng(newLocation));
+    // Only process distance for valid locations
+    if (validationResult.isValid) {
+      setState(() {
+        // Add valid distance to total
+        double distanceKm = validationResult.distanceKm;
+        _totalDistanceAccumulator += distanceKm;
+        totalDistance = _totalDistanceAccumulator;
+
+        // Add to route points
+        routePoints.add(newLocation);
+
+        print(
+          '✅ Distance added: ${(distanceKm * 1000).toStringAsFixed(1)}m, Total: ${totalDistance.toStringAsFixed(3)} km',
+        );
+      });
+
+      // Update last valid position
+      _lastValidLocation = newLocation;
+      _lastLocationTime = now;
+
+      // Update camera to follow valid locations
+      if (mapController != null) {
+        mapController.animateCamera(CameraUpdate.newLatLng(newLocation));
+      }
+    } else {
+      // Check if we should release accumulated small movements
+      if (validationResult.accumulatedDistance != null &&
+          validationResult.accumulatedDistance! >= 2.0) {
+        LocationValidationResult accumulatedResult =
+            ImprovedDistanceCalculator.checkAccumulatedMovements(
+              _lastValidLocation,
+            );
+        if (accumulatedResult.isValid) {
+          setState(() {
+            double distanceKm = accumulatedResult.distanceKm;
+            _totalDistanceAccumulator += distanceKm;
+            totalDistance = _totalDistanceAccumulator;
+
+            // Add accumulated position to route
+            if (ImprovedDistanceCalculator._lastAccumulatedPosition != null) {
+              routePoints.add(
+                ImprovedDistanceCalculator._lastAccumulatedPosition!,
+              );
+            }
+
+            print(
+              '✅ Accumulated distance added: ${(distanceKm * 1000).toStringAsFixed(1)}m, Total: ${totalDistance.toStringAsFixed(3)} km',
+            );
+          });
+
+          _lastValidLocation = newLocation;
+          _lastLocationTime = now;
+        }
+      }
     }
   }
 
@@ -1247,27 +1250,26 @@ class _StartDriveMapState extends State<StartDriveMap>
 
   void _startLocationTracking() {
     try {
-      // Platform-specific location settings
       LocationSettings locationSettings;
 
       if (Platform.isAndroid) {
         locationSettings = AndroidSettings(
-          accuracy:
-              LocationAccuracy.high, // Not bestForNavigation to save battery
-          distanceFilter: 3, // 3 meters for Android
-          timeLimit: Duration(seconds: 10), // Longer timeout for Android
-          forceLocationManager: false, // Use Google Play Services
+          accuracy: LocationAccuracy.high, // Use high accuracy
+          distanceFilter: 0, // No distance filter - let our algorithm handle it
+          timeLimit: Duration(seconds: 10),
+          forceLocationManager: false,
         );
       } else {
         locationSettings = AppleSettings(
-          accuracy: LocationAccuracy.bestForNavigation,
+          accuracy: LocationAccuracy.bestForNavigation, // Best for driving
           activityType: ActivityType.automotiveNavigation,
-          distanceFilter: 1, // 1 meter for iOS
+          distanceFilter: 0, // No distance filter
           pauseLocationUpdatesAutomatically: false,
           timeLimit: Duration(seconds: 8),
         );
       }
 
+      // Request location updates every 2-3 seconds for better accuracy
       positionStreamSubscription =
           Geolocator.getPositionStream(
             locationSettings: locationSettings,
@@ -1279,7 +1281,8 @@ class _StartDriveMapState extends State<StartDriveMap>
             },
             onError: (error) {
               print('Location stream error: $error');
-              Future.delayed(Duration(seconds: 5), () {
+              // Retry after error
+              Future.delayed(Duration(seconds: 3), () {
                 if (!isDriveEnded && mounted) {
                   print('Retrying location tracking...');
                   _startLocationTracking();
@@ -1331,16 +1334,23 @@ class _StartDriveMapState extends State<StartDriveMap>
 
   // Format distance for display with appropriate precision
   String _formatDistance(double distance) {
-    if (distance < 0.01) {
-      return '0.0 km';
+    if (distance < 0.001) {
+      // Less than 1 meter
+      return '0 m';
+    } else if (distance < 0.01) {
+      // Less than 10 meters
+      return '${(distance * 1000).round()} m';
     } else if (distance < 0.1) {
-      return '${(distance * 1000).round()} m'; // Show meters for small distances
+      // Less than 100 meters
+      return '${(distance * 1000).round()} m';
     } else if (distance < 1.0) {
-      return '${distance.toStringAsFixed(2)} km'; // 2 decimals under 1km
+      // Less than 1 km
+      return '${distance.toStringAsFixed(2)} km';
     } else if (distance < 10.0) {
-      return '${distance.toStringAsFixed(1)} km'; // 1 decimal under 10km
+      // Less than 10 km
+      return '${distance.toStringAsFixed(2)} km';
     } else {
-      return '${distance.round()} km'; // Whole numbers for long distances
+      return '${distance.toStringAsFixed(1)} km';
     }
   }
 
@@ -1398,6 +1408,216 @@ class _StartDriveMapState extends State<StartDriveMap>
         isLoading = false;
       });
     }
+  }
+
+  // Missing complete iOS handling:
+  Future<void> _handleiOSPermissions() async {
+    print('📍 Handling iOS permissions...');
+    try {
+      LocationPermission permission = await Geolocator.checkPermission();
+      print('📍 Current iOS permission status: $permission');
+
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        print('📍 iOS permission after request: $permission');
+      }
+
+      if (permission == LocationPermission.denied) {
+        setState(() {
+          error =
+              'Location permissions are denied. Please allow access to your location.';
+          isLoading = false;
+        });
+        _showPermissionDialog();
+        return;
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        setState(() {
+          error =
+              'Location permissions are permanently denied. Please enable them in app settings.';
+          isLoading = false;
+        });
+        _showPermanentlyDeniedDialog();
+        return;
+      }
+
+      if (permission == LocationPermission.whileInUse ||
+          permission == LocationPermission.always) {
+        print(
+          '✅ iOS basic permission granted, requesting always permission...',
+        );
+        await _requestiOSAlwaysPermission();
+        await _getiOSLocation();
+      }
+    } catch (e) {
+      print('❌ Error handling iOS permissions: $e');
+      setState(() {
+        error = 'Error handling iOS permissions: $e';
+        isLoading = false;
+      });
+    }
+  }
+
+  // Missing platform-specific instructions in _showPermissionDialog():
+  void _showPermissionDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.location_on, color: Colors.orange),
+              SizedBox(width: 8),
+              Text('Location Permission Required'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'This app needs location access to track your test drive.',
+                style: TextStyle(fontSize: 16),
+              ),
+              SizedBox(height: 12),
+              if (Platform.isIOS) ...[
+                Text(
+                  'iOS Instructions:\n'
+                  '• Tap "Grant Permission" below\n'
+                  '• Choose "Allow While Using App" first\n'
+                  '• Later you\'ll be asked to "Change to Always Allow" for background tracking',
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                ),
+              ] else if (Platform.isAndroid) ...[
+                Text(
+                  'Android Instructions:\n'
+                  '• Tap "Grant Permission" below\n'
+                  '• Choose "While using the app" or "Only this time"\n'
+                  '• You can change this later in settings',
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _showExitOrRetryDialog(); // Add this
+              },
+              child: Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                if (Platform.isIOS) {
+                  await _handleiOSPermissions();
+                } else if (Platform.isAndroid) {
+                  await _handleAndroidPermissions();
+                }
+              },
+              child: Text('Grant Permission'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _handleAndroidPermissions() async {
+    print('📍 Handling Android permissions...');
+    try {
+      LocationPermission permission = await Geolocator.checkPermission();
+      print('📍 Current Android permission status: $permission');
+
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        print('📍 Android permission after request: $permission');
+      }
+
+      if (permission == LocationPermission.denied) {
+        setState(() {
+          error =
+              'Location permissions are denied. Please allow access to your location.';
+          isLoading = false;
+        });
+        _showPermissionDialog();
+        return;
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        setState(() {
+          error =
+              'Location permissions are permanently denied. Please enable them in app settings.';
+          isLoading = false;
+        });
+        _showPermanentlyDeniedDialog();
+        return;
+      }
+
+      if (permission == LocationPermission.whileInUse ||
+          permission == LocationPermission.always) {
+        print('✅ Android basic permission granted');
+        await _tryRequestAndroidBackgroundPermission();
+        await _getAndroidLocation();
+      }
+    } catch (e) {
+      print('❌ Error handling Android permissions: $e');
+      setState(() {
+        error = 'Error handling Android permissions: $e';
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _requestBatteryOptimization() async {
+    try {
+      final bool isDisabled = await platform.invokeMethod(
+        'isBatteryOptimizationDisabled',
+      );
+      if (!isDisabled) {
+        _showBatteryOptimizationDialog();
+      }
+    } catch (e) {
+      print('❌ Failed to check battery optimization: $e');
+    }
+  }
+
+  void _showBatteryOptimizationDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Battery Optimization',
+            style: AppFont.dropDowmLabel(context),
+          ),
+          content: Text(
+            'To ensure accurate test drive tracking in the background, please disable battery optimization for this app.',
+            style: AppFont.smallText12(context),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Skip'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                try {
+                  await platform.invokeMethod('requestBatteryOptimization');
+                } catch (e) {
+                  print('❌ Failed to request battery optimization: $e');
+                }
+              },
+              child: Text('Open Settings'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _cleanupResources() {
@@ -1494,7 +1714,7 @@ class _StartDriveMapState extends State<StartDriveMap>
                 ),
               )
             : Stack(
-                children: [ 
+                children: [
                   GoogleMap(
                     onMapCreated: (GoogleMapController controller) {
                       mapController = controller;
@@ -1902,6 +2122,11 @@ class _StartDriveMapState extends State<StartDriveMap>
   // ✅ SIMPLIFIED: Only send data to API, no socket communication
   Future<void> _endTestDrive({bool sendFeedback = false}) async {
     try {
+      // Reset distance accumulation when ending drive
+      ImprovedDistanceCalculator.resetAccumulation();
+
+      // ... rest of your existing _endTestDrive code remains the same
+
       final uri = Uri.parse(
         'https://api.smartassistapp.in/api/events/${widget.eventId}/end-drive',
       );
@@ -1914,7 +2139,7 @@ class _StartDriveMapState extends State<StartDriveMap>
       // Calculate final duration ensuring pauses are accounted for
       int finalDuration = _calculateDuration();
 
-      // ✅ FIXED: Get current location for end coordinates
+      // Get current location for end coordinates
       LatLng? endLocation;
       if (_lastValidLocation != null) {
         endLocation = _lastValidLocation;
@@ -1925,7 +2150,9 @@ class _StartDriveMapState extends State<StartDriveMap>
       }
 
       final requestBody = {
-        'distance': totalDistance,
+        'distance': double.parse(
+          totalDistance.toStringAsFixed(3),
+        ), // 3 decimal precision
         'duration': finalDuration,
         'end_location': endLocation != null
             ? {
@@ -1943,11 +2170,14 @@ class _StartDriveMapState extends State<StartDriveMap>
             .toList(),
       };
 
-      print('📤 Sending JSON: ${json.encode(requestBody)}'); // compact one-line
+      print(
+        '📤 Final distance being sent: ${totalDistance.toStringAsFixed(3)} km',
+      );
+      // print('this is fullbody ${encoder.convert(requestBody)}');
+      print('📤 Route points count: ${routePoints.length}');
 
-      // If you want pretty-printed JSON (multiline & indented):
       const encoder = JsonEncoder.withIndent('  ');
-      print('📤 Sending JSON (pretty):\n${encoder.convert(requestBody)}');
+      print('📤 Sending JSON:\n${encoder.convert(requestBody)}');
 
       final response = await http
           .post(
@@ -1965,6 +2195,7 @@ class _StartDriveMapState extends State<StartDriveMap>
 
       if (response.statusCode == 200) {
         print('Test drive ended successfully');
+        print('Final distance: ${totalDistance.toStringAsFixed(3)} km');
         print('Duration: $finalDuration minutes');
         print('Total paused time: ${totalPausedDuration}s');
         print('Send feedback: $sendFeedback');
@@ -1977,6 +2208,83 @@ class _StartDriveMapState extends State<StartDriveMap>
       throw e;
     }
   }
+  // Future<void> _endTestDrive({bool sendFeedback = false}) async {
+  //   try {
+  //     final uri = Uri.parse(
+  //       'https://api.smartassistapp.in/api/events/${widget.eventId}/end-drive',
+  //     );
+  //     final url = uri.replace(
+  //       queryParameters: {'send_feedback': sendFeedback.toString()},
+  //     );
+
+  //     final token = await Storage.getToken();
+
+  //     // Calculate final duration ensuring pauses are accounted for
+  //     int finalDuration = _calculateDuration();
+
+  //     // ✅ FIXED: Get current location for end coordinates
+  //     LatLng? endLocation;
+  //     if (_lastValidLocation != null) {
+  //       endLocation = _lastValidLocation;
+  //     } else if (userMarker != null) {
+  //       endLocation = userMarker!.position;
+  //     } else if (routePoints.isNotEmpty) {
+  //       endLocation = routePoints.last;
+  //     }
+
+  //     final requestBody = {
+  //       'distance': totalDistance,
+  //       'duration': finalDuration,
+  //       'end_location': endLocation != null
+  //           ? {
+  //               'latitude': endLocation.latitude,
+  //               'longitude': endLocation.longitude,
+  //             }
+  //           : {},
+  //       'routePoints': routePoints
+  //           .map(
+  //             (point) => {
+  //               'latitude': point.latitude,
+  //               'longitude': point.longitude,
+  //             },
+  //           )
+  //           .toList(),
+  //     };
+
+  //     print('📤 Sending JSON: ${json.encode(requestBody)}'); // compact one-line
+
+  //     // If you want pretty-printed JSON (multiline & indented):
+  //     const encoder = JsonEncoder.withIndent('  ');
+  //     print('📤 Sending JSON (pretty):\n${encoder.convert(requestBody)}');
+
+  //     final response = await http
+  //         .post(
+  //           url,
+  //           headers: {
+  //             'Content-Type': 'application/json',
+  //             'Authorization': 'Bearer $token',
+  //           },
+  //           body: json.encode(requestBody),
+  //         )
+  //         .timeout(const Duration(seconds: 5));
+
+  //     print('📩 Response status: ${response.statusCode}');
+  //     print('📩 Response body: ${response.body}');
+
+  //     if (response.statusCode == 200) {
+  //       print('Test drive ended successfully');
+  //       print('Duration: $finalDuration minutes');
+  //       print('Total paused time: ${totalPausedDuration}s');
+  //       print('Send feedback: $sendFeedback');
+  //       _handleDriveEnded(totalDistance, finalDuration);
+  //     } else {
+  //       throw Exception('Failed to end drive: ${response.statusCode}');
+  //     }
+  //   } catch (e) {
+  //     print('Error ending drive: $e');
+  //     throw e;
+  //   }
+  // }
 
   Future<void> _captureAndUploadImage() async {
     try {

@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
+import 'package:smartassist/pages/testdrive_map_page.dart';
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/testdrive.dart';
 import 'package:smartassist/widgets/start_drive.dart';
@@ -116,7 +117,8 @@ class _TestUpcomingState extends State<TestUpcoming> {
       //   ),
       // ),
       MaterialPageRoute(
-        builder: (context) => StartDriveMap(leadId: leadId, eventId: eventId),
+        builder: (context) =>
+            TestdriveMapPage(leadId: leadId, eventId: eventId),
       ),
     );
     print("Call action triggered for ${item['name']}");

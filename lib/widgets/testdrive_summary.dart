@@ -511,7 +511,7 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
                                           ),
                                         ),
                                         Text(
-                                          distanceCovered,
+                                          '$distanceCovered m',
                                           style: AppFont.mediumText14(context),
                                         ),
                                       ],

@@ -407,12 +407,17 @@ class _AdminTeamsState extends State<AdminTeams> {
         queryParams['type'] = periodParam;
       }
 
-      final baseUri = Uri.parse(
-        // 'https://api.smartassistapp.in/api/users/sm/dashboard/call-analytics',
-        'https://api.smartassistapp.in/api/app-admin/SM/team-calls?userId=$userId',
+      // final baseUri = Uri.parse(
+      //   'https://api.smartassistapp.in/api/app-admin/SM/team-calls?userId=$userId',
+      // );
+
+      // final uri = baseUri.replace(queryParameters: queryParams);
+      final uri = Uri.https(
+        'api.smartassistapp.in',
+        '/api/app-admin/SM/team-calls',
+        {'userId': userId, 'type': periodParam},
       );
 
-      final uri = baseUri.replace(queryParameters: queryParams);
       final response = await http.get(
         uri,
         headers: {

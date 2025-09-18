@@ -12,6 +12,7 @@ import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/config/controller/calllogs_channel.dart';
 import 'package:smartassist/config/controller/tab_controller.dart';
 import 'package:smartassist/config/getX/fab.controller.dart';
+import 'package:smartassist/pages/Home/faq_page.dart';
 import 'package:smartassist/pages/Home/gloabal_search_page/global_search.dart';
 import 'package:smartassist/pages/notification/notification.dart';
 import 'package:smartassist/services/api_srv.dart';
@@ -1206,6 +1207,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Stack(
                     children: [
                       IconButton(
+                        // tooltip: ,
                         onPressed: () {
                           Navigator.push(
                             context,
@@ -1245,6 +1247,27 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                     ],
+                  ),
+                  // TextButton(
+                  //   onPressed: () {},
+                  //   child: Text(
+                  //     'FAQ',
+                  //     style: GoogleFonts.poppins(
+                  //       fontSize: 14,
+                  //       fontWeight: FontWeight.w400,
+                  //       color: Colors.white,
+                  //     ),
+                  //   ),
+                  // ),
+                  IconButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => FaqPage()),
+                      );
+                    },
+                    icon: const Icon(Icons.question_mark_rounded),
+                    color: Colors.white,
                   ),
                 ],
               ),

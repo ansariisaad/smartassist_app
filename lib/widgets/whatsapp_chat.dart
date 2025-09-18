@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'dart:math' as math;
+import 'package:appcheck/appcheck.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:external_app_launcher/external_app_launcher.dart';
 import 'package:file_picker/file_picker.dart';
@@ -975,6 +976,58 @@ class _WhatsappChatState extends State<WhatsappChat>
     print('Fetching messages for chat: ${widget.chatId}');
   }
 
+  Future<String?> getInstalledWhatsApp() async {
+    try {
+      final appCheck = AppCheck();
+
+      // Check both WhatsApp versions with individual error handling
+      bool normalInstalled = false;
+      bool businessInstalled = false;
+
+      try {
+        final normal = await appCheck.checkAvailability('com.whatsapp');
+        normalInstalled = normal != null;
+      } catch (e) {
+        print("Error checking normal WhatsApp: $e");
+      }
+
+      try {
+        final business = await appCheck.checkAvailability('com.whatsapp.w4b');
+        businessInstalled = business != null;
+      } catch (e) {
+        print("Error checking business WhatsApp: $e");
+      }
+
+      if (normalInstalled && businessInstalled) {
+        return 'both'; // both installed
+      } else if (normalInstalled) {
+        return 'personal'; // only personal
+      } else if (businessInstalled) {
+        return 'business'; // only business
+      } else {
+        return null; // none installed
+      }
+    } catch (e) {
+      print("General error checking WhatsApp: $e");
+      // As a fallback, try to launch WhatsApp directly to test if it exists
+      try {
+        // This is a more robust way to check if we can open WhatsApp
+        return 'personal'; // Assume personal WhatsApp as default
+      } catch (e2) {
+        return null;
+      }
+    }
+  }
+
+  Future<void> _openWhatsApp(String packageName) async {
+    await LaunchApp.openApp(
+      androidPackageName: packageName,
+      iosUrlScheme: "whatsapp://",
+      appStoreLink:
+          "https://play.google.com/store/apps/details?id=com.whatsapp",
+    );
+  }
+
   Future<void> initWhatsAppChat(BuildContext context) async {
     if (isWhatsAppReady || isLoading) return;
 
@@ -1029,7 +1082,7 @@ class _WhatsappChatState extends State<WhatsappChat>
     } catch (e) {
       print('Error initializing WhatsApp chat: $e');
       if (mounted) {
-        _handleConnectionError('Failed to initialize WhatsApp chat.');
+        // _handleConnectionError('Failed to initialize WhatsApp chat.');
       }
     } finally {
       if (mounted) {
@@ -1081,85 +1134,140 @@ class _WhatsappChatState extends State<WhatsappChat>
     });
   }
 
-  Future<void> launchWhatsAppScanner() async {
-    try {
-      // First try to launch WhatsApp
-      await LaunchApp.openApp(
-        androidPackageName: 'com.whatsapp',
-        iosUrlScheme: 'whatsapp://',
-        appStoreLink:
-            'https://play.google.com/store/apps/details?id=com.whatsapp',
-      );
+  Future<void> showWhatsAppPicker(BuildContext context) async {
+    final type = await getInstalledWhatsApp();
 
-      // Show a helpful message
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'WhatsApp opened. Go to Settings > Linked Devices to scan QR',
-            ),
-            duration: Duration(seconds: 5),
-            backgroundColor: AppColors.colorsBlue,
+    if (type == null) {
+      // No WhatsApp installed - show more helpful message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "WhatsApp is not installed. Please install WhatsApp to continue.",
           ),
-        );
-      }
-    } catch (e) {
-      print('Error launching WhatsApp: $e');
-      if (mounted) {
-        String errorMessage = 'Failed to open WhatsApp';
+          action: SnackBarAction(
+            label: "Install",
+            onPressed: () {
+              // Open Play Store to WhatsApp
+              LaunchApp.openApp(
+                androidPackageName: "com.whatsapp",
+                appStoreLink:
+                    "https://play.google.com/store/apps/details?id=com.whatsapp",
+              );
+            },
+          ),
+        ),
+      );
+      return;
+    }
 
-        if (e.toString().contains('not installed') ||
-            e.toString().contains('not found')) {
-          errorMessage = 'WhatsApp is not installed on this device';
-          _showInstallWhatsAppDialog();
-        } else {
-          showErrorMessage(context, message: errorMessage);
-        }
-      }
+    if (type == 'both') {
+      // Show bottom sheet with both options
+      showModalBottomSheet(
+        backgroundColor: AppColors.white,
+        context: context,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        builder: (ctx) {
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Wrap(
+              children: [
+                // Text(
+                //   "Choose WhatsApp Version",
+                //   style: AppFont.appbarfontblack(context),
+                // ),
+                // SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    _buildAppIcon(
+                      ctx,
+                      "WhatsApp",
+                      "assets/whatsapp_normal.png",
+                      45,
+                      () => _openWhatsApp("com.whatsapp"),
+                    ),
+                    const SizedBox(width: 12),
+                    _buildAppIcon(
+                      ctx,
+                      "Business",
+                      "assets/whatsapp_bussiness.png",
+                      45,
+                      () => _openWhatsApp("com.whatsapp.w4b"),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    } else {
+      // Directly open whichever is installed
+      final pkg = type == 'business' ? 'com.whatsapp.w4b' : 'com.whatsapp';
+      await _openWhatsApp(pkg);
     }
   }
 
-  void _showInstallWhatsAppDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('WhatsApp Required'),
-          content: Text(
-            'WhatsApp is not installed on your device. Please install it from the Play Store to continue.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-                try {
-                  // Launch Play Store
-                  await LaunchApp.openApp(
-                    androidPackageName: 'com.whatsapp',
-                    appStoreLink:
-                        'https://play.google.com/store/apps/details?id=com.whatsapp',
-                  );
-                } catch (e) {
-                  showErrorMessage(
-                    context,
-                    message: 'Could not open Play Store',
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.colorsBlue,
-                foregroundColor: Colors.white,
-              ),
-              child: Text('Install WhatsApp'),
-            ),
-          ],
-        );
-      },
-    );
+  // Future<void> showWhatsAppPicker(BuildContext context) async {
+  //   final type = await getInstalledWhatsApp();
+
+  //   if (type == null) {
+  //     // No WhatsApp installed
+  //     ScaffoldMessenger.of(
+  //       context,
+  //     ).showSnackBar(SnackBar(content: Text("WhatsApp is not installed")));
+  //     return;
+  //   }
+
+  //   if (type == 'both') {
+  //     // Show bottom sheet with both options
+  //     showModalBottomSheet(
+  //       backgroundColor: AppColors.white,
+  //       context: context,
+  //       shape: RoundedRectangleBorder(
+  //         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+  //       ),
+  //       builder: (ctx) {
+  //         return Padding(
+  //           padding: const EdgeInsets.all(16),
+  //           child: Wrap(
+  //             children: [
+  //               Row(
+  //                 mainAxisAlignment: MainAxisAlignment.start,
+  //                 children: [
+  //                   _buildAppIcon(
+  //                     ctx,
+  //                     "WhatsApp",
+  //                     "assets/whatsapp_normal.png",
+  //                     45,
+  //                     () => _openWhatsApp("com.whatsapp"),
+  //                   ),
+  //                   const SizedBox(width: 12),
+  //                   _buildAppIcon(
+  //                     ctx,
+  //                     "Business",
+  //                     "assets/whatsapp_bussiness.png",
+  //                     45,
+  //                     () => _openWhatsApp("com.whatsapp.w4b"),
+  //                   ),
+  //                 ],
+  //               ),
+  //             ],
+  //           ),
+  //         );
+  //       },
+  //     );
+  //   } else {
+  //     // Directly open whichever is installed
+  //     final pkg = type == 'business' ? 'com.whatsapp.w4b' : 'com.whatsapp';
+  //     await _openWhatsApp(pkg);
+  //   }
+  // }
+
+  Future<void> launchWhatsAppScanner() async {
+    await showWhatsAppPicker(context);
   }
 
   String formatTimestamp(int timestamp) {
@@ -2048,13 +2156,13 @@ class _WhatsappChatState extends State<WhatsappChat>
           const SizedBox(height: 20),
           Text(
             title,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            style: AppFont.dropDowmLabel(context),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
           Text(
             subtitle,
-            style: TextStyle(color: Colors.grey[600], fontSize: 14),
+            style: AppFont.dropDowmLabelLightcolors(context),
             textAlign: TextAlign.center,
           ),
         ],
@@ -2105,6 +2213,39 @@ class _WhatsappChatState extends State<WhatsappChat>
     }
 
     return _buildMessagesList();
+  }
+
+  Widget _buildAppIcon(
+    BuildContext context,
+    String name,
+    String asset,
+    double size, // 👈 size for asset
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.pop(context); // close bottom sheet
+        onTap();
+      },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: size,
+            height: size,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(size / 4), // optional rounded
+              child: Image.asset(
+                asset,
+                fit: BoxFit.contain, // keep aspect ratio
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(name, style: AppFont.dropDowmLabel(context)),
+        ],
+      ),
+    );
   }
 
   Widget _buildConnectionPrompt() {

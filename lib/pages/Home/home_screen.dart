@@ -666,7 +666,7 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Choose which SIM to upload call logs from:',
+                  'Choose which SIM to upload call logs from: ',
                   style: AppFont.dropDowmLabel(context),
                 ),
                 SizedBox(height: 16.h),

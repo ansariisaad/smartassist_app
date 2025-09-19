@@ -1,4 +1,6 @@
 PODS:
+  - "appcheck (1.5.4+1)":
+    - Flutter
   - audioplayers_darwin (0.0.1):
     - Flutter
   - camera_avfoundation (0.0.1):
@@ -215,6 +217,7 @@ PODS:
     - Flutter
 
 DEPENDENCIES:
+  - appcheck (from `.symlinks/plugins/appcheck/ios`)
   - audioplayers_darwin (from `.symlinks/plugins/audioplayers_darwin/ios`)
   - camera_avfoundation (from `.symlinks/plugins/camera_avfoundation/ios`)
   - connectivity_plus (from `.symlinks/plugins/connectivity_plus/ios`)
@@ -275,6 +278,8 @@ SPEC REPOS:
     - Try
 
 EXTERNAL SOURCES:
+  appcheck:
+    :path: ".symlinks/plugins/appcheck/ios"
   audioplayers_darwin:
     :path: ".symlinks/plugins/audioplayers_darwin/ios"
   camera_avfoundation:
@@ -341,6 +346,7 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/wakelock_plus/ios"
 
 SPEC CHECKSUMS:
+  appcheck: 3c94d0ffc94bd639938cac7427d5b13df2795404
   audioplayers_darwin: ccf9c770ee768abb07e26d90af093f7bab1c12ab
   camera_avfoundation: be3be85408cd4126f250386828e9b1dfa40ab436
   connectivity_plus: cb623214f4e1f6ef8fe7403d580fdad517d2f7dd

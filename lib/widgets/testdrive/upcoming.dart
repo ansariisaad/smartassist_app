@@ -1,13 +1,12 @@
 import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/pages/Home/single_details_pages/singleLead_followup.dart';
+import 'package:smartassist/pages/testdrive_map_page.dart';
 import 'package:smartassist/services/api_srv.dart';
 import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/testdrive.dart';
 import 'package:smartassist/widgets/start_drive.dart';
@@ -109,13 +108,17 @@ class _TestUpcomingState extends State<TestUpcoming> {
     String leadId = item['lead_id'] ?? '';
     Navigator.push(
       context,
+      // MaterialPageRoute(
+      //   builder: (context) => TestdriveVerifyotp(
+      //     email: email,
+      //     mobile: mobile,
+      //     leadId: leadId,
+      //     eventId: eventId,
+      //   ),
+      // ),
       MaterialPageRoute(
-        builder: (context) => TestdriveVerifyotp(
-          email: email,
-          mobile: mobile,
-          leadId: leadId,
-          eventId: eventId,
-        ),
+        builder: (context) =>
+            TestdriveMapPage(leadId: leadId, eventId: eventId),
       ),
     );
     print("Call action triggered for ${item['name']}");

@@ -264,7 +264,6 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     } catch (e) { 
       print('Error in upload process: $e');
-      
     }
   }
 

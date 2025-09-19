@@ -475,12 +475,12 @@ class _LoginPageState extends State<LoginPage>
       if (!mounted) return;
       print('error');
 
-      Get.snackbar(
-        'Error',
-        'Oops server is done...!',
-        backgroundColor: Colors.red[500],
-        colorText: Colors.white,
-      );
+      // Get.snackbar(
+      //   'Error',
+      //   'Oops server is done...!',
+      //   backgroundColor: Colors.red[500],
+      //   colorText: Colors.white,
+      // );
     } finally {
       if (mounted) {
         setState(() => isLoading = false);

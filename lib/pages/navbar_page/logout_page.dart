@@ -21,9 +21,6 @@ class LogoutPage extends StatelessWidget {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.remove(TokenManager.USER_ROLE);
 
-      // Optionally unregister from FCM topics if needed
-      // await NotificationService.instance.unregisterFromTopics();
-
       // Navigate to login and clear all previous routes
       Get.offAll(() => LoginPage(email: '', onLoginSuccess: () {}));
 
@@ -62,7 +59,9 @@ class LogoutPage extends StatelessWidget {
           icon: const Icon(FontAwesomeIcons.angleLeft, color: Colors.white),
         ),
         title: Align(
-          alignment: Alignment.centerLeft, child: Text('Logout', style: AppFont.appbarfontWhite(context))),
+          alignment: Alignment.centerLeft,
+          child: Text('Logout', style: AppFont.appbarfontWhite(context)),
+        ),
         backgroundColor: AppColors.colorsBlue,
         automaticallyImplyLeading: false,
       ),

@@ -114,7 +114,7 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
         print(const JsonEncoder.withIndent('  ').convert(data));
         setState(() {
           startTime = data['data']['duration'] ?? '0';
-          remarks = data['data']['remarks'] ?? 'No Remarks';
+          remarks = data['data']['feedback_comments'] ?? 'No Remarks';
           if (data['data']['distance'] != null) {
             String rawDistance = data['data']['distance'].toString();
 
@@ -511,7 +511,7 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
                                           ),
                                         ),
                                         Text(
-                                          distanceCovered,
+                                          '$distanceCovered m',
                                           style: AppFont.mediumText14(context),
                                         ),
                                       ],
@@ -541,9 +541,7 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
                                       ),
                                       child: Text(
                                         'Remarks',
-                                        style: AppFont.popupTitleBlack16(
-                                          context,
-                                        ),
+                                        style: AppFont.dropDowmLabel(context),
                                       ),
                                     ),
                                     Container(

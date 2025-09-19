@@ -349,6 +349,7 @@ class _LeadsearchTestdriveState extends State<LeadsearchTestdrive> {
 
     final leadId = lead['lead_id']?.toString() ?? '';
     final leadName = lead['lead_name']?.toString() ?? '';
+    final number = lead['mobile']?.toString() ?? '';
     final pmi =
         lead['PMI']?.toString() ??
         lead['pmi']?.toString(); // Check both PMI and pmi
@@ -501,7 +502,7 @@ class _LeadsearchTestdriveState extends State<LeadsearchTestdrive> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  if (result['pmi'] != null) ...[
+                  if (result['mobile'] != null) ...[
                     Container(
                       width: 1,
                       height: 15,
@@ -509,7 +510,7 @@ class _LeadsearchTestdriveState extends State<LeadsearchTestdrive> {
                       margin: const EdgeInsets.symmetric(horizontal: 8),
                     ),
                     Text(
-                      result['pmi'].toString(),
+                      result['mobile'].toString(),
                       style: AppFont.tinytext(context),
                     ),
                   ],
@@ -522,6 +523,7 @@ class _LeadsearchTestdriveState extends State<LeadsearchTestdrive> {
                       overflow: TextOverflow.ellipsis,
                     )
                   : null,
+
               trailing: Icon(
                 Icons.arrow_forward_ios,
                 size: 12,

@@ -402,6 +402,7 @@ class _CreateLeadsState extends State<CreateLeads> {
             _existingLeadData = {
               'name': data['data']['lead_name'] ?? 'Unknown',
               'mobile': data['data']['mobile'] ?? mobileNumber,
+              'status': data['data']['status'] ?? 'no-status',
               'PMI': data['data']['PMI'] ?? 'Unknown',
               'lead_owner': data['data']['lead_owner'] ?? 'Unknown',
             };
@@ -1422,9 +1423,7 @@ class _CreateLeadsState extends State<CreateLeads> {
                               ),
                             ),
                             Container(
-                              margin: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                              ),
+                              margin: const EdgeInsets.symmetric(horizontal: 5),
                               height: 15,
                               width: 0.1,
                               decoration: const BoxDecoration(
@@ -1435,6 +1434,21 @@ class _CreateLeadsState extends State<CreateLeads> {
                             ),
                             Text(
                               '${_existingLeadData!['PMI']}',
+                              style: AppFont.smallText(context),
+                            ),
+
+                            Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 5),
+                              height: 15,
+                              width: 0.1,
+                              decoration: const BoxDecoration(
+                                border: Border(
+                                  right: BorderSide(color: AppColors.fontColor),
+                                ),
+                              ),
+                            ),
+                            Text(
+                              '${_existingLeadData!['status']}',
                               style: AppFont.smallText(context),
                             ),
                           ],
@@ -1449,9 +1463,7 @@ class _CreateLeadsState extends State<CreateLeads> {
                               ),
                             ),
                             Container(
-                              margin: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                              ),
+                              margin: const EdgeInsets.symmetric(horizontal: 5),
                               height: 15,
                               width: 0.1,
                               decoration: const BoxDecoration(

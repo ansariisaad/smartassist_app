@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/component/color/colors.dart';
+import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'dart:convert';
 import 'package:table_calendar/table_calendar.dart';
@@ -177,14 +178,14 @@ class _SlotCalendarState extends State<SlotCalendar> {
 
       // Show error snackbar
       if (mounted) {
-        Get.snackbar(
-          'Error',
-          'Failed to load booking data: ${e.toString()}',
-          duration: const Duration(seconds: 3),
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
+        // Get.snackbar(
+        //   'Error',
+        //   'Failed to load booking data: ${e.toString()}',
+        //   duration: const Duration(seconds: 3),
+        //   snackPosition: SnackPosition.TOP,
+        //   backgroundColor: Colors.red,
+        //   colorText: Colors.white,
+        // );
       }
     }
   }
@@ -245,7 +246,7 @@ class _SlotCalendarState extends State<SlotCalendar> {
   }
 
   // Get list of booked times for the selected date
-  List<String> _getBookedTimesForSelectedDate() {
+  List<Map<String, String>> _getBookedTimesForSelectedDate() {
     if (_selectedDate == null) return [];
 
     final selectedDateStr = DateFormat('yyyy-MM-dd').format(_selectedDate!);
@@ -253,11 +254,29 @@ class _SlotCalendarState extends State<SlotCalendar> {
     return bookedSlots.where((slot) => slot['date'] == selectedDateStr).map((
       slot,
     ) {
-      final startTime = slot['start_time']!.substring(0, 5); // Remove seconds
+      final name = slot['owner_name'] ?? 'No Name';
+      final startTime = slot['start_time']!.substring(0, 5);
       final endTime = slot['end_time']!.substring(0, 5);
-      return '$startTime - $endTime';
+
+      return {'name': name, 'time': '$startTime - $endTime'};
     }).toList();
   }
+
+  // List<String> _getBookedTimesForSelectedDate() {
+  //   if (_selectedDate == null) return [];
+
+  //   final selectedDateStr = DateFormat('yyyy-MM-dd').format(_selectedDate!);
+
+  //   return bookedSlots.where((slot) => slot['date'] == selectedDateStr).map((
+  //     slot,
+  //   ) {
+  //     final name = slot['name'];
+  //     final startTime = slot['start_time']!.substring(0, 5);
+  //     final endTime = slot['end_time']!.substring(0, 5);
+  //     return '$startTime - $endTime';
+
+  //   }).toList();
+  // }
 
   // Count booked slots for a specific date
   int _countBookedSlotsForDate(DateTime date) {
@@ -954,24 +973,67 @@ class _SlotCalendarState extends State<SlotCalendar> {
               ),
             ),
             const SizedBox(height: 4),
+
+            // Wrap(
+            //   spacing: 8.0,
+            //   runSpacing: 4.0,
+            //   children: _getBookedTimesForSelectedDate().map((timeSlot) {
+            //     return Row(
+            //       children: [
+            //         Container(
+            //           padding: const EdgeInsets.symmetric(
+            //             horizontal: 8,
+            //             vertical: 4,
+            //           ),
+            //           decoration: BoxDecoration(
+            //             color: Colors.red.shade50,
+            //             border: Border.all(color: Colors.red.shade200),
+            //             borderRadius: BorderRadius.circular(12),
+            //           ),
+            //           child: Text(
+            //             timeSlot,
+            //             style: TextStyle(fontSize: 11, color: Colors.red.shade700),
+            //           ),
+            //         ),
+            //         Text(''),
+            //       ],
+            //     );
+            //   }).toList(),
+            // ),
             Wrap(
               spacing: 8.0,
               runSpacing: 4.0,
-              children: _getBookedTimesForSelectedDate().map((timeSlot) {
-                return Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade50,
-                    border: Border.all(color: Colors.red.shade200),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    timeSlot,
-                    style: TextStyle(fontSize: 11, color: Colors.red.shade700),
-                  ),
+              children: _getBookedTimesForSelectedDate().map((slot) {
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  // mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade50,
+                        border: Border.all(color: Colors.red.shade200),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        slot['time']!,
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          color: Colors.red.shade700,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      textAlign: TextAlign.start,
+                      slot['name']!,
+                      style: AppFont.smallText12(context),
+                    ),
+                  ],
                 );
               }).toList(),
             ),

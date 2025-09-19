@@ -55,10 +55,6 @@ class MainActivity: FlutterFragmentActivity() {
                     requestBatteryOptimization()
                     result.success(true)
                 }
-                "cancelNotification" -> {
-                    NotificationHelper.cancelNotification(this)
-                    result.success(true)
-                }
                 else -> {
                     result.notImplemented()
                 }
@@ -143,12 +139,9 @@ class MainActivity: FlutterFragmentActivity() {
             }
         }
     }
-
     private fun startBackgroundService(eventId: String?, totalDistance: Double) {
         try {
             Log.d(TAG, "Starting Android background service for event: $eventId")
-            
-            NotificationHelper.createNotificationChannel(this)
             
             val serviceIntent = Intent(this, TestDriveBackgroundService::class.java).apply {
                 action = TestDriveBackgroundService.ACTION_START_TRACKING
@@ -156,17 +149,37 @@ class MainActivity: FlutterFragmentActivity() {
                 putExtra(TestDriveBackgroundService.EXTRA_TOTAL_DISTANCE, totalDistance)
             }
             
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(serviceIntent)
-            } else {
-                startService(serviceIntent)
-            }
+            // Since we're not using foreground service anymore, just start regular service
+            startService(serviceIntent)
             
             Log.d(TAG, "✅ Android background service started successfully")
         } catch (e: Exception) {
             Log.e(TAG, "❌ Failed to start Android background service", e)
         }
     }
+    // private fun startBackgroundService(eventId: String?, totalDistance: Double) {
+    //     try {
+    //         Log.d(TAG, "Starting Android background service for event: $eventId")
+            
+    //         NotificationHelper.createNotificationChannel(this)
+            
+    //         val serviceIntent = Intent(this, TestDriveBackgroundService::class.java).apply {
+    //             action = TestDriveBackgroundService.ACTION_START_TRACKING
+    //             putExtra(TestDriveBackgroundService.EXTRA_EVENT_ID, eventId)
+    //             putExtra(TestDriveBackgroundService.EXTRA_TOTAL_DISTANCE, totalDistance)
+    //         }
+            
+    //         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+    //             startForegroundService(serviceIntent)
+    //         } else {
+    //             startService(serviceIntent)
+    //         }
+            
+    //         Log.d(TAG, "✅ Android background service started successfully")
+    //     } catch (e: Exception) {
+    //         Log.e(TAG, "❌ Failed to start Android background service", e)
+    //     }
+    // }
 
     private fun stopBackgroundService() {
         try {

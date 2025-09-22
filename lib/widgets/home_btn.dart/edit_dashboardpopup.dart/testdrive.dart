@@ -221,9 +221,7 @@ class _TestdriveState extends State<Testdrive> {
 
       // Enable button if any field changed and all validations pass
       isButtonEnabled =
-          (statusChanged ||
-              // locationChanged ||
-              noShowReasonChanged) &&
+          (statusChanged || remarksChanged || noShowReasonChanged) &&
           isNoShowValid
       // && locationValid
       ;

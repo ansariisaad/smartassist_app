@@ -14,6 +14,7 @@ import 'package:smartassist/utils/bottom_navigation.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/call_history.dart';
+import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/lead_update.dart';
 import 'package:smartassist/widgets/home_btn.dart/single_ids_popup/appointment_ids.dart';
 import 'package:smartassist/widgets/home_btn.dart/single_ids_popup/followups_ids.dart';
 import 'package:smartassist/widgets/home_btn.dart/single_ids_popup/testdrive_ids.dart';
@@ -933,6 +934,29 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
     }
   }
 
+  void _mailAction() {
+    print("Mail action triggered");
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          insetPadding: const EdgeInsets.symmetric(horizontal: 10),
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+
+          child: LeadUpdate(
+            onFormSubmit: () async {},
+            leadId: widget.leadId,
+            onEdit: () {},
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> submitLost(BuildContext context) async {
     setState(() {
       // _isUploading = true;
@@ -1547,6 +1571,19 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                                   ),
                                   Row(
                                     children: [
+                                      IconButton(
+                                        onPressed: () {
+                                          _mailAction();
+                                          // setState(() {
+                                          //   _isHiddenTop = !_isHiddenTop;
+                                          // });
+                                        },
+                                        icon: Icon(
+                                          Icons.edit,
+                                          size: 20,
+                                          color: AppColors.iconGrey,
+                                        ),
+                                      ),
                                       IconButton(
                                         onPressed: () {
                                           setState(() {

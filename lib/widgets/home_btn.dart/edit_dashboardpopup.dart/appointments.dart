@@ -236,6 +236,7 @@ class _AppointmentsEditState extends State<AppointmentsEdit> {
       // Enable button if any field changed and all validations pass
       isButtonEnabled =
           (statusChanged ||
+              remarksChanged ||
               startDateChanged ||
               startTimeChanged ||
               deferredReasonChanged) &&

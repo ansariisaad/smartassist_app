@@ -587,6 +587,7 @@ import 'dart:convert';
 import 'package:flutter_svg/svg.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
+import 'package:smartassist/services/leads_srv.dart';
 import 'package:smartassist/utils/bottom_navigation.dart';
 import 'package:smartassist/utils/button.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
@@ -657,6 +658,18 @@ class _TestdriveVerifyotpState extends State<TestdriveVerifyotp>
       node.dispose();
     }
     super.dispose();
+  }
+
+  Future<void> _getOtp(String eventId) async {
+    final success = await LeadsSrv.getOtp(eventId: eventId);
+
+    if (success) {
+      print('✅ Test drive started successfully');
+    } else {
+      print('❌ Failed to start test drive');
+    }
+
+    if (mounted) setState(() {});
   }
 
   // Initialize SMS autofill listener
@@ -938,7 +951,9 @@ class _TestdriveVerifyotpState extends State<TestdriveVerifyotp>
               decoration: _resendTimer > 0 ? null : TextDecoration.underline,
             ),
             recognizer: TapGestureRecognizer()
-              ..onTap = _resendTimer > 0 ? null : _handleResendOTP,
+              ..onTap = _resendTimer > 0
+                  ? null
+                  : () => _handleResendOTP(widget.eventId),
           ),
         ],
       ),
@@ -1009,8 +1024,10 @@ class _TestdriveVerifyotpState extends State<TestdriveVerifyotp>
     }
   }
 
-  Future<void> _handleResendOTP() async {
+  Future<void> _handleResendOTP(String eventId) async {
     if (_isResendingOTP) return;
+
+    await _getOtp(eventId);
 
     setState(() => _isResendingOTP = true);
 

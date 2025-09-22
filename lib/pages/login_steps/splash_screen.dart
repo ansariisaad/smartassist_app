@@ -378,7 +378,7 @@ class _SplashScreenState extends State<SplashScreen>
         }
       } else {
         // If no token or invalid token, go to login screen
-        await TokenManager.clearAuthData();
+        await TokenManager.clearAll();
         // Also reset biometric preferences on logout/token expiry
         await BiometricPreference.resetBiometricPreferences();
         if (!_mounted) return;

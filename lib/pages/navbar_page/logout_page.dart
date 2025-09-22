@@ -16,10 +16,14 @@ class LogoutPage extends StatelessWidget {
   Future<void> _handleLogout(BuildContext context) async {
     try {
       // Clear the stored token and user data
-      await TokenManager.clearAuthData();
+      await TokenManager.clearAll();
 
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.remove(TokenManager.USER_ROLE);
+      await prefs.remove(TokenManager.USER_ROLE_KEY);
+      await prefs.remove(TokenManager.TOKEN_KEY);
+      await prefs.remove(TokenManager.IS_ADMIN_KEY);
+      await prefs.remove(TokenManager.ADMIN_USER_ID_KEY);
+      await prefs.remove(TokenManager.ADMIN_USER_ID_KEY);
 
       // Navigate to login and clear all previous routes
       Get.offAll(() => LoginPage(email: '', onLoginSuccess: () {}));

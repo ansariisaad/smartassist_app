@@ -10,6 +10,8 @@ import 'package:smartassist/pages/login_steps/first_screen.dart';
 import 'package:smartassist/pages/login_steps/forget_password.dart';
 import 'package:smartassist/services/api_srv.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:smartassist/superAdmin/pages/admin_dealerall.dart';
+import 'package:smartassist/utils/admin_bottomnavigation.dart';
 import 'package:smartassist/utils/biometric_prefrence.dart';
 import 'package:smartassist/utils/bottom_navigation.dart';
 import 'package:smartassist/utils/connection_service.dart';
@@ -40,6 +42,7 @@ class _LoginPageState extends State<LoginPage>
   bool isLoading = false;
   late AnimationController _controller;
   late Animation<Offset> _slideAnimation;
+  // bool isAdmin = false;
 
   @override
   void initState() {
@@ -327,7 +330,6 @@ class _LoginPageState extends State<LoginPage>
     );
   }
 
-  // login page
   Future<void> submitBtn() async {
     if (!mounted) return;
     final emailOrExcellence = newEmailController.text.trim();
@@ -406,14 +408,26 @@ class _LoginPageState extends State<LoginPage>
         final authToken = response['token'];
         final userRole = user['user_role'];
         final userEmail = user['email'] ?? emailOrExcellence;
+        final rawAdmin = user['isAdmin'];
+        final bool isAdmin = rawAdmin is bool
+            ? rawAdmin
+            : (rawAdmin.toString().toLowerCase() == "true");
 
         if (userId != null && authToken != null) {
           // Save authentication data
+          // await TokenManager.saveAuthData(
+          //   authToken,
+          //   userId,
+          //   userRole,
+          //   userEmail,
+          //   isAdmin,
+          // );
           await TokenManager.saveAuthData(
-            authToken,
-            userId,
-            userRole,
-            userEmail,
+            token: authToken,
+            userId: userId,
+            userRole: userRole,
+            email: userEmail,
+            isAdmin: isAdmin,
           );
           String successMessage =
               response['message']?.toString() ?? 'Login Successful';
@@ -442,10 +456,14 @@ class _LoginPageState extends State<LoginPage>
 
           if (canCheckBiometrics) {
             // Navigate to BiometricScreen with isFirstTime flag
-            Get.offAll(() => const BiometricScreen(isFirstTime: true));
+            Get.offAll(() => BiometricScreen(isFirstTime: true));
           } else {
             await BiometricPreference.setUseBiometric(false);
-            Get.offAll(() => BottomNavigation());
+            if (isAdmin == true) {
+              Get.offAll(() => AdminDealerall());
+            } else {
+              Get.offAll(() => BottomNavigation());
+            }
           }
 
           widget.onLoginSuccess?.call();
@@ -474,13 +492,12 @@ class _LoginPageState extends State<LoginPage>
     } catch (error) {
       if (!mounted) return;
       print('error');
-
-      // Get.snackbar(
-      //   'Error',
-      //   'Oops server is done...!',
-      //   backgroundColor: Colors.red[500],
-      //   colorText: Colors.white,
-      // );
+      Get.snackbar(
+        'Error',
+        '${error.toString()}',
+        backgroundColor: Colors.red[500],
+        colorText: Colors.white,
+      );
     } finally {
       if (mounted) {
         setState(() => isLoading = false);

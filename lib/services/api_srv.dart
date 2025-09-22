@@ -7,6 +7,8 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:smartassist/config/route/route_name.dart';
 import 'package:smartassist/pages/login_steps/login_page.dart';
+import 'package:smartassist/utils/admin_is_manager.dart'
+    show AdminUserIdManager;
 import 'package:smartassist/utils/connection_service.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
@@ -22,7 +24,7 @@ class LeadsSrv {
   ) async {
     if (statusCode == 401 ||
         errorMessage.toLowerCase().contains("unauthorized")) {
-      await TokenManager.clearAuthData();
+      await TokenManager.clearAll();
       await Future.delayed(Duration(seconds: 2));
       Get.offAll(() => LoginPage(email: '', onLoginSuccess: () {}));
       showErrorMessageGetx(
@@ -75,7 +77,7 @@ class LeadsSrv {
 
     // Handle 401 here for ALL API calls
     if (response.statusCode == 401) {
-      await TokenManager.clearAuthData();
+      await TokenManager.clearAll();
       Get.offAllNamed(RoutesName.login);
 
       Future.delayed(Duration(milliseconds: 300), () {
@@ -812,7 +814,7 @@ class LeadsSrv {
 
       // Debug: Print the response status code and body
       print('this is upper api');
-      print('Response status code: ${response.statusCode}');
+      print('Response status code:: ${response.statusCode}');
       print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
@@ -836,6 +838,53 @@ class LeadsSrv {
   }
 
   // history data api
+
+  static Future<Map<String, dynamic>> adminSingleFollowupsIds(
+    String leadId,
+  ) async {
+    final adminId = await AdminUserIdManager.getAdminUserId();
+    const String apiUrl = "${baseUrl}app-admin/lead-byId/";
+
+    final token = await Storage.getToken();
+    if (token == null) {
+      // print("No token found. Please login.");
+      throw Exception("No token found. Please login.");
+    }
+    final url = '$apiUrl$leadId?userId=$adminId';
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+          'leadId': leadId,
+        },
+      );
+      print('thisis the url of the lead-by-id admin $url');
+      // Debug: Print the response status code and body
+      print('this is upper api');
+      print('Response status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data;
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+        print("Failed to load data: $errorMessage");
+
+        // Check if unauthorized: status 401 or error message includes "unauthorized"
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+        ();
+        throw Exception('Failed to load data: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching data: $e');
+      throw Exception('Error fetching data: $e');
+    }
+  }
 
   static Future<List<Map<String, dynamic>>> singleTaskById(
     String leadId,
@@ -979,6 +1028,51 @@ class LeadsSrv {
     }
   }
 
+  //
+
+  static Future<Map<String, dynamic>> adminEventTaskByLead(
+    String leadId,
+  ) async {
+    const String apiUrl = "${baseUrl}app-admin/lead/history/";
+    final token = await Storage.getToken();
+    final adminId = await AdminUserIdManager.getAdminUserId();
+
+    try {
+      // Append the leadId and subject to the API URL
+      print('Fetching data for Lead ID: $leadId');
+      print('API URL: ${apiUrl + leadId + '?userId=$adminId'}');
+      final response = await http.get(
+        Uri.parse('$apiUrl$leadId?userId=$adminId'),
+
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      print('Response status code: ${response.statusCode}');
+      print('Response body for both data task and event: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = json.decode(response.body);
+        final Map<String, dynamic> data = jsonResponse['data'];
+        return data;
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+        print("Failed to load data: $errorMessage");
+
+        // Check if unauthorized: status 401 or error message includes "unauthorized"
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+        ();
+        throw Exception('Failed to load data: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching data: $e');
+    }
+  }
+
   // for teams only
   static Future<Map<String, dynamic>> eventTaskByLeadTeams(
     String leadId,
@@ -1022,6 +1116,93 @@ class LeadsSrv {
       throw Exception('Error fetching data: $e');
     }
   }
+
+  static Future<Map<String, dynamic>> AdmineventTaskByLeadTeams(
+    String leadId,
+    String userId,
+  ) async {
+    const String apiUrl = "${baseUrl}app-admin/lead/history/";
+    final token = await Storage.getToken();
+    final adminId = await AdminUserIdManager.getAdminUserId();
+
+    try {
+      final fullUrl = '$apiUrl$leadId?user_id=$userId?userId=$adminId';
+      print('Fetching data for Lead ID: $leadId');
+      print('API URL: $fullUrl');
+
+      final response = await http.get(
+        Uri.parse(fullUrl),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      print('Response status code: ${response.statusCode}');
+      print('Response body for both data task and event: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = json.decode(response.body);
+        final Map<String, dynamic> data = jsonResponse['data'];
+        return data;
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+        print("Failed to load data: $errorMessage");
+
+        // Check if unauthorized: status 401 or error message includes "unauthorized"
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+        ();
+        throw Exception('Failed to load data: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching data: $e');
+    }
+  }
+
+  // static Future<Map<String, dynamic>> AdmineventTaskByLeadTeams(
+  //   String leadId,
+  //   String userId,
+  // ) async {
+  //   const String apiUrl = "${baseUrl}leads/events-&-tasks/";
+  //   final token = await Storage.getToken();
+
+  //   try {
+  //     final fullUrl = '$apiUrl$leadId?user_id=$userId';
+  //     print('Fetching data for Lead ID: $leadId');
+  //     print('API URL: $fullUrl');
+
+  //     final response = await http.get(
+  //       Uri.parse(fullUrl),
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+
+  //     print('Response status code: ${response.statusCode}');
+  //     print('Response body for both data task and event: ${response.body}');
+
+  //     if (response.statusCode == 200) {
+  //       final Map<String, dynamic> jsonResponse = json.decode(response.body);
+  //       final Map<String, dynamic> data = jsonResponse['data'];
+  //       return data;
+  //     } else {
+  //       final Map<String, dynamic> errorData = json.decode(response.body);
+  //       final String errorMessage =
+  //           errorData['message'] ?? 'Failed to load dashboard data';
+  //       print("Failed to load data: $errorMessage");
+
+  //       // Check if unauthorized: status 401 or error message includes "unauthorized"
+  //       await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+  //       ();
+  //       throw Exception('Failed to load data: ${response.statusCode}');
+  //     }
+  //   } catch (e) {
+  //     throw Exception('Error fetching data: $e');
+  //   }
+  // }
 
   static Future<List<Map<String, dynamic>>> singleTestDriveById(
     String leadId,
@@ -1305,6 +1486,70 @@ class LeadsSrv {
     try {
       final response = await http.get(
         Uri.parse('${baseUrl}users/dashboard?filterType=MTD&category=Leads'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = json.decode(response.body);
+        // Dashboard data is nested under "data"
+        final Map<String, dynamic> data = jsonResponse['data'];
+        return data;
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+        throw Exception(
+          'Failed to load dashboard data: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  static Future<Map<String, dynamic>> adminFetchDashboardData() async {
+    final token = await Storage.getToken();
+    final adminId = await AdminUserIdManager.getAdminUserId();
+    try {
+      final url = Uri.parse('${baseUrl}app-admin/dashboard?userId=$adminId');
+
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = json.decode(response.body);
+        // Dashboard data is nested under "data"
+        final Map<String, dynamic> data = jsonResponse['data'];
+        print('this is the url $url');
+        return data;
+      } else {
+        final Map<String, dynamic> errorData = json.decode(response.body);
+        final String errorMessage =
+            errorData['message'] ?? 'Failed to load dashboard data';
+        await handleUnauthorizedIfNeeded(response.statusCode, errorMessage);
+        throw Exception(
+          'Failed to load dashboard data: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  static Future<Map<String, dynamic>> fetchDealer() async {
+    final token = await Storage.getToken();
+    try {
+      final response = await http.get(
+        Uri.parse('${baseUrl}app-admin/all-dealerships'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',

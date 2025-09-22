@@ -23,7 +23,6 @@ import 'package:smartassist/widgets/leads_details_popup/create_followups.dart';
 import 'package:smartassist/widgets/timeline/timeline_overdue.dart';
 import 'package:smartassist/widgets/timeline/timeline_tasks.dart';
 import 'package:smartassist/widgets/timeline/timeline_completed.dart';
-import 'package:smartassist/widgets/whatsapp_chat.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class TeamsEnquiryids extends StatefulWidget {

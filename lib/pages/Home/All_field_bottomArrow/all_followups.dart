@@ -14,7 +14,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smartassist/widgets/reusable/globle_speechtotext.dart';
 import 'package:smartassist/widgets/reusable/skeleton_card.dart';
-import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class AddFollowups extends StatefulWidget {
   final Future<void> Function() refreshDashboard;

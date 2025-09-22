@@ -66,6 +66,18 @@ class AppFont {
     );
   }
 
+  static TextStyle dropDowmLabelWhite(
+    BuildContext context, {
+    double fontSize = 14,
+    Color color = Colors.white,
+  }) {
+    return GoogleFonts.poppins(
+      fontSize: scaleFont(context, fontSize),
+      color: color,
+      fontWeight: FontWeight.w500,
+    );
+  }
+
   // static TextStyle labelWhite14(
   //   BuildContext context, {
   //   double fontSize = 14,

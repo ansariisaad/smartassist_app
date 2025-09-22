@@ -492,7 +492,6 @@ class _LoginPageState extends State<LoginPage>
     } catch (error) {
       if (!mounted) return;
       print('error');
-
       Get.snackbar(
         'Error',
         '${error.toString()}',

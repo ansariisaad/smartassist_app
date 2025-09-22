@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -15,6 +14,7 @@ import 'package:smartassist/utils/bottom_navigation.dart';
 import 'package:smartassist/utils/snackbar_helper.dart';
 import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/widgets/call_history.dart';
+import 'package:smartassist/widgets/home_btn.dart/edit_dashboardpopup.dart/lead_update.dart';
 import 'package:smartassist/widgets/home_btn.dart/single_ids_popup/appointment_ids.dart';
 import 'package:smartassist/widgets/home_btn.dart/single_ids_popup/followups_ids.dart';
 import 'package:smartassist/widgets/home_btn.dart/single_ids_popup/testdrive_ids.dart';
@@ -49,7 +49,7 @@ class FollowupsDetails extends StatefulWidget {
 
 class _FollowupsDetailsState extends State<FollowupsDetails> {
   // Placeholder data
-
+  Map<String, String> _errors = {};
   String mobile = 'Loading...';
   String chatId = 'Loading...';
   String email = 'Loading...';
@@ -67,7 +67,8 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
   String pincode = 'Loading..';
   String lead_status = 'Not Converted';
   String vehicle_id = '';
-
+  String company_name = '';
+  bool for_company = false;
   bool isLoading = false;
   int _childButtonIndex = 0;
   Widget _selectedTaskWidget = Container();
@@ -91,6 +92,8 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
   int overdueCount = 0;
 
   final TextEditingController descriptionController = TextEditingController();
+  final TextEditingController companynameController = TextEditingController();
+
   late stt.SpeechToText _speech;
   bool _isListening = false;
 
@@ -291,6 +294,8 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
         pincode = leadData['data']['pincode']?.toString() ?? 'N/A';
         lead_status = leadData['data']['opp_status'] ?? 'Not Converted';
         vehicle_id = leadData['data']['vehicle_id'] ?? '';
+        company_name = leadData['data']['company_name'] ?? 'No Company';
+        for_company = leadData['data']['for_company'] ?? false;
       });
     } catch (e) {
       print('Error fetching data: $e');
@@ -864,6 +869,94 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
     );
   }
 
+  Future<void> updateLeads() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? spId = prefs.getString('user_id');
+
+      if (spId == null) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('User ID not found. Please log in again.'),
+            ),
+          );
+        }
+        throw Exception('User ID not found');
+      }
+
+      final leadData = {'company_name': companynameController.text};
+      final token = await Storage.getToken();
+
+      final response = await http.put(
+        Uri.parse(
+          'https://api.smartassistapp.in/api/leads/update/${widget.leadId}',
+        ),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(leadData),
+      );
+
+      print('Response body: ${response.body}');
+      print('Response status: ${response.statusCode}');
+      print(leadData);
+
+      // Check for both 200 and 201 status codes
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final Map<String, dynamic> responseData = json.decode(response.body);
+        String message =
+            responseData['message'] ?? 'Company updated successfully!';
+
+        // Update the local company_name variable
+        setState(() {
+          company_name = companynameController.text;
+        });
+
+        // showSuccessMessage(context, message: message);
+        Get.snackbar(
+          'Success',
+          message,
+          colorText: Colors.white,
+          backgroundColor: Colors.green.shade500,
+        );
+      } else {
+        final Map<String, dynamic> responseData = json.decode(response.body);
+        String message = responseData['message'] ?? 'Update failed. Try again.';
+        showErrorMessageGetx(message: message);
+        throw Exception(message);
+      }
+    } catch (e) {
+      // showErrorMessageGetx(message: 'Something went wrong. Please try again.');
+      print('Error during PUT request: $e');
+      // throw e; // Re-throw to handle in the calling function
+    }
+  }
+
+  void _mailAction() {
+    print("Mail action triggered");
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          insetPadding: const EdgeInsets.symmetric(horizontal: 10),
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+
+          child: LeadUpdate(
+            onFormSubmit: () async {},
+            leadId: widget.leadId,
+            onEdit: () {},
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> submitLost(BuildContext context) async {
     setState(() {
       // _isUploading = true;
@@ -932,13 +1025,6 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
       }
     } catch (e) {
       print('Exception occurred: ${e.toString()}');
-      Get.snackbar(
-        'Error',
-        'An error occurred: ${e.toString()}',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-      Navigator.pop(context);
     } finally {
       setState(() {
         // _isUploading = false;
@@ -952,52 +1038,332 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
     });
   }
 
+  // vishal.iswalkar@navnitmotors.com
   Future<void> _showSkipDialog() async {
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // User must tap button to close dialog
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          backgroundColor: Colors.white,
-          insetPadding: const EdgeInsets.all(10),
-          contentPadding: EdgeInsets.zero,
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Align(
-                alignment: Alignment.bottomLeft,
-                child: Text(
-                  textAlign: TextAlign.center,
-                  'Are you sure you want to qualify this lead to an opportunity?',
-                  style: AppFont.mediumText14(context),
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        bool showCompanyField = false;
+        bool isLoading = false;
+        bool isApiSuccess = false; // Track if API call was successful
+        bool hasEdited = false; // Track if user has edited the field
+        String initialCompanyValue = ''; // Store initial value
+
+        return StatefulBuilder(
+          builder: (BuildContext context, void Function(void Function()) setState) {
+            return AlertDialog(
+              titlePadding: EdgeInsets.zero,
+              insetPadding: EdgeInsets.symmetric(horizontal: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              backgroundColor: Colors.white,
+              contentPadding: EdgeInsets.zero,
+              title: Container(
+                padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Align(
+                          alignment: Alignment.bottomLeft,
+                          child: Text(
+                            'Qualify as individual account ?',
+                            style: AppFont.mediumText14(context),
+                          ),
+                        ),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: IconButton(
+                            onPressed: () => Get.back(),
+                            icon: const Icon(Icons.close),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    if (showCompanyField) ...[
+                      const SizedBox(height: 10),
+                      _buildTextField(
+                        isRequired: true,
+                        label: 'Company',
+                        controller: companynameController,
+                        hintText: 'Company',
+                        errorText: _errors['company'],
+                        isLoading: isLoading,
+                        isSuccess: isApiSuccess,
+                        hasEdited: hasEdited,
+                        initialValue: initialCompanyValue,
+                        onChanged: (value) {
+                          if (value.isNotEmpty &&
+                              _errors.containsKey('company')) {
+                            setState(() {
+                              _errors.remove('company');
+                            });
+                          }
+                          // Check if user has edited the field
+                          setState(() {
+                            hasEdited = value != initialCompanyValue;
+                            if (hasEdited) {
+                              isApiSuccess =
+                                  false; // Reset API success if user edits again
+                            }
+                          });
+                        },
+                        onIconPressed: () async {
+                          if (isLoading || isApiSuccess) return;
+
+                          if (companynameController.text.trim().isEmpty) {
+                            setState(() {
+                              _errors['company'] = 'Company field is required';
+                            });
+                            return;
+                          }
+
+                          setState(() {
+                            isLoading = true;
+                            _errors.remove('company');
+                          });
+
+                          try {
+                            await updateLeads();
+                            setState(() {
+                              isLoading = false;
+                              isApiSuccess = true;
+                              hasEdited =
+                                  false; // Reset edit state after successful API call
+                              initialCompanyValue = companynameController
+                                  .text; // Update initial value
+                            });
+                          } catch (e) {
+                            setState(() {
+                              isLoading = false;
+                              isApiSuccess = false;
+                            });
+                          }
+                        },
+                        onClearPressed: () {
+                          setState(() {
+                            companynameController.clear();
+                            _errors.remove('company');
+                            isApiSuccess = false;
+                            hasEdited =
+                                true; // Field is now different from initial value
+                          });
+                        },
+                      ),
+                    ],
+                    const SizedBox(height: 10),
+                  ],
                 ),
               ),
-              const SizedBox(height: 10),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text(
-                'Cancel',
-                // style: TextStyle(color: AppColors.colorsBlue),
-                style: AppFont.mediumText14blue(context),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                submitQualify(context); // Pass context to submit
-              },
-              child: Text('Submit', style: AppFont.mediumText14blue(context)),
-            ),
-          ],
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      showCompanyField = true;
+                      // Pre-fill the company field with existing data if available
+                      if (company_name != null &&
+                          company_name!.isNotEmpty &&
+                          company_name != 'No Company') {
+                        companynameController.text = company_name!;
+                        initialCompanyValue = company_name!;
+                      } else {
+                        companynameController.clear();
+                        initialCompanyValue = '';
+                      }
+                      hasEdited = false;
+                      isApiSuccess = false;
+                    });
+                  },
+                  child: Text('No', style: AppFont.mediumText14blue(context)),
+                ),
+                // Show "Yes" button when showCompanyField is true
+                if (showCompanyField) ...[
+                  TextButton(
+                    onPressed: (isApiSuccess && !hasEdited)
+                        ? () {
+                            submitQualify(context);
+                          }
+                        : (!hasEdited && !isApiSuccess)
+                        ? () {
+                            // Show snackbar when text field is not edited
+                            Get.snackbar(
+                              'Edit Required',
+                              'Please edit the textfield first',
+                              // snackPosition: SnackPosition.BOTTOM,
+                              backgroundColor: Colors.orange,
+                              colorText: Colors.white,
+                              duration: Duration(seconds: 2),
+                            );
+                          }
+                        : null, // Disable if hasEdited is true but API not successful
+                    child: Text(
+                      'Yes',
+                      style: (isApiSuccess && !hasEdited)
+                          ? AppFont.mediumText14blue(context) // Active state
+                          : GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.grey, // Disabled state
+                            ),
+                    ),
+                  ),
+                ],
+                // Show "Ok" button if showCompanyField is false (normal flow)
+                if (!showCompanyField) ...[
+                  TextButton(
+                    onPressed: () {
+                      submitQualify(context);
+                    },
+                    child: Text('Ok', style: AppFont.mediumText14blue(context)),
+                  ),
+                ],
+              ],
+            );
+          },
         );
       },
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String hintText,
+    required String label,
+    required ValueChanged<String> onChanged,
+    bool isRequired = false,
+    String? errorText,
+    VoidCallback? onIconPressed,
+    VoidCallback? onClearPressed,
+    bool isLoading = false,
+    bool isSuccess = false,
+    bool hasEdited = false,
+    String initialValue = '',
+  }) {
+    // Determine if the done icon should be clickable
+    bool isDoneClickable =
+        controller.text.trim().isNotEmpty &&
+        (hasEdited || (!hasEdited && !isSuccess));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 5),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 5),
+          child: RichText(
+            text: TextSpan(
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: AppColors.fontBlack,
+              ),
+              children: [
+                TextSpan(text: label),
+                if (isRequired)
+                  const TextSpan(
+                    text: " *",
+                    style: TextStyle(color: Colors.red),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 5),
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(5),
+            color: const Color.fromARGB(255, 248, 247, 247),
+            border: errorText != null
+                ? Border.all(color: Colors.red, width: 1.0)
+                : null,
+          ),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: TextField(
+              minLines: 1,
+              maxLines: 10,
+              controller: controller,
+              style: AppFont.dropDowmLabel(context),
+              textCapitalization: TextCapitalization.sentences,
+              decoration: InputDecoration(
+                hintText: hintText,
+                hintStyle: GoogleFonts.poppins(
+                  color: Colors.grey,
+                  fontSize: 12,
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 10,
+                ),
+                border: InputBorder.none,
+                suffixIcon: onIconPressed != null
+                    ? Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Show close icon when field has content and not in loading/success state
+                          if (controller.text.isNotEmpty &&
+                              !isLoading &&
+                              !isSuccess &&
+                              onClearPressed != null)
+                            IconButton(
+                              icon: Icon(Icons.close, color: Colors.grey),
+                              onPressed: onClearPressed,
+                            ),
+                          // Show different icons based on state
+                          if (isLoading)
+                            Container(
+                              padding: EdgeInsets.all(12),
+                              child: SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppColors.colorsBlue,
+                                ),
+                              ),
+                            )
+                          else if (isSuccess)
+                            Container(
+                              padding: EdgeInsets.all(12),
+                              child: Icon(
+                                Icons.check_circle,
+                                color: Colors.green,
+                                size: 20,
+                              ),
+                            )
+                          else
+                            IconButton(
+                              icon: Icon(
+                                Icons.done,
+                                color: isDoneClickable
+                                    ? AppColors.colorsBlue
+                                    : Colors.grey,
+                              ),
+                              onPressed: isDoneClickable ? onIconPressed : null,
+                            ),
+                        ],
+                      )
+                    : null,
+              ),
+              onChanged: onChanged,
+            ),
+          ),
+        ),
+        // Show error text if exists
+        if (errorText != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 5, left: 5),
+            child: Text(
+              errorText,
+              style: TextStyle(color: Colors.red, fontSize: 12),
+            ),
+          ),
+      ],
     );
   }
 
@@ -1205,6 +1571,19 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                                   ),
                                   Row(
                                     children: [
+                                      IconButton(
+                                        onPressed: () {
+                                          _mailAction();
+                                          // setState(() {
+                                          //   _isHiddenTop = !_isHiddenTop;
+                                          // });
+                                        },
+                                        icon: Icon(
+                                          Icons.edit,
+                                          size: 20,
+                                          color: AppColors.iconGrey,
+                                        ),
+                                      ),
                                       IconButton(
                                         onPressed: () {
                                           setState(() {

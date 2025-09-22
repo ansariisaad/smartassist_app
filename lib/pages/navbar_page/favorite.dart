@@ -116,7 +116,7 @@ class _FavoritePageState extends State<FavoritePage> {
                 spacing: 1, // Space between buttons
                 children: [
                   FlexibleButton(
-                    title: 'Leads',
+                    title: 'Enquirys',
                     onPressed: () {
                       setState(() {
                         _selectedButtonIndex = 0;
@@ -229,11 +229,12 @@ class FlexibleButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 30,
+      margin: EdgeInsets.symmetric(horizontal: 3, vertical: 5),
       decoration: decoration,
       child: TextButton(
         style: TextButton.styleFrom(
           backgroundColor: Color(0xffF3F9FF),
-          padding: EdgeInsets.symmetric(horizontal: 10),
+          padding: EdgeInsets.symmetric(horizontal: 5),
           minimumSize: const Size(0, 0),
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),

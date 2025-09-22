@@ -510,6 +510,7 @@ class _CreateFollowupsPopupsState extends State<CreateFollowupsPopups> {
             const SizedBox(height: 10),
 
             LeadTextfield(
+              resions: 'This enquiry has no number associated to it, please add one before creating a Followups',
               isRequired: true,
               onChanged: (value) {
                 if (_errors.containsKey('select lead name')) {

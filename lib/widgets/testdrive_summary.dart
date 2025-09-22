@@ -461,7 +461,7 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
                                           style: AppFont.dropDowmLabel(context),
                                         ),
                                         Text(
-                                          '${startTime}',
+                                          '${startTime} m',
                                           style: AppFont.mediumText14(context),
                                         ),
                                       ],
@@ -511,7 +511,7 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
                                           ),
                                         ),
                                         Text(
-                                          distanceCovered,
+                                          '$distanceCovered',
                                           style: AppFont.mediumText14(context),
                                         ),
                                       ],

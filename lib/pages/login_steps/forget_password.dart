@@ -146,7 +146,7 @@ class _ForgetPasswordState extends State<ForgetPassword> {
       child: ElevatedButton(
         onPressed: _isLoading ? null : _handleEmailVerification,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF0276FE),
+          backgroundColor: AppColors.colorsBlue,
           foregroundColor: Colors.white,
           minimumSize: const Size(double.infinity, 50),
           shape: RoundedRectangleBorder(

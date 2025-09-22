@@ -267,66 +267,64 @@ class _ThreebtnState extends State<Threebtn> {
   Widget _buildTabButton(String title, IconData icon, int index) {
     final isActive = _currentMainTab == index;
 
-    return Expanded(
-      child: TextButton(
-        onPressed: () => _changeMainTab(index),
-        style: TextButton.styleFrom(
-          padding: EdgeInsets.symmetric(
-            vertical: 8.0 * _getResponsiveScale(),
-            horizontal:
-                8.0 * _getResponsiveScale(), // Increased from 4.0 to 12.0
-          ),
-          minimumSize: const Size(0, 0),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(_getBorderRadius()),
-            side: BorderSide(
-              color: isActive
-                  ? AppColors.containerblue
-                  : AppColors.fontColor.withOpacity(0.2),
-              width: 1.0,
-            ),
-          ),
-          backgroundColor: isActive
-              ? AppColors.containerblue
-              : Colors.transparent,
-          foregroundColor: isActive ? Colors.white : AppColors.fontColor,
+    return TextButton(
+      onPressed: () => _changeMainTab(index),
+      style: TextButton.styleFrom(
+        padding: EdgeInsets.symmetric(
+          vertical: 8.0 * _getResponsiveScale(),
+          horizontal:
+              8.0 * _getResponsiveScale(), // Increased from 4.0 to 12.0
         ),
-        child: Container(
-          width: double.infinity,
-          padding: EdgeInsets.symmetric(
-            horizontal: 4.0 * _getResponsiveScale(),
-          ), // Added extra padding
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size:
-                    _getMainTabFontSize() *
-                    1.1, // Slightly increased icon relative to smaller text
-                color: isActive ? Colors.white : AppColors.fontColor,
-              ),
-              SizedBox(
-                width: 6.0 * _getResponsiveScale(),
-              ), // Increased spacing between icon and text
-              Flexible(
-                child: Text(
-                  title,
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.poppins(
-                    fontSize: _getMainTabFontSize(),
-                    fontWeight: FontWeight.w400,
-                    color: isActive ? Colors.white : AppColors.fontColor,
-                    letterSpacing:
-                        0.2, // Added letter spacing for better readability
-                  ),
+        minimumSize: const Size(0, 0),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(_getBorderRadius()),
+          side: BorderSide(
+            color: isActive
+                ? AppColors.containerblue
+                : AppColors.fontColor.withOpacity(0.2),
+            width: 1.0,
+          ),
+        ),
+        backgroundColor: isActive
+            ? AppColors.containerblue
+            : Colors.transparent,
+        foregroundColor: isActive ? Colors.white : AppColors.fontColor,
+      ),
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(
+          horizontal: 4.0 * _getResponsiveScale(),
+        ), // Added extra padding
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size:
+                  _getMainTabFontSize() *
+                  1.1, // Slightly increased icon relative to smaller text
+              color: isActive ? Colors.white : AppColors.fontColor,
+            ),
+            SizedBox(
+              width: 6.0 * _getResponsiveScale(),
+            ), // Increased spacing between icon and text
+            Flexible(
+              child: Text(
+                title,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontSize: _getMainTabFontSize(),
+                  fontWeight: FontWeight.w400,
+                  color: isActive ? Colors.white : AppColors.fontColor,
+                  letterSpacing:
+                      0.2, // Added letter spacing for better readability
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

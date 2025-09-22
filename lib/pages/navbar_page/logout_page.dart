@@ -25,9 +25,6 @@ class LogoutPage extends StatelessWidget {
       await prefs.remove(TokenManager.ADMIN_USER_ID_KEY);
       await prefs.remove(TokenManager.ADMIN_USER_ID_KEY);
 
-      // Optionally unregister from FCM topics if needed
-      // await NotificationService.instance.unregisterFromTopics();
-
       // Navigate to login and clear all previous routes
       Get.offAll(() => LoginPage(email: '', onLoginSuccess: () {}));
 

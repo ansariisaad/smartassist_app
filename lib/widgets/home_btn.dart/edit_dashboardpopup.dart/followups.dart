@@ -183,11 +183,32 @@ class _FollowupsEditState extends State<FollowupsEdit> {
   bool get _hasDeferredError =>
       selectedValue == 'Deferred' && selectedDeferredReason == null;
 
+  // void _checkIfFormIsComplete() {
+  //   setState(() {
+  //     bool statusChanged = selectedValue != _initialStatus;
+  //     // bool remarksChanged =
+  //     //     descriptionController.text.trim() != (_initialRemarks ?? '').trim();
+  //     bool deferredReasonChanged =
+  //         selectedDeferredReason != _initialDeferredReason;
+
+  //     // Check if deferred is selected but no reason is chosen
+  //     bool isDeferredValid =
+  //         selectedValue != 'Deferred' || selectedDeferredReason != null;
+
+  //     // Check if remarks field is valid (not empty when required)
+  //     bool remarksValid = descriptionController.text.trim().isNotEmpty;
+
+  //     // Enable button if any field changed and all validations pass
+  //     isButtonEnabled =
+  //         (statusChanged || deferredReasonChanged) && isDeferredValid;
+  //   });
+  // }
+
   void _checkIfFormIsComplete() {
     setState(() {
       bool statusChanged = selectedValue != _initialStatus;
-      // bool remarksChanged =
-      //     descriptionController.text.trim() != (_initialRemarks ?? '').trim();
+      bool remarksChanged =
+          descriptionController.text.trim() != (_initialRemarks ?? '').trim();
       bool deferredReasonChanged =
           selectedDeferredReason != _initialDeferredReason;
 
@@ -195,12 +216,10 @@ class _FollowupsEditState extends State<FollowupsEdit> {
       bool isDeferredValid =
           selectedValue != 'Deferred' || selectedDeferredReason != null;
 
-      // Check if remarks field is valid (not empty when required)
-      bool remarksValid = descriptionController.text.trim().isNotEmpty;
-
       // Enable button if any field changed and all validations pass
       isButtonEnabled =
-          (statusChanged || deferredReasonChanged) && isDeferredValid;
+          (statusChanged || remarksChanged || deferredReasonChanged) &&
+          isDeferredValid;
     });
   }
 

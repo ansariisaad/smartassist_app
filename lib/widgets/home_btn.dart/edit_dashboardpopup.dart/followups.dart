@@ -590,7 +590,7 @@ class _FollowupsEditState extends State<FollowupsEdit> {
                                 text: " *",
                                 style: TextStyle(color: Colors.red),
                               ),
-                            ],
+                            ],  
                           ),
                         ),
                       ),

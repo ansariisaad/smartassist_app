@@ -932,6 +932,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 actions: [
+                  IconButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => FaqPage()),
+                      );
+                    },
+                    icon: const Icon(Icons.headset_mic),
+                    color: Colors.white,
+                  ),
                   Stack(
                     children: [
                       IconButton(
@@ -976,6 +986,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                     ],
                   ),
+
                   // TextButton(
                   //   onPressed: () {},
                   //   child: Text(
@@ -987,16 +998,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   //     ),
                   //   ),
                   // ),
-                  IconButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => FaqPage()),
-                      );
-                    },
-                    icon: const Icon(Icons.question_mark_rounded),
-                    color: Colors.white,
-                  ),
                 ],
               ),
               body: Stack(

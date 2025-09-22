@@ -964,7 +964,7 @@ class _CreateLeadsState extends State<CreateLeads> {
                         },
                       ),
 
-                      const SizedBox(height: 5),
+                      const SizedBox(height: 10),
 
                       _buildButtonsFloat(
                         isRequired: true,

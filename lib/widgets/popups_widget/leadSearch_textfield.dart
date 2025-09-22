@@ -6,8 +6,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/services/api_srv.dart';
+import 'package:smartassist/widgets/mobile_check_dialog.dart';
 
 class LeadTextfield extends StatefulWidget {
+  final String resions;
   final String? errorText;
   final bool isRequired;
   final ValueChanged<String> onChanged;
@@ -21,6 +23,7 @@ class LeadTextfield extends StatefulWidget {
     required this.errorText,
     required this.onChanged,
     this.isRequired = false,
+    required this.resions,
   });
 
   @override
@@ -31,7 +34,7 @@ class _LeadTextfieldState extends State<LeadTextfield> {
   // Controllers and Focus
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-
+  bool _isSelecting = false;
   // Search state
   bool _isLoadingSearch = false;
   List<dynamic> _searchResults = [];
@@ -191,9 +194,27 @@ class _LeadTextfieldState extends State<LeadTextfield> {
     }
   }
 
-  void _onLeadSelected(Map<String, dynamic> lead) {
+  void _onLeadSelected(Map<String, dynamic> lead) async {
     final leadId = lead['lead_id']?.toString() ?? '';
     final leadName = lead['lead_name']?.toString() ?? '';
+    final number = lead['mobile']?.toString();
+    // Check if mobile number is null or empty
+    if (number == null || number.isEmpty || number == 'null') {
+      print('Mobile number is null/empty for lead: $leadName');
+
+      // Reset the selecting flag
+      _isSelecting = false;
+
+      // Show mobile number dialog
+      await MobileDialogHelper.showMobileDialog(
+        heading: widget.resions,
+        context,
+        leadId: leadId,
+        leadName: leadName,
+      );
+
+      return;
+    }
 
     setState(() {
       FocusScope.of(context).unfocus();

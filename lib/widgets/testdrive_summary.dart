@@ -459,7 +459,7 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
                                         Text(
                                           'Duration',
                                           style: AppFont.dropDowmLabel(context),
-                                          ),
+                                        ),
                                         Text(
                                           '${startTime} m',
                                           style: AppFont.mediumText14(context),

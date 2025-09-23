@@ -38,7 +38,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   double efficiency = 0.0;
   double responseTime = 0.0;
   double productKnowledge = 0.0;
-
+  double responsiveness = 0.0;
   bool isEditingMobile = false;
   TextEditingController _mobileController = TextEditingController();
 
@@ -101,6 +101,9 @@ class _ProfileScreenState extends State<ProfileScreen>
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
+
+      print('this is ${response.body}');
+
       setState(() {
         _mobileController.text = mobile ?? '';
         userId = data['data']['user_id'];
@@ -110,23 +113,42 @@ class _ProfileScreenState extends State<ProfileScreen>
         mobile = data['data']['phone'];
         profilePic = data['data']['profile_pic'];
         userRole = data['data']['user_role'];
-        rating = data['data']['rating'] != null
-            ? data['data']['rating'].toDouble()
-            : 0.0;
+        // rating = data['data']['rating'] != null
+        //     ? data['data']['rating'].toDouble()
+        //     : 0.0;
+
+        final ratingValue = data['data']['rating'];
+        if (ratingValue != null) {
+          if (ratingValue is double) {
+            rating = ratingValue;
+          } else if (ratingValue is int) {
+            rating = ratingValue.toDouble();
+          } else if (ratingValue is String) {
+            rating = double.tryParse(ratingValue) ?? 0.0;
+          } else {
+            rating = 0.0;
+          }
+        } else {
+          rating = 0.0;
+        }
 
         final evaluation = data['data']['evaluation'];
         if (evaluation != null) {
-          professionalism = evaluation['professionalism'] != null
-              ? evaluation['professionalism'] / 10
+          professionalism = evaluation['knowledge'] != null
+              ? evaluation['knowledge'] / 10
               : 0.0;
-          efficiency = evaluation['efficiency'] != null
-              ? evaluation['efficiency'] / 10
+          efficiency = evaluation['dependability'] != null
+              ? evaluation['dependability'] / 10
               : 0.0;
-          responseTime = evaluation['responseTime'] != null
-              ? evaluation['responseTime'] / 10
+          responseTime = evaluation['easy_business'] != null
+              ? evaluation['easy_business'] / 10
               : 0.0;
-          productKnowledge = evaluation['productKnowledge'] != null
-              ? evaluation['productKnowledge'] / 10
+          productKnowledge = evaluation['extra_efforts'] != null
+              ? evaluation['extra_efforts'] / 10
+              : 0.0;
+
+          responsiveness = evaluation['responsiveness'] != null
+              ? evaluation['responsiveness'] / 10
               : 0.0;
         }
         widget.refreshDashboard();
@@ -740,15 +762,15 @@ class _ProfileScreenState extends State<ProfileScreen>
 
         const SizedBox(height: 6),
 
-        Text(
-          '(0 reviews)',
-          style: TextStyle(
-            fontSize: 13,
-            color: Colors.grey[500],
-            fontWeight: FontWeight.w400,
-          ),
-          textAlign: TextAlign.center,
-        ),
+        // Text(
+        //   '(0 reviews)',
+        //   style: TextStyle(
+        //     fontSize: 13,
+        //     color: Colors.grey[500],
+        //     fontWeight: FontWeight.w400,
+        //   ),
+        //   textAlign: TextAlign.center,
+        // ),
       ],
     );
   }
@@ -966,26 +988,28 @@ class _ProfileScreenState extends State<ProfileScreen>
           SizedBox(height: 20),
 
           _buildCleanEvaluationProgress(
-            'Professionalism',
+            'Knowledge',
             professionalism,
             isDesktop,
           ),
           const SizedBox(height: 16),
-          _buildCleanEvaluationProgress(
-            'Service Efficiency',
-            efficiency,
-            isDesktop,
-          ),
+          _buildCleanEvaluationProgress('Dependability', efficiency, isDesktop),
           const SizedBox(height: 16),
           _buildCleanEvaluationProgress(
-            'Response Time',
+            'Easy Business',
             responseTime,
             isDesktop,
           ),
           const SizedBox(height: 16),
           _buildCleanEvaluationProgress(
-            'Product Knowledge',
+            'Extra Efforts',
             productKnowledge,
+            isDesktop,
+          ),
+          const SizedBox(height: 16),
+          _buildCleanEvaluationProgress(
+            'Responsiveness',
+            responsiveness,
             isDesktop,
           ),
         ],

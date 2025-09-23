@@ -938,7 +938,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         MaterialPageRoute(builder: (context) => FaqPage()),
                       );
                     },
-                    icon: const Icon(Icons.headset_mic  ),
+                    icon: const Icon(Icons.headset_mic),
                     color: Colors.white,
                   ),
                   Stack(

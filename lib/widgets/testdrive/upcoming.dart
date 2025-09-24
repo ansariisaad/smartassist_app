@@ -109,17 +109,17 @@ class _TestUpcomingState extends State<TestUpcoming> {
     String leadId = item['lead_id'] ?? '';
     Navigator.push(
       context,
+      //   MaterialPageRoute(
+      //     builder: (context) => TestdriveVerifyotp(
+      //       email: email,
+      //       mobile: mobile,
+      //       leadId: leadId,
+      //       eventId: eventId,
+      //     ),
+      //   ),
       MaterialPageRoute(
-        builder: (context) => TestdriveVerifyotp(
-          email: email,
-          mobile: mobile,
-          leadId: leadId,
-          eventId: eventId,
-        ),
+        builder: (context) => Feedbackscreen(leadId: leadId, eventId: eventId),
       ),
-      // MaterialPageRoute(
-      //   builder: (context) => Feedbackscreen(leadId: leadId, eventId: eventId),
-      // ),
     );
     print("Call action triggered for ${item['name']}");
   }

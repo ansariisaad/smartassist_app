@@ -540,6 +540,7 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
                                       ),
                                     ),
                                     Container(
+                                      width: 250,
                                       margin: EdgeInsets.only(right: 10),
                                       child: Text(
                                         (remarks == null ||

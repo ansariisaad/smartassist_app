@@ -49,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool hasInternet = true;
   bool isRefreshing = false;
-  int _currentTabIndex = 0; 
+  int _currentTabIndex = 0;
   late TabControllerNew _tabController;
   String? leadId;
   bool _isHidden = false;

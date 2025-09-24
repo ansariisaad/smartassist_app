@@ -56,10 +56,9 @@ class _MobileNumberDialogState extends State<MobileNumberDialog> {
 
       if (!mobileNumber.startsWith('+91')) {
         mobileNumber = '+91' + mobileNumber;
-
       }
 
-      final leadData = {'mobile': mobileNumber , };
+      final leadData = {'mobile': mobileNumber};
       final token = await Storage.getToken();
 
       final response = await http.put(

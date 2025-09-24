@@ -143,6 +143,8 @@ class _SmartAssistWebViewState extends State<SmartAssistWebView> {
         isInitializing = false;
       });
 
+      
+
       print('Loading dashboard URL: $finalUrl');
 
       // Load the URL in WebView

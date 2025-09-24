@@ -73,7 +73,7 @@
 
 //       final Map<String, String> queryParams = {'date': formattedDate};
 //       final baseUrl = Uri.parse(
-//         "https://api.prod.smartassistapp.in/api/calendar/activities/all/asondate",
+//         "https://api.smartassistapp.in/api/calendar/activities/all/asondate",
 //       );
 //       final uri = baseUrl.replace(queryParameters: queryParams);
 
@@ -676,7 +676,7 @@ class _CalendarWithTimelineState extends State<CalendarWithTimeline> {
 
       final Map<String, String> queryParams = {'date': formattedDate};
       final baseUrl = Uri.parse(
-        "https://api.prod.smartassistapp.in/api/calendar/activities/all/asondate",
+        "https://api.smartassistapp.in/api/calendar/activities/all/asondate",
       );
       final uri = baseUrl.replace(queryParameters: queryParams);
 

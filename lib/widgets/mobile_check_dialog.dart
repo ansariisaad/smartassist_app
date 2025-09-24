@@ -63,7 +63,7 @@ class _MobileNumberDialogState extends State<MobileNumberDialog> {
 
       final response = await http.put(
         Uri.parse(
-          'https://api.prod.smartassistapp.in/api/leads/update/${widget.leadId}',
+          'https://api.smartassistapp.in/api/leads/update/${widget.leadId}',
         ),
         headers: {
           'Authorization': 'Bearer $token',

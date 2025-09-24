@@ -139,9 +139,7 @@ class _FollowupsEditState extends State<FollowupsEdit> {
 
     try {
       final response = await http.get(
-        Uri.parse(
-          'https://api.prod.smartassistapp.in/api/tasks/${widget.taskId}',
-        ),
+        Uri.parse('https://api.smartassistapp.in/api/tasks/${widget.taskId}'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -271,7 +269,7 @@ class _FollowupsEditState extends State<FollowupsEdit> {
     try {
       final response = await http.put(
         Uri.parse(
-          'https://api.prod.smartassistapp.in/api/tasks/${widget.taskId}/update',
+          'https://api.smartassistapp.in/api/tasks/${widget.taskId}/update',
         ),
         headers: {
           'Authorization': 'Bearer $token',

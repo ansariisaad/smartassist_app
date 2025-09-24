@@ -96,7 +96,7 @@ class BottomBtnSecondState extends State<BottomBtnSecond> {
       final token = await Storage.getToken();
 
       final uri = Uri.parse(
-        'https://api.prod.smartassistapp.in/api/users/analytics?type=$period',
+        'https://api.smartassistapp.in/api/users/analytics?type=$period',
       );
 
       final response = await http.get(

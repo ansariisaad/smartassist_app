@@ -233,7 +233,7 @@
 //       final token = await Storage.getToken();
 
 //       // Create multipart request for file upload
-//       var uri = Uri.parse('https://api.prod.smartassistapp.in/api/issues/media/upload');
+//       var uri = Uri.parse('https://api.smartassistapp.in/api/issues/media/upload');
 //       var request = http.MultipartRequest('POST', uri);
 
 //       // Add headers
@@ -704,7 +704,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
 
       // Create multipart request for file upload
       var uri = Uri.parse(
-        'https://api.prod.smartassistapp.in/api/issues/media/upload',
+        'https://api.smartassistapp.in/api/issues/media/upload',
       );
       var request = http.MultipartRequest('POST', uri);
 

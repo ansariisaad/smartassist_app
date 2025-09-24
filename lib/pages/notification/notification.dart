@@ -46,7 +46,7 @@
 
 //   Future<void> _fetchNotifications({String? category}) async {
 //     final token = await Storage.getToken();
-//     String url = 'https://api.prod.smartassistapp.in/api/users/notifications/all';
+//     String url = 'https://api.smartassistapp.in/api/users/notifications/all';
 //     if (category != null && category != 'All') {
 //       final mapped = categoryMap[category];
 //       if (mapped != null && mapped != 'All') {
@@ -119,7 +119,7 @@
 
 //   Future<void> markAsRead(String id) async {
 //     final token = await Storage.getToken();
-//     final url = 'https://api.prod.smartassistapp.in/api/users/notifications/$id';
+//     final url = 'https://api.smartassistapp.in/api/users/notifications/$id';
 //     try {
 //       final resp = await http.put(
 //         Uri.parse(url),
@@ -144,7 +144,7 @@
 //   Future<void> markAllAsRead() async {
 //     final token = await Storage.getToken();
 //     final url =
-//         'https://api.prod.smartassistapp.in/api/users/notifications/read/all';
+//         'https://api.smartassistapp.in/api/users/notifications/read/all';
 //     try {
 //       final resp = await http.put(
 //         Uri.parse(url),
@@ -481,8 +481,7 @@ class _NotificationPageState extends State<NotificationPage> {
 
   Future<void> _fetchNotifications({String? category}) async {
     final token = await Storage.getToken();
-    String url =
-        'https://api.prod.smartassistapp.in/api/users/notifications/all';
+    String url = 'https://api.smartassistapp.in/api/users/notifications/all';
     if (category != null && category != 'All') {
       final mapped = categoryMap[category];
       if (mapped != null && mapped != 'All') {
@@ -541,8 +540,7 @@ class _NotificationPageState extends State<NotificationPage> {
 
   Future<void> markAsRead(String id) async {
     final token = await Storage.getToken();
-    final url =
-        'https://api.prod.smartassistapp.in/api/users/notifications/$id';
+    final url = 'https://api.smartassistapp.in/api/users/notifications/$id';
     try {
       final resp = await http.put(
         Uri.parse(url),
@@ -567,7 +565,7 @@ class _NotificationPageState extends State<NotificationPage> {
   Future<void> markAllAsRead() async {
     final token = await Storage.getToken();
     final url =
-        'https://api.prod.smartassistapp.in/api/users/notifications/read/all';
+        'https://api.smartassistapp.in/api/users/notifications/read/all';
     try {
       final resp = await http.put(
         Uri.parse(url),

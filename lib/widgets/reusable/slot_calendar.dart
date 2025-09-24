@@ -114,7 +114,7 @@ class _SlotCalendarState extends State<SlotCalendar> {
 
     try {
       final url =
-          'https://api.prod.smartassistapp.in/api/slots/${widget.vehicleId}/slots/all';
+          'https://api.smartassistapp.in/api/slots/${widget.vehicleId}/slots/all';
       print('Fetching booked slots from: $url');
 
       final response = await http.get(
@@ -1323,7 +1323,7 @@ class _CalenderWidgetState extends State<CalenderWidget> {
 
 //     try {
 //       final url =
-//           'https://api.prod.smartassistapp.in/api/slots/${widget.vehicleId}/slots/all';
+//           'https://api.smartassistapp.in/api/slots/${widget.vehicleId}/slots/all';
 //       print('Fetching booked slots from: $url');
 
 //       final response = await http.get(

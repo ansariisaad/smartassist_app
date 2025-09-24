@@ -115,7 +115,7 @@ class _FeedbackscreenState extends State<Feedbackscreen> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? spId = prefs.getString('user_id');
       final url = Uri.parse(
-        'https://api.prod.smartassistapp.in/api/events/submit-feedback/${widget.eventId}',
+        'https://api.smartassistapp.in/api/events/submit-feedback/${widget.eventId}',
       );
       final token = await Storage.getToken();
 

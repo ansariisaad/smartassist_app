@@ -211,7 +211,7 @@
 //       }).toList();
 
 //       final token = await Storage.getToken();
-//       const apiUrl = 'https://api.prod.smartassistapp.in/api/leads/create-call-logs';
+//       const apiUrl = 'https://api.smartassistapp.in/api/leads/create-call-logs';
 
 //       final response = await http.post(
 //         Uri.parse(apiUrl),
@@ -377,7 +377,7 @@
 
 //         final token = await Storage.getToken();
 //         final url = Uri.parse(
-//           'https://api.prod.smartassistapp.in/api/leads/excluded-calls',
+//           'https://api.smartassistapp.in/api/leads/excluded-calls',
 //         );
 
 //         final response = await http.put(
@@ -1578,7 +1578,7 @@ class _CallLogsState extends State<CallLogs> {
 
       final token = await Storage.getToken();
       final url = Uri.parse(
-        'https://api.prod.smartassistapp.in/api/leads/excluded-calls',
+        'https://api.smartassistapp.in/api/leads/excluded-calls',
       );
 
       final response = await http.put(
@@ -1781,7 +1781,7 @@ class _CallLogsState extends State<CallLogs> {
 
       final token = await Storage.getToken();
       final uri = Uri.parse(
-        'https://api.prod.smartassistapp.in/api/leads/all-CallLogs',
+        'https://api.smartassistapp.in/api/leads/all-CallLogs',
       );
 
       final response = await http.get(

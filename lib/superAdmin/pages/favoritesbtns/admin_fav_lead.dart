@@ -79,7 +79,7 @@ class _AdminFavLeadState extends State<AdminFavLead> {
       bool currentStatus = upcomingTasks[index]['favourite'] ?? false;
       bool newFavoriteStatus = !currentStatus;
       final url =
-          'https://api.prod.smartassistapp.in/api/favourites/mark-fav/lead/$leadId';
+          'https://api.smartassistapp.in/api/favourites/mark-fav/lead/$leadId';
       final response = await http.put(
         Uri.parse(url),
         headers: {
@@ -120,7 +120,7 @@ class _AdminFavLeadState extends State<AdminFavLead> {
     final token = await Storage.getToken();
     final adminId = await AdminUserIdManager.getAdminUserId();
     final url =
-        'https://api.prod.smartassistapp.in/api/app-admin/fav-leads/all?userId=$adminId';
+        'https://api.smartassistapp.in/api/app-admin/fav-leads/all?userId=$adminId';
     try {
       final response = await http.get(
         Uri.parse(url),

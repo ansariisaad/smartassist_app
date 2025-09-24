@@ -301,7 +301,7 @@ class _MyTeamsState extends State<MyTeams> {
       }
 
       final baseUri = Uri.parse(
-        'https://api.prod.smartassistapp.in/api/users/ps/dashboard/call-analytics',
+        'https://api.smartassistapp.in/api/users/ps/dashboard/call-analytics',
       );
 
       final uri = baseUri.replace(queryParameters: queryParams);
@@ -374,7 +374,7 @@ class _MyTeamsState extends State<MyTeams> {
       }
 
       final baseUri = Uri.parse(
-        'https://api.prod.smartassistapp.in/api/users/sm/dashboard/call-analytics',
+        'https://api.smartassistapp.in/api/users/sm/dashboard/call-analytics',
       );
 
       final uri = baseUri.replace(queryParameters: queryParams);
@@ -532,7 +532,7 @@ class _MyTeamsState extends State<MyTeams> {
       }
 
       final baseUri = Uri.parse(
-        'https://api.prod.smartassistapp.in/api/users/sm/analytics/team-dashboard',
+        'https://api.smartassistapp.in/api/users/sm/analytics/team-dashboard',
       );
 
       final uri = baseUri.replace(queryParameters: queryParams);

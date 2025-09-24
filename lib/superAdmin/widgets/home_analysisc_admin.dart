@@ -99,11 +99,11 @@ class HomeAnalysiscAdminState extends State<HomeAnalysiscAdmin> {
       final adminId = await AdminUserIdManager.getAdminUserId();
 
       // final uri = Uri.parse(
-      //   'https://api.prod.smartassistapp.in/api/app-admin/dashboard/analytics?adminIduserId?type=$period',
+      //   'https://api.smartassistapp.in/api/app-admin/dashboard/analytics?adminIduserId?type=$period',
       // );
 
       final uri = Uri.parse(
-        'https://api.prod.smartassistapp.in/api/app-admin/dashboard/analytics?userId=$adminId&type=$period',
+        'https://api.smartassistapp.in/api/app-admin/dashboard/analytics?userId=$adminId&type=$period',
       );
 
       final response = await http.get(

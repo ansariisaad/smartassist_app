@@ -82,7 +82,7 @@ class _AdminCalendarTimelineState extends State<AdminCalendarTimeline> {
       };
 
       final baseUrl = Uri.parse(
-        "https://api.prod.smartassistapp.in/api/app-admin/calendar/activities",
+        "https://api.smartassistapp.in/api/app-admin/calendar/activities",
       );
       final uri = baseUrl.replace(queryParameters: queryParams);
 

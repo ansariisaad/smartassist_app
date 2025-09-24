@@ -97,8 +97,8 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
       await Future.delayed(Duration(seconds: 1));
       final token = await Storage.getToken();
       final url = widget.isFromTestdrive
-          ? 'https://api.prod.smartassistapp.in/api/events/${widget.eventId}'
-          : 'https://api.prod.smartassistapp.in/api/events/${widget.isFromCompletedEventId}';
+          ? 'https://api.smartassistapp.in/api/events/${widget.eventId}'
+          : 'https://api.smartassistapp.in/api/events/${widget.isFromCompletedEventId}';
 
       final response = await http.get(
         Uri.parse(url),

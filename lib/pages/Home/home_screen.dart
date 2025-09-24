@@ -497,7 +497,7 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://api.prod.smartassistapp.in/api/search/global?query=$query',
+          'https://api.smartassistapp.in/api/search/global?query=$query',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -742,8 +742,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }).toList();
 
       final token = await Storage.getToken();
-      const apiUrl =
-          'https://api.prod.smartassistapp.in/api/leads/create-call-logs';
+      const apiUrl = 'https://api.smartassistapp.in/api/leads/create-call-logs';
 
       final response = await http.post(
         Uri.parse(apiUrl),

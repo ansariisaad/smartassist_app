@@ -151,9 +151,7 @@ class _TestdriveState extends State<Testdrive> {
 
     try {
       final response = await http.get(
-        Uri.parse(
-          'https://api.prod.smartassistapp.in/api/events/${widget.eventId}',
-        ),
+        Uri.parse('https://api.smartassistapp.in/api/events/${widget.eventId}'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -298,7 +296,7 @@ class _TestdriveState extends State<Testdrive> {
     try {
       final response = await http.put(
         Uri.parse(
-          'https://api.prod.smartassistapp.in/api/events/update/${widget.eventId}',
+          'https://api.smartassistapp.in/api/events/update/${widget.eventId}',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -955,7 +953,7 @@ class _TestdriveState extends State<Testdrive> {
 
 //     try {
 //       final response = await http.get(
-//         Uri.parse('https://api.prod.smartassistapp.in/api/events/${widget.eventId}'),
+//         Uri.parse('https://api.smartassistapp.in/api/events/${widget.eventId}'),
 //         headers: {
 //           'Authorization': 'Bearer $token',
 //           'Content-Type': 'application/json',
@@ -1051,7 +1049,7 @@ class _TestdriveState extends State<Testdrive> {
 //     try {
 //       final response = await http.put(
 //         Uri.parse(
-//           'https://api.prod.smartassistapp.in/api/events/update/${widget.eventId}',
+//           'https://api.smartassistapp.in/api/events/update/${widget.eventId}',
 //         ),
 //         headers: {
 //           'Authorization': 'Bearer $token',

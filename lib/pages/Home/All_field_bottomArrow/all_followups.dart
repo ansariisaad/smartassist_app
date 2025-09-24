@@ -199,8 +199,7 @@ class _AddFollowupsState extends State<AddFollowups>
     setState(() => _isLoading = true);
     try {
       final token = await Storage.getToken();
-      const String apiUrl =
-          "https://api.prod.smartassistapp.in/api/tasks/all-tasks";
+      const String apiUrl = "https://api.smartassistapp.in/api/tasks/all-tasks";
 
       final response = await http.get(
         Uri.parse(apiUrl),

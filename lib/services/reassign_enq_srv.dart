@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:smartassist/utils/storage.dart';
 
 class ApiService {
-  static const String baseUrl = "https://api.prod.smartassistapp.in/api/";
+  static const String baseUrl = "https://api.smartassistapp.in/api/";
 
   // Reassign leads API call
   static Future<Map<String, dynamic>> reassignLeads({

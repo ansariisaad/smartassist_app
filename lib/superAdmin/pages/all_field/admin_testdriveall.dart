@@ -216,8 +216,8 @@ class _AdminTestdriveallState extends State<AdminTestdriveall>
       final token = await Storage.getToken();
       final adminId = await AdminUserIdManager.getAdminUserId();
       final String apiUrl =
-          // "https://api.prod.smartassistapp.in/api/events/all-events$adminId";
-          "https://api.prod.smartassistapp.in/api/app-admin/events/all?userId=$adminId";
+          // "https://api.smartassistapp.in/api/events/all-events$adminId";
+          "https://api.smartassistapp.in/api/app-admin/events/all?userId=$adminId";
       final response = await http.get(
         Uri.parse(apiUrl),
         headers: {

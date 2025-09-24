@@ -67,8 +67,8 @@ class _HomeAnalysisAdminPerformanceState
       }
 
       final uri = Uri.parse(
-        // 'https://api.prod.smartassistapp.in/api/users/analytics$periodParam',
-        'https://api.prod.smartassistapp.in/api/app-admin/dashboard/analytics$periodParam&userId=$adminId',
+        // 'https://api.smartassistapp.in/api/users/analytics$periodParam',
+        'https://api.smartassistapp.in/api/app-admin/dashboard/analytics$periodParam&userId=$adminId',
       );
 
       final response = await http.get(

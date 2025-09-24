@@ -6,7 +6,7 @@ import 'package:smartassist/config/model/teams/team_member.dart';
 import '../../utils/storage.dart';
 
 class TeamsApiService {
-  static const String _baseUrl = 'https://api.prod.smartassistapp.in/api/users';
+  static const String _baseUrl = 'https://api.smartassistapp.in/api/users';
 
   // Get team details with performance data
   static Future<TeamsApiResponse> fetchTeamDetails({

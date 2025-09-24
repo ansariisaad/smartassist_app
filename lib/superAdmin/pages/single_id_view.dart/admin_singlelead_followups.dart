@@ -305,7 +305,7 @@ class _AdminSingleleadFollowupsState extends State<AdminSingleleadFollowups> {
 
     try {
       final uri = Uri.https(
-        "api.prod.smartassistapp.in",
+        "api.smartassistapp.in",
         "/api/app-admin/calls/all",
         {"userId": adminId, "mobile": mobile},
       );
@@ -349,7 +349,7 @@ class _AdminSingleleadFollowupsState extends State<AdminSingleleadFollowups> {
 
   //   final adminId = await AdminUserIdManager.getAdminUserId();
   //   final String apiUrl =
-  //       "https://api.prod.smartassistapp.in/api/app-admin/calls/all?userId=$adminId";
+  //       "https://api.smartassistapp.in/api/app-admin/calls/all?userId=$adminId";
   //   final token = await Storage.getToken();
 
   //   try {
@@ -924,7 +924,7 @@ class _AdminSingleleadFollowupsState extends State<AdminSingleleadFollowups> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? spId = prefs.getString('user_id');
       final url = Uri.parse(
-        'https://api.prod.smartassistapp.in/api/leads/mark-lost/${widget.leadId}',
+        'https://api.smartassistapp.in/api/leads/mark-lost/${widget.leadId}',
       );
       final token = await Storage.getToken();
 
@@ -1061,7 +1061,7 @@ class _AdminSingleleadFollowupsState extends State<AdminSingleleadFollowups> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? spId = prefs.getString('user_id');
       final url = Uri.parse(
-        'https://api.prod.smartassistapp.in/api/leads/convert-to-opp/${widget.leadId}',
+        'https://api.smartassistapp.in/api/leads/convert-to-opp/${widget.leadId}',
       );
       final token = await Storage.getToken();
 

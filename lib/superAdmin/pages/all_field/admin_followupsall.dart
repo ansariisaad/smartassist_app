@@ -99,7 +99,7 @@ class _AdminFollowupsallState extends State<AdminFollowupsall>
       final token = await Storage.getToken();
       final adminId = await AdminUserIdManager.getAdminUserId();
       final String apiUrl =
-          "https://api.prod.smartassistapp.in/api/app-admin/followups/all?userId=$adminId";
+          "https://api.smartassistapp.in/api/app-admin/followups/all?userId=$adminId";
 
       final response = await http.get(
         Uri.parse(apiUrl),

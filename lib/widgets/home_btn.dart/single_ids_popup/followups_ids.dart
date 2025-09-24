@@ -145,7 +145,7 @@ class _FollowupsIdsState extends State<FollowupsIds> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://api.prod.smartassistapp.in/api/search/global?query=$query',
+          'https://api.smartassistapp.in/api/search/global?query=$query',
         ),
         headers: {
           'Authorization': 'Bearer $token',

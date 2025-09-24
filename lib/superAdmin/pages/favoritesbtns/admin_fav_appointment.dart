@@ -71,7 +71,7 @@ class _AdminFavAppointmentState extends State<AdminFavAppointment> {
 
       final response = await http.put(
         Uri.parse(
-          'https://api.prod.smartassistapp.in/api/favourites/mark-fav/task/$taskId',
+          'https://api.smartassistapp.in/api/favourites/mark-fav/task/$taskId',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -132,7 +132,7 @@ class _AdminFavAppointmentState extends State<AdminFavAppointment> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://api.prod.smartassistapp.in/api/app-admin/fav-appointments/all?userId=$adminId',
+          'https://api.smartassistapp.in/api/app-admin/fav-appointments/all?userId=$adminId',
         ),
         headers: {
           'Authorization': 'Bearer $token',

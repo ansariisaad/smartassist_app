@@ -71,7 +71,7 @@ class _AdminFavTestdriveState extends State<AdminFavTestdrive> {
 
       final response = await http.put(
         Uri.parse(
-          'https://api.prod.smartassistapp.in/api/favourites/mark-fav/event/$eventId',
+          'https://api.smartassistapp.in/api/favourites/mark-fav/event/$eventId',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -131,7 +131,7 @@ class _AdminFavTestdriveState extends State<AdminFavTestdrive> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://api.prod.smartassistapp.in/api/app-admin/fav-events/all?userId=$adminId',
+          'https://api.smartassistapp.in/api/app-admin/fav-events/all?userId=$adminId',
         ),
         headers: {
           'Authorization': 'Bearer $token',

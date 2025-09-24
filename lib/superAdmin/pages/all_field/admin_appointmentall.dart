@@ -220,8 +220,8 @@ class _AdminAppointmentallState extends State<AdminAppointmentall>
       final token = await Storage.getToken();
       final adminId = await AdminUserIdManager.getAdminUserId();
       final String apiUrl =
-          // "https://api.prod.smartassistapp.in/api/tasks/all-appointments$adminId";
-          "https://api.prod.smartassistapp.in/api/app-admin/appointments/all?userId=$adminId";
+          // "https://api.smartassistapp.in/api/tasks/all-appointments$adminId";
+          "https://api.smartassistapp.in/api/app-admin/appointments/all?userId=$adminId";
 
       final response = await http.get(
         Uri.parse(apiUrl),

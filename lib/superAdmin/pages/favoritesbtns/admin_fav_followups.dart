@@ -128,7 +128,7 @@ class _AdminFavFollowupsState extends State<AdminFavFollowups> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://api.prod.smartassistapp.in/api/app-admin/fav-followups/all?userId=$adminId',
+          'https://api.smartassistapp.in/api/app-admin/fav-followups/all?userId=$adminId',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -666,7 +666,7 @@ class ReusableSlidableAction extends StatelessWidget {
 //     try {
 //       final response = await http.get(
 //         Uri.parse(
-//             'https://api.prod.smartassistapp.in/api/favourites/follow-ups/all'),
+//             'https://api.smartassistapp.in/api/favourites/follow-ups/all'),
 //         headers: {
 //           'Authorization': 'Bearer $token',
 //           'Content-Type': 'application/json'
@@ -797,7 +797,7 @@ class ReusableSlidableAction extends StatelessWidget {
 //     try {
 //       final response = await http.put(
 //         Uri.parse(
-//           'https://api.prod.smartassistapp.in/api/favourites/mark-fav/task/${widget.taskId}',
+//           'https://api.smartassistapp.in/api/favourites/mark-fav/task/${widget.taskId}',
 //         ),
 //         headers: {
 //           'Authorization': 'Bearer $token',

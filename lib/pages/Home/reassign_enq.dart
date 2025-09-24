@@ -106,7 +106,7 @@ class _AllEnqState extends State<AllEnq> {
     final token = await Storage.getToken();
     try {
       final response = await http.get(
-        Uri.parse('https://api.prod.smartassistapp.in/api/leads/my-teams/all'),
+        Uri.parse('https://api.smartassistapp.in/api/leads/my-teams/all'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',

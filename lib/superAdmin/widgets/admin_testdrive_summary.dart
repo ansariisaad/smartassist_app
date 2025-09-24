@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:smartassist/config/component/color/colors.dart';
-import 'package:smartassist/config/component/font/font.dart'; 
+import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/superAdmin/pages/admin_dealerall.dart';
 import 'package:smartassist/utils/admin_is_manager.dart';
 import 'package:smartassist/utils/bottom_navigation.dart';
@@ -99,8 +99,8 @@ class _AdminTestdriveSummaryState extends State<AdminTestdriveSummary> {
       await Future.delayed(Duration(seconds: 1));
       final token = await Storage.getToken();
       final url = widget.isFromTestdrive
-          ? 'https://api.prod.smartassistapp.in/api/events/${widget.eventId}'
-          : 'https://api.prod.smartassistapp.in/api/events/${widget.isFromCompletedEventId}';
+          ? 'https://api.smartassistapp.in/api/events/${widget.eventId}'
+          : 'https://api.smartassistapp.in/api/events/${widget.isFromCompletedEventId}';
 
       final response = await http.get(
         Uri.parse(url),
@@ -181,6 +181,8 @@ class _AdminTestdriveSummaryState extends State<AdminTestdriveSummary> {
     }
   }
 
+  bool _isLoading = false;
+
   String getRatingLabel(double rating) {
     if (rating >= 4.5) return 'Excellent';
     if (rating >= 3.5) return 'Good';
@@ -202,7 +204,7 @@ class _AdminTestdriveSummaryState extends State<AdminTestdriveSummary> {
       _isTablet(context) ? 16 : (_isSmallScreen(context) ? 12 : 14);
   double _smallFontSize(BuildContext context) =>
       _isTablet(context) ? 14 : (_isSmallScreen(context) ? 10 : 12);
-  bool _isLoading = false;
+
   @override
   Widget build(BuildContext context) {
     String formattedTime = formatTime(startTime);

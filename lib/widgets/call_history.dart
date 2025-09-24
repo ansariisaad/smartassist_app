@@ -91,7 +91,7 @@ class _CallHistoryState extends State<CallHistory> {
   ) async {
     // If callDate is empty, omit the call_date query parameter from the URL
     String apiUrl =
-        "https://api.prod.smartassistapp.in/api/leads/call-logs/all?category=$category&mobile=${Uri.encodeComponent(mobile)}";
+        "https://api.smartassistapp.in/api/leads/call-logs/all?category=$category&mobile=${Uri.encodeComponent(mobile)}";
 
     // If callDate is not empty, include it in the URL
     // if (callDate.isNotEmpty) {

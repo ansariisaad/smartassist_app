@@ -147,7 +147,7 @@ class _TestdriveAdminOverdueState extends State<TestdriveAdminOverdue> {
 
   //     final response = await http.put(
   //       Uri.parse(
-  //         'https://api.prod.smartassistapp.in/api/favourites/mark-fav/event/$eventId',
+  //         'https://api.smartassistapp.in/api/favourites/mark-fav/event/$eventId',
   //       ),
   //       headers: {
   //         'Authorization': 'Bearer $token',

@@ -70,7 +70,7 @@ class _FTestdriveState extends State<FTestdrive> {
 
       final response = await http.put(
         Uri.parse(
-          'https://api.prod.smartassistapp.in/api/favourites/mark-fav/event/$eventId',
+          'https://api.smartassistapp.in/api/favourites/mark-fav/event/$eventId',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -129,7 +129,7 @@ class _FTestdriveState extends State<FTestdrive> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://api.prod.smartassistapp.in/api/favourites/events/test-drives/all',
+          'https://api.smartassistapp.in/api/favourites/events/test-drives/all',
         ),
         headers: {
           'Authorization': 'Bearer $token',

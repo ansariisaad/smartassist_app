@@ -193,7 +193,7 @@ class _AdminMyenquiriesState extends State<AdminMyenquiries> {
 
       final response = await http.put(
         Uri.parse(
-          'https://api.prod.smartassistapp.in/api/favourites/mark-fav/lead/$leadId',
+          'https://api.smartassistapp.in/api/favourites/mark-fav/lead/$leadId',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -243,10 +243,10 @@ class _AdminMyenquiriesState extends State<AdminMyenquiries> {
     final adminId = await AdminUserIdManager.getAdminUserId();
     try {
       final url =
-          'https://api.prod.smartassistapp.in/api/app-admin/leads-data/all?userId=$adminId';
+          'https://api.smartassistapp.in/api/app-admin/leads-data/all?userId=$adminId';
       final response = await http.get(
         Uri.parse(
-          // 'https://api.prod.smartassistapp.in/api/leads/fetch/all'
+          // 'https://api.smartassistapp.in/api/leads/fetch/all'
           url,
         ),
         headers: {

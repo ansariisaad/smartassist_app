@@ -239,7 +239,7 @@ class _AdminSingleleidTeamsState extends State<AdminSingleleidTeams> {
 
   static Future<Map<String, int>> fetchCallLogs(String mobile) async {
     const String apiUrl =
-        "https://api.prod.smartassistapp.in/api/leads/call-logs/all";
+        "https://api.smartassistapp.in/api/leads/call-logs/all";
     final token = await Storage.getToken();
 
     try {
@@ -689,7 +689,7 @@ class _AdminSingleleidTeamsState extends State<AdminSingleleidTeams> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? spId = prefs.getString('user_id');
       final url = Uri.parse(
-        'https://api.prod.smartassistapp.in/api/leads/mark-lost/${widget.leadId}',
+        'https://api.smartassistapp.in/api/leads/mark-lost/${widget.leadId}',
       );
       final token = await Storage.getToken();
 
@@ -822,7 +822,7 @@ class _AdminSingleleidTeamsState extends State<AdminSingleleidTeams> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? spId = prefs.getString('user_id');
       final url = Uri.parse(
-        'https://api.prod.smartassistapp.in/api/leads/convert-to-opp/${widget.leadId}',
+        'https://api.smartassistapp.in/api/leads/convert-to-opp/${widget.leadId}',
       );
       final token = await Storage.getToken();
 

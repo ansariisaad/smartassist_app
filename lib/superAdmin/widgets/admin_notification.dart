@@ -55,8 +55,8 @@ class _AdminNotificationState extends State<AdminNotification> {
     final adminId = await AdminUserIdManager.getAdminUserId();
 
     String url =
-        'https://api.prod.smartassistapp.in/api/app-admin/notifications/all?userId=$adminId&';
-    //  'https://api.prod.smartassistapp.in/api/users/notifications/all';
+        'https://api.smartassistapp.in/api/app-admin/notifications/all?userId=$adminId&';
+    //  'https://api.smartassistapp.in/api/users/notifications/all';
     if (category != null && category != 'All') {
       final mapped = categoryMap[category];
       if (mapped != null && mapped != 'All') {
@@ -118,8 +118,7 @@ class _AdminNotificationState extends State<AdminNotification> {
 
   Future<void> markAsRead(String id) async {
     final token = await Storage.getToken();
-    final url =
-        'https://api.prod.smartassistapp.in/api/users/notifications/$id';
+    final url = 'https://api.smartassistapp.in/api/users/notifications/$id';
     try {
       final resp = await http.put(
         Uri.parse(url),
@@ -144,7 +143,7 @@ class _AdminNotificationState extends State<AdminNotification> {
   Future<void> markAllAsRead() async {
     final token = await Storage.getToken();
     final url =
-        'https://api.prod.smartassistapp.in/api/users/notifications/read/all';
+        'https://api.smartassistapp.in/api/users/notifications/read/all';
     try {
       final resp = await http.put(
         Uri.parse(url),

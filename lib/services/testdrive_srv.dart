@@ -8,7 +8,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:smartassist/utils/storage.dart';
 
 class TestDriveApiService {
-  static const String baseUrl = 'https://api.prod.smartassistapp.in';
+  static const String baseUrl = 'https://api.smartassistapp.in';
 
   // Start test drive
   static Future<TestDriveApiResult> startTestDrive({

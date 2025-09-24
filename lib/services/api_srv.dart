@@ -15,7 +15,7 @@ import 'package:smartassist/utils/storage.dart';
 import 'package:smartassist/utils/token_manager.dart';
 
 class LeadsSrv {
-  static const String baseUrl = 'https://api.smartassistapp.in/api/';
+  static const String baseUrl = 'https://api.prod.smartassistapp.in/api/';
   static final ConnectionService _connectionService = ConnectionService();
 
   static Future<void> handleUnauthorizedIfNeeded(
@@ -626,7 +626,7 @@ class LeadsSrv {
 
     try {
       final response = await http.post(
-        Uri.parse('https://api.smartassistapp.in/compass/user-token'),
+        Uri.parse('https://api.prod.smartassistapp.in/compass/user-token'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -947,7 +947,7 @@ class LeadsSrv {
   // static Future<List<Map<String, dynamic>>> singleTasksById(
   //     String leadId) async {
   //   const String apiUrl =
-  //       "https://api.smartassistapp.in/api/admin/leads/tasks/all/";
+  //       "https://api.prod.smartassistapp.in/api/admin/leads/tasks/all/";
 
   //   final token = await Storage.getToken();
   //   if (token == null) {
@@ -2220,7 +2220,7 @@ class LeadsSrv {
     try {
       final token = await Storage.getToken();
       final url = Uri.parse(
-        'https://api.smartassistapp.in/api/events/$eventId/send-consent',
+        'https://api.prod.smartassistapp.in/api/events/$eventId/send-consent',
       );
 
       final response = await http.post(

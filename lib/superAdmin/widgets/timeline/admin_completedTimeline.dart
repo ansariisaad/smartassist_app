@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:smartassist/config/component/color/colors.dart';
 import 'package:smartassist/config/component/font/font.dart';
 import 'package:smartassist/services/api_srv.dart';
+import 'package:smartassist/superAdmin/widgets/admin_testdrive_summary.dart';
 import 'package:smartassist/widgets/testdrive_summary.dart';
 import 'package:intl/intl.dart';
 
@@ -111,7 +112,6 @@ class _AdminCompletedtimelineState extends State<AdminCompletedtimeline> {
 
     return Column(
       children: [
-        // TASKS (events list)
         ...List.generate(reversedEvents.length, (index) {
           final task = reversedEvents[index];
           String dueDate = _formatDate(task['due_date'] ?? 'N/A');
@@ -135,7 +135,7 @@ class _AdminCompletedtimelineState extends State<AdminCompletedtimeline> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => TestdriveOverview(
+                      builder: (context) => AdminTestdriveSummary(
                         eventId: eventId,
                         leadId: '',
                         isFromCompletedEventId: eventId,
@@ -346,7 +346,7 @@ class _AdminCompletedtimelineState extends State<AdminCompletedtimeline> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => TestdriveOverview(
+                      builder: (context) => AdminTestdriveSummary(
                         isFromCompletedEventId: eventId,
                         eventId: eventId,
                         leadId: '',

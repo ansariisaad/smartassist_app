@@ -181,11 +181,11 @@ class _AdminUpcomingtimelineState extends State<AdminUpcomingtimeline>
     if (widget.isFromTeams) return;
     final lower = subject.trim().toLowerCase();
     if (lower == 'call') {
-      _handleCall(mobile, taskId: taskId);
+      // _handleCall(mobile, taskId: taskId);
     } else if (lower == 'send sms') {
-      launchUrl(Uri.parse('sms:$mobile'));
+      // launchUrl(Uri.parse('sms:$mobile'));
     } else if (lower == 'test drive') {
-      _showAleart(eventId, gmail, leadId, mobile, context);
+      // _showAleart(eventId, gmail, leadId, mobile, context);
     }
   }
 

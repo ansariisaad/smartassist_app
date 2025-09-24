@@ -124,7 +124,7 @@ class _AdminCalendarSmState extends State<AdminCalendarSm> {
 
       final userId = await AdminUserIdManager.getAdminUserId();
       final baseUri = Uri.parse(
-        'https://api.smartassistapp.in/api/app-admin/SM/dashboard?userId=$userId',
+        'https://api.prod.smartassistapp.in/api/app-admin/SM/dashboard?userId=$userId',
       );
       final response = await http.get(
         baseUri,
@@ -187,7 +187,7 @@ class _AdminCalendarSmState extends State<AdminCalendarSm> {
       }
 
       final uri = Uri.https(
-        "api.smartassistapp.in",
+        "api.prod.smartassistapp.in",
         "/api/app-admin/calendar/activities",
         queryParams,
       );
@@ -210,7 +210,7 @@ class _AdminCalendarSmState extends State<AdminCalendarSm> {
       //   queryParams['user_id'] = _selectedUserId;
       // }
       // final baseUrl = Uri.parse(
-      //   "https://api.smartassistapp.in/api/app-admin/calendar/activities?userId=$adminId",
+      //   "https://api.prod.smartassistapp.in/api/app-admin/calendar/activities?userId=$adminId",
       // );
       // final uri = baseUrl.replace(queryParameters: queryParams);
       // final response = await http.get(

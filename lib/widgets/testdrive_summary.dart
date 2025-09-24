@@ -266,9 +266,6 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
                         children: [
                           // Map
                           const SizedBox(height: 20),
-
-                          // Your main display section
-                          // ignore: unnecessary_null_comparison
                           ratings == null
                               ? Center(
                                   child: Container(
@@ -424,7 +421,6 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              // crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
                                   children: [
@@ -468,7 +464,6 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
                                     ),
                                   ],
                                 ),
-                                // const SizedBox(width: 5),
                                 Row(
                                   children: [
                                     Column(
@@ -706,46 +701,11 @@ class _TestdriveOverviewState extends State<TestdriveOverview> {
     );
   }
 
-  // Helper method to build the rating rows
-  // Widget _buildRatingRow(String label, int? rating) {
-  //   return Row(
-  //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //     children: [
-  //       Text('$label: ', style: AppFont.dropDowmLabel(context)),
-  //       const SizedBox(
-  //         height: 10,
-  //       ),
-  //       IconTheme(
-  //         data: IconThemeData(color: Colors.amber),
-  //         child: Row(
-  //           children: List.generate(5, (index) {
-  //             return Icon(
-  //               index < (rating ?? 0)
-  //                   ? Icons.star_rounded
-  //                   : Icons.star_outline_rounded,
-  //               size: 30,
-  //             );
-  //           }),
-  //         ),
-  //       ),
-  //     ],
-  //   );
-  // }
-
   // Helper method to build the rating row with stars and emojis
 
   Widget _buildRatingRow(String label, int? rating) {
     // List of emojis corresponding to each rating level
-    final List<String> emojiRatings = [
-      '😔', // For 1 star
-      '🙁', // For 2 stars
-      '🙂', // For 3 stars
-      '😃', // For 4 stars
-      '😍', // For 5 stars
-    ];
-
-    // // Ensure that rating falls within a valid range (1 to 5)
-    // int validRating = (rating ?? 0).clamp(1, 5);
+    final List<String> emojiRatings = ['😔', '🙁', '🙂', '😃', '😍'];
 
     // Fix rating properly
     int validRating = (rating != null && rating >= 1 && rating <= 5)

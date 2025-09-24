@@ -49,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool hasInternet = true;
   bool isRefreshing = false;
-  int _currentTabIndex = 0; // Track which tab is active
+  int _currentTabIndex = 0; 
   late TabControllerNew _tabController;
   String? leadId;
   bool _isHidden = false;
@@ -169,23 +169,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // call log after login
   Future<void> uploadCallLogsAfterLogin() async {
-    // Check permissions first
-    // final hasPermissions = await _checkAndRequestPermissions();
-    // if (!hasPermissions) {
-    //   showErrorMessage(
-    //     context,
-    //     message: 'Phone permissions required to access call logs',
-    //   );
-    //   return;
-    // }
     final hasPermissions = await _checkAndRequestPermissions();
-    // if (!hasPermissions) {
-    //   showErrorMessage(
-    //     context,
-    //     message: 'Phone permissions required to access call logs',
-    //   );
-    //   return;
-    // }
 
     if (!hasPermissions) {
       _showDialorPermission();
@@ -938,7 +922,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         MaterialPageRoute(builder: (context) => FaqPage()),
                       );
                     },
-                    icon: const Icon(Icons.headset_mic  ),
+                    icon: const Icon(Icons.headset_mic),
                     color: Colors.white,
                   ),
                   Stack(

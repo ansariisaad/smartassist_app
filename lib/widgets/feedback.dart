@@ -317,13 +317,6 @@ class _FeedbackscreenState extends State<Feedbackscreen> {
 
               const SizedBox(height: 10),
 
-              // Padding(
-              //   padding: const EdgeInsets.only(left: 16.0, bottom: 8.0),
-              //   child: Text(
-              //     'Potential of purchase',
-              //     style: AppFont.mediumText14Black(context),
-              //   ),
-              // ),
               Row(
                 children: [
                   Expanded(
@@ -368,14 +361,7 @@ class _FeedbackscreenState extends State<Feedbackscreen> {
               ),
 
               const SizedBox(height: 0),
-              // Padding(
-              //   padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              //   child: _buildTextField(
-              //     label: 'Remarks:',
-              //     controller: descriptionController,
-              //     hint: 'Type or speak...',
-              //   ),
-              // ),
+
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: EnhancedSpeechTextField(

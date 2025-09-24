@@ -100,7 +100,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         'Content-Type': 'application/json',
       },
     );
-    
+
     // print('this is the url profile $url');
 
     if (response.statusCode == 200) {
@@ -749,17 +749,17 @@ class _ProfileScreenState extends State<ProfileScreen>
           }),
         ),
 
-        const SizedBox(height: 6),
+        // const SizedBox(height: 6),
 
-        Text(
-          '(0 reviews)',
-          style: TextStyle(
-            fontSize: 13,
-            color: Colors.grey[500],
-            fontWeight: FontWeight.w400,
-          ),
-          textAlign: TextAlign.center,
-        ),
+        // Text(
+        //   '(0 reviews)',
+        //   style: TextStyle(
+        //     fontSize: 13,
+        //     color: Colors.grey[500],
+        //     fontWeight: FontWeight.w400,
+        //   ),
+        //   textAlign: TextAlign.center,
+        // ),
       ],
     );
   }

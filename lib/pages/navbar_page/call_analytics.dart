@@ -39,6 +39,23 @@ class _CallAnalyticsState extends State<CallAnalytics>
   Map<String, dynamic>? _enquiryData;
   Map<String, dynamic>? _coldCallData;
 
+  String get analysisTitle {
+    switch (selectedTimeRange) {
+      case '1D':
+        return 'Hourly Analysis';
+      case '1W':
+        return 'Daily Analysis';
+      case '1M':
+        return 'Weekly Analysis';
+      case '1Q':
+        return 'Monthly Analysis';
+      case '1Y':
+        return 'Quarterly Analysis';
+      default:
+        return 'Analysis';
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -802,7 +819,7 @@ class _CallAnalyticsState extends State<CallAnalytics>
         alignment: Alignment
             .center, // <-- Center the text vertically within the container
         padding: EdgeInsets.symmetric(
-          horizontal: 24,
+          horizontal: 14,
         ), // Adjust horizontal padding as needed
         decoration: BoxDecoration(
           color: isActive ? AppColors.colorsBlue : Colors.transparent,
@@ -843,8 +860,8 @@ class _CallAnalyticsState extends State<CallAnalytics>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Hourly Analysis',
-            style: TextStyle(
+            analysisTitle,
+            style: GoogleFonts.poppins(
               fontSize: _bodyFontSize,
               fontWeight: FontWeight.w600,
               color: Colors.grey[800],

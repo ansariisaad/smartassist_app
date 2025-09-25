@@ -389,20 +389,20 @@ class _AdminOverduetimelineState extends State<AdminOverduetimeline> {
                           //   padding: EdgeInsets.zero,
                           //   constraints: BoxConstraints(),
                           // ),
-                          if (!widget.isFromTeams)
-                            IconButton(
-                              icon: const Icon(
-                                Icons.edit,
-                                size: 18,
-                                color: Colors.black,
-                              ),
-                              onPressed: () => {},
-                              // _handleEdit(eventSubject, eventId),
-                              tooltip: 'Edit',
-                              splashRadius: 18,
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                            ),
+                          // if (!widget.isFromTeams)
+                          //   IconButton(
+                          //     icon: const Icon(
+                          //       Icons.edit,
+                          //       size: 18,
+                          //       color: Colors.black,
+                          //     ),
+                          //     onPressed: () => {},
+                          //     // _handleEdit(eventSubject, eventId),
+                          //     tooltip: 'Edit',
+                          //     splashRadius: 18,
+                          //     padding: EdgeInsets.zero,
+                          //     constraints: const BoxConstraints(),
+                          //   ),
                         ],
                       ),
                     ),

@@ -439,42 +439,44 @@ class _AdminUpcomingtimelineState extends State<AdminUpcomingtimeline>
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (!widget.isFromTeams)
-                          IconButton(
-                            icon: Icon(
-                              Icons.edit,
-                              size: 18,
-                              color: Colors.black,
-                            ),
-                            onPressed: () {
-                              final lower = subject.trim().toLowerCase();
 
-                              // These subjects open FollowupsEdit
+                        // if (!widget.isFromTeams)
+                        //   IconButton(
+                        //     icon: Icon(
+                        //       Icons.edit,
+                        //       size: 18,
+                        //       color: Colors.black,
+                        //     ),
+                        //     onPressed: () {
+                        //       final lower = subject.trim().toLowerCase();
 
-                              // if (lower == 'provide quotation' ||
-                              //     lower == 'send sms' ||
-                              //     lower == 'call' ||
-                              //     lower == 'send email' ||
-                              //     lower == 'showroom appointment' ||
-                              //     lower == 'trade in evaluation') {
-                              //   _handleFollowupsEdit(taskId);
-                              // }
-                              // // These subjects open AppointmentsEdit
-                              // else if (lower == 'quotation' ||
-                              //     lower == 'meeting' ||
-                              //     lower == 'vehicle selection') {
-                              //   handleAppointmentsEdit(taskId);
-                              // }
-                              // // Otherwise, fallback to followup (optional)
-                              // else {
-                              //   _handleFollowupsEdit(taskId);
-                              // }
-                            },
-                            tooltip: 'Edit Remarks',
-                            splashRadius: 18,
-                            padding: EdgeInsets.zero,
-                            constraints: BoxConstraints(),
-                          ),
+                        //       // These subjects open FollowupsEdit
+
+                        //       // if (lower == 'provide quotation' ||
+                        //       //     lower == 'send sms' ||
+                        //       //     lower == 'call' ||
+                        //       //     lower == 'send email' ||
+                        //       //     lower == 'showroom appointment' ||
+                        //       //     lower == 'trade in evaluation') {
+                        //       //   _handleFollowupsEdit(taskId);
+                        //       // }
+                        //       // // These subjects open AppointmentsEdit
+                        //       // else if (lower == 'quotation' ||
+                        //       //     lower == 'meeting' ||
+                        //       //     lower == 'vehicle selection') {
+                        //       //   handleAppointmentsEdit(taskId);
+                        //       // }
+                        //       // // Otherwise, fallback to followup (optional)
+                        //       // else {
+                        //       //   _handleFollowupsEdit(taskId);
+                        //       // }
+                        //     },
+                        //     tooltip: 'Edit Remarks',
+                        //     splashRadius: 18,
+                        //     padding: EdgeInsets.zero,
+                        //     constraints: BoxConstraints(),
+                        //   ),
+                        
                       ],
                     ),
                   ),
@@ -609,22 +611,22 @@ class _AdminUpcomingtimelineState extends State<AdminUpcomingtimeline>
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          if (!widget.isFromTeams)
-                            if (eventSubject.trim().toLowerCase() ==
-                                'test drive')
-                              IconButton(
-                                icon: Icon(
-                                  Icons.edit,
-                                  size: 18,
-                                  color: Colors.black,
-                                ),
-                                onPressed: () => {},
-                                //  _handleTestDriveEdit(eventId),
-                                tooltip: 'Edit Test Drive',
-                                splashRadius: 18,
-                                padding: EdgeInsets.zero,
-                                constraints: BoxConstraints(),
-                              ),
+                          // if (!widget.isFromTeams)
+                          //   if (eventSubject.trim().toLowerCase() ==
+                          //       'test drive')
+                          //     IconButton(
+                          //       icon: Icon(
+                          //         Icons.edit,
+                          //         size: 18,
+                          //         color: Colors.black,
+                          //       ),
+                          //       onPressed: () => {},
+                          //       //  _handleTestDriveEdit(eventId),
+                          //       tooltip: 'Edit Test Drive',
+                          //       splashRadius: 18,
+                          //       padding: EdgeInsets.zero,
+                          //       constraints: BoxConstraints(),
+                          //     ),
                         ],
                       ),
                     ),

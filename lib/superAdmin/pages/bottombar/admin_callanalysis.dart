@@ -31,6 +31,22 @@ class _CallAnalyticsState extends State<AdminCallanalysis>
     with TickerProviderStateMixin {
   late TabController _tabController;
   final List<String> tabTitles = ['Enquiry', 'Cold Calls'];
+  String get analysisTitle {
+    switch (selectedTimeRange) {
+      case '1D':
+        return 'Hourly Analysis';
+      case '1W':
+        return 'Daily Analysis';
+      case '1M':
+        return 'Weekly Analysis';
+      case '1Q':
+        return 'Monthly Analysis';
+      case '1Y':
+        return 'Quarterly Analysis';
+      default:
+        return 'Analysis';
+    }
+  }
 
   String selectedTimeRange = '1D';
   int selectedTabIndex = 0;
@@ -879,8 +895,8 @@ class _CallAnalyticsState extends State<AdminCallanalysis>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Hourly Analysis',
-            style: TextStyle(
+            analysisTitle,
+            style: GoogleFonts.poppins(
               fontSize: _bodyFontSize,
               fontWeight: FontWeight.w600,
               color: Colors.grey[800],

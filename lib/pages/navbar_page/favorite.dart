@@ -116,7 +116,7 @@ class _FavoritePageState extends State<FavoritePage> {
                 spacing: 1, // Space between buttons
                 children: [
                   FlexibleButton(
-                    title: 'Enquirys',
+                    title: 'Enquiries',
                     onPressed: () {
                       setState(() {
                         _selectedButtonIndex = 0;

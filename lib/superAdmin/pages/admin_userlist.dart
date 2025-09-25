@@ -8,8 +8,16 @@ import 'package:smartassist/utils/admin_bottomnavigation.dart';
 class AdminUserlist extends StatefulWidget {
   final Map<String, dynamic> dealer;
   final List<Map<String, dynamic>> users;
-
-  const AdminUserlist({super.key, required this.dealer, required this.users});
+  // final List<Map<String, dynamic>> activeUser;
+  final int activeUser;
+  final int inactiveUser;
+  const AdminUserlist({
+    super.key,
+    required this.dealer,
+    required this.users,
+    required this.activeUser,
+    required this.inactiveUser,
+  });
 
   @override
   State<AdminUserlist> createState() => _AdminUserlistState();
@@ -118,9 +126,10 @@ class _AdminUserlistState extends State<AdminUserlist> {
 
   Widget _buildUserStats() {
     final totalUsers = widget.users.length;
+    final activeUser = widget.activeUser;
     final filteredCount = filteredUsers.length;
     final showingText = isSearching
-        ? 'Showing $filteredCount of $totalUsers users'
+        ? 'Showing $filteredCount of $activeUser users'
         : '$totalUsers users found';
 
     return Container(
@@ -167,15 +176,15 @@ class _AdminUserlistState extends State<AdminUserlist> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.colorsBlue.withOpacity(0.1),
+              color: AppColors.sideGreen.withOpacity(0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
-              filteredCount.toString(),
+              activeUser.toString(),
               style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: AppColors.colorsBlue,
+                color: AppColors.sideGreen,
               ),
             ),
           ),
@@ -185,6 +194,7 @@ class _AdminUserlistState extends State<AdminUserlist> {
   }
 
   Widget _buildUserListItem(Map<String, dynamic> user, bool isLast) {
+    // final inactiveUser = widget.inactiveUser;
     return InkWell(
       onTap: () => _onUserSelected(user),
       borderRadius: BorderRadius.circular(12),
@@ -210,30 +220,14 @@ class _AdminUserlistState extends State<AdminUserlist> {
         ),
         child: Row(
           children: [
-            // User avatar with role
-            // Container(
-            //   width: 56,
-            //   height: 56,
-            //   decoration: BoxDecoration(
-            //     color: AppColors.colorsBlue.withOpacity(0.1),
-            //     borderRadius: BorderRadius.circular(28),
-            //   ),
-            //   child: Center(
-            //     child: Text(
-            //       _getUserInitials(user['name'] ?? 'U'),
-            //       style: GoogleFonts.poppins(
-            //         fontSize: 18,
-            //         fontWeight: FontWeight.w600,
-            //         color: AppColors.colorsBlue,
-            //       ),
-            //     ),
-            //   ),
-            // ),
             Container(
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: AppColors.colorsBlue.withOpacity(0.1),
+                // color: AppColors.colorsBlue.withOpacity(0.1),
+                color: (user['status']?.toString().toLowerCase() == 'inactive')
+                    ? AppColors.iconGrey.withOpacity(0.1)
+                    : AppColors.sideGreen.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(24),
               ),
               child: Center(
@@ -242,7 +236,11 @@ class _AdminUserlistState extends State<AdminUserlist> {
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.colorsBlue,
+                    // color: AppColors.colorsBlue,
+                    color:
+                        (user['status']?.toString().toLowerCase() == 'inactive')
+                        ? AppColors.iconGrey
+                        : AppColors.sideGreen,
                   ),
                 ),
               ),

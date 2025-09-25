@@ -1549,13 +1549,16 @@ class LeadsSrv {
   static Future<Map<String, dynamic>> fetchDealer() async {
     final token = await Storage.getToken();
     try {
+      final url = '${baseUrl}app-admin/all-dealerships';
       final response = await http.get(
-        Uri.parse('${baseUrl}app-admin/all-dealerships'),
+        Uri.parse(url),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
       );
+
+      print('dealer login email get $url');
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonResponse = json.decode(response.body);

@@ -262,18 +262,20 @@ class _MyTeamsState extends State<MyTeams> {
     return _currentDisplayCount < currentList.length;
   }
 
-  Future<void> _fetchSingleCalllog() async {
+  Future<void> _fetchSingleCalllog({bool showLoading = false}) async {
     try {
-      setState(() {
-        isLoading = true;
-      });
+      if (showLoading) {
+        setState(() {
+          isLoading = true;
+        });
+      }
 
       final token = await Storage.getToken();
 
       String periodParam = '';
       switch (selectedTimeRange) {
         case '1D':
-          periodParam = 'DAY'; // REMOVE the '?type=' part
+          periodParam = 'DAY';
           break;
         case '1W':
           periodParam = 'WEEK';
@@ -291,11 +293,8 @@ class _MyTeamsState extends State<MyTeams> {
           periodParam = 'DAY';
       }
 
-      final Map<String, String> queryParams = {
-        'type': periodParam, // CHANGE THIS LINE
-      };
+      final Map<String, String> queryParams = {'type': periodParam};
 
-      // Add userId to query parameters if it's available
       if (_selectedUserId.isNotEmpty) {
         queryParams['user_id'] = _selectedUserId;
       }
@@ -306,8 +305,6 @@ class _MyTeamsState extends State<MyTeams> {
 
       final uri = baseUri.replace(queryParameters: queryParams);
 
-      print('📤 Fetching call analytics from: $uri');
-
       final response = await http.get(
         uri,
         headers: {
@@ -316,18 +313,23 @@ class _MyTeamsState extends State<MyTeams> {
         },
       );
 
-      print('📥 Call Analytics Status Code: ${response.statusCode}');
-      print('📥 Call Analytics Response: ${response.body}');
+      // final uri = baseUri.replace(queryParameters: queryParams);
+
+      print('📤 Fetching call analytics from: $uri');
 
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
+
+        print('📥 Call Analytics Response: ${response.body}');
 
         if (mounted) {
           setState(() {
             _dashboardData = jsonData['data'];
             _enquiryData = jsonData['data']['summaryEnquiry'];
             _coldCallData = jsonData['data']['summaryColdCalls'];
-            isLoading = false;
+            if (showLoading) {
+              isLoading = false;
+            }
           });
         }
       } else {
@@ -338,12 +340,97 @@ class _MyTeamsState extends State<MyTeams> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          isLoading = false;
+          if (showLoading) {
+            isLoading = false;
+          }
         });
       }
       debugPrint('Error fetching data: $e');
     }
   }
+
+  // Future<void> _fetchSingleCalllog() async {
+  //   try {
+  //     setState(() {
+  //       isLoading = true;
+  //     });
+
+  //     final token = await Storage.getToken();
+
+  //     String periodParam = '';
+  //     switch (selectedTimeRange) {
+  //       case '1D':
+  //         periodParam = 'DAY'; // REMOVE the '?type=' part
+  //         break;
+  //       case '1W':
+  //         periodParam = 'WEEK';
+  //         break;
+  //       case '1M':
+  //         periodParam = 'MTD';
+  //         break;
+  //       case '1Q':
+  //         periodParam = 'QTD';
+  //         break;
+  //       case '1Y':
+  //         periodParam = 'YTD';
+  //         break;
+  //       default:
+  //         periodParam = 'DAY';
+  //     }
+
+  //     final Map<String, String> queryParams = {
+  //       'type': periodParam, // CHANGE THIS LINE
+  //     };
+
+  //     // Add userId to query parameters if it's available
+  //     if (_selectedUserId.isNotEmpty) {
+  //       queryParams['user_id'] = _selectedUserId;
+  //     }
+
+  //     final baseUri = Uri.parse(
+  //       'https://api.smartassistapp.in/api/users/ps/dashboard/call-analytics',
+  //     );
+
+  //     final uri = baseUri.replace(queryParameters: queryParams);
+
+  //     print('📤 Fetching call analytics from: $uri');
+
+  //     final response = await http.get(
+  //       uri,
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+
+  //     print('📥 Call Analytics Status Code: ${response.statusCode}');
+  //     print('📥 Call Analytics Response: ${response.body}');
+
+  //     if (response.statusCode == 200) {
+  //       final jsonData = json.decode(response.body);
+
+  //       if (mounted) {
+  //         setState(() {
+  //           _dashboardData = jsonData['data'];
+  //           _enquiryData = jsonData['data']['summaryEnquiry'];
+  //           _coldCallData = jsonData['data']['summaryColdCalls'];
+  //           isLoading = false;
+  //         });
+  //       }
+  //     } else {
+  //       throw Exception(
+  //         'Failed to load dashboard data. Status code: ${response.statusCode}',
+  //       );
+  //     }
+  //   } catch (e) {
+  //     if (mounted) {
+  //       setState(() {
+  //         isLoading = false;
+  //       });
+  //     }
+  //     debugPrint('Error fetching data: $e');
+  //   }
+  // }
 
   Future<void> _fetchAllCalllog() async {
     setState(() {
@@ -1817,7 +1904,7 @@ class _MyTeamsState extends State<MyTeams> {
   void _handleTabChange(int newTabIndex) {
     setState(() {
       selectedTabIndex = newTabIndex;
-      isLoading = true;
+      // isLoading = true;
     });
     _fetchSingleCalllog();
   }
@@ -1825,7 +1912,7 @@ class _MyTeamsState extends State<MyTeams> {
   void _handleTimeRangeChange(String newTimeRange) {
     setState(() {
       selectedTimeRange = newTimeRange;
-      isLoading = true;
+      // isLoading = true;
     });
     _fetchSingleCalllog();
   }
@@ -1948,110 +2035,6 @@ class _MyTeamsState extends State<MyTeams> {
           : const Center(child: Text('No data available')),
     );
   }
-  // Widget _buildIndividualPerformanceMetrics(BuildContext context) {
-  //   // Determine selection state
-  //   final bool isSpecificUserSelected = _selectedProfileIndex > 0;
-  //   final bool isAllSelected =
-  //       _selectedProfileIndex == 0 && _selectedLetters.isEmpty;
-  //   final bool isLetterSelected = _selectedLetters.isNotEmpty;
-
-  //   // Debug prints
-  //   print(
-  //     'Selection state - ProfileIndex: $_selectedProfileIndex, Letters: $_selectedLetters, Type: $_selectedType',
-  //   );
-  //   print(
-  //     'Flags - isSpecificUser: $isSpecificUserSelected, isAll: $isAllSelected, isLetter: $isLetterSelected',
-  //   );
-
-  //   // Function to get total for a specific key based on selection
-  //   int getTotalForKey(String key) {
-  //     if (isSpecificUserSelected) {
-  //       // Individual user - use selectedUserPerformance from _teamData or _selectedUserData
-  //       final userStats =
-  //           _teamData['selectedUserPerformance'] ?? _selectedUserData ?? {};
-  //       return int.tryParse(userStats[key]?.toString() ?? '0') ?? 0;
-  //     } else {
-  //       // All users or letter selection - use team comparison data
-  //       final stats = (_isMultiSelectMode || _isComparing)
-  //           ? (_teamData["teamComparsion"] as List? ?? [])
-  //                 .where((member) => member["isSelected"] == true)
-  //                 .toList()
-  //           : (_teamData["teamComparsion"] as List? ?? []);
-
-  //       if (stats.isNotEmpty) {
-  //         // Aggregate from team members
-  //         return stats.fold(
-  //           0,
-  //           (sum, member) =>
-  //               sum + (int.tryParse(member[key]?.toString() ?? '0') ?? 0),
-  //         );
-  //       } else if (isAllSelected) {
-  //         // Fallback to totalPerformance for "All" selection
-  //         final totalStats = _selectedUserData?['totalPerformance'] ?? {};
-  //         return int.tryParse(totalStats[key]?.toString() ?? '0') ?? 0;
-  //       }
-  //     }
-  //     return 0;
-  //   }
-
-  //   // Calculate net orders
-  //   // int calculateNetOrders() {
-  //   //   final orders = getTotalForKey('orders');
-  //   //   final cancellations = getTotalForKey('cancellation');
-  //   //   return math.max(0, orders - cancellations);
-  //   // }
-
-  //   final List<Map<String, dynamic>> metrics = [
-  //     {'label': 'Enquiries', 'key': 'enquiries'},
-  //     {'label': 'Test Drive', 'key': 'testDrives'},
-  //     {'label': 'Orders', 'key': 'orders'},
-  //     {'label': 'Cancellations', 'key': 'cancellation'},
-  //     {'label': 'Net Orders', 'key': 'net_orders'},
-  //     {'label': 'Retails', 'key': 'retail'},
-  //   ];
-
-  //   List<Widget> rows = [];
-  //   for (int i = 0; i < metrics.length; i += 2) {
-  //     rows.add(
-  //       Row(
-  //         children: [
-  //           for (int j = i; j < i + 2 && j < metrics.length; j++) ...[
-  //             Expanded(
-  //               child: _buildMetricCard(
-  //                 metrics[j].containsKey('value')
-  //                     ? metrics[j]['value'].toString()
-  //                     : getTotalForKey(metrics[j]['key'] as String).toString(),
-  //                 metrics[j]['label'] as String,
-  //                 AppColors.colorsBlue,
-  //                 isSelected: _metricIndex == j,
-  //                 isUserSelected: _selectedType != 'All',
-  //               ),
-  //             ),
-  //             if (j % 2 == 0 && j + 1 < metrics.length)
-  //               const SizedBox(width: 12),
-  //           ],
-  //         ],
-  //       ),
-  //     );
-  //     if (i + 2 < metrics.length) rows.add(const SizedBox(height: 12));
-  //   }
-
-  //   // Check if we have any data to display
-  //   bool hasData =
-  //       isSpecificUserSelected ||
-  //       (_teamData["teamComparsion"] as List? ?? []).isNotEmpty ||
-  //       (_selectedUserData?['totalPerformance'] != null);
-
-  //   return Padding(
-  //     padding: const EdgeInsets.all(10),
-  //     child: hasData
-  //         ? Column(
-  //             crossAxisAlignment: CrossAxisAlignment.stretch,
-  //             children: rows,
-  //           )
-  //         : const Center(child: Text('No data available')),
-  //   );
-  // }
 
   // Team Comparison Chart
   Widget _buildTeamComparisonChart(BuildContext context, double screenWidth) {
@@ -2381,39 +2364,6 @@ class _MyTeamsState extends State<MyTeams> {
         }
       });
     }
-
-    // // Sort based on current state
-    // if (_sortState == 0) {
-    //   // Original order - sort by name descending
-    //   dataToSort.sort((a, b) {
-    //     String aName = (a['name'] ?? '').toString().toLowerCase();
-    //     String bName = (b['name'] ?? '').toString().toLowerCase();
-    //     return bName.compareTo(aName); // Z to A
-    //   });
-    // } else if (_sortColumn != null) {
-    //   // Sort by the selected column
-    //   dataToSort.sort((a, b) {
-    //     var aValue = a[_sortColumn];
-    //     var bValue = b[_sortColumn];
-
-    //     // Handle null values
-    //     if (aValue == null && bValue == null) return 0;
-    //     if (aValue == null) return _sortState == 1 ? 1 : -1;
-    //     if (bValue == null) return _sortState == 1 ? -1 : 1;
-
-    //     // Convert to numbers for proper sorting
-    //     double aNum = double.tryParse(aValue.toString()) ?? 0;
-    //     double bNum = double.tryParse(bValue.toString()) ?? 0;
-
-    //     if (_sortState == 1) {
-    //       // Descending order (highest first)
-    //       return bNum.compareTo(aNum);
-    //     } else {
-    //       // Ascending order (lowest first)
-    //       return aNum.compareTo(bNum);
-    //     }
-    //   });
-    // }
 
     // Update the appropriate data source
     if (_isComparing && _teamComparisonData.isNotEmpty) {

@@ -1042,192 +1042,240 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
   Future<void> _showSkipDialog() async {
     return showDialog<void>(
       context: context,
-      barrierDismissible: false,
-      builder: (BuildContext dialogContext) {
-        bool showCompanyField = false;
-        bool isLoading = false;
-        bool isApiSuccess = false; // Track if API call was successful
-        bool hasEdited = false; // Track if user has edited the field
-        String initialCompanyValue = ''; // Store initial value
-
-        return StatefulBuilder(
-          builder: (BuildContext context, void Function(void Function()) setState) {
-            return AlertDialog(
-              titlePadding: EdgeInsets.zero,
-              insetPadding: EdgeInsets.symmetric(horizontal: 10),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              backgroundColor: Colors.white,
-              contentPadding: EdgeInsets.zero,
-              title: Container(
-                padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Align(
-                          alignment: Alignment.bottomLeft,
-                          child: Text(
-                            'Qualify as individual account ?',
-                            style: AppFont.mediumText14(context),
-                          ),
-                        ),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: IconButton(
-                            onPressed: () => Get.back(),
-                            icon: const Icon(Icons.close),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    if (showCompanyField) ...[
-                      const SizedBox(height: 10),
-                      _buildTextField(
-                        isRequired: true,
-                        label: 'Company',
-                        controller: companynameController,
-                        hintText: 'Company',
-                        errorText: _errors['company'],
-                        isLoading: isLoading,
-                        isSuccess: isApiSuccess,
-                        hasEdited: hasEdited,
-                        initialValue: initialCompanyValue,
-                        onChanged: (value) {
-                          if (value.isNotEmpty &&
-                              _errors.containsKey('company')) {
-                            setState(() {
-                              _errors.remove('company');
-                            });
-                          }
-                          // Check if user has edited the field
-                          setState(() {
-                            hasEdited = value != initialCompanyValue;
-                            if (hasEdited) {
-                              isApiSuccess =
-                                  false; // Reset API success if user edits again
-                            }
-                          });
-                        },
-                        onIconPressed: () async {
-                          if (isLoading || isApiSuccess) return;
-
-                          if (companynameController.text.trim().isEmpty) {
-                            setState(() {
-                              _errors['company'] = 'Company field is required';
-                            });
-                            return;
-                          }
-
-                          setState(() {
-                            isLoading = true;
-                            _errors.remove('company');
-                          });
-
-                          try {
-                            await updateLeads();
-                            setState(() {
-                              isLoading = false;
-                              isApiSuccess = true;
-                              hasEdited =
-                                  false; // Reset edit state after successful API call
-                              initialCompanyValue = companynameController
-                                  .text; // Update initial value
-                            });
-                          } catch (e) {
-                            setState(() {
-                              isLoading = false;
-                              isApiSuccess = false;
-                            });
-                          }
-                        },
-                        onClearPressed: () {
-                          setState(() {
-                            companynameController.clear();
-                            _errors.remove('company');
-                            isApiSuccess = false;
-                            hasEdited =
-                                true; // Field is now different from initial value
-                          });
-                        },
-                      ),
-                    ],
-                    const SizedBox(height: 10),
-                  ],
+      barrierDismissible: false, // User must tap button to close dialog
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          backgroundColor: Colors.white,
+          insetPadding: const EdgeInsets.all(10),
+          contentPadding: EdgeInsets.zero,
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Align(
+                alignment: Alignment.bottomLeft,
+                child: Text(
+                  textAlign: TextAlign.center,
+                  'Are you sure you want to qualify this lead to an opportunity?',
+                  style: AppFont.mediumText14(context),
                 ),
               ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      showCompanyField = true;
-                      // Pre-fill the company field with existing data if available
-                      if (company_name != null &&
-                          company_name!.isNotEmpty &&
-                          company_name != 'No Company') {
-                        companynameController.text = company_name!;
-                        initialCompanyValue = company_name!;
-                      } else {
-                        companynameController.clear();
-                        initialCompanyValue = '';
-                      }
-                      hasEdited = false;
-                      isApiSuccess = false;
-                    });
-                  },
-                  child: Text('No', style: AppFont.mediumText14blue(context)),
-                ),
-                // Show "Yes" button when showCompanyField is true
-                if (showCompanyField) ...[
-                  TextButton(
-                    onPressed: (isApiSuccess && !hasEdited)
-                        ? () {
-                            submitQualify(context);
-                          }
-                        : (!hasEdited && !isApiSuccess)
-                        ? () {
-                            // Show snackbar when text field is not edited
-                            Get.snackbar(
-                              'Edit Required',
-                              'Please edit the textfield first',
-                              // snackPosition: SnackPosition.BOTTOM,
-                              backgroundColor: Colors.orange,
-                              colorText: Colors.white,
-                              duration: Duration(seconds: 2),
-                            );
-                          }
-                        : null, // Disable if hasEdited is true but API not successful
-                    child: Text(
-                      'Yes',
-                      style: (isApiSuccess && !hasEdited)
-                          ? AppFont.mediumText14blue(context) // Active state
-                          : GoogleFonts.poppins(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.grey, // Disabled state
-                            ),
-                    ),
-                  ),
-                ],
-                // Show "Ok" button if showCompanyField is false (normal flow)
-                if (!showCompanyField) ...[
-                  TextButton(
-                    onPressed: () {
-                      submitQualify(context);
-                    },
-                    child: Text('Ok', style: AppFont.mediumText14blue(context)),
-                  ),
-                ],
-              ],
-            );
-          },
+              const SizedBox(height: 10),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text(
+                'Cancel',
+                // style: TextStyle(color: AppColors.colorsBlue),
+                style: AppFont.mediumText14blue(context),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                submitQualify(context); // Pass context to submit
+              },
+              child: Text('Submit', style: AppFont.mediumText14blue(context)),
+            ),
+          ],
         );
       },
     );
   }
+  // Future<void> _showSkipDialog() async {
+  //   return showDialog<void>(
+  //     context: context,
+  //     barrierDismissible: false,
+  //     builder: (BuildContext dialogContext) {
+  //       bool showCompanyField = false;
+  //       bool isLoading = false;
+  //       bool isApiSuccess = false; // Track if API call was successful
+  //       bool hasEdited = false; // Track if user has edited the field
+  //       String initialCompanyValue = ''; // Store initial value
+
+  //       return StatefulBuilder(
+  //         builder: (BuildContext context, void Function(void Function()) setState) {
+  //           return AlertDialog(
+  //             titlePadding: EdgeInsets.zero,
+  //             insetPadding: EdgeInsets.symmetric(horizontal: 10),
+  //             shape: RoundedRectangleBorder(
+  //               borderRadius: BorderRadius.circular(10),
+  //             ),
+  //             backgroundColor: Colors.white,
+  //             contentPadding: EdgeInsets.zero,
+  //             title: Container(
+  //               padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+  //               child: Column(
+  //                 crossAxisAlignment: CrossAxisAlignment.start,
+  //                 children: [
+  //                   Row(
+  //                     children: [
+  //                       Align(
+  //                         alignment: Alignment.bottomLeft,
+  //                         child: Text(
+  //                           'Qualify as individual account ?',
+  //                           style: AppFont.mediumText14(context),
+  //                         ),
+  //                       ),
+  //                       Align(
+  //                         alignment: Alignment.centerRight,
+  //                         child: IconButton(
+  //                           onPressed: () => Get.back(),
+  //                           icon: const Icon(Icons.close),
+  //                         ),
+  //                       ),
+  //                     ],
+  //                   ),
+
+  //                   if (showCompanyField) ...[
+  //                     const SizedBox(height: 10),
+  //                     _buildTextField(
+  //                       isRequired: true,
+  //                       label: 'Company',
+  //                       controller: companynameController,
+  //                       hintText: 'Company',
+  //                       errorText: _errors['company'],
+  //                       isLoading: isLoading,
+  //                       isSuccess: isApiSuccess,
+  //                       hasEdited: hasEdited,
+  //                       initialValue: initialCompanyValue,
+  //                       onChanged: (value) {
+  //                         if (value.isNotEmpty &&
+  //                             _errors.containsKey('company')) {
+  //                           setState(() {
+  //                             _errors.remove('company');
+  //                           });
+  //                         }
+  //                         // Check if user has edited the field
+  //                         setState(() {
+  //                           hasEdited = value != initialCompanyValue;
+  //                           if (hasEdited) {
+  //                             isApiSuccess =
+  //                                 false; // Reset API success if user edits again
+  //                           }
+  //                         });
+  //                       },
+  //                       onIconPressed: () async {
+  //                         if (isLoading || isApiSuccess) return;
+
+  //                         if (companynameController.text.trim().isEmpty) {
+  //                           setState(() {
+  //                             _errors['company'] = 'Company field is required';
+  //                           });
+  //                           return;
+  //                         }
+
+  //                         setState(() {
+  //                           isLoading = true;
+  //                           _errors.remove('company');
+  //                         });
+
+  //                         try {
+  //                           await updateLeads();
+  //                           setState(() {
+  //                             isLoading = false;
+  //                             isApiSuccess = true;
+  //                             hasEdited =
+  //                                 false; // Reset edit state after successful API call
+  //                             initialCompanyValue = companynameController
+  //                                 .text; // Update initial value
+  //                           });
+  //                         } catch (e) {
+  //                           setState(() {
+  //                             isLoading = false;
+  //                             isApiSuccess = false;
+  //                           });
+  //                         }
+  //                       },
+  //                       onClearPressed: () {
+  //                         setState(() {
+  //                           companynameController.clear();
+  //                           _errors.remove('company');
+  //                           isApiSuccess = false;
+  //                           hasEdited =
+  //                               true; // Field is now different from initial value
+  //                         });
+  //                       },
+  //                     ),
+  //                   ],
+  //                   const SizedBox(height: 10),
+  //                 ],
+  //               ),
+  //             ),
+  //             actions: [
+  //               TextButton(
+  //                 onPressed: () {
+  //                   setState(() {
+  //                     showCompanyField = true;
+  //                     // Pre-fill the company field with existing data if available
+  //                     if (company_name != null &&
+  //                         company_name!.isNotEmpty &&
+  //                         company_name != 'No Company') {
+  //                       companynameController.text = company_name!;
+  //                       initialCompanyValue = company_name!;
+  //                     } else {
+  //                       companynameController.clear();
+  //                       initialCompanyValue = '';
+  //                     }
+  //                     hasEdited = false;
+  //                     isApiSuccess = false;
+  //                   });
+  //                 },
+  //                 child: Text('No', style: AppFont.mediumText14blue(context)),
+  //               ),
+  //               // Show "Yes" button when showCompanyField is true
+  //               if (showCompanyField) ...[
+  //                 TextButton(
+  //                   onPressed: (isApiSuccess && !hasEdited)
+  //                       ? () {
+  //                           submitQualify(context);
+  //                         }
+  //                       : (!hasEdited && !isApiSuccess)
+  //                       ? () {
+  //                           // Show snackbar when text field is not edited
+  //                           Get.snackbar(
+  //                             'Edit Required',
+  //                             'Please edit the textfield first',
+  //                             // snackPosition: SnackPosition.BOTTOM,
+  //                             backgroundColor: Colors.orange,
+  //                             colorText: Colors.white,
+  //                             duration: Duration(seconds: 2),
+  //                           );
+  //                         }
+  //                       : null, // Disable if hasEdited is true but API not successful
+  //                   child: Text(
+  //                     'Yes',
+  //                     style: (isApiSuccess && !hasEdited)
+  //                         ? AppFont.mediumText14blue(context) // Active state
+  //                         : GoogleFonts.poppins(
+  //                             fontSize: 14,
+  //                             fontWeight: FontWeight.w500,
+  //                             color: Colors.grey, // Disabled state
+  //                           ),
+  //                   ),
+  //                 ),
+  //               ],
+  //               // Show "Ok" button if showCompanyField is false (normal flow)
+  //               if (!showCompanyField) ...[
+  //                 TextButton(
+  //                   onPressed: () {
+  //                     submitQualify(context);
+  //                   },
+  //                   child: Text('Ok', style: AppFont.mediumText14blue(context)),
+  //                 ),
+  //               ],
+  //             ],
+  //           );
+  //         },
+  //       );
+  //     },
+  //   );
+  // }
 
   Widget _buildTextField({
     required TextEditingController controller,
@@ -1571,19 +1619,20 @@ class _FollowupsDetailsState extends State<FollowupsDetails> {
                                   ),
                                   Row(
                                     children: [
-                                      IconButton(
-                                        onPressed: () {
-                                          _mailAction();
-                                          // setState(() {
-                                          //   _isHiddenTop = !_isHiddenTop;
-                                          // });
-                                        },
-                                        icon: Icon(
-                                          Icons.edit,
-                                          size: 20,
-                                          color: AppColors.iconGrey,
+                                      if (!widget.isFromManager)
+                                        IconButton(
+                                          onPressed: () {
+                                            _mailAction();
+                                            // setState(() {
+                                            //   _isHiddenTop = !_isHiddenTop;
+                                            // });
+                                          },
+                                          icon: Icon(
+                                            Icons.edit,
+                                            size: 20,
+                                            color: AppColors.iconGrey,
+                                          ),
                                         ),
-                                      ),
                                       IconButton(
                                         onPressed: () {
                                           setState(() {

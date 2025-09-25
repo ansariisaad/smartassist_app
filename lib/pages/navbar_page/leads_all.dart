@@ -236,14 +236,15 @@ class _AllLeadsState extends State<AllLeads> {
   Future<void> fetchTasksData() async {
     final token = await Storage.getToken();
     try {
+      final url = 'https://api.smartassistapp.in/api/leads/fetch/all';
       final response = await http.get(
-        Uri.parse('https://api.smartassistapp.in/api/leads/fetch/all'),
+        Uri.parse(url),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
       );
-
+      print('leads all url $url');
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
@@ -1244,11 +1245,6 @@ class _TaskItemState extends State<TaskItem>
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
-          // child: LeadUpdate(
-          //   onFormSubmit: widget.fetchTasksData ?? () {},
-          //   leadId: widget.leadId,
-          //   onEdit: widget.onFavoriteToggled,
-          // ),
           child: LeadUpdate(
             onFormSubmit: () async {
               if (widget.fetchTasksData != null) {

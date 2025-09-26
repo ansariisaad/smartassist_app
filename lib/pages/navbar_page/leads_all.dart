@@ -188,7 +188,7 @@ class _AllLeadsState extends State<AllLeads> {
 
       final response = await http.put(
         Uri.parse(
-          'https://api.smartassistapp.in/api/favourites/mark-fav/lead/$leadId',
+          'https://api.prod.smartassistapp.in/api/favourites/mark-fav/lead/$leadId',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -236,7 +236,7 @@ class _AllLeadsState extends State<AllLeads> {
   Future<void> fetchTasksData() async {
     final token = await Storage.getToken();
     try {
-      final url = 'https://api.smartassistapp.in/api/leads/fetch/all';
+      final url = 'https://api.prod.smartassistapp.in/api/leads/fetch/all';
       final response = await http.get(
         Uri.parse(url),
         headers: {
@@ -1529,7 +1529,7 @@ class _TaskItemState extends State<TaskItem>
 
 //       final response = await http.put(
 //         Uri.parse(
-//           'https://api.smartassistapp.in/api/favourites/mark-fav/lead/$leadId',
+//           'https://api.prod.smartassistapp.in/api/favourites/mark-fav/lead/$leadId',
 //         ),
 //         headers: {
 //           'Authorization': 'Bearer $token',
@@ -1578,7 +1578,7 @@ class _TaskItemState extends State<TaskItem>
 //     final token = await Storage.getToken();
 //     try {
 //       final response = await http.get(
-//         Uri.parse('https://api.smartassistapp.in/api/leads/fetch/all'),
+//         Uri.parse('https://api.prod.smartassistapp.in/api/leads/fetch/all'),
 //         headers: {
 //           'Authorization': 'Bearer $token',
 //           'Content-Type': 'application/json',

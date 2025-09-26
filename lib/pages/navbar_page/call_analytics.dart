@@ -110,11 +110,11 @@ class _CallAnalyticsState extends State<CallAnalytics>
 
       if (widget.isFromSM) {
         uri = Uri.parse(
-          'https://api.smartassistapp.in/api/users/ps/dashboard/call-analytics$periodParam&user_id=${widget.userId}',
+          'https://api.prod.smartassistapp.in/api/users/ps/dashboard/call-analytics$periodParam&user_id=${widget.userId}',
         );
       } else {
         uri = Uri.parse(
-          'https://api.smartassistapp.in/api/users/ps/dashboard/call-analytics$periodParam',
+          'https://api.prod.smartassistapp.in/api/users/ps/dashboard/call-analytics$periodParam',
         );
       }
 
@@ -1129,7 +1129,8 @@ class _CallAnalyticsState extends State<CallAnalytics>
       padding: const EdgeInsets.only(left: 8, right: 8, top: 10, bottom: 10),
       child: LineChart(
         LineChartData(
-          clipData: FlClipData.none(),
+          // clipData: FlClipData.none(),
+          clipData: const FlClipData.all(),
           lineTouchData: LineTouchData(
             touchTooltipData: LineTouchTooltipData(
               getTooltipItems: (touchedSpots) {

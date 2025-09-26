@@ -95,6 +95,7 @@ class _CreateLeadsState extends State<CreateLeads> {
   TextEditingController endDateController = TextEditingController();
   TextEditingController emailController = TextEditingController();
   TextEditingController firstNameController = TextEditingController();
+  TextEditingController companyController = TextEditingController();
   TextEditingController lastNameController = TextEditingController();
   TextEditingController mobileController = TextEditingController();
   TextEditingController mobileSecondController = TextEditingController();

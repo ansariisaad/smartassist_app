@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:smartassist/config/component/color/colors.dart';
-import 'package:smartassist/config/component/font/font.dart';
+import 'package:smartassist/config/component/color/colors.dart'; 
 import 'package:smartassist/pages/navbar_page/favorites/favoritesbtns/f_appointment.dart';
 import 'package:smartassist/pages/navbar_page/favorites/favoritesbtns/f_leads.dart';
 import 'package:smartassist/pages/navbar_page/favorites/favoritesbtns/f_testdrive.dart';
 import 'package:smartassist/pages/navbar_page/favorites/favoritesbtns/f_upcoming.dart';
-import 'package:smartassist/utils/bottom_navigation.dart';
 
 class FavoritePage extends StatefulWidget {
   final String leadId;

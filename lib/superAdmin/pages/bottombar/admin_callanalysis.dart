@@ -91,22 +91,22 @@ class _CallAnalyticsState extends State<AdminCallanalysis>
       String periodParam = '';
       switch (selectedTimeRange) {
         case '1D':
-          periodParam = '?type=DAY';
+          periodParam = 'type=DAY';
           break;
         case '1W':
-          periodParam = '?type=WEEK';
+          periodParam = 'type=WEEK';
           break;
         case '1M':
-          periodParam = '?type=MTD';
+          periodParam = 'type=MTD';
           break;
         case '1Q':
-          periodParam = '?type=QTD';
+          periodParam = 'type=QTD';
           break;
         case '1Y':
-          periodParam = '?type=YTD';
+          periodParam = 'type=YTD';
           break;
         default:
-          periodParam = '?type=DAY';
+          periodParam = 'type=DAY';
       }
 
       late Uri uri;
